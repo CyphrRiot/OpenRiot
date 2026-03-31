@@ -210,7 +210,7 @@ MIT License — see [LICENSE](./LICENSE)
 
 ## 📋 Progress
 
-See [Progress.md](./Progress.md) for full project status, architecture, build plan, and TODO list.
+See [TODO.md](./TODO.md) for full project status, architecture, build plan, and TODO list.
 
 **OpenRiot 🐡** — An opinionated OpenBSD desktop system  
 Created by [CyphrRiot](https://github.com/CyphrRiot)
