@@ -52,10 +52,18 @@ echo "=== Step 2: Verifying ISO integrity ==="
 
 curl -fL -o "$DL_DIR/SHA256" "$MIRROR/snapshots/${ARCH}/SHA256"
 
-if ! (cd "$DL_DIR" && sha256sum -c SHA256 --status 2>/dev/null); then
-    echo "WARNING: SHA256 verification failed or not available. Continuing anyway..."
+# OpenBSD's SHA256 format is "SHA256 (filename) = hash"
+# Extract hash for our ISO, compute actual hash, compare
+EXPECTED=$(grep "$ISO_NAME" "$DL_DIR/SHA256" | awk '{print $NF}')
+ACTUAL=$(sha256sum "$DL_DIR/$ISO_NAME" | awk '{print $1}')
+if [ "$EXPECTED" = "$ACTUAL" ]; then
+    echo "SHA256 OK"
+else
+    echo "WARNING: SHA256 verification failed."
+    echo "Expected: $EXPECTED"
+    echo "Actual:   $ACTUAL"
+    exit 1
 fi
-echo "ISO verified OK"
 
 # ============================================================
 # STEP 3: Copy autoinstall config
