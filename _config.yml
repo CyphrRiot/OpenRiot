@@ -1,0 +1,49 @@
+# Jekyll Configuration for OpenRiot GitHub Pages
+title: OpenRiot 🎭
+description: >-
+    OpenRiot: The OpenBSD System You've Always Wanted!
+
+# GitHub Pages settings
+remote_theme: pages-themes/midnight@v0.2.0
+# GitHub Pages safe plugins only
+plugins:
+    - jekyll-remote-theme
+    - jekyll-sitemap
+    - jekyll-feed
+
+# Site settings
+url: "https://openriot.org"
+baseurl: ""
+author: CyphrRiot
+github_username: CyphrRiot
+
+# Markdown settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+    input: GFM
+    syntax_highlighter: rouge
+    footnote_nr: 1
+    entity_output: as_char
+    toc_levels: 1..6
+    smart_quotes: lsquo,rsquo,ldquo,rdquo
+    enable_coderay: false
+    parse_block_html: true
+    parse_span_html: true
+
+# Collections and defaults
+defaults:
+    - scope:
+          path: ""
+      values:
+          layout: default
+
+# Exclude files from processing
+exclude:
+    - plan.md
+
+# Custom variables for the theme
+show_downloads: false
+github:
+    repository_url: https://github.com/CyphrRiot/OpenRiot
+    repository_name: OpenRiot
