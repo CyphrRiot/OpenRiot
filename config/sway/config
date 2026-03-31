@@ -1,0 +1,199 @@
+# =============================================================================
+# ArchRiot - Sway Configuration
+# =============================================================================
+# This is the main Sway config.
+# Modular pieces are sourced below.
+#
+# NOTE: This file is managed by the Hyprland→Sway migration.
+# DO NOT add config content here — add it to the sourced files below.
+#
+# sourced files:
+#   ~/.config/sway/monitors.conf  -> monitor and workspace config
+#   ~/.config/sway/windowrules.conf -> window rules (for_window blocks)
+#   ~/.config/sway/keybindings.conf -> keybindings (bindsym)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Output configuration (monitor, resolution, scale, position)
+# -----------------------------------------------------------------------------
+source ~/.config/sway/monitors.conf
+
+# =============================================================================
+# DEFAULT APPLICATION VARIABLES
+# =============================================================================
+set $terminal foot
+set $fileManager Thunar
+set $browser archriot-brave
+set $messenger env GDK_SCALE=1 signal-desktop --ozone-platform=wayland --enable-features=UseOzonePlatform
+set $webapp $browser --force-device-scale-factor=1 --high-dpi-support=1 --app
+set $mod Mod4
+set $archriot $HOME/.local/share/openriot/install/openriot
+
+# =============================================================================
+# ENVIRONMENT VARIABLES
+# =============================================================================
+exec env XCURSOR_THEME=Bibata-Modern-Ice
+exec env XCURSOR_SIZE=24
+exec env XDG_CURRENT_DESKTOP=sway
+exec env XDG_SESSION_TYPE=wayland
+# exec gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'  # Not available on OpenBSD
+
+# -----------------------------------------------------------------------------
+# Cursor (hyprcursor not supported in Sway — useXCURSOR only)
+# -----------------------------------------------------------------------------
+exec env HYPRCURSOR_THEME=Bibata-Modern-Ice
+
+# =============================================================================
+# AUTOSTART APPLICATIONS
+
+# =============================================================================
+# AUTOSTART APPLICATIONS
+# =============================================================================
+exec-once = $HOME/.local/share/openriot/install/openriot --waybar-launch
+exec-once = mako
+exec-once = $HOME/.local/share/openriot/install/openriot --startup-background
+exec-once = wlsunset -t 3500
+exec-once = sleep 2 && $HOME/.local/share/openriot/install/openriot --welcome
+exec-once = $HOME/.local/share/openriot/install/openriot --mullvad-startup
+
+# =============================================================================
+# IDLE MANAGEMENT (swayidle)
+# =============================================================================
+# Swayidle handles idle detection, lock, and brightness dim.
+#
+# Usage:
+#   swayidle -w  (daemon mode, run at startup)
+#
+# Commands:
+#   timeout <sec> <cmd>     — run cmd after idle seconds
+#   before_sleep <cmd>      — run before systemd sleep
+#   after_resume <cmd>       — run after resume from sleep
+#
+# Note: brightnessctl is used for gentle dim (not DPMS off, safe for all GPUs)
+# Note: The archriot binary handles --suspend-if-undocked
+# =============================================================================
+
+# =============================================================================
+# IDLE MANAGEMENT (swayidle)
+# =============================================================================
+# Swayidle handles idle detection, lock, and brightness dim.
+#
+# NOTE: hyprlock is used for the lock screen. It works via XWayland on Sway.
+# =============================================================================
+
+exec swayidle -w \
+    timeout 300 'swaylock -f' \
+    before_sleep 'swaylock -f' \
+    after_resume 'swaymsg output * dpms on'
+
+# i3-autotiling (AUR package: i3-autotiling) — not available on OpenBSD
+# exec-once = i3-autotiling
+# exec-once = i3-autotiling
+# =============================================================================
+# INPUT CONFIGURATION
+# =============================================================================
+input * {
+    xkb_layout us
+    xkb_variant
+    xkb_model
+    xkb_options
+    xkb_rules
+
+    pointer_accel 0
+    repeat_rate 40
+    repeat_delay 600
+
+    # tap-to-click, natural scroll, etc. can be enabled per-device:
+    # enabled for the touchpad:
+    # device "*-touchpad" {
+    #     dwt enabled
+    #     tap enabled
+    #     natural_scroll enabled
+    # }
+}
+
+# Focus
+focus_follows_mouse yes
+
+# =============================================================================
+# GENERAL APPEARANCE
+# =============================================================================
+# Gaps
+gaps inner 0
+gaps outer 2
+
+# Borders
+default_border pixel 1
+default_floating_border pixel 1
+hide_edge_borders none
+
+# Border colors (Tokyo Night inspired)
+client.focused           #89b4fa #89b4fa #89b4fa
+client.focused_inactive   #1a1a1a #1a1a1a #1a1a1a
+client.unfocused         #1a1a1a #1a1a1a #1a1a1a
+client.urgent            #ff6e6e #ff6e6e #ff6e6e
+client.placeholder       #1a1a1a #1a1a1a #1a1a1a
+
+# =============================================================================
+# LAYOUT
+# =============================================================================
+# Dwindle is Sway's default (splitv / splith / left / right)
+# Pseudotile is handled via rules below
+default_orientation auto
+
+# =============================================================================
+# WINDOW RULES
+# Place before keybindings so keybindings can override
+# -----------------------------------------------------------------------------
+# Sway uses: for_window [criteria] command [args]
+# -----------------------------------------------------------------------------
+source ~/.config/sway/windowrules.conf
+
+# =============================================================================
+# KEYBINDINGS
+# -----------------------------------------------------------------------------
+# Sway uses: bindsym [flags] keysym command
+# Hyprland bind flags ($mod, SHIFT, etc.) become + in Sway:
+#   $mod + Return  = Super + Enter
+#   $mod + Shift + Return = Super + Shift + Enter
+#   Mod1 = Alt
+#   --release flag for keyrelease-only bindings
+# -----------------------------------------------------------------------------
+source ~/.config/sway/keybindings.conf
+
+# =============================================================================
+# LOCK SCREEN
+# -----------------------------------------------------------------------------
+# swaylock is started by swayidle; config is at ~/.config/sway/swaylock.conf
+# -----------------------------------------------------------------------------
+
+# =============================================================================
+# SWAYNC (optional - notification center)
+# -----------------------------------------------------------------------------
+# If using swaync instead of mako:
+# exec swaync
+
+# =============================================================================
+# MODIFIER KEY
+# =============================================================================
+# Alt is Mod1 in Sway
+# Win/Super is Mod4 in Sway ($mod is set to Mod4 above)
+
+# =============================================================================
+# MISC
+# =============================================================================
+# Mouse warping
+mouse_warping container
+
+# Idle configuration (swayidle handles timeouts)
+# The swayidle daemon is started above in exec-once
+
+# Popups during fullscreen
+popup_during_fullscreen smart
+
+# =============================================================================
+# INCLUDE ADDITIONAL CONFIG SNIPPETS
+# =============================================================================
+# Add any additional config pieces here:
+# source ~/.config/sway/autostart.conf
+# source ~/.config/sway/outputs.conf

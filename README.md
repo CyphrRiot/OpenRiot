@@ -47,6 +47,7 @@ _Built on OpenBSD with Sway, because security and aesthetics shouldn't be mutual
 - [🧰 Advanced Usage](#advanced-usage)
 - [🔧 Troubleshooting](#troubleshooting)
 - [📄 License](#license)
+- [📋 Progress](#progress) — Project status, plan, and architecture
 
 <a id="choose-your-openriot-experience"></a>
 
@@ -204,6 +205,12 @@ pkg_info -Q package-name
 MIT License — see [LICENSE](./LICENSE)
 
 ---
+
+<a id="progress"></a>
+
+## 📋 Progress
+
+See [Progress.md](./Progress.md) for full project status, architecture, build plan, and TODO list.
 
 **OpenRiot 🐡** — An opinionated OpenBSD desktop system  
 Created by [CyphrRiot](https://github.com/CyphrRiot)
