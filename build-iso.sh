@@ -8,7 +8,7 @@ OPENBSD_VERSION="7.9"
 ARCH="amd64"
 MIRROR="https://cdn.openbsd.org/pub/OpenBSD"
 ISO_NAME="install79.iso"
-OPENRIOT_VERSION="0.1-current"
+OPENRIOT_VERSION="0.1"
 
 # ---- Paths ----
 ROOT="$(cd "$(dirname "$0")" && pwd)"
