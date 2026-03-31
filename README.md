@@ -21,13 +21,15 @@
 
 </div>
 
+**⚠️ WARNING: OpenRiot is IN PROGRESS and will not (yet) install! ⚠️**
+
 ## **OpenRiot: The OpenBSD System You've Always Wanted**
 
 OpenRiot is the answer to every time you've thought "Why can't an OpenBSD installation just work correctly from the start?" Built on the same principles as ArchRiot — perfect the details once, get it right every time.
 
 **Curated to be correct:**
 
-- **𝕊 Sway Tiling** — i3-compatible Wayland compositor with OpenBSD's legendary stability
+- **🪟 Sway Tiling** — i3-compatible Wayland compositor with OpenBSD's legendary stability
 - **⚡ Robust Binary** — Atomic operations, pledge/unveil security, zero dependency hell
 - **🛡️ Privacy** — Zero telemetry, zero tracking, zero data harvesting
 - **🎨 Aesthetics** — Carefully crafted dark themes that work at any hour
