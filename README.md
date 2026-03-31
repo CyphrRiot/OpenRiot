@@ -2,6 +2,8 @@
 
 # :: 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥 ::
 
+#### **⚠️ WARNING: OpenRiot is IN PROGRESS and will not (yet) install! ⚠️**
+
 ### **One Command. Complete Environment. Zero Compromises.**
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue?labelColor=0052cc)
@@ -20,8 +22,6 @@
 ![Language](https://img.shields.io/badge/Python-312e81?label=language&logo=python&logoColor=c7d2fe&labelColor=1e1b4b&color=312e81)
 
 </div>
-
-**⚠️ WARNING: OpenRiot is IN PROGRESS and will not (yet) install! ⚠️**
 
 ## **OpenRiot: The OpenBSD System You've Always Wanted**
 
