@@ -284,48 +284,114 @@ Port ArchRiot Go CLI to OpenBSD. See "Go Installer Port" section below.
 
 ---
 
-## Go Installer Port
+## OpenBSD Package List
 
-### What to Port from ArchRiot
+Packages to install via `pkg_add`. Derived from ArchRiot's packages.yaml, translated to OpenBSD equivalents.
 
-The ArchRiot Go installer (`source/`) has ~50 files across ~15 packages. Not all are needed on OpenBSD.
+### Core Base
 
-**Likely reusable without changes:**
+| Package     | Description        | ArchRiot Equivalent |
+| ----------- | ------------------ | ------------------- |
+| `git`       | Version control    | git                 |
+| `rsync`     | File sync          | rsync               |
+| `bc`        | Calculator         | bc                  |
+| `python`    | Python interpreter | python              |
+| `fastfetch` | System info tool   | fastfetch           |
 
-- `source/cli/` — help, validation
-- `source/logger/` — logging
-- `source/config/` — loader, types, dependency_validator (pkg_deps → pkg_add deps)
-- `source/executor/` — command execution
-- `source/crypto/` — CoinGecko API (no ArchLinux deps)
-- `source/display/` — brightness (N/A on OpenBSD; stub out)
-- `source/windows/` — offscreen, switcher (swaymsg equivalents exist)
+### Shell & Terminal
 
-**Needs rewrite:**
+| Package        | Description      | ArchRiot Equivalent |
+| -------------- | ---------------- | ------------------- |
+| `fish`         | Fish shell       | fish                |
+| `starship`     | Shell prompt     | starship            |
+| `neovim`       | Text editor      | neovim              |
+| `lazygit`      | TUI git client   | lazygit             |
+| `foot`         | Wayland terminal | kitty               |
+| `pv`           | Pipe viewer      | pv                  |
+| `fd`           | File finder      | fd                  |
+| `fzf`          | Fuzzy finder     | fzf                 |
+| `ripgrep`      | Search tool      | ripgrep             |
+| `lsd`          | LS alternative   | lsd                 |
+| `wl-clipboard` | Clipboard        | wl-clipboard        |
+| `man`          | Manual pages     | man                 |
+| `less`         | Pager            | less                |
 
-- `source/installer/` — pacman/yay → pkg_add
-- `source/session/` — systemd → rc.d / direct commands
-- `source/upgrunner/` — pacman → pkg_add
-- `source/upgradeguard/` — pacman db → pkg_info
+### Desktop (Sway)
 
-**Likely droppable:**
+| Package                      | Description        | ArchRiot Equivalent         |
+| ---------------------------- | ------------------ | --------------------------- |
+| `sway`                       | Wayland compositor | hyprland                    |
+| `waybar`                     | Status bar         | waybar                      |
+| `wofi`                       | App launcher       | fuzzel                      |
+| `mako`                       | Notifications      | mako                        |
+| `swaylock`                   | Screen lock        | hyprlock                    |
+| `swayidle`                   | Idle daemon        | hypridle                    |
+| `swaybg`                     | Wallpaper          | swaybg                      |
+| `wlsunset`                   | Blue light reducer | hyprsunset                  |
+| `kanshi`                     | Display config     | kanshi                      |
+| `xdg-desktop-portal`         | Portal             | xdg-desktop-portal          |
+| `xdg-desktop-portal-wlroots` | Portal backend     | xdg-desktop-portal-hyprland |
 
-- `source/installer/secureboot.go` — no sbctl on OpenBSD
-- `source/plymouth/` — Plymouth is Linux-specific
-- `source/secboot/` — Secure Boot flow is Linux-specific
+### Applications
 
-**OpenBSD equivalents:**
-| ArchRiot (Linux) | OpenRiot (OpenBSD) |
-|-------------------|---------------------|
-| pacman + yay | pkg_add |
-| systemd --user | rc.d / direct commands |
-| hyprlock | swaylock |
-| hypridle | swayidle |
-| brightnessctl | N/A |
-| gsettings | N/A |
-| i3-autotiling (AUR) | N/A |
-| $HOME/.local/share/archriot/ | $HOME/.local/share/openriot/ |
-| archriot binary | openriot binary |
-| pacman.conf | pkg.conf |
+| Package                 | Description      | ArchRiot Equivalent   |
+| ----------------------- | ---------------- | --------------------- |
+| `thunar`                | File manager     | thunar                |
+| `thunar-archive-plugin` | Archive support  | thunar-archive-plugin |
+| `gnome-keyring`         | Secrets          | gnome-keyring         |
+| `transmission`          | Torrent client   | transmission-gtk      |
+| `file-roller`           | Archive manager  | file-roller           |
+| `xdg-user-dirs`         | User directories | xdg-user-dirs         |
+| `gnome-calculator`      | Calculator       | gnome-calculator      |
+
+### Fonts & Icons
+
+| Package            | Description    | ArchRiot Equivalent |
+| ------------------ | -------------- | ------------------- |
+| `font-noto-emoji`  | Emoji fonts    | noto-fonts-emoji    |
+| `dejavu-fonts-ttf` | TrueType fonts | ttf-dejavu          |
+| `terminus-font`    | Terminal font  | terminus-font       |
+
+### Media
+
+| Package        | Description  | ArchRiot Equivalent |
+| -------------- | ------------ | ------------------- |
+| `ffmpeg`       | Media codecs | ffmpeg              |
+| ` ImageMagick` | Image tool   | imagemagick         |
+| `libwebp`      | WebP support | libwebp             |
+
+### System Tools
+
+| Package | Description      | ArchRiot Equivalent |
+| ------- | ---------------- | ------------------- |
+| `doas`  | Sudo replacement | sudo                |
+| `curl`  | HTTP client      | curl                |
+| `wget`  | Download tool    | wget                |
+| `unzip` | Zip extraction   | unzip               |
+| `xz`    | Compression      | xz                  |
+| `zstd`  | Compression      | zstd                |
+
+**Note:** OpenBSD packages are installed via `pkg_add`. Run `pkg_add -l` to list installed packages.
+
+### Source-Built Packages
+
+Some packages are not available in OpenBSD's package repository and must be compiled from source:
+
+| Package     | Build Method                      | URL                                        |
+| ----------- | --------------------------------- | ------------------------------------------ |
+| `wlsunset`  | `git clone` + meson               | https://git.sr.ht/~kennylevinsen/wlsunset  |
+| `starship`  | `cargo install`                   | https://starship.rs                        |
+| `fastfetch` | `cargo install` or release binary | https://github.com/fastfetch-cli/fastfetch |
+
+**wlsunset build commands:**
+
+```sh
+git clone https://git.sr.ht/~kennylevinsen/wlsunset
+cd wlsunset
+meson setup build --prefix=/usr/local --buildtype=release
+meson compile -C build
+doas meson install -C build
+```
 
 ---
 
