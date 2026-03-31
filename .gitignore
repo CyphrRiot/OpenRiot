@@ -1,32 +1,47 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+# Prevents sensitive information from being committed
 
-# Test binary, built with `go test -c`
-*.test
+# Mail configuration with credentials
 
-# Code coverage profiles and other test artifacts
-*.out
-coverage.*
-*.coverprofile
-profile.cov
+# User-specific configurations
+config/omarchy/user.env
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# NEVER COMMIT THE ISO
+archlinux-2025.07.01-x86_64.iso
+*.iso
 
-# Go workspace file
-go.work
-go.work.sum
+# Temporary files
+*.tmp
+*.temp
+*~
+.DS_Store
+Thumbs.db
 
-# env file
-.env
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.orig
 
-# Editor/IDE
-# .idea/
-# .vscode/
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Log files
+*.log
+
+# docs
+docs/
+
+# Personal customizations
+personal/
+local/
+
+# Python Rope IDE artifacts
+.ropeproject/
+PROPOSAL.md
+
+# No crush
+.crush/*
