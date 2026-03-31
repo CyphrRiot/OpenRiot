@@ -205,5 +205,5 @@ MIT License — see [LICENSE](./LICENSE)
 
 ---
 
-**OpenRiot 🎭** — An opinionated OpenBSD desktop system  
+**OpenRiot 🐡** — An opinionated OpenBSD desktop system  
 Created by [CyphrRiot](https://github.com/CyphrRiot)
