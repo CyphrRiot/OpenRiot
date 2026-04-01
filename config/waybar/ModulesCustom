@@ -1,0 +1,251 @@
+/* ArchRiot Waybar Custom Modules */
+/* Custom modules for enhanced waybar functionality */
+/* Separated from main modules for better organization */
+/* Custom Modules like weather browser, tty, file manager at the beginning */
+
+/* NOTE: This is only for ArchRiot Custom Modules */
+/* NOTE: Changes will only be kept in user files: UserModules, UserWorkspaces */
+
+{
+	// "custom/arch": {
+    //     "format": "󰣇",
+    //     "on-click": "nwg-drawer -c 4 -is 48 -spacing 15 -fm \"Noto Sans\" || fuzzel",
+    //     "on-click-right": "pkill fuzzel || fuzzel",
+    //     "tooltip": true,
+    //     "tooltip-format": "Left Click: Application Grid\nRight Click: Fuzzel Launcher"
+    // },
+	// ----- ArchRiot theme specific module override (this was in `/config`)
+	"custom/arch": {
+		"format": "󰣇",
+		"on-click": "nwg-drawer -c 4 -is 48 -spacing 15 -fm \"Noto Sans\" || fuzzel",
+		"on-click-right": "pkill fuzzel || fuzzel",
+		"tooltip": true,
+		"tooltip-format": "Left-click: App Drawer | Right-click: Fuzzel"
+	},
+
+    "custom/archriot-update": {
+    	"exec": "$HOME/.local/share/archriot/config/waybar/scripts/archriot-update.sh",
+    	"return-type": "json",
+    	"interval": 300,
+    	"on-click": "$HOME/.local/share/archriot/config/waybar/scripts/archriot-update.sh --click",
+    	"tooltip": true,
+    },
+	// This was in `/UserModules`:
+	"custom/media": {
+        "on-click-middle": "playerctl previous",
+        "on-click": "playerctl play-pause",
+        "format": "{icon} {}",
+        "max-length": 40,
+        "on-click-right": "playerctl next",
+        "format-icons": {
+            "Playing": "󰎈",
+            "Paused": "󰏤"
+        },
+        "return-type": "json",
+        "exec": "playerctl -a metadata --format '{\"text\": \"{{artist}} - {{title}}\", \"tooltip\": \"{{playerName}} : {{artist}} - {{album}} - {{title}}\", \"alt\": \"{{status}}\", \"class\": \"{{status}}\"}' -F"
+    },
+
+    "custom/lock": {
+    	"format": "󰌾",
+    	"on-click": "hyprlock",
+    	"tooltip": true,
+    	"tooltip-format": "󰷛 Screen Lock",
+    },
+
+    "custom/rec-dot": {
+    	"format": "{}",
+    	"return-type": "json",
+    	"interval": 2,
+    	"exec": "$HOME/.local/share/archriot/config/waybar/scripts/recording-indicator.sh",
+    	"on-click": "$HOME/.local/share/archriot/config/waybar/scripts/recording-indicator.sh --click",
+    	"tooltip": true
+    },
+
+    // Tomato Timer (Pomodoro) - 25 minute work timer
+    "custom/tomato-timer": {
+    	"format": "{}",
+    	"return-type": "json",
+    	"interval": 2,
+    	"exec": "$HOME/.local/share/archriot/install/archriot --waybar-pomodoro",
+    	"on-click": "$HOME/.local/share/archriot/install/archriot --pomodoro-click",
+    	"tooltip": true
+    },
+
+    // Custom CPU meter showing aggregate usage across all cores (Python version)
+    "custom/cpu-aggregate": {
+    	"format": "{}",
+    	"return-type": "json",
+    	"interval": 2,
+    	"exec": "$HOME/.local/share/archriot/install/archriot --waybar-cpu",
+    	"on-click": "gnome-system-monitor",
+    	"on-click-right": "gnome-system-monitor",
+    	"tooltip": true
+    },
+
+    "custom/power": {
+    	"format": " ⏻ ",
+    	"on-click": "$HOME/.local/share/archriot/install/archriot --power-menu",
+    	"tooltip": false
+    },
+
+    // Custom temperature module with visual bar indicators
+    "custom/temp-bar": {
+    	"format": "{}",
+    	"return-type": "json",
+    	"interval": 10,
+    	"exec": "$HOME/.local/share/archriot/install/archriot --waybar-temp",
+    	"on-click": "gnome-system-monitor",
+    	"on-click-right": "gnome-system-monitor",
+    	"tooltip": true
+    },
+
+    // Custom volume module with visual bar indicators
+    "custom/volume-bar": {
+    	"format": "{}",
+    	"return-type": "json",
+    	"interval": 1,
+    	"exec": "$HOME/.local/share/archriot/install/archriot --waybar-volume",
+    	"on-click": "$HOME/.local/share/archriot/install/archriot --volume toggle",
+    	"on-click-right": "pavucontrol -t 3",
+    	"on-scroll-up": "$HOME/.local/share/archriot/install/archriot --volume inc",
+    	"on-scroll-down": "$HOME/.local/share/archriot/install/archriot --volume dec",
+    	"tooltip": true
+    },
+
+    // Accurate memory module using same calculation as btop (Total - Available)
+    "custom/memory-accurate": {
+    	"format": "{}",
+    	"return-type": "json",
+    	"interval": 5,
+    	"exec": "$HOME/.local/share/archriot/install/archriot --waybar-memory",
+    	"on-click": "gnome-system-monitor",
+    	"on-click-right": "gnome-system-monitor",
+    	"tooltip": true
+    },
+    // Separators
+    "custom/separator#dot": {
+    	"format": "•",
+    	"interval": "once",
+    	"tooltip": false
+    },
+    "custom/separator#dot-line": {
+    	"format": "",
+    	"interval": "once",
+    	"tooltip": false
+    },
+    "custom/separator#line": {
+    	"format": "|",
+    	"interval": "once",
+    	"tooltip": false
+    },
+    "custom/separator#line-tray": {
+    	"format": "|",
+    	"interval": "once",
+    	"tooltip": false
+    },
+    "custom/separator#blank": {
+    	"format": "",
+    	"interval": "once",
+    	"tooltip": false
+    },
+    "custom/separator#blank_2": {
+    	"format": "  ",
+    	"interval": "once",
+    	"tooltip": false
+    },
+    "custom/separator#blank_3": {
+    	"format": "   ",
+    	"interval": "once",
+    	"tooltip": false
+    },
+    "custom/separator#tight": {
+    	"format": " ",
+    	"interval": "once",
+    	"tooltip": false
+    },
+    "custom/arrow1": {
+    	"format": "",
+    	"tooltip": false
+    },
+
+    "custom/arrow2": {
+    	"format": "",
+    	"tooltip": false
+    },
+
+    "custom/arrow3": {
+    	"format": "",
+    	"tooltip": false
+    },
+
+    "custom/arrow4": {
+    	"format": "",
+    	"tooltip": false
+    },
+
+    "custom/arrow5": {
+    	"format": "",
+    	"tooltip": false
+    },
+
+    "custom/arrow6": {
+    	"format": "",
+    	"tooltip": false
+    },
+
+    "custom/arrow7": {
+    	"format": "",
+    	"tooltip": false
+    },
+
+    "custom/arrow8": {
+    	"format": "",
+    	"tooltip": false
+    },
+
+    "custom/arrow9": {
+    	"format": "",
+    	"tooltip": false
+    },
+
+    "custom/arrow10": {
+    	"format": "",
+    	"tooltip": false
+    },
+	// This was in `/UserModules`:
+	// "custom/mullvad": {
+    //     "exec": "$HOME/.config/waybar/scripts/mullvad-status.sh",
+    //     "return-type": "json",
+    //     "interval": 5,
+    //     "on-click": "$HOME/.config/waybar/scripts/mullvad-click.sh left",
+    //     "on-click-right": "$HOME/.config/waybar/scripts/mullvad-click.sh right",
+    //     "tooltip": true
+    // },
+    "custom/mullvad": {
+    	"format": "{}",
+    	"return-type": "json",
+    	"interval": 300,
+        "restart-interval": 60,
+        "exec-if": "command -v mullvad >/dev/null 2>&1",
+    	"exec": "$HOME/.local/share/archriot/config/waybar/scripts/mullvad-status.sh",
+    	"on-click": "$HOME/.local/share/archriot/config/waybar/scripts/mullvad-click.sh left",
+    	"on-click-right": "$HOME/.local/share/archriot/config/waybar/scripts/mullvad-click.sh right",
+    	"tooltip": true
+    },
+    "custom/weather-emoji": {
+    	"format": "{}",
+    	"interval": 600,
+    	"exec": "$HOME/.local/share/archriot/config/waybar/scripts/weather-emoji-plain.sh",
+    	"tooltip": true
+    },
+
+    // Custom network module - replaces built-in to prevent crashes on WiFi flaps
+    "custom/network": {
+    	"format": "{}",
+    	"return-type": "json",
+    	"interval": 300,
+    	"exec": "$HOME/.local/share/archriot/config/waybar/scripts/waybar-network",
+    	"on-click": "$HOME/.local/share/archriot/config/waybar/scripts/wifi-selector.sh",
+    	"tooltip": true
+    }
+}

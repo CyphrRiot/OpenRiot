@@ -7,7 +7,7 @@ set -e
 OPENBSD_VERSION="7.9"
 ARCH="amd64"
 MIRROR="https://cdn.openbsd.org/pub/OpenBSD"
-ISO_NAME="install79.iso"
+ISO_NAME="install78.iso"
 OPENRIOT_VERSION="0.1"
 
 # ---- Paths ----
@@ -129,7 +129,7 @@ fi
 # ============================================================
 echo "=== Step 8: Repacking ISO ==="
 
-OUTPUT="$OUT/openriot-${OPENRIOT_VERSION}-${OPENBSD_VERSION}.iso"
+OUTPUT="$OUT/openriot-${OPENRIOT_VERSION}.iso"
 
 if command -v xorriso >/dev/null 2>&1; then
     echo "Using xorriso..."

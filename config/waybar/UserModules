@@ -1,0 +1,14 @@
+/* ArchRiot Waybar User Modules */
+/* Add your own custom modules here (this file will be kept by the installer)*/
+
+// E.g.: User module for cava stereo bars
+{
+//     "custom/cava_left": {
+//         "format": "{}",
+//         "exec": "~/bin/waybar_cava.sh --left"
+//     },
+//     "custom/cava_right": {
+//         "format": "{}",
+//         "exec": "~/bin/waybar_cava.sh --right"
+//     } 
+}

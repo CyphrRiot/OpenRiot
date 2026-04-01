@@ -41,7 +41,7 @@ func SetEmojiMode(emojiSupport bool) {
 }
 
 // ASCII Art
-const ArchRiotASCII = `
+const OpenRiotASCII = `
 ▄  ▄▀█ █▀█ █▀▀ █ █ █▀█ █ █▀█ ▀█▀  ▄
 ▄  █▀█ █▀▄ █▄▄ █▀█ █▀▄ █ █▄█  █   ▄
 `
@@ -82,7 +82,7 @@ func NewInstallModel() *InstallModel {
 		maxLogs:       12,
 		width:         80,
 		height:        24,
-		operation:     "ArchRiot Installation",
+		operation:     "OpenRiot Installation",
 		currentStep:   "Initializing...",
 		inputMode:     "",
 		inputValue:    "",
@@ -271,7 +271,10 @@ func (m *InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case OpenRouterConfirmMsg:
-		// OpenRouter confirmation received, handled by main
+		// Show OpenRouter setup confirmation prompt
+		m.showConfirm = true
+		m.confirmPrompt = "🤖 Setup OpenRouter for Neovim AI?"
+		m.cursor = 1 // Default to NO (conservative)
 		return m, nil
 
 	case OpenRouterKeyMsg:
@@ -303,15 +306,15 @@ func (m *InstallModel) View() string {
 	} else {
 		asciiStyle = lipgloss.NewStyle().Foreground(primaryColor).Bold(true)
 	}
-	ascii := asciiStyle.Render(ArchRiotASCII)
+	ascii := asciiStyle.Render(OpenRiotASCII)
 	s.WriteString(ascii + "\n")
 
 	titleStyle := lipgloss.NewStyle().Foreground(primaryColor).Bold(true)
-	title := titleStyle.Render("-=-  ArchRiot Installer v" + GetVersion() + "  -=-")
+	title := titleStyle.Render("-=-  OpenRiot Installer v" + GetVersion() + "  -=-")
 	s.WriteString(title + "\n")
 
 	versionStyle := lipgloss.NewStyle().Foreground(dimColor)
-	subtitle := versionStyle.Render(" (Charm • Bubbletea • Cypher Riot)")
+	subtitle := versionStyle.Render(" (Charm • Bubbletea • OpenRiot)")
 	s.WriteString(subtitle + "\n\n")
 
 	// Info section - operation details

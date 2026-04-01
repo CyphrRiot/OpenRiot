@@ -1,0 +1,61 @@
+/* OpenRiot Waybar Configuration */
+/* OpenBSD / Sway — CypherRiot Aesthetic */
+
+[
+    {
+        "include": [
+            "$HOME/.config/waybar/Modules",
+            "$HOME/.config/waybar/ModulesCustom",
+            "$HOME/.config/waybar/ModulesWorkspaces",
+            "$HOME/.config/waybar/UserModules",
+            "$HOME/.config/waybar/UserWorkspaces"
+        ],
+
+        "fixed-center": true,
+        "layer": "top",
+        "margin-right": 8,
+        "margin-left": 8,
+        "spacing": 10,
+        "passthrough": false,
+        "exclusive": true,
+        "margin-top": 3,
+        "position": "top",
+        "ipc": false,
+
+        // ----- MODULES LEFT:
+        "modules-left": [
+            "custom/separator#blank",
+            "sway/workspaces",
+            "custom/separator#blank",
+            "sway/window"
+        ],
+
+        // ----- MODULES CENTER:
+        "modules-center": [
+            "clock",
+            "custom/separator#dot",
+            "custom/weather-emoji"
+        ],
+
+        // ----- MODULES RIGHT:
+        "modules-right": [
+            "custom/separator#blank_3",
+            "custom/rec-dot",          // Recording status (wf-recorder)
+            "tray",
+            "custom/separator#blank",
+            "group/system-metrics",    // CPU, memory, temp
+            "custom/separator#blank",
+            "custom/volume-bar",       // sndiod volume
+            "custom/separator#blank",
+            "custom/network",          // Network (ifconfig)
+            "custom/wireguard",        // WireGuard VPN status
+            "custom/separator#blank",
+            "battery",                 // Battery (apm on OpenBSD)
+            "custom/separator#blank",
+            "custom/openriot-update",  // OpenRiot update check
+            "custom/separator#blank",
+            "group/status",
+            "custom/lock"              // Lockscreen
+        ]
+    }
+]
