@@ -1,0 +1,5 @@
+# OpenRiot hostname configuration template
+# Copy this to /etc/hostname.iwx0 (or your interface name)
+# Example:
+# nwid YOUR_SSID wpakey YOUR_PASSWORD
+# inet autoconf
