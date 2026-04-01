@@ -6,73 +6,146 @@ import (
 	"path/filepath"
 	"strings"
 
+	"openriot/config"
 	"openriot/logger"
 )
 
 // CopyConfigs copies configuration files from the repo to user's home directory
-func CopyConfigs(repoDir string) error {
+// It reads config rules from the loaded YAML configuration
+func CopyConfigs(repoDir string, cfg *config.Config) error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("getting home directory: %w", err)
 	}
 
 	configSourceDir := filepath.Join(repoDir, "config")
+	configDir := filepath.Join(homeDir, ".config")
 
 	logger.LogMessage("INFO", fmt.Sprintf("Copying configs from: %s", configSourceDir))
-
-	// List of configs to copy (source relative to config/, dest relative to ~/.config/)
-	configs := []struct {
-		source string
-		dest   string
-	}{
-		// Shell
-		{"fish/config.fish", "fish/config.fish"},
-
-		// Neovim
-		{"nvim/init.lua", "nvim/init.lua"},
-		{"nvim/lazyvim.json", "nvim/lazyvim.json"},
-
-		// Terminal
-		{"foot/cypherriot.ini", "foot/cypherriot.ini"},
-
-		// Desktop
-		{"sway/config", "sway/config"},
-		{"sway/keybindings.conf", "sway/keybindings.conf"},
-		{"waybar/config", "waybar/config"},
-	}
-
-	configDir := filepath.Join(homeDir, ".config")
 
 	// Create ~/.config if it doesn't exist
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return fmt.Errorf("creating config directory: %w", err)
 	}
 
-	// Copy each config
-	for _, cfg := range configs {
-		srcPath := filepath.Join(configSourceDir, cfg.source)
-		destPath := filepath.Join(configDir, cfg.dest)
+	// Collect all config rules from all modules
+	var allRules []config.ConfigRule
 
-		// Skip if source doesn't exist
-		if _, err := os.Stat(srcPath); os.IsNotExist(err) {
-			logger.LogMessage("INFO", fmt.Sprintf("Skipping %s (not found)", cfg.source))
+	// Get all modules from all categories
+	for _, module := range cfg.Core {
+		allRules = append(allRules, module.Configs...)
+	}
+	for _, module := range cfg.Desktop {
+		allRules = append(allRules, module.Configs...)
+	}
+	for _, module := range cfg.System {
+		allRules = append(allRules, module.Configs...)
+	}
+	for _, module := range cfg.Source {
+		allRules = append(allRules, module.Configs...)
+	}
+
+	// Process each config rule
+	for _, rule := range allRules {
+		// Skip empty patterns
+		if rule.Pattern == "" {
 			continue
 		}
 
-		// Create destination directory
-		destDir := filepath.Dir(destPath)
-		if err := os.MkdirAll(destDir, 0755); err != nil {
-			logger.LogMessage("WARN", fmt.Sprintf("Failed to create directory %s: %v", destDir, err))
-			continue
-		}
+		// Determine if this is a glob pattern (contains /*)
+		isGlob := strings.Contains(rule.Pattern, "/*")
 
-		// Copy file
-		if err := copyFile(srcPath, destPath); err != nil {
-			logger.LogMessage("WARN", fmt.Sprintf("Failed to copy %s: %v", cfg.source, err))
-			continue
-		}
+		if isGlob {
+			// Glob pattern: copy all files matching the pattern
+			globSrc := filepath.Join(configSourceDir, rule.Pattern)
+			globDest := filepath.Join(configDir, rule.Pattern)
 
-		logger.LogMessage("INFO", fmt.Sprintf("Copied %s", cfg.dest))
+			// Expand the glob
+			matches, err := filepath.Glob(globSrc)
+			if err != nil {
+				logger.LogMessage("WARN", fmt.Sprintf("Glob failed for %s: %v", rule.Pattern, err))
+				continue
+			}
+
+			// Determine base directory for destination
+			baseDest := globDest
+			if rule.Target != "" {
+				if strings.HasPrefix(rule.Target, "~/") {
+					baseDest = filepath.Join(homeDir, rule.Target[2:])
+				} else {
+					baseDest = rule.Target
+				}
+			}
+
+			for _, srcPath := range matches {
+				// Skip directories
+				info, err := os.Stat(srcPath)
+				if err != nil || info.IsDir() {
+					continue
+				}
+
+				// Get relative path from source base
+				relPath, err := filepath.Rel(configSourceDir, srcPath)
+				if err != nil {
+					continue
+				}
+				destPath := filepath.Join(baseDest, relPath)
+
+				// Skip if source doesn't exist
+				if _, err := os.Stat(srcPath); os.IsNotExist(err) {
+					continue
+				}
+
+				// Create destination directory
+				destDir := filepath.Dir(destPath)
+				if err := os.MkdirAll(destDir, 0755); err != nil {
+					logger.LogMessage("WARN", fmt.Sprintf("Failed to create directory %s: %v", destDir, err))
+					continue
+				}
+
+				// Copy file
+				if err := copyFile(srcPath, destPath); err != nil {
+					logger.LogMessage("WARN", fmt.Sprintf("Failed to copy %s: %v", srcPath, err))
+					continue
+				}
+
+				logger.LogMessage("INFO", fmt.Sprintf("Copied %s", relPath))
+			}
+		} else {
+			// Single file pattern
+			srcPath := filepath.Join(configSourceDir, rule.Pattern)
+			destPath := filepath.Join(configDir, rule.Pattern)
+
+			// If custom target specified, use it instead
+			if rule.Target != "" {
+				if strings.HasPrefix(rule.Target, "~/") {
+					destPath = filepath.Join(homeDir, rule.Target[2:])
+				} else {
+					destPath = rule.Target
+				}
+			}
+
+			// Skip if source doesn't exist
+			if _, err := os.Stat(srcPath); os.IsNotExist(err) {
+				logger.LogMessage("INFO", fmt.Sprintf("Skipping %s (not found)", rule.Pattern))
+				continue
+			}
+
+			// Create destination directory
+			destDir := filepath.Dir(destPath)
+			if err := os.MkdirAll(destDir, 0755); err != nil {
+				logger.LogMessage("WARN", fmt.Sprintf("Failed to create directory %s: %v", destDir, err))
+				continue
+			}
+
+			// Copy file
+			if err := copyFile(srcPath, destPath); err != nil {
+				logger.LogMessage("WARN", fmt.Sprintf("Failed to copy %s: %v", rule.Pattern, err))
+				continue
+			}
+
+			logger.LogMessage("INFO", fmt.Sprintf("Copied %s", rule.Pattern))
+		}
 	}
 
 	// Copy backgrounds to ~/.local/share/openriot/backgrounds

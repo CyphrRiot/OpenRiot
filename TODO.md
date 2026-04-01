@@ -23,6 +23,22 @@ All configuration is declarative, version-controlled, and reproducible.
 
 ### On Every Change
 
+**Every response MUST start with:**
+
+```
+Completed: <brief description of what was just done>
+Next Task: <description of next task>
+```
+
+**Then provide details:**
+
+```
+Files: <list of files to be modified>
+Goal: <why this change is being made>
+```
+
+**Then ask:** `Continue?`
+
 1. **Propose first** — Show the exact change (filename, function, reason) before editing
 2. **Wait for "Proceed/Continue?"** before touching any code
 3. **Test locally first** (Linux with `--test` flag)
