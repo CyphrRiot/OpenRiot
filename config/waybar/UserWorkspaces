@@ -1,0 +1,301 @@
+/* ArchRiot Waybar User Workspace Custom Theme Module */
+/* Add your own workspace customizations here (this file will be kept by the installer)*/
+
+/* Surtarso's custom workspace theme */
+// PACMAN with COLORED ICONS
+// hyprland/workspaces#pacman-rwc (rewrite windows with colors)
+
+// -------- ICON COLOR PALLET
+// Reds & Pinks
+// pastel red light      #ef9a9a
+// pastel red dark       #e57373
+// pastel coral          #ff8a65
+// pastel pink light     #f8bbd0
+// pastel pink dark      #f48fb1
+// pastel rose           #e7a1b0
+
+// Oranges & Ambers
+// pastel orange light   #ffcc80
+// pastel orange dark    #ffb74d
+// pastel amber          #ffca28
+// pastel apricot        #ffd180
+// pastel peach          #ffab91
+
+// Yellows
+// pastel yellow light   #fff59d
+// pastel yellow dark    #fff176
+// pastel gold           #ffe082
+// pastel sand           #f6e58d
+
+// Greens
+// pastel green light    #c5e1a5
+// pastel green dark     #aed581
+// pastel mint           #b9f6ca
+// pastel olive          #cddc39
+// pastel moss           #a5d6a7
+
+// Cyans & Teals
+// pastel teal light     #b2dfdb
+// pastel teal dark      #80cbc4
+// pastel aqua           #a7ffeb
+// pastel turquoise      #64d8cb
+// pastel cyan           #4dd0e1
+
+// Blues
+// pastel blue light     #bbdefb
+// pastel blue dark      #64b5f6
+// pastel sky            #81d4fa
+// pastel steel blue     #90caf9
+// pastel navy faded     #5c6bc0
+
+// Purples
+// pastel purple light   #d1c4e9
+// pastel purple dark    #b39ddb
+// pastel violet         #ce93d8
+// pastel lavender       #c5cae9
+// pastel lilac          #b388eb
+
+// Grays & Neutrals
+// pastel gray light     #cfd8dc
+// pastel gray dark      #b0bec5
+// pastel slate          #90a4ae
+// pastel charcoal       #78909c
+// pastel beige          #d7ccc8
+// pastel brown faded    #bcaaa4
+
+// Extras
+// pastel magenta        #f48fb1
+// pastel indigo         #9fa8da
+// pastel mint blue      #a5c8d4
+// pastel seafoam        #9fd3c7
+// pastel cream          #fff8e1
+// pastel ivory          #f0ede5
+
+{
+"hyprland/workspaces#pacman-rwc": {
+	"disable-scroll": true,
+	"all-outputs": true,
+	"warp-on-scroll": false,
+	"sort-by-number": true,
+	"show-special": false,
+	"on-click": "activate ",
+	"on-scroll-up": "hyprctl dispatch workspace e+1 ",
+	"on-scroll-down": "hyprctl dispatch workspace e-1 ",
+	"persistent-workspaces": {
+		"1": [],
+		"2": [],
+		"3": [],
+		"4": []
+	},
+	"max-length": 4,
+	"active-only": false,
+	"numeric-first": false,
+	"format": "{icon}{windows}",
+	"window-rewrite-delay": 250,
+	"format-icons": {
+		"minimized": "<span font='14' color='purple'> </span> ",
+		"active": "<span font='14' color='yellow'>󰮯</span> ",
+		"default": "<span font='14'>󰊠</span> ",
+		"empty": "<span font='12' color='#80cbc4aa'>⬤</span> "
+	},
+	"format-window-separator": "",
+	"window-rewrite-default": "",
+	"ignore-workspaces": [],
+	"window-rewrite": {
+		// --- WEB & BROWSERS ---
+		"class<brave-browser|Brave-browser|Brave|brave>": "<span font='11' color='#ffb74daa'>󰊯 </span>",
+		"title<.*amazon.*>": "<span font='11' color='#ffcc80aa'> </span>",
+		"title<.*o!mpd.*>": "<span font='11' color='#80cbc4aa'> </span>",
+		"class<firefox|org.mozilla.firefox|librewolf|floorp|mercury-browser|[Cc]achy-browser>": "<span font='11' color='#ffb74daa'>󰈹 </span>",
+		"class<waterfox|waterfox-bin>": "<span font='11' color='#ffb74daa'>󰈹 </span>",
+		"class<microsoft-edge>": "<span font='11' color='#90caf9aa'>󰇩 </span>",
+		"class<Chromium|Thorium|[Cc]hrome>": "<span font='11' color='#bbdefbaa'>󰊯 </span>",
+		"class<brave-x.com.*>": "<span font='11' color='#b0bec5aa'>𝕏 </span>",
+		"class<twitter-x>": "<span font='11' color='#b0bec5aa'>𝕏 </span>",
+		"class<tor browser>": "<span font='11' color='#ce93d8aa'> </span>",
+		"class<epiphany|org.gnome.Epiphany>": "<span font='11' color='#ffb74daa'>󰈹 </span>",
+		"class<falkon>": "<span font='11' color='#ffb74daa'>󰈹 </span>",
+		"class<qutebrowser>": "<span font='11' color='#ffb74daa'>󰈹 </span>",
+		"title<.*youtube.*>": "<span font='11' color='#e57373aa'> </span>",
+		"title<.*reddit.*>": "<span font='11' color='#ef9a9aaa'> </span>",
+		"title<.*facebook.*>": "<span font='11' color='#81d4faaa'> </span>",
+		"title<.*bluesky.*>": "<span font='11' color='#64b5f6aa'> </span>",
+		"class<^brave-bsky\\.app__-Default$>": "<span font='11' color='#64b5f6aa'> </span>",
+		"title<.*github.*>": "<span font='11' color='#b39ddbaa'> </span>",
+		"class<.*brave-github\\.app__.*>": "<span font='11' color='#b39ddbaa'> </span>",
+		"class<^brave-github\\.app__-Default$>": "<span font='11' color='#b39ddbaa'> </span>",
+
+		// --- COMMUNICATION ---
+		"class<[Tt]elegram-desktop|org.telegram.desktop|io.github.tdesktop_x64.TDesktop>": "<span font='11' color='#64b5f6aa'>󰘦 </span>",
+		"class<discord|[Ww]ebcord|Vesktop>": "<span font='11' color='#bbdefbaa'> </span>",
+		"title<.*whatsapp.*>": "<span font='11' color='#aed581aa'> </span>",
+		"title<.*zapzap.*>": "<span font='11' color='#aed581aa'> </span>",
+		"title<.*messenger.*>": "<span font='11' color='#81d4faaa'>󰊭 </span>",
+		"class<signal>": "<span font='11' color='#64b5f6aa'>󰍡 </span>",
+		"class<slack>": "<span font='11' color='#ce93d8aa'> </span>",
+		"title<.*gmail.*>": "<span font='11' color='#ffab91aa'>󰊫 </span>",
+		"title<.*proton.*mail.*>": "<span font='11' color='#b39ddbaa'>󰊫 </span>",
+		"class<brave-mail.proton.me.*>": "<span font='11' color='#b39ddbaa'>󰊫 </span>",
+		"class<[Tt]hunderbird|[Tt]hunderbird-esr>": "<span font='11' color='#64b5f6aa'>󰊫 </span>",
+		"class<eu.betterbird.Betterbird>": "<span font='11' color='#64b5f6aa'>󰊫 </span>",
+		"class<org.gnome.Evolution>": "<span font='11' color='#ffcc80aa'>󰊫 </span>",
+		"class<claws-mail>": "<span font='11' color='#c5e1a5aa'>󰇮 </span>",
+		"class<org.gnome.Geary>": "<span font='11' color='#ffcc80aa'>󰊫 </span>",
+
+		// --- DEV TOOLS ---
+		"class<VSCode|code-url-handler|code-oss|codium|codium-url-handler|VSCodium>": "<span font='11' color='#80cbc4aa'>󰨞 </span>",
+		"class<dev.zed.Zed|dev.zed.Zed-Preview>": "<span font='12' color='#ffcc80aa'>☡ </span>",
+		"class<codeblocks>": "<span font='11' color='#90a4aeaa'>󰘦 </span>",
+		"class<geany>": "<span font='11' color='#ffd180aa'>󰈙 </span>",
+		"title<.*nvim.*>": "<span font='11' color='#a5d6a7aa'>󰈙 </span>",
+		"title<.*vim.*>": "<span font='11' color='#a5d6a7aa'>󰈙 </span>",
+		"class<subl>": "<span font='11' color='#ffb74daa'>󰅳 </span>",
+		"class<jetbrains-idea>": "<span font='11' color='#9fa8daaa'> </span>",
+		"class<android-studio>": "<span font='11' color='#a5d6a7aa'>󰀴 </span>",
+		"title<.*figma.*>": "<span font='11' color='#f48fb1aa'>󰈙 </span>",
+		"title<.*jira.*>": "<span font='11' color='#64b5f6aa'>󰈙 </span>",
+		"title<.*ChatGPT.*>": "<span font='11' color='#80cbc4aa'>󰚩 </span>",
+		"title<.*Grok.*>": "<span font='11' color='#80cbc4aa'>󰚩 </span>",
+		"title<.*deepseek.*>": "<span font='11' color='#b39ddbaa'>󰚩 </span>",
+		"title<.*qwen.*>": "<span font='11' color='#ffcc80aa'>󰚩 </span>",
+
+		// --- TERMINALS ---
+		"class<konsole>": "<span font='11' color='#cfd8dcaa'> </span>",
+		"class<kitty>": "<span font='11' color='#b0bec5aa'>󰄛 </span>",
+		"class<com.mitchellh.ghostty>": "<span font='11' color='#b0bec5aa'>󰊠 </span>",
+		"class<com.mitchellh.ghostty-floating>": "<span font='11' color='#b0bec5aa'>󰊠 </span>",
+		"class<org.wezfurlong.wezterm>": "<span font='11' color='#cfd8dcaa'>󰞷 </span>",
+		"class<alacritty>": "<span font='11' color='#cfd8dcaa'>󰞷 </span>",
+		"class<foot>": "<span font='11' color='#cfd8dcaa'>󰆍 </span>",
+		"class<gnome-terminal>": "<span font='11' color='#b0bec5aa'> </span>",
+		"class<tilix>": "<span font='11' color='#b0bec5aa'> </span>",
+		"class<xfce4-terminal>": "<span font='11' color='#b0bec5aa'> </span>",
+
+		// --- MEDIA / VIDEO / MUSIC ---
+		"class<mpv>": "<span font='11' color='#bcaaa4aa'>󰥠 </span>",
+		"class<mpd-player>": "<span font='11' color='#b2dfdbaa'>󰝚 </span>",
+		"class<celluloid>": "<span font='11' color='#ffcc80aa'>󰕼 </span>",
+		"class<vlc>": "<span font='11' color='#ffb74daa'>󰕼 </span>",
+		"class<Cider>": "<span font='11' color='#f48fb1aa'>󰎆 </span>",
+		"title<.*cmus.*>": "<span font='11' color='#aed581aa'>󰽴 </span>",
+		"class<[Ss]potify>": "<span font='11' color='#c5e1a5aa'> </span>",
+		"class<org.kde.elisa>": "<span font='11' color='#b2dfdbaa'>󰽴 </span>",
+		"class<org.gnome.Lollypop|org.gnome.Music|rhythmbox>": "<span font='11' color='#ffd180aa'> </span>",
+		"class<obs|com.obsproject.Studio>": "<span font='11' color='#9fa8daaa'>󰑋 </span>",
+		"class<Zoom>": "<span font='11' color='#90caf9aa'>󰕧 </span>",
+
+		// --- FILES / SYSTEM ---
+		"class<thunar|nemo|org.gnome.Nautilus>": "<span font='11' color='#b2dfdbaa'>󰝰 </span>",
+		"class<Gparted>": "<span font='11' color='#c5e1a5aa'> </span>",
+		"class<org.pwmt.zathura>": "<span font='11' color='#ffcc80aa'>󰈦 </span>",
+		"class<org.gnome.Papers>": "<span font='11' color='#ffd180aa'>󰈦 </span>",
+		"class<org.gnome.TextEditor>": "<span font='11' color='#ffd180aa'>󰷈 </span>",
+		"class<ghostwriter|org.kde.ghostwriter>": "<span font='11' color='#f8bbd0aa'>󰷈 </span>",
+		"class<org.gnome.Contacts>": "<span font='11' color='#aed581aa'>󰀉 </span>",
+		"class<polkit-gnome-authentication-agent-1>": "<span font='11' color='#ffb74daa'>󰒃 </span>",
+		"class<[Pp]avucontrol|org.pulseaudio.pavucontrol>": "<span font='11' color='#80cbc4aa'>󱡫 </span>",
+		"class<nwg-look>": "<span font='11' color='#d7ccc8aa'>󰀻 </span>",
+		"class<org.pipewire.Helvum>": "<span font='11' color='#b2dfdbaa'>󰓃 </span>",
+		"class<virt-manager|.virt-manager-wrapped>": "<span font='11' color='#ce93d8aa'>󰢹 </span>",
+		"class<virtualbox manager>": "<span font='11' color='#9fa8daaa'>󰌗 </span>",
+		"class<remmina>": "<span font='11' color='#a5c8d4aa'>󰢹 </span>",
+		"class<steam>": "<span font='11' color='#78909caa'>󰓓 </span>",
+		"title<.*steam.*>": "<span font='11' color='#78909caa'>󰓓 </span>",
+
+		// --- DESIGN / CREATIVITY / 3D ---
+		"class<gimp>": "<span font='11' color='#ffca28aa'> </span>",
+		"class<krita>": "<span font='11' color='#b39ddbaa'> </span>",
+		"class<kdenlive>": "<span font='11' color='#64b5f6aa'> </span>",
+		"title<.*kdenlive.*>": "<span font='11' color='#64b5f6aa'> </span>",
+		"class<PrusaSlicer|UltiMaker-Cura|OrcaSlicer>": "<span font='11' color='#ffcc80aa'>󰹛 </span>",
+		"class<inkscape>": "<span font='11' color='#81d4faaa'> </span>",
+		"class<blender>": "<span font='11' color='#ffb74daa'>󰂫 </span>",
+
+		// --- UTILITIES / MISC ---
+		"class<feather>": "<span font='11' color='#c5cae9aa'>󱟘 </span>",
+		"class<Trezor Suite>": "<span font='11' color='#bcaaa4aa'>󰌆 </span>",
+		"class<Exodus|exodus>": "<span font='11' color='#b39ddbaa'>Ⓧ </span>",
+		"class<cake_wallet>": "<span font='11' color='#aed581aa'>󰿦 </span>",
+		"class<zen>": "<span font='11' color='#9fd3c7aa'>󰰷 </span>",
+		"class<com.transmissionbt.transmission.*>": "<span font='11' color='#ffcc80aa'>󰇚 </span>",
+		"class<de.haeckerfelix.Fragments>": "<span font='11' color='#ffcc80aa'>󰇚 </span>",
+		"class<mousepad>": "<span font='11' color='#ffd180aa'>󰈙 </span>",
+		"class<libreoffice-writer>": "<span font='11' color='#f48fb1aa'>󰈙 </span>",
+		"class<libreoffice-calc>": "<span font='11' color='#c5e1a5aa'>󰈙 </span>",
+		"class<libreoffice-startcenter>": "<span font='11' color='#fff59daa'>󰏆 </span>",
+		"title<clock-rs>": "<span font='10' color='#b0bec5aa'> </span>",
+
+
+		// --- SYSTEM / SETTINGS / UTILITIES ---
+		"class<gnome-control-center|org.gnome.Settings>": "<span font='11' color='#ffcc80aa'>󰒓 </span>",
+		"class<org.gnome.Extensions>": "<span font='11' color='#b39ddbaa'>󰔎 </span>",
+		"class<org.gnome.Terminal.Preferences>": "<span font='11' color='#aed581aa'>󰒓 </span>",
+		"class<org.gnome.Software>": "<span font='11' color='#ffb74daa'>󰏗 </span>",
+		"class<gnome-disks|org.gnome.DiskUtility>": "<span font='11' color='#90a4aeaa'>󰋊 </span>",
+		"class<org.gnome.SystemMonitor>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
+		"class<org.gnome.Calculator|gnome-calculator>": "<span font='11' color='#fff176aa'>󰪚 </span>",
+		"class<org.gnome.Fonts>": "<span font='11' color='#ce93d8aa'>󰛖 </span>",
+		"class<org.gnome.Maps>": "<span font='11' color='#81d4faaa'>󰟡 </span>",
+		"class<org.gnome.Weather>": "<span font='11' color='#4dd0e1aa'>󰖕 </span>",
+		"class<org.gnome.Connections>": "<span font='11' color='#80cbc4aa'>󰢹 </span>",
+		"class<org.gnome.PowerStats>": "<span font='11' color='#ffd180aa'>󰠭 </span>",
+		"class<org.gnome.Logs>": "<span font='11' color='#b0bec5aa'>󰁯 </span>",
+		"class<org.gnome.About>": "<span font='11' color='#c5cae9aa'>󰋖 </span>",
+		"class<org.gnome.Usage>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
+		"class<org.gnome.SystemMonitor>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
+
+		"class<org.kde.systemmonitor>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
+		"class<org.kde.dolphin>": "<span font='11' color='#aed581aa'>󰝰 </span>",
+		"class<org.kde.kinfocenter>": "<span font='11' color='#b39ddbaa'>󰋗 </span>",
+		"class<org.kde.konsole>": "<span font='11' color='#90caf9aa'> </span>",
+		"class<org.kde.ksysguard>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
+		"class<org.kde.spectacle>": "<span font='11' color='#ffb74daa'>󰄀 </span>",
+		"class<systemsettings|systemsettings5>": "<span font='11' color='#ffcc80aa'>󰒓 </span>",
+
+		"class<org.xfce.SettingsManager>": "<span font='11' color='#ffcc80aa'>󰒓 </span>",
+		"class<org.xfce.Terminal>": "<span font='11' color='#64b5f6aa'> </span>",
+		"class<org.xfce.Thunar>": "<span font='11' color='#aed581aa'>󰝰 </span>",
+		"class<org.xfce.AppFinder>": "<span font='11' color='#ffd180aa'>󰘳 </span>",
+		"class<org.xfce.Panel>": "<span font='11' color='#ffd180aa'>󰘳 </span>",
+		"class<org.xfce.Session>": "<span font='11' color='#c5cae9aa'>󰜉 </span>",
+
+		"class<lxappearance>": "<span font='11' color='#b39ddbaa'>󰀻 </span>",
+		"class<xfce4-settings-manager>": "<span font='11' color='#ffcc80aa'>󰒓 </span>",
+		"class<xfce4-taskmanager>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
+		"class<xfce4-power-manager-settings>": "<span font='11' color='#ffd180aa'>󰠭 </span>",
+		"class<xfce4-display-settings>": "<span font='11' color='#81d4faaa'>󰹑 </span>",
+		"class<xfce4-appfinder>": "<span font='11' color='#ffd180aa'>󰘳 </span>",
+
+		"class<nwg-displays>": "<span font='11' color='#81d4faaa'>󰹑 </span>",
+		"class<nwg-look>": "<span font='11' color='#b39ddbaa'>󰀻 </span>",
+		"class<nwg-panel>": "<span font='11' color='#ffd180aa'>󰘳 </span>",
+		"class<nwg-shell-config>": "<span font='11' color='#ffcc80aa'>󰒓 </span>",
+
+		"class<timeshift-gtk>": "<span font='11' color='#e57373aa'>󰣜 </span>",
+		"class<baobab|org.gnome.baobab>": "<span font='11' color='#90a4aeaa'>󰋊 </span>",
+		"class<htop|btop|gotop>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
+		"title<htop|btop|gotop>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
+		"class<lxtask>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
+		"class<nm-connection-editor>": "<span font='11' color='#4dd0e1aa'>󰤨 </span>",
+		"class<wicd>": "<span font='11' color='#4dd0e1aa'>󰤨 </span>",
+		"class<blueman-manager|blueman>": "<span font='11' color='#80cbc4aa'>󰂯 </span>",
+		"class<pavucontrol>": "<span font='11' color='#64d8cbaa'>󱡫 </span>",
+		"class<file-roller|org.gnome.FileRoller>": "<span font='11' color='#ffb74daa'>󰗄 </span>",
+		"class<gnome-tweaks|org.gnome.tweaks>": "<span font='11' color='#ffcc80aa'>󰒓 </span>",
+		"class<org.gnome.seahorse.Application>": "<span font='11' color='#b39ddbaa'>󰌆 </span>",
+		"class<gnome-screenshot>": "<span font='11' color='#ffcc80aa'>󰄀 </span>",
+		"class<gnome-system-monitor>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
+		"class<gufw>": "<span font='11' color='#ef9a9aaa'>󰒃 </span>",
+		"class<timeshift-gtk>": "<span font='11' color='#e57373aa'>󰣜 </span>",
+		"class<grub-customizer>": "<span font='11' color='#bcaaa4aa'>󰞷 </span>",
+		"class<synaptic>": "<span font='11' color='#ffb74daa'>󰏗 </span>",
+		"class<software-properties-gtk>": "<span font='11' color='#ffb74daa'>󰏗 </span>",
+		"class<update-manager>": "<span font='11' color='#ffb74daa'>󰏗 </span>",
+		"class<gparted>": "<span font='11' color='#90a4aeaa'> </span>",
+		"class<disks>": "<span font='11' color='#90a4aeaa'>󰋊 </span>",
+		"class<gnome-system-log>": "<span font='11' color='#b0bec5aa'>󰁯 </span>",
+		"class<org.gnome.About>": "<span font='11' color='#c5cae9aa'>󰋖 </span>",
+		"class<org.gnome.PowerStats>": "<span font='11' color='#ffd180aa'>󰠭 </span>"
+		}
+	},
+}

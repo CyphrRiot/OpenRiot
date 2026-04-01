@@ -1,0 +1,121 @@
+/* ArchRiot Waybar Vertical Modules */
+/* Modules optimized for vertical layouts and orientations */
+
+/* NOTE: hyprland-workspaces, Custom Modules & Groups on a separate files */
+
+{
+
+"temperature#vertical": {
+	"interval": 10,
+	"tooltip": true,
+	"hwmon-path": [
+		"/sys/class/hwmon/hwmon1/temp1_input",
+		"/sys/class/thermal/thermal_zone0/temp"
+	],
+	//"thermal-zone": 0,
+	"critical-threshold": 80,
+	"format-critical": "{icon}\n{temperatureC}°C",
+	"format": " {icon}",
+	"format-icons": [
+		"󰈸"
+	],
+	"on-click-right": "gnome-system-monitor"
+},
+
+"backlight#vertical": {
+	"interval": 2,
+	"rotate": 1,
+	"format": "{icon}",
+	//"format-icons": ["󰃞", "󰃟", "󰃠"],
+	"format-icons": [
+		"", "", "", "", "", "", "", "", "", "", "", "", "", "", ""
+	],
+	"on-click": "",
+	"on-click-middle": "",
+	"on-click-right": "",
+	"on-update": "",
+	"on-scroll-up": "/usr/bin/bash -lc '~/.local/share/archriot/install/archriot --brightness up'",
+	"on-scroll-down": "/usr/bin/bash -lc '~/.local/share/archriot/install/archriot --brightness down'",
+	"smooth-scrolling-threshold": 1,
+	"tooltip-format": "backlight {percent}%",
+},
+
+"clock#vertical": {
+	"format": "\n{:%H\n%M\n%S\n\n \n%d\n%m\n%y}",
+	"interval": 1,
+	//"format": "\n{:%I\n%M\n%p\n\n \n%d\n%m\n%y}",
+	"tooltip": true,
+	"tooltip-format": "{calendar}",
+	"calendar": {
+		"mode": "year",
+		"mode-mon-col": 3,
+		"format": {
+			"today": "<span color='#0dbc79'>{}</span>",
+		}
+	}
+},
+
+"cpu#vertical": {
+	"format": "󰍛\n{usage}%",
+	"interval": 1,
+	"on-click-right": "gnome-system-monitor",
+},
+
+"memory#vertical": {
+	"interval": 10,
+	"format": "󰾆\n{percentage}%",
+	"format-alt": "󰾆\n{used:0.1f}G",
+	"format-alt-click": "click",
+	"tooltip": true,
+	"tooltip-format": "{used:0.1f}GB/{total:0.1f}G",
+	"on-click-right": "gnome-system-monitor",
+},
+
+"pulseaudio#vertical": {
+	"format": "{icon}",
+	"format-bluetooth": "󰂰",
+	"format-muted": "󰖁",
+	"format-icons": {
+		"headphone": "",
+		"hands-free": "",
+		"headset": "",
+		"phone": "",
+		"portable": "",
+		"car": "",
+		"default": [
+			"", "", "󰕾", ""
+		],
+		"tooltip-format": "{icon} {desc} | {volume}%",
+		"ignored-sinks": [
+			"Easy Effects Sink"
+		],
+	},
+	"scroll-step": 5.0,
+	"on-click": "$HOME/.local/share/archriot/install/archriot --volume toggle",
+	"on-click-right": "pavucontrol -t 3",
+	"on-scroll-up": "$HOME/.local/share/archriot/install/archriot --volume inc",
+	"on-scroll-down": "$HOME/.local/share/archriot/install/archriot --volume dec",
+	"tooltip-format": "{icon} {desc} | {volume}%",
+	"smooth-scrolling-threshold": 1,
+},
+
+"pulseaudio#microphone_vertical": {
+	"format": "{format_source}",
+	"format-source": "󰍬",
+	"format-source-muted": "󰍭",
+	"on-click-right": "pavucontrol",
+	"on-click": "$HOME/.local/share/archriot/install/archriot --volume mic-toggle",
+	"on-scroll-up": "$HOME/.local/share/archriot/install/archriot --volume mic-inc",
+	"on-scroll-down": "$HOME/.local/share/archriot/install/archriot --volume mic-dec",
+	"max-volume": 100,
+	"tooltip": true,
+	"tooltip-format": "{source_desc} | {source_volume}%",
+},
+
+"custom/power_vertical": {
+	"format": "⏻",
+	"on-click": "$HOME/.local/share/archriot/install/archriot --power-menu",
+	"tooltip": true,
+	"tooltip-format": "Left Click: Logout Menu",
+},
+}

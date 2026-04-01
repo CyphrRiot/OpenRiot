@@ -1,0 +1,146 @@
+# OpenRiot YAML Package Configuration
+# OpenBSD pkg_add package list for OpenBSD 7.8
+# Only includes packages that exist in OpenBSD packages/
+# Base system packages (doas, less, man, etc.) are NOT listed
+
+core:
+    base:
+        packages:
+            - git
+            - rsync
+            - bc
+            - python
+            - fastfetch
+        configs:
+            - pattern: environment.d/*
+            - pattern: fastfetch/*
+        commands:
+            - "git config --global pull.rebase true"
+            - "git config --global init.defaultBranch master"
+        depends: []
+        start: "Installing base tools"
+        end: "Base tools installed"
+        type: "Package"
+        critical: true
+
+    shell:
+        packages:
+            - fish
+            - neovim
+            - foot
+            - fzf
+            - ripgrep
+            - man
+            - htop
+            - tree
+            - fd
+        configs:
+            - pattern: fish/*
+            - pattern: nvim/*
+        commands:
+            - "chsh -s /usr/local/bin/fish"
+        depends: [core.base]
+        start: "Installing shell and terminal tools"
+        end: "Shell environment configured"
+        type: "Package"
+        critical: true
+
+desktop:
+    sway:
+        packages:
+            - sway
+            - waybar
+            - wofi
+            - swaylock
+            - swayidle
+            - swaybg
+            - grim
+        configs:
+            - pattern: sway/*
+            - pattern: waybar/*
+            - pattern: backgrounds/*
+        commands:
+            - "mkdir -p ~/.config/sway"
+            - "mkdir -p ~/.config/waybar"
+            - "mkdir -p ~/.local/share/openriot/backgrounds"
+        depends: [core.base]
+        start: "Installing Sway desktop"
+        end: "Sway desktop installed"
+        type: "Package"
+        critical: true
+
+    apps:
+        packages:
+            - thunar
+            - thunar-archive
+            - firefox
+        configs:
+            - pattern: Thunar/*
+            - pattern: gtk-3.0/*
+            - pattern: gtk-4.0/*
+        depends: [core.base, desktop.sway]
+        start: "Installing desktop applications"
+        end: "Desktop applications installed"
+        type: "Package"
+        critical: false
+
+system:
+    tools:
+        packages:
+            - curl
+            - wget
+            - unzip
+            - xz
+        commands:
+            - "echo 'permit persist :wheel' > /etc/doas.conf"
+            - "chmod 0440 /etc/doas.conf"
+        depends: [core.base]
+        start: "Installing system tools"
+        end: "System tools installed"
+        type: "Package"
+        critical: true
+
+source:
+    wlsunset:
+        packages: []
+        build:
+            - "git clone https://git.sr.ht/~kennylevinsen/wlsunset"
+            - "cd wlsunset && meson setup build --prefix=/usr/local --buildtype=release"
+            - "cd wlsunset && meson compile -C build"
+            - "doas meson install -C build"
+        depends: [core.base]
+        start: "Building wlsunset from source"
+        end: "wlsunset installed"
+        type: "Source"
+        critical: false
+# NOT NEEDED FOR OPENBSD (kept for reference)
+# These ArchRiot packages have no OpenBSD equivalent:
+#
+# secure-boot: OpenBSD has its own boot security
+# hyprland: replaced by sway
+# hyprlock: replaced by swaylock
+# hypridle: replaced by swayidle
+# hyprshot: replaced by grim
+# fuzzel: replaced by wofi
+# kitty: replaced by foot (Wayland native)
+# ghostty: not in OpenBSD packages
+# paru/yay: replaced by pkg_add
+# brightnessctl: no equivalent on OpenBSD
+# networkmanager: replaced by ifconfig/hostname.if
+# systemd: OpenBSD uses rc.d
+# starship: not used (custom fish_prompt used instead)
+# NVIDIA drivers: poor support, use Intel iGPU
+# bolt/Logitech stuff: no Bluetooth on OpenBSD
+# brave/chrome: use firefox
+# signal-desktop: not in OpenBSD packages
+# telegram-desktop: not in OpenBSD packages
+# kanshi: not in OpenBSD packages (display config done differently)
+# wl-clipboard: not in OpenBSD packages
+# xdg-desktop-portal-wlr: not in OpenBSD packages
+# thunar-volman: not in OpenBSD packages
+# wl-clipboard: not in OpenBSD packages
+# iwx-firmware: firmware is in OpenBSD base system
+# urtwn-firmware: firmware is in OpenBSD base system
+# doas: part of OpenBSD base system
+# less: part of OpenBSD base system
+# waybar: exists in OpenBSD packages under wayland/ subdirectory
