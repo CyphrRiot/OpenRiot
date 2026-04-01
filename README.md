@@ -9,6 +9,7 @@
 ![Version](https://img.shields.io/badge/version-0.1-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
+
 ![OpenBSD](https://img.shields.io/badge/OpenBSD_7.9-1e1b4b?logo=openbsd&logoColor=a855f7&labelColor=0f172a)
 ![Sway](https://img.shields.io/badge/Sway-Wayland-312e81?logo=wayland&logoColor=a855f7&labelColor=1e1b4b)
 ![OpenBSD-current](https://img.shields.io/badge/OpenBSD_-current_7.9-4338ca?labelColor=3730a3)
@@ -36,6 +37,67 @@ OpenRiot is the answer to every time you've thought "Why can't an OpenBSD instal
 - **💎 OpenBSD** — The most security-audited OS on the planet
 
 _Built on OpenBSD with Sway, because security and aesthetics shouldn't be mutually exclusive._
+
+## 📚 Navigate This Guide
+
+- [✅ Supported Systems](#supported-systems) — **Read first!**
+- [✅ Supported Network Hardware](#supported-network-hardware) — **Read first!**
+- [🔊 Bluetooth](#bluetooth) — **No native support; see workarounds**
+- [🚀 Choose Your OpenRiot Experience](#choose-your-openriot-experience)
+    - [🔥 Method 1: Install Script](#method-1-install-script)
+    - [⚡ Method 2: OpenRiot ISO](#method-2-openriot-iso)
+- [⌨️ Master Your OpenRiot Desktop](#master-your-openriot-desktop)
+- [🔄 System Management](#system-management)
+- [🧰 Advanced Usage](#advanced-usage)
+- [🔧 Troubleshooting](#troubleshooting)
+- [📄 License](#license)
+- [📋 Progress](#progress) — Project status, plan, and architecture
+
+<a id="supported-systems"></a>
+
+## ✅ Supported Systems
+
+**Best and Most Reliable Laptops for OpenBSD 7.8+**
+
+Lenovo ThinkPads remain the strongest and most recommended choice. OpenBSD developers and many users heavily favor them because of their straightforward hardware, excellent keyboards, durability, and long-term support.
+
+### Highly Recommended ThinkPad Series
+
+| Series        | Examples                        | Notes                            |
+| ------------- | ------------------------------- | -------------------------------- |
+| **X1 Carbon** | Gen 5–7 and later               | Intel WiFi (iwm/iwx) works great |
+| **X1 Nano**   | 1st Gen and later               | Lightweight, excellent support   |
+| **T series**  | T480, T14, T14s, T420/T430/T61  | Business workhorses              |
+| **X series**  | X230, X250, X270, X280, X1 Nano | Compact classics                 |
+| **P series**  | P50, P14s Gen 5 Intel           | Workstation power                |
+
+### Other Well-Supported Laptops
+
+| Laptop                                | Notes                        |
+| ------------------------------------- | ---------------------------- |
+| **Framework Laptop** (11th Gen Intel) | Modular design, good support |
+| **Huawei MateBook X** (2017–2020)     | Quiet and reliable           |
+| **Dell Latitude/XPS** (older Intel)   | Business class, Intel WiFi   |
+
+### Avoid or Use Caution
+
+- ❌ **NVIDIA discrete GPUs** — Poor support; use Intel iGPU
+- ❌ **Killer Wi-Fi** — Replace with Intel card
+- ❌ **Realtek/MediaTek Wi-Fi 6/6E/7** — Often unsupported
+- ⚠️ **AMD laptops** — Improving but more variable than Intel
+
+### Key Components for OpenBSD
+
+| Component    | Best Choice        | Notes                   |
+| ------------ | ------------------ | ----------------------- |
+| **Wi-Fi**    | Intel (iwm/iwx)    | Avoid RTL88xxAU, Killer |
+| **Graphics** | Intel (inteldrm)   | Best Wayland support    |
+| **Audio**    | azalia             | Works on most Intel/AMD |
+| **Trackpad** | ThinkPad synaptics | Excellent support       |
+
+For full hardware details, see the [OpenBSD Hardware Compatibility List](https://www.openbsd.org/hardware.html).
+
+<a id="supported-network-hardware"></a>
 
 ## ✅ Supported Network Hardware
 
@@ -75,19 +137,49 @@ _Built on OpenBSD with Sway, because security and aesthetics shouldn't be mutual
 
 For full compatibility, see [iwx(4)](https://man.openbsd.org/iwx.4), [urtwn(4)](https://man.openbsd.org/urtwn.4), and [athn(4)](https://man.openbsd.org/athn.4) man pages.
 
-## 📚 Navigate This Guide
+<a id="bluetooth"></a>
 
-- [🚀 Choose Your OpenRiot Experience](#choose-your-openriot-experience)
-    - [🔥 Method 1: Install Script](#method-1-install-script)
-    - [⚡ Method 2: OpenRiot ISO](#method-2-openriot-iso)
-- [⌨️ Master Your OpenRiot Desktop](#master-your-openriot-desktop)
-- [🔄 System Management](#system-management)
-- [🧰 Advanced Usage](#advanced-usage)
-- [🔧 Troubleshooting](#troubleshooting)
-- [📄 License](#license)
-- [📋 Progress](#progress) — Project status, plan, and architecture
+## 🔊 Bluetooth
 
-<a id="choose-your-openriot-experience"></a>
+**⚠️ OpenBSD has NO native Bluetooth support.** The Bluetooth stack was removed years ago and has not been reinstated.
+
+### What Doesn't Work
+
+- ❌ Built-in laptop Bluetooth
+- ❌ USB Bluetooth dongles
+- ❌ Pairing Bluetooth headphones, keyboards, mice
+
+### Bluetooth Audio Workaround
+
+Use a dedicated USB Bluetooth audio transceiver that handles Bluetooth internally and appears as standard USB audio:
+
+| Transceiver        | Type  | Notes               |
+| ------------------ | ----- | ------------------- |
+| **Creative BT-W3** | USB-C | ✅ Most recommended |
+| **Creative BT-W2** | USB-A | Good alternative    |
+| **UGREEN BT501**   | USB-C | Budget option       |
+
+Once paired (via button on dongle), switch audio output using `sndioctl`.
+
+### Bluetooth Mouse/Keyboard Workaround
+
+**Logitech MX Anywhere 3S:**
+
+- Bluetooth mode → ❌ Will not work
+- Logi Bolt USB receiver → ✅ Basic support (cursor, clicks, scroll)
+- Wired USB-C mode → ✅ Full support
+
+**Logi Bolt Receiver:** ~$15 on Amazon (USB-A or USB-C)
+
+### Recommended Input Setup
+
+| Device              | Solution                          | What Works                   |
+| ------------------- | --------------------------------- | ---------------------------- |
+| Mouse               | Logi Bolt receiver or wired       | Cursor, clicks, basic scroll |
+| Keyboard            | 2.4 GHz USB dongle or wired       | Basic typing                 |
+| Advanced mouse feat | Not possible (gestures, MagSpeed) | N/A                          |
+
+**Most reliable:** Wired USB keyboard + mouse for critical work.
 
 ## 🚀 Choose Your OpenRiot Experience
 

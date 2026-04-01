@@ -41,6 +41,14 @@ Continue? [Y/n]
 4. Update `TODO.md` — reflect exactly what changed
 5. Update `README.md` — if the change affects user-facing instructions
 6. **Verify against ArchRiot/local system** — before adding packages or dependencies, check `~/Code/ArchRiot/` and the local running system to confirm actual need; don't install based on documentation alone
+
+**OpenBSD-specific rules:**
+
+- WiFi adapters: Only use adapters confirmed working in README.md (iwx for Intel AX, urtwn for RTL8188CU/EU, athn for Atheros AR9271)
+- No native Bluetooth on OpenBSD — document workarounds
+- No starship — ArchRiot has it installed but doesn't use it (custom fish_prompt used instead)
+- Use Firefox as primary browser (not Chromium/Ungoogled unless specifically needed)
+
 7. NEVER, EVER, NEVER COMMIT WITHOUT ASKING!!!!!
 
 ### Before Starting a New Chat
@@ -116,6 +124,18 @@ This installs and configures all desktop packages and dotfiles.
 
 ---
 
+## Pending Questions (Important!)
+
+1. Can we add softraid encryption after the initial install or does it need to happen at installation?
+2. How do we add LLM (OpenRouter.ai) support to neovim, like we have with Zed Editor?
+3. Is Waybar the right choice for OpenBSD + Sway or is there a better choice for us that can mimic ArchRiot waybar?
+4. Can we bundle ALL of the required pkg_add applications into the installer so we don't have to fetch them? I know they exist on the OpenBSD mirrors, so they can be pulled locally without OpenBSD installed
+5. Add this to the README.md and tell people they can search packages here or through pkg_add -Q (or whatever the command it) --> https://openbsd.app
+
+## Pending Tasks
+
+- [ ] **setup.sh**: Add optional OpenRouter API Key prompt during install. If user says "Yes", prompt for API key and add `export OPENROUTER_API_KEY="..."` to `~/.config/fish/config.env` or similar fish environment file.
+
 ## Current Status
 
 ### ✅ COMPLETED — Phase 0 and Phase 1
@@ -138,21 +158,39 @@ This installs and configures all desktop packages and dotfiles.
 
 ### 🔴 NOT YET STARTED — Phase 2
 
-| Item                            | Priority | Blocking | Notes                                               |
-| ------------------------------- | -------- | -------- | --------------------------------------------------- |
-| `setup.sh` script               | P0       | Yes      | The `curl \| sh` bootstrap — **critical next step** |
-| OpenBSD Go installer port       | P0       | Yes      | setup.sh will be shell-only until Go port is done   |
-| `install/packages.yaml`         | P0       | Partial  | pkg_add equivalent of ArchRiot's packages.yaml      |
-| Host `setup.sh` at openriot.org | P0       | Yes      | Domain not yet serving the script                   |
-| Test on real OpenBSD hardware   | P0       | No       | Needed before first release                         |
-| Control panel (Go)              | P1       | No       | GTK4 app not yet ported                             |
-| `site/` populated files         | P1       | No       | doas.conf, pkg_add.conf, hostname, etc.             |
-| Waybar modules                  | P1       | No       | Custom modules from ArchRiot not yet copied         |
-| Fish shell config               | P1       | No       | Fish config from ArchRiot not yet copied            |
-| Neovim config                   | P1       | No       | Nvim config from ArchRiot not yet copied            |
-| Swaylock dynamic wallpaper      | P2       | No       | Requires backgrounds + openriot binary              |
-| OpenRiot wallpapers package     | P2       | No       | Full CypherRiot backgrounds not yet assembled       |
-| Test WiFi (AX211 vs BE201)      | P1       | No       | Need real hardware                                  |
+| Item                             | Priority | Blocking | Notes                              |
+| -------------------------------- | -------- | -------- | ---------------------------------- |
+| `setup.sh` script                | ✅ DONE  | No       | See `install/setup.sh`             |
+| Host `setup.sh` at openriot.org  | P0       | Yes      | Domain not yet serving the script  |
+| Test `setup.sh` on real OpenBSD  | P0       | No       | Needed before first release        |
+| Fix any package name differences | P1       | No       | Found during real hardware testing |
+
+### 🔴 NOT YET STARTED — Phase 3
+
+| Item                  | Priority | Blocking | Notes                                  |
+| --------------------- | -------- | -------- | -------------------------------------- |
+| Go Installer Port     | P0       | Yes      | Port ArchRiot Go CLI to OpenBSD        |
+| `install/packages.go` | P1       | No       | Verify pkg_add integration works       |
+| Waybar modules        | P1       | No       | Port cpu, memory, volume from ArchRiot |
+| Go control panel      | P2       | No       | GTK4 app not yet ported                |
+
+### ✅ COMPLETED — Phase 4
+
+| Item                        | Priority | Blocking | Notes                                         |
+| --------------------------- | -------- | -------- | --------------------------------------------- |
+| Fish shell config           | ✅ DONE  | No       | See `config/fish/`                            |
+| packages.yaml (OpenBSD)     | ✅ DONE  | No       | See `install/packages.yaml`                   |
+| Neovim config               | ✅ DONE  | No       | See `config/nvim/`                            |
+| btop config                 | ✅ DONE  | No       | See `config/btop/`                            |
+| fastfetch config            | ✅ DONE  | No       | See `config/fastfetch/`                       |
+| waybar modules              | ✅ DONE  | No       | See `config/waybar/`                          |
+| mako config                 | ✅ DONE  | No       | See `config/mako/`                            |
+| GTK themes (gtk-3.0/4.0)    | ✅ DONE  | No       | See `config/gtk-3.0/` and `config/gtk-4.0/`   |
+| environment.d               | ✅ DONE  | No       | See `config/environment.d/`                   |
+| Thunar config               | ✅ DONE  | No       | See `config/Thunar/`                          |
+| `site/` populated files     | P1       | No       | doas.conf, pkg_add.conf, hostname, etc.       |
+| Swaylock dynamic wallpaper  | P2       | No       | Requires backgrounds + openriot binary        |
+| OpenRiot wallpapers package | P2       | No       | Full CypherRiot backgrounds not yet assembled |
 
 ---
 
@@ -245,7 +283,7 @@ This installs and configures all desktop packages and dotfiles.
 - [x] Copy 13 backgrounds from ArchRiot → `backgrounds/`
 - [x] Commit all Sway config files
 
-### Phase 2: setup.sh Bootstrap (IN PROGRESS 🔶)
+### Phase 2: setup.sh Bootstrap (DONE ✅)
 
 - [x] Write `setup.sh` (the `curl | sh` bootstrap) — see `install/setup.sh`
     - Check OpenBSD version (require 7.8+)
@@ -255,9 +293,9 @@ This installs and configures all desktop packages and dotfiles.
     - Set Fish as default shell
     - Configure doas (passwordless wheel)
     - Start Sway
-- [ ] Host `setup.sh` at `https://openriot.org/setup.sh`
-- [ ] Test `setup.sh` on real OpenBSD installation
-- [ ] Fix any package name differences discovered
+- [ ] Host `setup.sh` at `https://openriot.org/setup.sh` ⬜
+- [ ] Test `setup.sh` on real OpenBSD installation ⬜
+- [ ] Fix any package name differences discovered ⬜
 
 ### Phase 3: Go Installer Port (in progress 🔶)
 
@@ -287,12 +325,18 @@ Based on ArchRiot analysis (~84 Go files → only 5 exist in OpenRiot). Port onl
 - `--idle-diagnostics` — could port
 - `--crypto-refresh` — ❌ skip (no crypto module needed)
 
-### Phase 4: Full Desktop Integration (P1)
+### Phase 4: Full Desktop Integration (P1) ✅
 
-- [ ] Write `install/packages.yaml` (pkg_add package list)
-- [ ] Copy/configure Waybar modules from ArchRiot
-- [ ] Copy/configure Fish shell config from ArchRiot
-- [ ] Copy/configure Neovim config from ArchRiot
+- [x] Write `install/packages.yaml` (pkg_add package list) — see `install/packages.yaml`
+- [x] Copy/configure Waybar modules from ArchRiot — see `config/waybar/`
+- [x] Copy/configure Fish shell config from ArchRiot — see `config/fish/`
+- [x] Copy/configure Neovim config from ArchRiot — see `config/nvim/`
+- [x] Copy/configure btop config from ArchRiot — see `config/btop/`
+- [x] Copy/configure fastfetch config from ArchRiot — see `config/fastfetch/`
+- [x] Copy/configure mako config from ArchRiot — see `config/mako/`
+- [x] Copy/configure GTK themes from ArchRiot — see `config/gtk-3.0/`, `config/gtk-4.0/`
+- [x] Copy/configure Thunar config from ArchRiot — see `config/Thunar/`
+- [x] Copy/configure environment.d from ArchRiot — see `config/environment.d/`
 - [ ] Populate `site/` with useful files (doas.conf, pkg_add.conf, hostname)
 
 ### Phase 5: Testing & Polish (P2)
