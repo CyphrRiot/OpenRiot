@@ -37,6 +37,44 @@ OpenRiot is the answer to every time you've thought "Why can't an OpenBSD instal
 
 _Built on OpenBSD with Sway, because security and aesthetics shouldn't be mutually exclusive._
 
+## ✅ Supported Network Hardware
+
+**⚠️ OpenBSD is very selective about WiFi adapters. Only use adapters from this list:**
+
+### Built-in WiFi (PCIe/M.2)
+
+| Driver | Chipsets                                           | Notes                              |
+| ------ | -------------------------------------------------- | ---------------------------------- |
+| `iwx`  | Intel AX200 / AX201 / AX210 / AX211 (Wi-Fi 6)      | **Best choice for modern laptops** |
+| `iwm`  | Intel 7260, 7265, 3160, 3165, 3168, 8260, 8265     | Older Intel cards                  |
+| `iwn`  | Intel 4965, 5100, 5300, 5350                       | Legacy Intel                       |
+| `athn` | Atheros AR5008 → AR9287 (802.11n)                  | Good range, 2.4GHz only            |
+| `bwfm` | Broadcom BCM43xx series                            | Improved WPA in 7.8                |
+| `qwx`  | Qualcomm/Atheros 802.11a/ac/ax                     | 802.11n/HT improvements in 7.8     |
+| `rtwn` | Realtek RTL8188CE, RTL8188EE, RTL8192CE, RTL8723AE | PCIe cards                         |
+
+### USB WiFi Adapters (Nano/Compact)
+
+| Adapter                       | Chipset      | Driver  | Notes                         |
+| ----------------------------- | ------------ | ------- | ----------------------------- |
+| **Edimax EW-7811Un** (and v2) | RTL8188CU/EU | `urtwn` | ✅ **Your best bet for USB**  |
+| **Asus USB-N10 NANO**         | RTL8188CU    | `urtwn` | Tiny nano adapter             |
+| **TP-Link TL-WN725N v2**      | RTL8188EU    | `urtwn` | Very small                    |
+| **TP-Link TL-WN722N v1**      | AR9271       | `athn`  | Excellent range (avoid v2/v3) |
+| **D-Link DWA-121, DWA-131**   | RTL8188EU    | `urtwn` | Various revisions work        |
+| **Alfa AWUS036NHA**           | AR9271       | `athn`  | High gain, great range        |
+
+**All USB adapters are 2.4GHz 802.11n only (~50-100 Mbps real-world).**
+
+### NOT Supported (Do Not Buy)
+
+- ❌ Intel BE201 (Wi-Fi 7)
+- ❌ Realtek RTL8811AU / RTL8812AU / RTL8812AU
+- ❌ MediaTek WiFi chips
+- ❌ Most Qualcomm Wi-Fi 6E/7 chips
+
+For full compatibility, see [iwx(4)](https://man.openbsd.org/iwx.4), [urtwn(4)](https://man.openbsd.org/urtwn.4), and [athn(4)](https://man.openbsd.org/athn.4) man pages.
+
 ## 📚 Navigate This Guide
 
 - [🚀 Choose Your OpenRiot Experience](#choose-your-openriot-experience)
