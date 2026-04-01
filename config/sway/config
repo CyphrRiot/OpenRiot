@@ -23,8 +23,8 @@ source ~/.config/sway/monitors.conf
 # =============================================================================
 set $terminal foot
 set $fileManager Thunar
-set $browser archriot-brave
-set $messenger env GDK_SCALE=1 signal-desktop --ozone-platform=wayland --enable-features=UseOzonePlatform
+set $browser firefox
+# set $messenger env GDK_SCALE=1 signal-desktop --ozone-platform=wayland --enable-features=UseOzonePlatform
 set $webapp $browser --force-device-scale-factor=1 --high-dpi-support=1 --app
 set $mod Mod4
 set $archriot $HOME/.local/share/openriot/install/openriot

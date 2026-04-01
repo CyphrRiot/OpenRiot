@@ -28,6 +28,7 @@ OpenRiot is a polished, opinionated **OpenBSD desktop system** built in the spir
 1. **Propose before executing** — use this exact format:
 
 ```
+Completed: {completed task}
 Next Task: {description}
 Files: {list of files we will touch}
 Goal: {why we are doing it}
@@ -39,6 +40,8 @@ Continue? [Y/n]
 3. **One step at a time** — never combine or skip steps
 4. Update `TODO.md` — reflect exactly what changed
 5. Update `README.md` — if the change affects user-facing instructions
+6. **Verify against ArchRiot/local system** — before adding packages or dependencies, check `~/Code/ArchRiot/` and the local running system to confirm actual need; don't install based on documentation alone
+7. NEVER, EVER, NEVER COMMIT WITHOUT ASKING!!!!!
 
 ### Before Starting a New Chat
 
@@ -182,7 +185,7 @@ This installs and configures all desktop packages and dotfiles.
 | Original                                                 | Problem                      | Fix                                                       |
 | -------------------------------------------------------- | ---------------------------- | --------------------------------------------------------- |
 | `$terminal = ghostty`                                    | ghostty not in OpenBSD pkg   | Changed to `foot`                                         |
-| `archriot-brave` browser                                 | Brave not in OpenBSD pkg     | Keep for now; Firefox is pkg_add alternative              |
+| `$browser = archriot-brave`                              | Brave not in OpenBSD pkg     | ✅ Replaced with Firefox (firefox pkg_add)                |
 | `$archriot $HOME/.local/share/archriot/install/archriot` | Wrong path                   | Changed to `$HOME/.local/share/openriot/install/openriot` |
 | `exec gsettings set org.gnome.desktop.interface...`      | No gsettings on OpenBSD      | Commented out                                             |
 | `exec-once = i3-autotiling`                              | Not in OpenBSD pkg repo      | Commented out                                             |
@@ -242,11 +245,11 @@ This installs and configures all desktop packages and dotfiles.
 - [x] Copy 13 backgrounds from ArchRiot → `backgrounds/`
 - [x] Commit all Sway config files
 
-### Phase 2: setup.sh Bootstrap (NEXT 🔴)
+### Phase 2: setup.sh Bootstrap (IN PROGRESS 🔶)
 
-- [ ] Write `setup.sh` (the `curl | sh` bootstrap)
-    - Check OpenBSD version
-    - Install packages via `pkg_add`
+- [x] Write `setup.sh` (the `curl | sh` bootstrap) — see `install/setup.sh`
+    - Check OpenBSD version (require 7.8+)
+    - Install packages via `pkg_add` (verified against ArchRiot; no starship)
     - Clone dotfiles or link from repo
     - Deploy Sway + Waybar configs
     - Set Fish as default shell
@@ -256,9 +259,33 @@ This installs and configures all desktop packages and dotfiles.
 - [ ] Test `setup.sh` on real OpenBSD installation
 - [ ] Fix any package name differences discovered
 
-### Phase 3: Go Installer Port (later 🔴)
+### Phase 3: Go Installer Port (in progress 🔶)
 
-Port ArchRiot Go CLI to OpenBSD. See "Go Installer Port" section below.
+Based on ArchRiot analysis (~84 Go files → only 5 exist in OpenRiot). Port only what's relevant for OpenBSD.
+
+**Priorities:**
+
+- [ ] `install/packages.go` — Already exists; verify pkg_add integration works
+- [ ] `tui/model.go` — Already exists; enhance for OpenBSD-specific workflow
+- [ ] `source/waybar/` — Port relevant modules (cpu, memory, volume)
+- [ ] `source/tools/` — Port basic diagnostics (OpenBSD has no brightnessctl)
+- [ ] `source/backgrounds/` — Port swaybg wallpaper cycling
+- [ ] `source/display/` — Skip (kanshi handles this natively)
+
+**Not needed for OpenBSD:**
+
+- Secure Boot, LUKS encryption (OpenBSD has its own mechanisms)
+- Signal, Telegram, Trezor (not in OpenBSD packages)
+- Crypto wallets (not in scope)
+- Plymouth (boot loader, OpenBSD different)
+
+**Commands to support:**
+
+- `--version` / `-v` ✅ exists
+- `--install` ✅ basic package install exists
+- `--waybar-restart` — useful for Sway
+- `--idle-diagnostics` — could port
+- `--crypto-refresh` — ❌ skip (no crypto module needed)
 
 ### Phase 4: Full Desktop Integration (P1)
 
@@ -303,18 +330,16 @@ Packages to install via `pkg_add`. Derived from ArchRiot's packages.yaml, transl
 | Package        | Description      | ArchRiot Equivalent |
 | -------------- | ---------------- | ------------------- |
 | `fish`         | Fish shell       | fish                |
-| `starship`     | Shell prompt     | starship            |
 | `neovim`       | Text editor      | neovim              |
-| `lazygit`      | TUI git client   | lazygit             |
 | `foot`         | Wayland terminal | kitty               |
-| `pv`           | Pipe viewer      | pv                  |
 | `fd`           | File finder      | fd                  |
 | `fzf`          | Fuzzy finder     | fzf                 |
 | `ripgrep`      | Search tool      | ripgrep             |
-| `lsd`          | LS alternative   | lsd                 |
 | `wl-clipboard` | Clipboard        | wl-clipboard        |
 | `man`          | Manual pages     | man                 |
 | `less`         | Pager            | less                |
+| `htop`         | Process viewer   | htop                |
+| `tree`         | Dir listing      | tree                |
 
 ### Desktop (Sway)
 
@@ -323,42 +348,21 @@ Packages to install via `pkg_add`. Derived from ArchRiot's packages.yaml, transl
 | `sway`                       | Wayland compositor | hyprland                    |
 | `waybar`                     | Status bar         | waybar                      |
 | `wofi`                       | App launcher       | fuzzel                      |
-| `mako`                       | Notifications      | mako                        |
 | `swaylock`                   | Screen lock        | hyprlock                    |
 | `swayidle`                   | Idle daemon        | hypridle                    |
-| `swaybg`                     | Wallpaper          | swaybg                      |
 | `wlsunset`                   | Blue light reducer | hyprsunset                  |
+| `swaybg`                     | Wallpaper          | swaybg                      |
+| `grim`                       | Screenshot tool    | grim                        |
 | `kanshi`                     | Display config     | kanshi                      |
 | `xdg-desktop-portal`         | Portal             | xdg-desktop-portal          |
 | `xdg-desktop-portal-wlroots` | Portal backend     | xdg-desktop-portal-hyprland |
 
 ### Applications
 
-| Package                 | Description      | ArchRiot Equivalent   |
-| ----------------------- | ---------------- | --------------------- |
-| `thunar`                | File manager     | thunar                |
-| `thunar-archive-plugin` | Archive support  | thunar-archive-plugin |
-| `gnome-keyring`         | Secrets          | gnome-keyring         |
-| `transmission`          | Torrent client   | transmission-gtk      |
-| `file-roller`           | Archive manager  | file-roller           |
-| `xdg-user-dirs`         | User directories | xdg-user-dirs         |
-| `gnome-calculator`      | Calculator       | gnome-calculator      |
-
-### Fonts & Icons
-
-| Package            | Description    | ArchRiot Equivalent |
-| ------------------ | -------------- | ------------------- |
-| `font-noto-emoji`  | Emoji fonts    | noto-fonts-emoji    |
-| `dejavu-fonts-ttf` | TrueType fonts | ttf-dejavu          |
-| `terminus-font`    | Terminal font  | terminus-font       |
-
-### Media
-
-| Package        | Description  | ArchRiot Equivalent |
-| -------------- | ------------ | ------------------- |
-| `ffmpeg`       | Media codecs | ffmpeg              |
-| ` ImageMagick` | Image tool   | imagemagick         |
-| `libwebp`      | WebP support | libwebp             |
+| Package                 | Description     | ArchRiot Equivalent   |
+| ----------------------- | --------------- | --------------------- |
+| `thunar`                | File manager    | thunar                |
+| `thunar-archive-plugin` | Archive support | thunar-archive-plugin |
 
 ### System Tools
 
@@ -368,8 +372,14 @@ Packages to install via `pkg_add`. Derived from ArchRiot's packages.yaml, transl
 | `curl`  | HTTP client      | curl                |
 | `wget`  | Download tool    | wget                |
 | `unzip` | Zip extraction   | unzip               |
-| `xz`    | Compression      | xz                  |
-| `zstd`  | Compression      | zstd                |
+| `xz`    | Compression      | `xz`                |
+
+### Wireless Firmware
+
+| Package          | Description                   | Driver  |
+| ---------------- | ----------------------------- | ------- |
+| `iwx-firmware`   | Intel AX200/AX201/AX210/AX211 | `iwx`   |
+| `urtwn-firmware` | Realtek RTL8188EU USB WiFi    | `urtwn` |
 
 **Note:** OpenBSD packages are installed via `pkg_add`. Run `pkg_add -l` to list installed packages.
 
@@ -377,11 +387,9 @@ Packages to install via `pkg_add`. Derived from ArchRiot's packages.yaml, transl
 
 Some packages are not available in OpenBSD's package repository and must be compiled from source:
 
-| Package     | Build Method                      | URL                                        |
-| ----------- | --------------------------------- | ------------------------------------------ |
-| `wlsunset`  | `git clone` + meson               | https://git.sr.ht/~kennylevinsen/wlsunset  |
-| `starship`  | `cargo install`                   | https://starship.rs                        |
-| `fastfetch` | `cargo install` or release binary | https://github.com/fastfetch-cli/fastfetch |
+| Package    | Build Method        | URL                                       |
+| ---------- | ------------------- | ----------------------------------------- |
+| `wlsunset` | `git clone` + meson | https://git.sr.ht/~kennylevinsen/wlsunset |
 
 **wlsunset build commands:**
 
@@ -455,8 +463,10 @@ Then: `sh /etc/netstart`
 
 **WiFi hardware status:**
 
-- Intel AX211 (Wi-Fi 6E) → ✅ Fully supported after `fw_update`
+- Intel AX211 (Wi-Fi 6E) → ✅ Fully supported; install `iwx-firmware`
 - Intel BE201 (Wi-Fi 7) → ❌ NOT supported in OpenBSD 7.9
+- Realtek RTL8188EU → ✅ Supported via `urtwn` driver; install `urtwn-firmware`
+- Realtek RTL8811AU/RTL8812AU → ❌ NOT supported
 
 ### System Updates
 
