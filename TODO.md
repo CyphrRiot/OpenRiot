@@ -131,10 +131,37 @@ This installs and configures all desktop packages and dotfiles.
 3. ✅ Waybar vs alternatives - Keep Waybar (native for Sway, already configured)
 4. ✅ Bundling packages - Not needed; pkg_add fetches from OpenBSD mirrors
 5. ✅ openbsd.app search - Added to README.md with pkg_info -Q instructions
+6. How can we setup Mullvad VPN on OpenBSD if the user has a Mullvad account?
+   Instructions:
+   How to Set It Up (Recommended Way)
+
+    Install WireGuard tools:shdoas pkg_add wireguard-tools
+    Generate your config:
+    Log into your Mullvad account at https://mullvad.net/account
+    Go to WireGuard configuration (or Downloads → WireGuard)
+    Choose a server location (avoid multihop if you want simplicity)
+    Download the .conf file
+
+    Place and activate the config:shdoas mkdir -p /etc/wireguard
+
+    # Copy the downloaded config to /etc/wireguard/wg0.conf (or similar)
+
+    doas wg-quick up /etc/wireguard/wg0.confFor persistent setup, many users create /etc/hostname.wg0 or use a simple script.
+    Verify:
+    Visit https://mullvad.net/check
+    Check with ifconfig wg0 and ping 1.1.1.1
 
 ## Pending Tasks
 
 - [ ] **setup.sh**: Add optional OpenRouter API Key prompt during install. If user says "Yes", prompt for API key and add `export OPENROUTER_API_KEY="..."` to `~/.config/fish/config.env` or similar fish environment file.
+
+### OpenRouter LLM Integration (Neovim + ZED)
+
+- [ ] **config/nvim/lua/plugins/avante.lua**: Update model from `anthropic/claude-3.5-sonnet` to `minimax/minimax-m2.7` to match working local config
+- [ ] **config/fish/config.fish**: Add OpenRouter environment variables template (placeholder for API key)
+- [ ] **source/tui/messages.go**: Add `OpenRouterConfirmMsg` and `OpenRouterKeyMsg` message types
+- [ ] **source/tui/model.go**: Add OpenRouter input handling (confirm prompt + API key input)
+- [ ] **source/main.go**: Add OpenRouter setup flow - prompt user, get API key, write to fish config
 
 ## Current Status
 

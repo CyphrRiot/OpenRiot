@@ -1,7 +1,7 @@
 # Jekyll Configuration for OpenRiot GitHub Pages
-title: OpenRiot 🐡
+title: OpenRiot
 description: >-
-    OpenRiot: The OpenBSD System You've Always Wanted!
+    Functional OpenBSD Desktop!
 
 # GitHub Pages settings
 remote_theme: pages-themes/midnight@v0.2.0
