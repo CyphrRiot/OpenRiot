@@ -273,6 +273,18 @@ syspatch -a && sysupgrade -n && syspatch -a && sysupgrade
 pkg_add -u
 ```
 
+### Finding Packages
+
+Search for OpenBSD packages at **[openbsd.app](https://openbsd.app)** or via command line:
+
+```bash
+# Search for packages
+pkg_info -Q package-name
+
+# List all available packages
+pkg_add -l | less
+```
+
 <a id="advanced-usage"></a>
 
 ## 🧰 Advanced Usage
