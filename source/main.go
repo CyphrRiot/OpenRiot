@@ -75,16 +75,27 @@ func main() {
 		logger.LogMessage("SUCCESS", "Packages installed successfully!")
 	}
 
-	// Deploy configuration files
+	// Deploy configuration files (from packages.yaml)
 	logger.LogMessage("INFO", "Deploying configuration files...")
+
+	// Determine repo directory based on mode
+	var repoDir string
 	if testMode {
-		// In test mode, use local config directory
-		if err := deployConfigsTest(); err != nil {
-			logger.LogMessage("WARN", fmt.Sprintf("Config deployment skipped: %v", err))
+		// In test mode, use development directory
+		repoDir = os.Getenv("HOME") + "/Code/OpenRiot"
+	} else {
+		// In production, binary is in install/ relative to repo
+		execPath, err := os.Executable()
+		if err != nil {
+			logger.LogMessage("WARN", "Could not determine executable path")
+			repoDir = "/opt/openriot"
 		} else {
-			logger.LogMessage("SUCCESS", "Configuration files deployed!")
+			// Assume install/openriot -> repo is one level up
+			repoDir = filepath.Dir(filepath.Dir(execPath))
 		}
-	} else if err := deployConfigs(); err != nil {
+	}
+
+	if err := installer.CopyConfigs(repoDir, cfg); err != nil {
 		logger.LogMessage("WARN", fmt.Sprintf("Config deployment skipped: %v", err))
 	} else {
 		logger.LogMessage("SUCCESS", "Configuration files deployed!")
