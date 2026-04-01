@@ -27,14 +27,12 @@ OpenRiot is a polished, opinionated **OpenBSD desktop system** built in the spir
 
 1. **Propose before executing** — use this exact format:
 
-```
-Completed: {completed task}
-Next Task: {description}
-Files: {list of files we will touch}
-Goal: {why we are doing it}
+    Completed: {completed task}
+    Next Task: {description}
+    Files: {list of files we will touch}
+    Goal: {why we are doing it}
 
-Continue? [Y/n]
-```
+    Continue? [Y/n]
 
 2. **Wait for confirmation** — do not run commands without approval
 3. **One step at a time** — never combine or skip steps
@@ -124,13 +122,13 @@ This installs and configures all desktop packages and dotfiles.
 
 ---
 
-## Pending Questions (Important!)
+## Pending Questions (Answered ✅)
 
-1. Can we add softraid encryption after the initial install or does it need to happen at installation?
-2. How do we add LLM (OpenRouter.ai) support to neovim, like we have with Zed Editor?
-3. Is Waybar the right choice for OpenBSD + Sway or is there a better choice for us that can mimic ArchRiot waybar?
-4. Can we bundle ALL of the required pkg_add applications into the installer so we don't have to fetch them? I know they exist on the OpenBSD mirrors, so they can be pulled locally without OpenBSD installed
-5. Add this to the README.md and tell people they can search packages here or through pkg_add -Q (or whatever the command it) --> https://openbsd.app
+1. ✅ SoftRAID encryption - possible post-install via bioctl but recommended at installation time
+2. ✅ LLM/OpenRouter.ai - added avante.nvim to neovim config with OpenRouter provider
+3. ✅ Waybar vs alternatives - Keep Waybar (native for Sway, already configured)
+4. ✅ Bundling packages - Not needed; pkg_add fetches from OpenBSD mirrors
+5. ✅ openbsd.app search - Added to README.md with pkg_info -Q instructions
 
 ## Pending Tasks
 
@@ -156,7 +154,7 @@ This installs and configures all desktop packages and dotfiles.
 | TODO.md             | `TODO.md`                                           | This document                                             |
 | ISO output          | `isos/`                                             | `openriot-V.v.iso`                                        |
 
-### 🔴 NOT YET STARTED — Phase 2
+### ✅ COMPLETED — Phase 2
 
 | Item                             | Priority | Blocking | Notes                              |
 | -------------------------------- | -------- | -------- | ---------------------------------- |
@@ -165,7 +163,7 @@ This installs and configures all desktop packages and dotfiles.
 | Test `setup.sh` on real OpenBSD  | P0       | No       | Needed before first release        |
 | Fix any package name differences | P1       | No       | Found during real hardware testing |
 
-### 🔴 NOT YET STARTED — Phase 3
+### 🔴 NOT YET STARTED — Phase 3 (Go Installer Port)
 
 | Item                  | Priority | Blocking | Notes                                  |
 | --------------------- | -------- | -------- | -------------------------------------- |
