@@ -161,7 +161,7 @@ This installs and configures all desktop packages and dotfiles.
 - [x] **config/nvim/lua/plugins/avante.lua**: Update model from `anthropic/claude-3.5-sonnet` to `minimax/minimax-m2.7` to match working local config
 - [x] **config/fish/config.fish**: Add OpenRouter environment variables template (placeholder for API key)
 - [x] **source/tui/messages.go**: Add `OpenRouterConfirmMsg` and `OpenRouterKeyMsg` message types
-- [ ] **source/tui/model.go**: Add OpenRouter input handling (confirm prompt + API key input)
+- [x] **source/tui/model.go**: Add OpenRouter input handling (confirm prompt + API key input)
 - [ ] **source/main.go**: Add OpenRouter setup flow - prompt user, get API key, write to fish config
 
 ## Current Status
