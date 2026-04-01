@@ -101,12 +101,6 @@ func main() {
 		logger.LogMessage("SUCCESS", "Configuration files deployed!")
 	}
 
-	// Execute commands from packages.yaml
-	logger.LogMessage("INFO", "Running configuration commands...")
-	if err := installer.ExecCommands(cfg, testMode); err != nil {
-		logger.LogMessage("WARN", fmt.Sprintf("Some commands failed: %v", err))
-	}
-
 	// Set Fish as default shell (skip in test mode)
 	if !testMode {
 		logger.LogMessage("INFO", "Setting Fish as default shell...")
