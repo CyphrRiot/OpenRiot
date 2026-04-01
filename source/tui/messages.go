@@ -58,6 +58,12 @@ type SecureBootPromptMsg struct{}
 // SecureBootConfirmMsg carries Secure Boot enablement decision
 type SecureBootConfirmMsg bool
 
+// OpenRouterConfirmMsg carries OpenRouter setup decision
+type OpenRouterConfirmMsg bool
+
+// OpenRouterKeyMsg carries OpenRouter API key input
+type OpenRouterKeyMsg string
+
 // SecureBootContinuationPromptMsg triggers retry/cancel prompt for Secure Boot continuation
 type SecureBootContinuationPromptMsg struct{}
 
@@ -128,6 +134,16 @@ var secureBootCompletionCallback func(bool)
 // SetSecureBootCallback sets the callback function for Secure Boot confirmation handling
 func SetSecureBootCallback(callback func(bool)) {
 	secureBootCompletionCallback = callback
+}
+
+// OpenRouter callback function
+var openRouterCompletionCallback func(bool)
+var openRouterKeyCallback func(string)
+
+// SetOpenRouterCallbacks sets the callback functions for OpenRouter setup handling
+func SetOpenRouterCallbacks(completion func(bool), apiKey func(string)) {
+	openRouterCompletionCallback = completion
+	openRouterKeyCallback = apiKey
 }
 
 // Secure Boot continuation callback function
