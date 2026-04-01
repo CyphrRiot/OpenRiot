@@ -97,7 +97,7 @@ For full hardware details, see the [OpenBSD Hardware Compatibility List](https:/
 
 ## ✅ Supported Network Hardware
 
-**⚠️ OpenBSD is very selective about WiFi adapters. Only use adapters from this list:**
+#### **⚠️ OpenBSD is very selective about WiFi adapters. Only use adapters from this list:**
 
 ### Built-in WiFi (PCIe/M.2)
 
@@ -137,7 +137,7 @@ For full compatibility, see [iwx(4)](https://man.openbsd.org/iwx.4), [urtwn(4)](
 
 ## 🔊 Bluetooth
 
-**⚠️ OpenBSD has NO native Bluetooth support.** The Bluetooth stack was removed years ago and has not been reinstated.
+#### **⚠️ OpenBSD has NO native Bluetooth support.** The Bluetooth stack was removed years ago and has not been reinstated.
 
 ### What Doesn't Work
 
