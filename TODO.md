@@ -153,13 +153,14 @@ This installs and configures all desktop packages and dotfiles.
 
 ## Pending Tasks
 
+- [x] **setup.sh**: Add OpenBSD version check - error if not OpenBSD 7.8+
 - [ ] **setup.sh**: Add optional OpenRouter API Key prompt during install. If user says "Yes", prompt for API key and add `export OPENROUTER_API_KEY="..."` to `~/.config/fish/config.env` or similar fish environment file.
 
 ### OpenRouter LLM Integration (Neovim + ZED)
 
 - [x] **config/nvim/lua/plugins/avante.lua**: Update model from `anthropic/claude-3.5-sonnet` to `minimax/minimax-m2.7` to match working local config
-- [ ] **config/fish/config.fish**: Add OpenRouter environment variables template (placeholder for API key)
-- [ ] **source/tui/messages.go**: Add `OpenRouterConfirmMsg` and `OpenRouterKeyMsg` message types
+- [x] **config/fish/config.fish**: Add OpenRouter environment variables template (placeholder for API key)
+- [x] **source/tui/messages.go**: Add `OpenRouterConfirmMsg` and `OpenRouterKeyMsg` message types
 - [ ] **source/tui/model.go**: Add OpenRouter input handling (confirm prompt + API key input)
 - [ ] **source/main.go**: Add OpenRouter setup flow - prompt user, get API key, write to fish config
 
