@@ -22,19 +22,19 @@ CONFIG_BRANCH="${CONFIG_BRANCH:-main}"
 # -----------------------------------------------------------------------------
 
 info() {
-    echo "${BLUE}[INFO]${NC} $1"
+    echo -e "${BLUE}[INFO]${NC} $1"
 }
 
 success() {
-    echo "${GREEN}[OK]${NC} $1"
+    echo -e "${GREEN}[OK]${NC} $1"
 }
 
 warn() {
-    echo "${YELLOW}[WARN]${NC} $1"
+    echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
 error() {
-    echo "${RED}[ERROR]${NC} $1" >&2
+    echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
 # -----------------------------------------------------------------------------
@@ -51,7 +51,7 @@ check_openbsd_version() {
 
     os=$(uname -s)
     if [ "$os" != "OpenBSD" ]; then
-        error "This script is for OpenBSD only. Detected: $os"
+        error "You can only install this on OpenBSD $OPENBSD_MIN_VERSION or higher. Detected: $os"
         exit 1
     fi
 
