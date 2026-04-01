@@ -157,7 +157,7 @@ This installs and configures all desktop packages and dotfiles.
 
 ### OpenRouter LLM Integration (Neovim + ZED)
 
-- [ ] **config/nvim/lua/plugins/avante.lua**: Update model from `anthropic/claude-3.5-sonnet` to `minimax/minimax-m2.7` to match working local config
+- [x] **config/nvim/lua/plugins/avante.lua**: Update model from `anthropic/claude-3.5-sonnet` to `minimax/minimax-m2.7` to match working local config
 - [ ] **config/fish/config.fish**: Add OpenRouter environment variables template (placeholder for API key)
 - [ ] **source/tui/messages.go**: Add `OpenRouterConfirmMsg` and `OpenRouterKeyMsg` message types
 - [ ] **source/tui/model.go**: Add OpenRouter input handling (confirm prompt + API key input)
