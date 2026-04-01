@@ -59,7 +59,7 @@ type InstallModel struct {
 	failureError        string
 	operation           string
 	currentStep         string
-	inputMode           string   // "git-username", "git-email", "reboot", ""
+	inputMode           string   // "git-username", "git-email", "reboot", "openrouter-api-key"
 	inputValue          string   // current typed input
 	inputPrompt         string   // what we're asking for
 	showConfirm         bool     // show YES/NO confirmation
@@ -268,6 +268,14 @@ func (m *InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case GitConfirmMsg:
 		// Git confirmation received, handled by main
+		return m, nil
+
+	case OpenRouterConfirmMsg:
+		// OpenRouter confirmation received, handled by main
+		return m, nil
+
+	case OpenRouterKeyMsg:
+		// OpenRouter API key input received, handled by main
 		return m, nil
 
 	case RebootMsg:
@@ -624,6 +632,14 @@ func (m *InstallModel) handleConfirmSelection() (tea.Model, tea.Cmd) {
 			preservationCompletionCallback(m.cursor == 0) // YES = 0, NO = 1
 		}
 		return m, nil
+	} else if m.confirmPrompt == "🤖 Setup OpenRouter for Neovim AI?" {
+		// OpenRouter confirmation - send result back through callback
+		m.showConfirm = false
+		m.confirmPrompt = ""
+		if openRouterCompletionCallback != nil {
+			openRouterCompletionCallback(m.cursor == 0) // YES = 0, NO = 1
+		}
+		return m, nil
 	} else if m.isConfirmationMode {
 		// Initial installation confirmation - store result and quit
 		m.confirmationResult = (m.cursor == 0) // YES = 0, NO = 1
@@ -654,6 +670,16 @@ func (m *InstallModel) handleInputSubmit() (tea.Model, tea.Cmd) {
 		m.inputValue = ""
 		if gitEmailCallback != nil {
 			gitEmailCallback(inputValue)
+		}
+		return m, nil
+	case "openrouter-api-key":
+		// Send OpenRouter API key back to main and clear input
+		inputValue := m.inputValue
+		m.inputMode = ""
+		m.inputPrompt = ""
+		m.inputValue = ""
+		if openRouterKeyCallback != nil {
+			openRouterKeyCallback(inputValue)
 		}
 		return m, nil
 	}
