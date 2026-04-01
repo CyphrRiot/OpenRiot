@@ -6,7 +6,7 @@
 
 ### **One Command. Complete Environment. Zero Compromises.**
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-0.1-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![OpenBSD](https://img.shields.io/badge/OpenBSD_7.9-1e1b4b?logo=openbsd&logoColor=a855f7&labelColor=0f172a)
