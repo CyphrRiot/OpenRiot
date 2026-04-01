@@ -22,7 +22,7 @@
 
 ## **OpenRiot: The OpenBSD System You've Always Wanted**
 
-OpenRiot is the answer to every time you've thought "Why can't an OpenBSD installation just work correctly from the start?" Built on the same principles as ArchRiot — perfect the details once, get it right every time.
+OpenRiot is the answer to every time you've thought "Why can't an OpenBSD installation just work correctly from the start?" Built on the same principles as [ArchRiot](https://ArchRiot.org) — perfect the details once, get it right every time.
 
 **Curated to be correct:**
 
