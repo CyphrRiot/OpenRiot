@@ -2,9 +2,9 @@
 
 <img src="OpenRiot.png" alt="OpenRiot" width="200"/>
 
-# :: <span style="color: #4c1d95">𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥</span> ::
+# :: <span style="color: #7c3aed">𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥</span> ::
 
-#### **⚠️ WARNING: OpenRiot is IN PROGRESS and will not (yet) install! ⚠️**
+## **⚠️ WARNING: OpenRiot is IN PROGRESS and will not (yet) install! ⚠️**
 
 ### **One Command. Complete Environment. Zero Compromises.**
 
