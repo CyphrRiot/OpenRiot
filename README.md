@@ -350,5 +350,5 @@ MIT License — see [LICENSE](./LICENSE)
 
 See [TODO.md](./TODO.md) for full project status, architecture, build plan, and TODO list.
 
-**OpenRiot 🐡** — An opinionated OpenBSD desktop system  
+**OpenRiot** — A Functional OpenBSD desktop system  
 Created by [CyphrRiot](https://github.com/CyphrRiot)

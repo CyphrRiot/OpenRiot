@@ -228,6 +228,25 @@ deploy_configs() {
         cp -f backgrounds/* "$HOME/.local/share/openriot/backgrounds/" 2>/dev/null || true
     fi
 
+    # Deploy system configuration files
+    info "Deploying system configuration files..."
+    if [ -d "site/etc" ]; then
+        # Install doas.conf (required for passwordless wheel)
+        if [ -f "site/etc/doas.conf" ]; then
+            doas cp -f site/etc/doas.conf /etc/doas.conf
+            doas chmod 0440 /etc/doas.conf
+            success "Installed doas.conf"
+        fi
+        # Install pkg_add.conf
+        if [ -f "site/etc/pkg_add.conf" ]; then
+            doas cp -f site/etc/pkg_add.conf /etc/pkg_add.conf
+        fi
+        # Install hostname template
+        if [ -f "site/etc/hostname.iwx0" ]; then
+            doas cp -f site/etc/hostname.iwx0 /etc/hostname.iwx0.tmpl 2>/dev/null || true
+        fi
+    fi
+
     success "Configuration files deployed"
 }
 

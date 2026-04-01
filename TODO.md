@@ -8,7 +8,7 @@
 
 ## What Is OpenRiot?
 
-OpenRiot is a polished, opinionated **OpenBSD desktop system** built in the spirit of [ArchRiot](https://github.com/CyphrRiot/ArchRiot). The goal is a one-command post-install setup (`curl -fsSL https://openriot.org/setup.sh | sh`) that transforms a base OpenBSD installation into a fully-configured Sway + Waybar desktop — same CypherRiot aesthetics, same keybindings, same workflow — running on OpenBSD's audited, pledge/unveil-secured base.
+OpenRiot is a polished, functional, **OpenBSD desktop system** built in the spirit of [ArchRiot](https://github.com/CyphrRiot/ArchRiot). The goal is a one-command post-install setup (`curl -fsSL https://openriot.org/setup.sh | sh`) that transforms a base OpenBSD installation into a fully-configured Sway + Waybar desktop — same CypherRiot aesthetics, same keybindings, same workflow — running on OpenBSD's audited, pledge/unveil-secured base.
 
 **Philosophy:**
 
@@ -16,7 +16,9 @@ OpenRiot is a polished, opinionated **OpenBSD desktop system** built in the spir
 - OpenRiot = stable OpenBSD base, Sway (i3-compatible Wayland compositor), same rice
 
 **Target hardware:** Any desktop or laptop, especially the ThinkPad X1 Carbon Gen 13
+
 **Target users:** Intermediate Linux/BSD users who want OpenBSD's security with ArchRiot's workflow
+
 **Time to desktop:** ~15 minutes after base install
 
 ---
@@ -174,21 +176,21 @@ This installs and configures all desktop packages and dotfiles.
 
 ### ✅ COMPLETED — Phase 4
 
-| Item                        | Priority | Blocking | Notes                                         |
-| --------------------------- | -------- | -------- | --------------------------------------------- |
-| Fish shell config           | ✅ DONE  | No       | See `config/fish/`                            |
-| packages.yaml (OpenBSD)     | ✅ DONE  | No       | See `install/packages.yaml`                   |
-| Neovim config               | ✅ DONE  | No       | See `config/nvim/`                            |
-| btop config                 | ✅ DONE  | No       | See `config/btop/`                            |
-| fastfetch config            | ✅ DONE  | No       | See `config/fastfetch/`                       |
-| waybar modules              | ✅ DONE  | No       | See `config/waybar/`                          |
-| mako config                 | ✅ DONE  | No       | See `config/mako/`                            |
-| GTK themes (gtk-3.0/4.0)    | ✅ DONE  | No       | See `config/gtk-3.0/` and `config/gtk-4.0/`   |
-| environment.d               | ✅ DONE  | No       | See `config/environment.d/`                   |
-| Thunar config               | ✅ DONE  | No       | See `config/Thunar/`                          |
-| `site/` populated files     | P1       | No       | doas.conf, pkg_add.conf, hostname, etc.       |
-| Swaylock dynamic wallpaper  | P2       | No       | Requires backgrounds + openriot binary        |
-| OpenRiot wallpapers package | P2       | No       | Full CypherRiot backgrounds not yet assembled |
+| Item                        | Priority | Blocking | Notes                                                    |
+| --------------------------- | -------- | -------- | -------------------------------------------------------- |
+| Fish shell config           | ✅ DONE  | No       | See `config/fish/`                                       |
+| packages.yaml (OpenBSD)     | ✅ DONE  | No       | See `install/packages.yaml`                              |
+| Neovim config               | ✅ DONE  | No       | See `config/nvim/`                                       |
+| btop config                 | ✅ DONE  | No       | See `config/btop/`                                       |
+| fastfetch config            | ✅ DONE  | No       | See `config/fastfetch/`                                  |
+| waybar modules              | ✅ DONE  | No       | See `config/waybar/`                                     |
+| mako config                 | ✅ DONE  | No       | See `config/mako/`                                       |
+| GTK themes (gtk-3.0/4.0)    | ✅ DONE  | No       | See `config/gtk-3.0/` and `config/gtk-4.0/`              |
+| environment.d               | ✅ DONE  | No       | See `config/environment.d/`                              |
+| Thunar config               | ✅ DONE  | No       | See `config/Thunar/`                                     |
+| `site/` populated files     | ✅ DONE  | No       | See `site/etc/` (doas.conf, pkg_add.conf, hostname.iwx0) |
+| Swaylock dynamic wallpaper  | P2       | No       | Requires backgrounds + openriot binary                   |
+| OpenRiot wallpapers package | P2       | No       | Full CypherRiot backgrounds not yet assembled            |
 
 ---
 
@@ -335,7 +337,7 @@ Based on ArchRiot analysis (~84 Go files → only 5 exist in OpenRiot). Port onl
 - [x] Copy/configure GTK themes from ArchRiot — see `config/gtk-3.0/`, `config/gtk-4.0/`
 - [x] Copy/configure Thunar config from ArchRiot — see `config/Thunar/`
 - [x] Copy/configure environment.d from ArchRiot — see `config/environment.d/`
-- [ ] Populate `site/` with useful files (doas.conf, pkg_add.conf, hostname)
+- [x] Populate `site/` with useful files (doas.conf, pkg_add.conf, hostname) — see `site/etc/`
 
 ### Phase 5: Testing & Polish (P2)
 
