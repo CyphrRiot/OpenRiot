@@ -2,7 +2,7 @@
 
 <img src="OpenRiot.png" alt="OpenRiot" width="200"/>
 
-# :: 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥 ::
+# :: <span style="color: #4c1d95">𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥</span> ::
 
 #### **⚠️ WARNING: OpenRiot is IN PROGRESS and will not (yet) install! ⚠️**
 
