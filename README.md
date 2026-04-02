@@ -25,7 +25,7 @@
 
 OpenRiot is the answer to every time you've thought "Why can't an OpenBSD installation just work correctly from the start?" Built on the same principles as [ArchRiot](https://ArchRiot.org) — perfect the details once, get it right every time.
 
-> Read the [Post on X](https://x.com/CyphrRiot/status/2039409143891837297?s=20) to understand why OpenRiot was created and more about the creator's vision for the system.
+- Read the [Post on X](https://x.com/CyphrRiot/status/2039409143891837297?s=20) to understand why OpenRiot was created and more about the creator's vision for the system.
 
 **Curated to be correct:**
 
