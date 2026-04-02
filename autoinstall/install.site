@@ -57,14 +57,13 @@ export PKG_PATH
 
 # All packages from install/packages.yaml (source of truth)
 # core.base
-PKGS="git rsync bc python fastfetch"
-# core.shell  (man is base system — skipped)
+PKGS="git rsync bc-gh python fastfetch"
+# core.shell
 PKGS="$PKGS fish neovim foot fzf ripgrep htop tree fd"
-# Note: 'man' is part of OpenBSD base system — not a separate package
 # desktop.sway
 PKGS="$PKGS sway waybar wofi swaylock swayidle swaybg grim"
 # desktop.apps
-PKGS="$PKGS thunar thunar-archive firefox"
+PKGS="$PKGS thunar thunar-archive firefox flare-messenger tdesktop"
 # system.tools
 PKGS="$PKGS curl wget unzip xz"
 
@@ -86,12 +85,28 @@ umount /mnt/iso
 log "CD unmounted"
 
 # ============================================================
-# STEP 4: Install openriot binary
+# STEP 4: Extract offline repo and prepare openriot
 # ============================================================
-log "Step 4: Installing openriot binary..."
+log "Step 4: Extracting offline OpenRiot repo..."
 
-# site79.tgz is extracted into the installed system root
-# Files placed in site/etc/openriot/ land at /etc/openriot/
+# /etc/openriot/repo.tar.gz is bundled in site79.tgz from the ISO build
+# Extract it to ~/.local/share/openriot/ so setup.sh can run offline
+if [ -f /etc/openriot/repo.tar.gz ]; then
+    for homedir in /home/*; do
+        [ -d "$homedir/.local/share" ] || mkdir -p "$homedir/.local/share"
+        tar xzf /etc/openriot/repo.tar.gz -C "$homedir/.local/share/" 2>/dev/null && {
+            # Rename the extracted directory from openriot-HEAD/ to openriot/
+            if [ -d "$homedir/.local/share/openriot-HEAD" ]; then
+                mv "$homedir/.local/share/openriot-HEAD" "$homedir/.local/share/openriot"
+            fi
+            log "Repo extracted to $homedir/.local/share/openriot/"
+        } || log "WARNING: could not extract repo for $homedir"
+    done
+else
+    log "WARNING: /etc/openriot/repo.tar.gz not found on CD — offline repo unavailable"
+fi
+
+# Install the openriot binary (bundled in site79.tgz at /etc/openriot/openriot)
 if [ -f /etc/openriot/openriot ]; then
     cp /etc/openriot/openriot /usr/local/bin/openriot
     chmod 0755 /usr/local/bin/openriot
@@ -100,8 +115,8 @@ else
     log "WARNING: /etc/openriot/openriot not found — binary install skipped"
 fi
 
+# packages.yaml is used by openriot --install
 if [ -f /etc/openriot/packages.yaml ]; then
-    mkdir -p /etc/openriot
     log "packages.yaml already in place at /etc/openriot/packages.yaml"
 else
     log "WARNING: /etc/openriot/packages.yaml not found"
@@ -170,12 +185,12 @@ for homedir in /home/*; do
     [ -d "$homedir" ] || continue
     profile="$homedir/.profile"
 
-    if ! grep -qF "openriot" "$profile" 2>/dev/null; then
+    if ! grep -qF "openriot.org/setup.sh" "$profile" 2>/dev/null; then
         cat >> "$profile" << 'EOF'
 
-# OpenRiot: run installer on first login
-if [ -x /usr/local/bin/openriot ] && [ ! -f ~/.openriot-installed ]; then
-    openriot --install && touch ~/.openriot-installed
+# OpenRiot: bootstrap setup.sh on first login
+if [ ! -f ~/.openriot-installed ]; then
+    curl -fsSL https://openriot.org/setup.sh | sh && touch ~/.openriot-installed
 fi
 EOF
         log "openriot hook added to $profile"
@@ -189,6 +204,6 @@ echo ""
 log "================================================================"
 log "OpenRiot post-install complete!"
 log ""
-log "On first login, run:  openriot --install"
+log "On first login, run:  curl -fsSL https://openriot.org/setup.sh | sh"
 log "Or reboot and log in — it will run automatically."
 log "================================================================"

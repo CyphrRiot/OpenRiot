@@ -79,36 +79,55 @@ check_uid() {
 }
 
 # -----------------------------------------------------------------------------
+# Offline Repo Detection
+# -----------------------------------------------------------------------------
+
+# Check if repo was already extracted from ISO (offline mode).
+# install.site extracts /etc/openriot/repo.tar.gz to ~/.local/share/openriot/
+# on the target system. If that exists, we use local files instead of cloning.
+
+OPENRIOT_LOCAL="$HOME/.local/share/openriot"
+
+if [ -d "$OPENRIOT_LOCAL" ] && [ -f "$OPENRIOT_LOCAL/install/setup.sh" ]; then
+    info "Offline mode: using repo from ~/.local/share/openriot/"
+    OFFLINE_MODE=1
+else
+    info "Online mode: will clone repo from $REPO_URL"
+    OFFLINE_MODE=0
+fi
+
+# -----------------------------------------------------------------------------
 # Package Installation
 # -----------------------------------------------------------------------------
 
 install_packages() {
+    # Skip if already installed by install.site (offline mode)
+    if [ "$OFFLINE_MODE" = "1" ]; then
+        info "Packages already installed from ISO (offline mode)"
+        return
+    fi
+
     info "Installing packages via pkg_add..."
 
     # Core packages
     info "Installing core packages..."
-    pkg_add git rsync bc python fastfetch
+    pkg_add git rsync bc-gh python fastfetch
 
     # Shell and terminal
     info "Installing shell and terminal packages..."
-    pkg_add fish neovim foot fd fzf ripgrep wl-clipboard man less htop tree
+    pkg_add fish neovim foot fd fzf ripgrep htop tree
 
     # Desktop (Sway)
     info "Installing Sway desktop packages..."
-    pkg_add sway waybar wofi swaylock swayidle swaybg grim kanshi
-    pkg_add xdg-desktop-portal xdg-desktop-portal-wlroots
+    pkg_add sway waybar wofi swaylock swayidle swaybg grim
 
     # Applications
     info "Installing application packages..."
-    pkg_add thunar thunar-archive-plugin firefox
+    pkg_add thunar thunar-archive firefox flare-messenger tdesktop
 
     # System tools
     info "Installing system tools..."
     pkg_add doas curl wget unzip xz
-
-    # Wireless firmware (if needed)
-    info "Installing wireless firmware..."
-    pkg_add iwx-firmware urtwn-firmware
 
     success "All packages installed"
 }
@@ -189,62 +208,49 @@ deploy_configs() {
     mkdir -p "$HOME/.config/fish/functions"
     mkdir -p "$HOME/.local/share/openriot/config"
 
-    # Clone or update OpenRiot repo
-    if [ -d "$HOME/.local/share/openriot" ]; then
-        info "Updating existing OpenRiot configuration..."
-        cd "$HOME/.local/share/openriot"
-        git pull origin "$CONFIG_BRANCH" 2>/dev/null || git pull origin main
+    # Use local repo if available (offline), otherwise clone from git
+    if [ "$OFFLINE_MODE" = "1" ]; then
+        info "Using offline repo at $HOME/.local/share/openriot/"
+        REPO_SOURCE="$HOME/.local/share/openriot"
     else
-        info "Cloning OpenRiot configuration..."
-        mkdir -p "$HOME/.local/share/openriot"
-        cd "$HOME/.local/share/openriot"
-        git clone -b "$CONFIG_BRANCH" "$REPO_URL" .
+        if [ -d "$HOME/.local/share/openriot" ]; then
+            info "Updating existing OpenRiot configuration..."
+            cd "$HOME/.local/share/openriot"
+            git pull origin "$CONFIG_BRANCH" 2>/dev/null || git pull origin main
+        else
+            info "Cloning OpenRiot configuration..."
+            mkdir -p "$HOME/.local/share/openriot"
+            cd "$HOME/.local/share/openriot"
+            git clone -b "$CONFIG_BRANCH" "$REPO_URL" .
+        fi
+        REPO_SOURCE="$HOME/.local/share/openriot"
     fi
 
     # Link Sway config
     info "Deploying Sway configuration..."
-    if [ -d "config/sway" ]; then
-        cp -f config/sway/config "$HOME/.config/sway/config"
+    if [ -d "$REPO_SOURCE/config/sway" ]; then
+        cp -f "$REPO_SOURCE/config/sway/config" "$HOME/.config/sway/config"
         cp -f config/sway/keybindings.conf "$HOME/.config/sway/keybindings.conf" 2>/dev/null || true
         cp -f config/sway/monitors.conf "$HOME/.config/sway/monitors.conf" 2>/dev/null || true
         cp -f config/sway/windowrules.conf "$HOME/.config/sway/windowrules.conf" 2>/dev/null || true
         cp -f config/sway/swayidle.conf "$HOME/.config/sway/swayidle.conf" 2>/dev/null || true
         cp -f config/sway/swaylock.conf "$HOME/.config/sway/swaylock.conf" 2>/dev/null || true
         cp -f config/sway/swaylock-wrapper.sh "$HOME/.config/sway/swaylock-wrapper.sh" 2>/dev/null || true
-        cp -f config/sway/swaylock-wrapper.py "$HOME/.config/sway/swaylock-wrapper.py" 2>/dev/null || true
+        cp -f "$REPO_SOURCE/config/sway/swaylock-wrapper.py" "$HOME/.config/sway/swaylock-wrapper.py" 2>/dev/null || true
     fi
 
     # Link Fish config
     info "Deploying Fish shell configuration..."
-    if [ -d "config/fish" ]; then
-        cp -f config/fish/config.fish "$HOME/.config/fish/config.fish"
+    if [ -d "$REPO_SOURCE/config/fish" ]; then
+        cp -f "$REPO_SOURCE/config/fish/config.fish" "$HOME/.config/fish/config.fish"
         cp -f config/fish/conf.d/* "$HOME/.config/fish/conf.d/" 2>/dev/null || true
         cp -f config/fish/functions/* "$HOME/.config/fish/functions/" 2>/dev/null || true
     fi
 
     # Link backgrounds
-    if [ -d "backgrounds" ]; then
+    if [ -d "$REPO_SOURCE/backgrounds" ]; then
         mkdir -p "$HOME/.local/share/openriot/backgrounds"
-        cp -f backgrounds/* "$HOME/.local/share/openriot/backgrounds/" 2>/dev/null || true
-    fi
-
-    # Deploy system configuration files
-    info "Deploying system configuration files..."
-    if [ -d "site/etc" ]; then
-        # Install doas.conf (required for passwordless wheel)
-        if [ -f "site/etc/doas.conf" ]; then
-            doas cp -f site/etc/doas.conf /etc/doas.conf
-            doas chmod 0440 /etc/doas.conf
-            success "Installed doas.conf"
-        fi
-        # Install pkg_add.conf
-        if [ -f "site/etc/pkg_add.conf" ]; then
-            doas cp -f site/etc/pkg_add.conf /etc/pkg_add.conf
-        fi
-        # Install hostname template
-        if [ -f "site/etc/hostname.iwx0" ]; then
-            doas cp -f site/etc/hostname.iwx0 /etc/hostname.iwx0.tmpl 2>/dev/null || true
-        fi
+        cp -f "$REPO_SOURCE/backgrounds/"* "$HOME/.local/share/openriot/backgrounds/" 2>/dev/null || true
     fi
 
     success "Configuration files deployed"

@@ -6,8 +6,10 @@
 config/omarchy/user.env
 
 # NEVER COMMIT THE ISO
-archlinux-2025.07.01-x86_64.iso
 *.iso
+
+# NEVER commit .work
+.work/
 
 # Temporary files
 *.tmp
