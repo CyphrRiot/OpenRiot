@@ -11,7 +11,7 @@ OpenRiot is the OpenBSD counterpart to [ArchRiot](https://archriot.org). It take
 - **Sway** (i3-compatible Wayland compositor)
 - **Fish** shell with git prompts
 - **Waybar** status bar with modules
-- **Neovim** with LazyVim configuration
+- **Neovim** with LazyVim configuration (with optional avante LLM support)
 - **Foot** terminal emulator
 - **Thunar** file manager
 
@@ -19,7 +19,9 @@ All configuration is declarative, version-controlled, and reproducible.
 
 ---
 
-## Workflow Rules — _NEVER DEVIATE_
+## Workflow Rules — **NEVER DEVIATE**
+
+Do not skip any steps. Reference prior context. Output a numbered plan first, then implement. For every function, include error handling with context.Context and at least two table-driven tests.
 
 ### On Every Change
 
@@ -39,12 +41,13 @@ Goal: <why this change is being made>
 
 **Then ask:** `Continue?`
 
-1. **Propose first** — Show the exact change (filename, function, reason) before editing
-2. **Wait for "Proceed/Continue?"** before touching any code
-3. **Test locally first** (Linux with `--test` flag)
-4. **Verify build passes** (`make build`)
-5. **Show proof it works** before asking for approval
-6. **One change at a time** — finish one task before starting another
+1. **NEVER COMMIT** — Do NOT run `git commit` or `git push` without explicit permission
+2. **Propose first** — Show the exact change (filename, function, reason) before editing
+3. **Wait for "Proceed/Continue?"** before touching any code
+4. **Test locally first** (Linux with `--test` flag)
+5. **Verify build passes** (`make build`)
+6. **Show proof it works** before asking for approval
+7. **One change at a time** — finish one task before starting another
 
 ### Before Starting a New Chat
 
@@ -155,36 +158,40 @@ These ArchRiot features have no OpenBSD equivalent or are unnecessary:
 
 ### ✅ COMPLETED
 
-| Component             | File(s)                    | Notes                              |
-| --------------------- | -------------------------- | ---------------------------------- |
-| build-iso.sh skeleton | `build-iso.sh`             | Downloads ISO, injects autoinstall |
-| autoinstall config    | `autoinstall/install.conf` | Works with OpenBSD 7.8             |
-| packages.yaml         | `install/packages.yaml`    | Source of truth for pkg_add        |
-| config loader         | `source/config/`           | Reads packages.yaml                |
-| Go installer skeleton | `source/main.go`           | Handles --version, --test          |
-| TUI model             | `source/tui/`              | BubbleTea-based progress display   |
-| Sway config           | `config/sway/`             | Ported from ArchRiot               |
-| Waybar config         | `config/waybar/`           | Ported from ArchRiot               |
-| Fish config           | `config/fish/`             | Ported from ArchRiot               |
-| Neovim config         | `config/nvim/`             | Ported from ArchRiot               |
-| Foot config           | `config/foot/`             | Ported from ArchRiot               |
-| Backgrounds           | `backgrounds/`             | 16 CypherRiot backgrounds          |
-| Makefile              | `Makefile`                 | Builds openriot binary             |
+| Component             | File(s)                        | Notes                                                              |
+| --------------------- | ------------------------------ | ------------------------------------------------------------------ |
+| build-iso.sh          | `build-iso.sh`                 | Linux-compatible; xorriso-only (no sudo); bootable El Torito flags |
+| autoinstall config    | `autoinstall/install.conf`     | Works with OpenBSD 7.9                                             |
+| install.site          | `autoinstall/install.site`     | Mounts CD, pkg_add offline, doas, rcctl, fish shell, .profile hook |
+| packages.yaml         | `install/packages.yaml`        | Source of truth; removed `man` (base system pkg)                   |
+| download-packages.sh  | `scripts/download-packages.sh` | POSIX-safe; wayland/ fallback; fetches mirror index once           |
+| generate-index.sh     | `scripts/generate-index.sh`    | Auto-run at end of download-packages.sh                            |
+| Canonical versioning  | `Makefile`                     | OPENRIOT_VERSION=0.4, OPENBSD_VERSION=7.9 — single source of truth |
+| Version ldflags       | `source/main.go`               | Version injected at build time via `-X main.version`               |
+| config loader         | `source/config/`               | Reads packages.yaml                                                |
+| Go installer skeleton | `source/main.go`               | Handles --version, --test                                          |
+| TUI model             | `source/tui/`                  | BubbleTea-based progress display                                   |
+| Sway config           | `config/sway/`                 | Ported from ArchRiot                                               |
+| Waybar config         | `config/waybar/`               | Ported from ArchRiot                                               |
+| Fish config           | `config/fish/`                 | Ported from ArchRiot                                               |
+| Neovim config         | `config/nvim/`                 | Ported from ArchRiot                                               |
+| Foot config           | `config/foot/`                 | Ported from ArchRiot                                               |
+| Backgrounds           | `backgrounds/`                 | 16 CypherRiot backgrounds                                          |
 
 ### 🔴 NOT YET STARTED
 
-| Component                                           | Priority | Blocking                      |
-| --------------------------------------------------- | -------- | ----------------------------- |
-| Rewrite build-iso.sh for offline packages           | P0       | Need stable 7.8, not -current |
-| Fix build-iso.sh to use OpenBSD 7.8 (not snapshots) | P0       | Current script pulls -current |
-| Implement offline package download                  | P0       | ISO must work offline         |
-| Port install.site script                            | P0       | Post-install hooks            |
-| Fix main.go deadlock in test mode                   | P1       | TUI blocks on startup         |
-| Host setup.sh at openriot.org                       | P1       | Curl install needs hosting    |
-| Test on real OpenBSD hardware                       | P1       | VM or real hardware           |
-| OpenBSD package verification                        | P2       | Ensure all packages exist     |
-| wlsunset source build                               | P2       | Not in pkg_add                |
-| Waybar modules (idle, tray)                         | P2       | Partially done                |
+| Component                     | Priority | Blocking                                            |
+| ----------------------------- | -------- | --------------------------------------------------- |
+| **Run download-packages.sh**  | **P0**   | Packages must be cached before ISO build            |
+| **Build and verify ISO**      | **P0**   | End-to-end test: boot in QEMU, confirm offline pkgs |
+| Verify autoinstall runs       | P0       | Requires test ISO boot                              |
+| Verify install.site executes  | P0       | Requires test ISO boot                              |
+| Verify offline pkg install    | P0       | Disconnect network, retest                          |
+| Fix main.go deadlock in test  | P1       | TUI blocks on startup                               |
+| Host setup.sh at openriot.org | P1       | Curl install needs hosting                          |
+| Test on real OpenBSD hardware | P1       | VM or real hardware                                 |
+| wlsunset source build         | P2       | Not in pkg_add                                      |
+| Waybar modules (idle, tray)   | P2       | Partially done                                      |
 
 ---
 
@@ -192,175 +199,258 @@ These ArchRiot features have no OpenBSD equivalent or are unnecessary:
 
 ### LAYER 1: ISO Builder
 
-#### 1.1 Rewrite build-iso.sh for OpenBSD 7.8 Stable
+**Goal:** Produce a bootable OpenBSD ISO that installs completely offline with OpenRiot desktop.
 
-**Problem:** Current `build-iso.sh` pulls from `snapshots/` (OpenBSD -current).
+**Correct Architecture:**
 
-**Sub-tasks:**
+```
+ISO Structure:
+  / (root)
+    install79.iso contents
+    openriot/
+      packages/7.9/amd64/     <- Offline packages + index.txt
+      site79.tgz              <- install.site + configs + openriot binary
+```
 
-- [ ] 1.1.1 Change `OPENBSD_VERSION` from `7.9` to `7.8`
-- [ ] 1.1.2 Change `MIRROR` from `cdn.openbsd.org/pub/OpenBSD/snapshots` to `cdn.openbsd.org/pub/OpenBSD/7.8`
-- [ ] 1.1.3 Update ISO_NAME from `install79.iso` to `install78.iso`
-- [ ] 1.1.4 Update site tarball from `site79.tgz` to `site78.tgz`
-- [ ] 1.1.5 Verify SHA256 format for 7.8 release matches expected
+**Install Flow:**
 
-#### 1.2 Implement Offline Package Bundling
+1. Boot ISO → autoinstall runs base system install from network
+2. After base install → `install.site` runs from `site79.tgz`
+3. `install.site` mounts CD and uses `PKG_PATH=/mnt/iso/openriot/packages/7.9/amd64/`
+4. Packages install offline → no network needed
+5. OpenRiot desktop configured
 
-**Problem:** OpenRiot ISO should work offline (like ArchRiot's).
+#### 1.1 ISO Builder Script (DONE ✅)
 
-**Sub-tasks:**
+- [x] 1.1.1 Uses `OPENBSD_VERSION=7.9` (snapshots/current)
+- [x] 1.1.2 Uses `snapshots` mirror path
+- [x] 1.1.3 ISO_NAME derived from version (`install79.iso`) — no hardcoding
+- [x] 1.1.4 Site tarball name derived from version (`site79.tgz`) — no hardcoding
+- [x] 1.1.5 SHA256 verified — OS-aware (`sha256sum` Linux, `sha256 -q` OpenBSD)
+- [x] 1.1.6 ISO extracted with `xorriso -osirrox` — **no sudo, works on Linux**
+- [x] 1.1.7 `install.conf` injected at ISO root
+- [x] 1.1.8 `install.site` always injected into `site79.tgz` from `autoinstall/`
+- [x] 1.1.9 `site79.tgz` placed at `7.9/amd64/site79.tgz` (correct installer path)
+- [x] 1.1.10 Repacked with correct El Torito boot flags (BIOS + UEFI bootable)
+- [x] 1.1.11 ISO output: `isos/openriot-0.4.iso`
+- [x] 1.1.12 Preflight checks: xorriso, curl, tar, pkg cache, install.conf, install.site
 
-- [ ] 1.2.1 Create `scripts/download-packages.sh`
-    - Read packages from `install/packages.yaml`
-    - Download each package from OpenBSD mirror to `.pkgcache/`
-    - Create local `packages.txt` index file
-    - Output: `.pkgcache/` directory + `packages.txt` manifest
+#### 1.2 Offline Package Bundling (DONE ✅)
 
-- [ ] 1.2.2 Modify `build-iso.sh` to include packages
-    - Copy `.pkgcache/` to `ISO_CONTENTS/opt/openriot-packages/`
-    - Create `pkg_add.conf` pointing to local repo first
-    - Ensure sets list includes local package path
+- [x] 1.2.1 `scripts/download-packages.sh` — complete rewrite
+    - Parses `install/packages.yaml` with POSIX awk (no grep -P)
+    - Downloads to `~/.pkgcache/7.9/amd64/` (matches build-iso.sh expectation)
+    - Fetches mirror HTML index **once**, reuses for all lookups (no per-pkg HTTP)
+    - Searches `wayland/` subdirectory as fallback (waybar, etc.)
+    - `--dry-run` flag supported
+    - Reads `OPENBSD_VERSION`/`ARCH` from env (set by `make`), falls back to defaults
+    - Auto-runs `generate-index.sh` on completion (step 4)
 
-- [ ] 1.2.3 Test offline install in VM
-    - Disconnect network in VM
-    - Boot ISO
-    - Verify packages install from local cache
+- [x] 1.2.2 `scripts/generate-index.sh` — generates `index.txt` from `.tgz` files
+    - Required for `pkg_add` dependency resolution
+    - Reads `OPENBSD_VERSION`/`ARCH` from env, falls back to defaults
 
-#### 1.3 Autoinstall Enhancement
+- [x] 1.2.3 Index generation integrated into `download-packages.sh` (auto-runs)
 
-**Sub-tasks:**
+- [x] 1.2.4 `build-iso.sh` copies packages to ISO
+    - Cache: `~/.pkgcache/7.9/amd64/*.tgz` + `index.txt`
+    - Destination in ISO: `openriot/packages/7.9/amd64/`
+    - Preflight fails clearly if cache missing or empty
 
-- [ ] 1.3.1 Update `autoinstall/install.conf` for 7.8
-    - Set correct HTTP server path for 7.8 sets
-    - Add any 7.8-specific answers
+#### 1.3 install.site Script (DONE ✅)
 
-- [ ] 1.3.2 Create `autoinstall/install.site` (post-install script)
-    - Extract openriot binary to `/usr/local/bin/`
-    - Copy packages.yaml to `/opt/openriot/`
-    - Set up initial doas configuration
-    - Create `~/.config/` skeleton if needed
-    - Install packages via `/usr/local/bin/openriot --install`
+- [x] 1.3.1 Mounts `/dev/cd0a` → `/mnt/iso`, validates package dir, dies cleanly if missing
+- [x] 1.3.2 `PKG_PATH=/mnt/iso/openriot/packages/7.9/amd64` — correct offline path
+- [x] 1.3.3 Installs all packages from `packages.yaml` via `pkg_add -v`
+- [x] 1.3.4 Unmounts CD cleanly after install
+- [x] 1.3.5 Copies `openriot` binary from `/etc/openriot/` (where site79.tgz extracts)
+- [x] 1.3.6 Writes `/etc/doas.conf` — `permit nopass :wheel`
+- [x] 1.3.7 Enables `apmd` + `sndiod` via `rcctl`
+- [x] 1.3.8 Sets fish as default shell for all `/home/*` users
+- [x] 1.3.9 Adds `.profile` hook — `openriot --install` runs on first login
+- [ ] 1.3.10 **Verify `install.site` actually executes** — requires ISO boot test (1.4)
 
-- [ ] 1.3.3 Inject install.site into ISO
-    - Place in ISO root as `install.site`
-    - OpenBSD autoinstall runs this after base install
+#### 1.4 Test ISO Build (NEXT — P0 🔴)
 
-#### 1.4 ISO Build Testing
+**This is the immediate next task. Do not start a new session without completing this.**
 
-**Sub-tasks:**
+**Step-by-step:**
 
-- [ ] 1.4.1 Test build-iso.sh completes without errors
-- [ ] 1.4.2 Verify ISO boots in QEMU/VM
-- [ ] 1.4.3 Verify autoinstall runs without prompts
-- [ ] 1.4.4 Verify post-install script runs
-- [ ] 1.4.5 Test with Intel WiFi (iwx) firmware
+```sh
+# 1. Build everything — downloads packages, builds binary, repacks ISO
+make iso
+
+# 2. Confirm cache was populated
+ls ~/.pkgcache/7.9/amd64/*.tgz | wc -l   # expect ~27+
+cat ~/.pkgcache/7.9/amd64/index.txt       # must exist
+
+# 3. Confirm ISO output
+ls -lh isos/openriot-0.4.iso              # expect ~900MB+ (762MB base + packages)
+
+# 4. Test boot in QEMU (with network)
+qemu-system-x86_64 -cdrom isos/openriot-0.4.iso -m 2G -enable-kvm
+
+# 5. Test offline (most important — -nic none disables all networking)
+qemu-system-x86_64 -cdrom isos/openriot-0.4.iso -m 2G -enable-kvm -nic none
+```
+
+- [ ] 1.4.1 `make iso` completes — downloads packages, builds binary, repacks ISO in one command
+- [ ] 1.4.2 `~/.pkgcache/7.9/amd64/index.txt` exists and has entries
+- [ ] 1.4.3 `isos/openriot-0.4.iso` produced
+- [ ] 1.4.4 ISO size is larger than base (762MB) — confirms packages were injected
+- [ ] 1.4.5 ISO boots in QEMU (BIOS and/or UEFI)
+- [ ] 1.4.6 Autoinstall runs unattended (no keyboard input needed)
+- [ ] 1.4.7 `install.site` executes post-install (check `/tmp/install.site.log` or serial)
+- [ ] 1.4.8 Packages install from CD — **no network required**
+- [ ] 1.4.9 Test with `-nic none` in QEMU — full offline install succeeds
 
 ---
 
 ### LAYER 2: Go Installer (openriot binary)
 
-#### 2.1 Fix Test Mode Deadlock
+**Goal:** `openriot` binary handles package install, config deployment, commands from `packages.yaml`.
 
-**Problem:** `main.go` deadlocks in test mode because `program.Send()` is called after `program.Run()`.
+**Current state:** Basic TUI works in test mode, configs deploy from YAML, commands execute dry-run
 
-**Sub-tasks:**
+#### 2.1 TUI Test Mode (DONE ✅)
 
-- [ ] 2.1.1 Remove `program.Send(tui.OpenRouterConfirmMsg(true))` after `program.Run()`
-- [ ] 2.1.2 Ensure TUI starts in initial confirmation state
-- [ ] 2.1.3 Verify `--test` flag works without deadlock
+- [x] 2.1.1 Logger integrated with TUI (`logger.SetProgram()`, `SetProgramReady()`)
+- [x] 2.1.2 TUI renders without deadlock
+- [x] 2.1.3 ASCII header "OpenRiot Installer v0.1" displays
+- [x] 2.1.4 Logs go to TUI window when program ready
+- [x] 2.1.5 Pre-TUI logs go to stdout (correct)
 
-#### 2.2 Implement Package Installation from YAML
+#### 2.2 Config Deployment from YAML (DONE ✅)
 
-**Problem:** `main.go` has hardcoded package list instead of reading from `packages.yaml`.
+- [x] 2.2.1 `source/config/types.go` has `ConfigRule` struct
+- [x] 2.2.2 `source/installer/configs.go` reads `module.Configs`
+- [x] 2.2.3 Glob patterns work (`fish/*`, `sway/*`, etc.) ]2.2.4`CopyConfigs()`-[xhandles single files and globs
+- [x] 2.2.5 Backgrounds copy to `~/.local/share/openriot/backgrounds/`
 
-**Sub-tasks:**
+#### 2.3 Command Execution from YAML (DONE ✅)
 
-- [ ] 2.2.1 Already partially done: `config.FindConfigFile()` and `config.LoadConfig()` exist
-- [ ] 2.2.2 Verify `cfg.GetPackages()` returns correct list
-- [ ] 2.2.3 Connect package installation to orchestrator flow
-- [ ] 2.2.4 Add progress reporting for package install
+- [x] 2.3.1 `source/installer/execcommands.go` created
+- [x] 2.3.2 Reads `module.Commands` from all modules
+- [x] 2.3.3 `dryRun` flag echoes instead of executing
+- [x] 2.3.4 Commands from YAML execute in test mode (dry-run)
 
-#### 2.3 Implement Config Deployment from YAML
+#### 2.4 Package Installation from YAML (DONE ✅)
 
-**Problem:** Config deployment hardcodes paths instead of reading from `packages.yaml`.
+- [x] 2.4.1 `source/config/loader.go` parses `packages.yaml`
+- [x] 2.4.2 `config.GetPackages()` returns package list
+- [x] 2.4.3 `source/installer/packages.go` uses `pkg_add`
+- [x] 2.4.4 `cfg.GetPackages()` wired in `main.go`
 
-**Sub-tasks:**
-
-- [ ] 2.3.1 Read `module.Configs` from each module in `packages.yaml`
-- [ ] 2.3.2 Implement `CopyConfigs()` similar to ArchRiot's `configs.go`
-- [ ] 2.3.3 Support `preserveIfExists` for user configs
-- [ ] 2.3.4 Support custom `target` paths
-
-#### 2.4 Implement Command Execution from YAML
-
-**Problem:** Some modules have `commands` (e.g., doas config, chsh).
-
-**Sub-tasks:**
-
-- [ ] 2.4.1 Read `module.Commands` from each module
-- [ ] 2.4.2 Execute commands in dependency order
-- [ ] 2.4.3 Handle command failures gracefully (log but continue)
-- [ ] 2.4.4 Skip commands that require root in test mode
-
-#### 2.5 Implement Source Builds from YAML
-
-**Problem:** `wlsunset` requires building from source.
-
-**Sub-tasks:**
+#### 2.5 Source Builds (PENDING)
 
 - [ ] 2.5.1 Read `module.Build` commands from Source modules
-- [ ] 2.5.2 Implement source build runner
-- [ ] 2.5.3 Clone, build, install wlsunset
-- [ ] 2.5.4 Report build progress to TUI
+- [ ] 2.5.2 `wlsunset` requires source build (meson)
+- [ ] 2.5.3 Implement in `source/installer/sourcebuild.go`
 
-#### 2.6 Port TUI Enhancements
+#### 2.6 TUI Polish (PENDING)
 
-**Sub-tasks:**
-
-- [ ] 2.6.1 Add step progress (like ArchRiot's "Installing desktop...")
-- [ ] 2.6.2 Add log window scrolling
-- [ ] 2.6.3 Add color coding (success green, error red)
+- [ ] 2.6.1 Progress reporting for package install
+- [ ] 2.6.2 Log window shows installation steps
+- [ ] 2.6.3 Color coding (success/error/warning)
 - [ ] 2.6.4 Handle window resize
-- [ ] 2.6.5 Add confirmation prompt on start
-
-#### 2.7 Port Waybar Integration
-
-**Sub-tasks:**
-
-- [ ] 2.7.1 Port ArchRiot's waybar module protocols
-- [ ] 2.7.2 Implement waybar restart command
-- [ ] 2.7.3 Implement idle detection module
-- [ ] 2.7.4 Implement tray module
 
 ---
 
-### LAYER 3: First Boot Experience
+### LAYER 3: First Boot / setup.sh
 
-#### 3.1 setup.sh Bootstrap
+**Goal:** `curl -fsSL https://openriot.org/setup.sh | sh` for existing OpenBSD systems
 
-**Problem:** Need `curl | sh` installation for existing OpenBSD systems.
-
-**Sub-tasks:**
+#### 3.1 setup.sh (PENDING)
 
 - [ ] 3.1.1 Create `install/setup.sh`
-    - Check OpenBSD version (require 7.8+)
-    - Detect architecture (amd64)
-    - Download appropriate `openriot` binary
-    - Download `packages.yaml`
-    - Run `openriot --install`
+- [ ] 3.1.2 Check OpenBSD version (require 7.9+)
+- [ ] 3.1.3 Download `openriot` binary
+- [ ] 3.1.4 Download `packages.yaml`
+- [ ] 3.1.5 Run `openriot --install`
 
-- [ ] 3.1.2 Host `openriot` binary at `https://openriot.org/bin/openriot-0.1-openbsd-amd64`
-- [ ] 3.1.3 Host `setup.sh` at `https://openriot.org/setup.sh`
-- [ ] 3.1.4 Test curl install on existing OpenBSD
+#### 3.2 Hosting (PENDING)
 
-#### 3.2 Post-Install Services
+- [ ] 3.2.1 Host `openriot` binary at `openriot.org/bin/`
+- [ ] 3.2.2 Host `setup.sh` at `openriot.org/setup.sh`
+- [ ] 3.2.3 TLS configured
 
-**Sub-tasks:**
+---
 
-- [ ] 3.2.1 Configure apmd (`rcctl enable apmd`)
-- [ ] 3.2.2 Configure sndiod (usually already default)
-- [ ] 3.2.3 Configure libui for waybar
-- [ ] 3.2.4 Set up waybar startup in Sway
+### Current Status Summary
+
+| Layer | Component                     | Status      |
+| ----- | ----------------------------- | ----------- |
+| 1.1   | build-iso.sh                  | ✅ DONE     |
+| 1.2.1 | download-packages.sh          | ✅ DONE     |
+| 1.2.2 | generate-index.sh             | ✅ DONE     |
+| 1.2.3 | Integrate index into download | ✅ DONE     |
+| 1.2.4 | Copy packages to ISO          | ✅ DONE     |
+| 1.3   | install.site                  | ✅ DONE     |
+| 1.4   | **Test ISO build**            | 🔴 **NEXT** |
+| —     | Canonical versioning          | ✅ DONE     |
+| 2.1   | TUI test mode                 | ✅ DONE     |
+| 2.2   | Config deployment             | ✅ DONE     |
+| 2.3   | Command execution             | ✅ DONE     |
+| 2.4   | Package install               | ✅ DONE     |
+| 2.5   | Source builds                 | ⬜ TODO     |
+| 2.6   | TUI polish                    | ⬜ TODO     |
+| 3.1   | setup.sh                      | ⬜ TODO     |
+| 3.2   | Hosting                       | ⬜ TODO     |
+
+### ⚠️ Session Notes (important context for next chat)
+
+**What was done this session:**
+
+- `autoinstall/install.site` — full rewrite: mounts CD, offline `pkg_add`, doas, rcctl, fish shell
+- `scripts/download-packages.sh` — full rewrite: POSIX-safe, wayland/ fallback, fetches index once, auto-runs generate-index.sh
+- `scripts/generate-index.sh` — reads OPENBSD_VERSION from env
+- `build-iso.sh` — full Linux-compatible rewrite: `xorriso -osirrox` extraction (no sudo), OS-aware SHA256, correct El Torito BIOS+UEFI boot flags, package injection at Step 7
+- `Makefile` — canonical `OPENRIOT_VERSION=0.4`, `OPENBSD_VERSION=7.9`; version injected into Go binary via `-X main.version` ldflags; all scripts read from env with fallback
+- `source/main.go` — `var version = "dev"` (injected at build); `var openbsdVersion = "7.9"` added
+- `install/packages.yaml` — removed `man` (OpenBSD base system pkg, not installable via pkg_add)
+
+**Known remaining risk:**
+
+- `download-packages.sh` has NOT been run against the live mirror yet — waybar wayland/ fallback and POSIX sed parsing are untested against real mirror HTML
+- ISO boot is untested — El Torito flags are correct per `xorriso -report_el_torito` but need QEMU confirmation
+- `install.site` path `/etc/openriot/openriot` assumes binary is bundled in `site/etc/openriot/` — verify `site/` dir has correct structure before building ISO
+
+**Before starting next chat — check:**
+
+```sh
+git status                    # see what's uncommitted
+make verify                   # confirm binary builds and reports version 0.4
+ls site/                      # confirm site/ structure for site79.tgz
+```
+
+**Resuming next chat — the one command to run:**
+
+```sh
+make iso   # self-contained: downloads packages → builds binary → repacks ISO
+```
+
+`make iso` dependency chain: `build` → `download-packages` → `build-iso.sh`
+`download-packages.sh` is idempotent — already-cached `.tgz` files are skipped.
+
+---
+
+### Key Files
+
+| File                               | Purpose                                       |
+| ---------------------------------- | --------------------------------------------- |
+| `build-iso.sh`                     | Build bootable ISO                            |
+| `scripts/download-packages.sh`     | Download packages for offline                 |
+| `scripts/generate-index.sh`        | Generate `index.txt` for repo                 |
+| `autoinstall/install.conf`         | Autoinstall answers                           |
+| `autoinstall/install.site`         | Post-install script (runs from site79.tgz)    |
+| `site/`                            | Files to include in site79.tgz                |
+| `install/packages.yaml`            | Source of truth for packages/configs/commands |
+| `source/main.go`                   | Go installer entry point                      |
+| `source/installer/packages.go`     | Package installation                          |
+| `source/installer/configs.go`      | Config deployment                             |
+| `source/installer/execcommands.go` | Command execution                             |
+| `source/logger/logger.go`          | TUI logging                                   |
+| `source/tui/model.go`              | BubbleTea TUI model                           |
 
 ---
 
@@ -534,11 +624,11 @@ make release        # Release build
 
 ## Known Issues
 
-1. **build-iso.sh uses -current** — Must rewrite to use 7.8 stable
-2. **Offline packages not implemented** — ISO requires network
-3. **Test mode deadlock** — TUI blocks on startup
-4. **install.site not created** — Post-install script missing
-5. **setup.sh not hosted** — Curl install not available
+1. **ISO untested** — Scripts are complete but ISO has not been built and booted end-to-end
+2. **download-packages.sh untested against live mirror** — POSIX sed parsing and wayland/ fallback need real-world confirmation
+3. **install.site binary path unverified** — Assumes `site/etc/openriot/openriot` exists; `site/` directory may be empty
+4. **Test mode deadlock** — TUI blocks on startup (P1, not blocking ISO work)
+5. **setup.sh not hosted** — Curl install not available (P1, post-ISO)
 
 ---
 

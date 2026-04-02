@@ -17,7 +17,14 @@ import (
 	"openriot/tui"
 )
 
-var version = "0.1"
+// Injected at build time via Makefile ldflags:
+//
+//	-X main.version=$(OPENRIOT_VERSION)
+//	-X main.openbsdVersion=$(OPENBSD_VERSION)
+//
+// Do NOT hardcode these here — change Makefile instead.
+var version = "dev"
+var openbsdVersion = "7.9"
 
 // OpenRouter input completion channel
 var openRouterInputDone chan bool
@@ -101,6 +108,12 @@ func main() {
 		logger.LogMessage("SUCCESS", "Configuration files deployed!")
 	}
 
+	// Execute commands from packages.yaml
+	logger.LogMessage("INFO", "Running configuration commands...")
+	if err := installer.ExecCommands(cfg, testMode); err != nil {
+		logger.LogMessage("WARN", fmt.Sprintf("Some commands failed: %v", err))
+	}
+
 	// Set Fish as default shell (skip in test mode)
 	if !testMode {
 		logger.LogMessage("INFO", "Setting Fish as default shell...")
@@ -148,6 +161,9 @@ func main() {
 	model := tui.NewInstallModel()
 	program := tea.NewProgram(model)
 
+	// Set up unified logger with TUI program (must be first)
+	logger.SetProgram(program)
+
 	// Wire git package to TUI program (OpenBSD only)
 	git.SetProgram(program)
 	if gitInputDone != nil {
@@ -167,6 +183,9 @@ func main() {
 		logger.LogMessage("INFO", "Git configuration skipped (test mode)")
 		// Skip OpenRouter setup in test mode - just let TUI display
 	}
+
+	// Mark program as ready before starting
+	logger.SetProgramReady(true)
 
 	if _, err := program.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error running program: %v\n", err)
