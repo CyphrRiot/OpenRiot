@@ -13,7 +13,7 @@
 #   2. scripts/generate-index.sh      — creates index.txt (auto-run by step 1)
 #   3. make build                      — produces openriot binary in source/
 
-set -e
+# Note: Don't use set -e - we handle errors explicitly
 
 # ============================================================
 # Config
@@ -21,7 +21,7 @@ set -e
 # ============================================================
 OPENBSD_VERSION="${OPENBSD_VERSION:-7.9}"
 ARCH="${ARCH:-amd64}"
-OPENRIOT_VERSION="${OPENRIOT_VERSION:-0.1}"
+OPENRIOT_VERSION="${OPENRIOT_VERSION:-$(cat VERSION 2>/dev/null || echo "0.6")}"
 MIRROR="https://cdn.openbsd.org/pub/OpenBSD"
 
 # Derive ISO name from OpenBSD version: 7.9 → install79.iso
@@ -77,7 +77,8 @@ cleanup() {
     printf 'Kept: %s\n' "$DL_DIR/$ISO_NAME"
 }
 
-trap cleanup EXIT
+# Only cleanup on error (not on successful exit)
+trap 'if [ $? -ne 0 ]; then cleanup; fi' EXIT
 
 # ============================================================
 # PREFLIGHT: Required tools
@@ -147,10 +148,19 @@ mkdir -p "$DL_DIR" "$OUT"
 if [ -f "$DL_DIR/$ISO_NAME" ]; then
     info "ISO already cached at $DL_DIR/$ISO_NAME — skipping download"
 else
-    info "Downloading $MIRROR/snapshots/${ARCH}/${ISO_NAME} ..."
-    curl -fL --progress-bar \
-        -o "$DL_DIR/$ISO_NAME" \
-        "$MIRROR/snapshots/${ARCH}/${ISO_NAME}"
+    # Try released version first, then snapshot
+    RELEASE_URL="$MIRROR/${OPENBSD_VERSION}/${ARCH}/${ISO_NAME}"
+    SNAPSHOT_URL="$MIRROR/snapshots/${ARCH}/${ISO_NAME}"
+
+    info "Downloading $RELEASE_URL ..."
+    if curl -fL --progress-bar -o "$DL_DIR/$ISO_NAME" "$RELEASE_URL" 2>/dev/null; then
+        info "Downloaded released version"
+    else
+        info "Release not found, trying snapshot: $SNAPSHOT_URL"
+        curl -fL --progress-bar \
+            -o "$DL_DIR/$ISO_NAME" \
+            "$SNAPSHOT_URL" || die "Failed to download ISO"
+    fi
     info "Download complete"
 fi
 
@@ -159,15 +169,30 @@ fi
 # ============================================================
 log "Step 2: Verifying ISO integrity (SHA256)"
 
-info "Fetching SHA256 manifest..."
-curl -fsSL -o "$DL_DIR/SHA256" "$MIRROR/snapshots/${ARCH}/SHA256"
+# Get SHA256 from a given base URL
+get_sha256() {
+    local base_url="$1"
+    local sha256_url="${base_url}/SHA256"
+    curl -fsSL -o "$DL_DIR/SHA256" "$sha256_url" 2>/dev/null || return 1
+    grep "^SHA256 (${ISO_NAME}) = " "$DL_DIR/SHA256" 2>/dev/null | sed 's/.*= *//' | tr -d ' \n'
+}
 
-# OpenBSD SHA256 manifest format: "SHA256 (filename) = hash"
-EXPECTED=$(grep "^SHA256 (${ISO_NAME}) = " "$DL_DIR/SHA256" \
-    | sed 's/.*= *//' | tr -d ' \n')
+# Try released version SHA256 first
+info "Checking for released version SHA256..."
+RELEASE_BASE="$MIRROR/${OPENBSD_VERSION}/${ARCH}"
+EXPECTED=$(get_sha256 "$RELEASE_BASE")
+info "Release SHA256 result: '${EXPECTED}'"
+
+# If not found, try snapshot
+if [ -z "$EXPECTED" ]; then
+    info "Release SHA256 not found, trying snapshot..."
+    SNAPSHOT_BASE="$MIRROR/snapshots/${ARCH}"
+    EXPECTED=$(get_sha256 "$SNAPSHOT_BASE")
+    info "Snapshot SHA256 result: '${EXPECTED}'"
+fi
 
 if [ -z "$EXPECTED" ]; then
-    die "Could not find SHA256 entry for $ISO_NAME in manifest"
+    die "Could not find SHA256 for $ISO_NAME"
 fi
 
 info "Computing SHA256 of downloaded ISO..."
@@ -179,8 +204,23 @@ else
     printf 'SHA256 MISMATCH\n'
     printf '  Expected: %s\n' "$EXPECTED"
     printf '  Actual:   %s\n' "$ACTUAL"
-    die "ISO integrity check failed — deleting corrupted download"
+    info "Deleting corrupted ISO and retrying..."
     rm -f "$DL_DIR/$ISO_NAME"
+
+    # Retry download
+    SNAPSHOT_URL="$MIRROR/snapshots/${ARCH}/${ISO_NAME}"
+    info "Downloading $SNAPSHOT_URL ..."
+    curl -fL --progress-bar \
+        -o "$DL_DIR/$ISO_NAME" \
+        "$SNAPSHOT_URL" || die "Failed to download ISO"
+
+    # Recheck SHA256
+    ACTUAL=$(sha256_file "$DL_DIR/$ISO_NAME")
+    if [ "$EXPECTED" = "$ACTUAL" ]; then
+        info "SHA256 OK on retry: $ACTUAL"
+    else
+        die "ISO integrity check failed again — deleting corrupted download"
+    fi
 fi
 
 # ============================================================
@@ -299,7 +339,7 @@ info "  ... ($PKG_COUNT packages + index.txt)"
 # ============================================================
 log "Step 8: Repacking bootable ISO"
 
-OUTPUT="$OUT/openriot-${OPENRIOT_VERSION}.iso"
+OUTPUT="$OUT/openriot.iso"
 mkdir -p "$OUT"
 
 info "Volume ID : $VOLUME_ID"

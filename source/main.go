@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -99,21 +100,25 @@ func main() {
 		os.Exit(mullvad.Setup())
 	}
 	if len(os.Args) >= 2 && os.Args[1] == "--switch-window" {
-		exec.Command("swaymsg", "-t", "get_tree").Run()
-		return
+		os.Exit(windows.SwitchWindow())
 	}
-	// Check for test mode flag (for testing on Linux without OpenBSD)
+	// Check for version flag first (before any other processing)
 	for _, arg := range os.Args[1:] {
-		if arg == "--test" || arg == "-t" {
-			testMode = true
-		}
 		if arg == "--version" {
 			fmt.Println("openriot", version)
 			os.Exit(0)
 		}
 	}
 
-	// Initialize logger
+	// Check for test mode flag (for testing on Linux without OpenBSD)
+	for _, arg := range os.Args[1:] {
+		if arg == "--test" || arg == "-t" {
+			testMode = true
+		}
+	}
+
+	// Initialize logger (set testMode first so delay applies during startup)
+	logger.SetTestMode(testMode)
 	if err := logger.InitLogger(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to initialize logger: %v\n", err)
 		os.Exit(1)
@@ -190,10 +195,44 @@ func main() {
 	logger.LogMessage("INFO", "OpenRiot Installer starting...")
 	logger.SetProgramReady(true)
 
-	// ---- Run all install steps in goroutines so TUI stays responsive ----
+	// ---- Start TUI loop FIRST in a goroutine so it can receive messages ----
+	// This MUST run before any background tasks that send to the program
+	tuiDone := make(chan error, 1)
+	go func() {
+		_, err := program.Run()
+		tuiDone <- err
+	}()
+
+	// Small delay to ensure TUI loop is running before we send messages
+	select {
+	case err := <-tuiDone:
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error running program: %v\n", err)
+		}
+		return
+	case <-time.After(50 * time.Millisecond):
+		// TUI loop is running, proceed with sequential install flow
+	}
+
+	// Track if user requested early quit
+	userQuit := false
+
+	// Helper to check if TUI quit during install
+	checkQuit := func() bool {
+		select {
+		case <-tuiDone:
+			userQuit = true
+			return true
+		default:
+			return false
+		}
+	}
+
+	// ---- Sequential install flow (no goroutines) ----
+	// Run all install steps sequentially so progress and logs display in order
 	packages := cfg.GetPackages()
 
-	// Determine repo directory based on mode (needed by multiple goroutines)
+	// Determine repo directory based on mode
 	var repoDir string
 	if testMode {
 		repoDir = os.Getenv("HOME") + "/Code/OpenRiot"
@@ -207,72 +246,78 @@ func main() {
 		}
 	}
 
-	// Run package installation in background
-	go func() {
-		program.Send(tui.StepMsg("Installing packages..."))
-		program.Send(tui.ProgressMsg(0.0))
-		if testMode {
-			logger.LogMessage("INFO", "Package install skipped (test mode)")
-			program.Send(tui.ProgressMsg(1.0))
-		} else if err := installer.InstallPackages(packages); err != nil {
-			logger.LogMessage("WARN", fmt.Sprintf("Package install skipped (not OpenBSD?): %v", err))
-			program.Send(tui.ProgressMsg(1.0))
-		} else {
-			logger.LogMessage("SUCCESS", "Packages installed successfully!")
-			program.Send(tui.ProgressMsg(1.0))
-		}
-	}()
-
-	// Run config deployment in background
-	go func() {
-		program.Send(tui.StepMsg("Deploying configuration..."))
-		program.Send(tui.ProgressMsg(0.3))
-		if err := installer.CopyConfigs(repoDir, cfg); err != nil {
-			logger.LogMessage("WARN", fmt.Sprintf("Config deployment skipped: %v", err))
-		} else {
-			logger.LogMessage("SUCCESS", "Configuration files deployed!")
-		}
-		program.Send(tui.ProgressMsg(0.6))
-	}()
-
-	// Run command execution in background
-	go func() {
-		program.Send(tui.StepMsg("Running commands..."))
-		program.Send(tui.ProgressMsg(0.7))
-		if err := installer.ExecCommands(cfg, testMode); err != nil {
-			logger.LogMessage("WARN", fmt.Sprintf("Some commands failed: %v", err))
-		}
-		program.Send(tui.ProgressMsg(0.9))
-	}()
-
-	// Run source builds in background
-	go func() {
-		program.Send(tui.StepMsg("Building from source..."))
-		program.Send(tui.ProgressMsg(0.8))
-		if err := installer.SourceBuilds(cfg, testMode); err != nil {
-			logger.LogMessage("WARN", fmt.Sprintf("Source builds: %v", err))
-		}
-		program.Send(tui.ProgressMsg(0.92))
-	}()
-
-	// Run git configuration and OpenRouter prompt in background (OpenBSD only)
-	if !testMode {
-		go func() {
-			if err := git.HandleGitConfiguration(); err != nil {
-				logger.LogMessage("WARN", fmt.Sprintf("Git configuration skipped: %v", err))
-			}
-			// After git, send OpenRouter prompt
-			program.Send(tui.OpenRouterConfirmMsg(true))
-		}()
+	// Step 1: Package installation
+	if checkQuit() {
+		<-tuiDone
+		return
+	}
+	program.Send(tui.StepMsg("Installing packages..."))
+	program.Send(tui.ProgressMsg(0.1))
+	if testMode {
+		logger.LogMessage("INFO", "Package install skipped (test mode)")
+	} else if err := installer.InstallPackages(packages); err != nil {
+		logger.LogMessage("WARN", fmt.Sprintf("Package install skipped (not OpenBSD?): %v", err))
 	} else {
-		logger.LogMessage("INFO", "Git configuration skipped (test mode)")
-		// Skip OpenRouter setup in test mode - just let TUI display
+		logger.LogMessage("SUCCESS", "Packages installed successfully!")
 	}
 
-	// ---- Run TUI main loop ----
-	if _, err := program.Run(); err != nil {
+	// Step 2: Config deployment
+	if checkQuit() {
+		<-tuiDone
+		return
+	}
+	program.Send(tui.StepMsg("Deploying configuration..."))
+	program.Send(tui.ProgressMsg(0.3))
+	if err := installer.CopyConfigs(repoDir, cfg); err != nil {
+		logger.LogMessage("WARN", fmt.Sprintf("Config deployment skipped: %v", err))
+	} else {
+		logger.LogMessage("SUCCESS", "Configuration files deployed!")
+	}
+
+	// Step 3: Command execution
+	if checkQuit() {
+		<-tuiDone
+		return
+	}
+	program.Send(tui.StepMsg("Running commands..."))
+	program.Send(tui.ProgressMsg(0.6))
+	if err := installer.ExecCommands(cfg, testMode); err != nil {
+		logger.LogMessage("WARN", fmt.Sprintf("Some commands failed: %v", err))
+	}
+
+	// Step 4: Source builds
+	if checkQuit() {
+		<-tuiDone
+		return
+	}
+	program.Send(tui.StepMsg("Building from source..."))
+	program.Send(tui.ProgressMsg(0.8))
+	if err := installer.SourceBuilds(cfg, testMode); err != nil {
+		logger.LogMessage("WARN", fmt.Sprintf("Source builds: %v", err))
+	}
+
+	// Step 5: Git configuration (OpenBSD only, skip in test mode)
+	if testMode {
+		logger.LogMessage("INFO", "Git configuration skipped (test mode)")
+	} else {
+		if err := git.HandleGitConfiguration(); err != nil {
+			logger.LogMessage("WARN", fmt.Sprintf("Git configuration skipped: %v", err))
+		}
+		program.Send(tui.OpenRouterConfirmMsg(true))
+	}
+
+	// Signal completion
+	program.Send(tui.ProgressMsg(1.0))
+	program.Send(tui.DoneMsg{})
+
+	// Wait for TUI to finish
+	if userQuit {
+		// User pressed q - TUI already exited, no need to wait
+		fmt.Fprintln(os.Stderr, "⏳ Waiting to exit...")
+		return
+	}
+	if err := <-tuiDone; err != nil {
 		fmt.Fprintf(os.Stderr, "Error running program: %v\n", err)
-		os.Exit(1)
 	}
 }
 

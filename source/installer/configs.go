@@ -68,7 +68,8 @@ func CopyConfigs(repoDir string, cfg *config.Config) error {
 			}
 
 			// Determine base directory for destination
-			baseDest := globDest
+			// For globs like "fastfetch/*", baseDest should be "fastfetch/" (parent dir)
+			baseDest := filepath.Dir(globDest)
 			if rule.Target != "" {
 				if strings.HasPrefix(rule.Target, "~/") {
 					baseDest = filepath.Join(homeDir, rule.Target[2:])
@@ -109,7 +110,7 @@ func CopyConfigs(repoDir string, cfg *config.Config) error {
 					continue
 				}
 
-				logger.LogMessage("INFO", fmt.Sprintf("Copied %s", relPath))
+				logger.LogMessage("INFO", fmt.Sprintf("Copied %s -> %s", relPath, destPath))
 			}
 		} else {
 			// Single file pattern
@@ -144,7 +145,7 @@ func CopyConfigs(repoDir string, cfg *config.Config) error {
 				continue
 			}
 
-			logger.LogMessage("INFO", fmt.Sprintf("Copied %s", rule.Pattern))
+			logger.LogMessage("INFO", fmt.Sprintf("Copied %s -> %s", rule.Pattern, destPath))
 		}
 	}
 
@@ -195,7 +196,7 @@ func copyBackgrounds(repoDir, homeDir string) error {
 			continue
 		}
 
-		logger.LogMessage("INFO", fmt.Sprintf("Copied background %s", name))
+		logger.LogMessage("INFO", fmt.Sprintf("Copied background %s -> %s", name, destPath))
 	}
 
 	return nil

@@ -1,0 +1,334 @@
+#!/usr/bin/env python3
+"""
+OpenRiot Version Check - Handles update notifications and upgrade flow
+OpenBSD compatible - uses swaymsg for dispatch, foot terminal
+"""
+
+import os
+import sys
+import json
+import subprocess
+import urllib.request
+import urllib.error
+from datetime import datetime
+
+# Try to import GTK (may not be available on all systems)
+try:
+    import gi
+    gi.require_version("Gtk", "3.0")
+    gi.require_version("Gdk", "3.0")
+    from gi.repository import Gtk, Gdk, GLib
+    GTK_AVAILABLE = True
+except ImportError:
+    GTK_AVAILABLE = False
+
+
+HOME_DIR = os.path.expanduser("~")
+CONFIG_DIR = os.path.join(HOME_DIR, ".config", "openriot")
+CACHE_DIR = os.path.join(HOME_DIR, ".cache", "openriot")
+STATE_FILE = os.path.join(CACHE_DIR, "update-state")
+LOCK_FILE = "/tmp/openriot_upgrade.lock"
+
+
+def log_msg(message, level="INFO"):
+    """Log message with timestamp"""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"[{timestamp}] {level}: {message}")
+    try:
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        log_file = os.path.join(CACHE_DIR, "runtime.log")
+        with open(log_file, "a") as f:
+            f.write(f"[version-check] [{timestamp}] {level}: {message}\n")
+    except Exception:
+        pass
+
+
+def get_local_version():
+    """Read local version from VERSION file"""
+    version_file = os.path.join(HOME_DIR, ".local", "share", "openriot", "VERSION")
+    try:
+        with open(version_file, "r") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return "unknown"
+
+
+def get_remote_version():
+    """Fetch remote version from openriot.org"""
+    try:
+        req = urllib.request.Request(
+            "https://openriot.org/VERSION",
+            headers={"User-Agent": "OpenRiot-VersionCheck/1.0"}
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return resp.read().decode("utf-8").strip()
+    except (urllib.error.URLError, urllib.error.HTTPError) as e:
+        log_msg(f"Failed to fetch remote version: {e}", "ERROR")
+        return "unknown"
+
+
+def is_newer_version(local, remote):
+    """Compare versions - returns True if remote is newer"""
+    if local == "unknown" or remote == "unknown":
+        return False
+
+    try:
+        local_parts = [int(x) for x in local.split(".")]
+        remote_parts = [int(x) for x in remote.split(".")]
+
+        # Pad with zeros
+        while len(local_parts) < 3:
+            local_parts.append(0)
+        while len(remote_parts) < 3:
+            remote_parts.append(0)
+
+        for i in range(3):
+            if remote_parts[i] > local_parts[i]:
+                return True
+            elif remote_parts[i] < local_parts[i]:
+                return False
+        return False
+    except (ValueError, AttributeError):
+        return False
+
+
+def create_lock_file():
+    """Create lock file to prevent multiple instances"""
+    try:
+        if os.path.exists(LOCK_FILE):
+            try:
+                with open(LOCK_FILE, "r") as f:
+                    old_pid = f.read().strip()
+                if old_pid.isdigit() and not os.path.exists(f"/proc/{old_pid}"):
+                    os.remove(LOCK_FILE)
+                else:
+                    return False
+            except (ValueError, OSError):
+                os.remove(LOCK_FILE)
+
+        with open(LOCK_FILE, "w") as f:
+            f.write(str(os.getpid()))
+        return True
+    except Exception as e:
+        log_msg(f"Could not create lock file: {e}", "WARNING")
+        return False
+
+
+def cleanup_lock_file():
+    """Remove lock file"""
+    try:
+        if os.path.exists(LOCK_FILE):
+            os.remove(LOCK_FILE)
+    except Exception:
+        pass
+
+
+def launch_upgrade_terminal():
+    """Launch upgrade in foot terminal via swaymsg"""
+    update_command = "curl -fsSL https://openriot.org/setup.sh | sh"
+
+    # Build terminal command
+    terminal_cmd = f'foot -e bash -c \'cd $HOME; echo "Starting OpenRiot update..."; {update_command}; echo "Update complete. Press Enter to close."; read\''
+
+    try:
+        # Use swaymsg to exec the terminal like Super+Enter
+        result = subprocess.run(
+            ["swaymsg", "exec", terminal_cmd],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+
+        if result.returncode == 0:
+            log_msg("Successfully launched update terminal via swaymsg")
+            return True
+        else:
+            log_msg(f"swaymsg dispatch failed: {result.stderr}", "ERROR")
+            # Fallback: try direct execution
+            subprocess.Popen(["foot", "-e", "sh", "-c", f"cd $HOME && {update_command} && read"])
+            return True
+    except FileNotFoundError:
+        log_msg("swaymsg not found, trying direct terminal launch", "WARNING")
+        subprocess.Popen(["foot", "-e", "sh", "-c", f"cd $HOME && {update_command} && read"])
+        return True
+    except Exception as e:
+        log_msg(f"Failed to launch terminal: {e}", "ERROR")
+        return False
+
+
+def show_gtk_dialog(local_ver, remote_ver):
+    """Show GTK dialog for update notification"""
+    if not GTK_AVAILABLE:
+        log_msg("GTK not available, using terminal fallback", "WARNING")
+        return show_terminal_prompt(local_ver, remote_ver)
+
+    window = Gtk.Window()
+    window.set_title("OpenRiot Update Available")
+    window.set_default_size(450, 300)
+    window.set_position(Gtk.WindowPosition.CENTER)
+    window.set_modal(True)
+    window.set_keep_above(True)
+
+    main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20)
+    main_box.set_margin_start(30)
+    main_box.set_margin_end(30)
+    main_box.set_margin_top(30)
+    main_box.set_margin_bottom(30)
+
+    # Title
+    title = Gtk.Label()
+    title.set_markup('<span size="20000" weight="bold">◆ Update Available ◆</span>')
+    main_box.pack_start(title, False, False, 0)
+
+    # Version info
+    version_label = Gtk.Label()
+    version_label.set_markup(
+        f'<span size="14000">Update: <b>{local_ver}</b> → <b><span foreground="#89b4fa">v{remote_ver}</span></b></span>'
+    )
+    main_box.pack_start(version_label, False, False, 0)
+
+    # Instructions
+    instructions = Gtk.Label()
+    instructions.set_text(
+        "The update process will:\n"
+        "  • Download the latest OpenRiot setup script\n"
+        "  • Update system files and scripts\n"
+        "  • Preserve your personal settings\n\n"
+        "Logs: ~/.cache/openriot/runtime.log\n"
+        "This dialog is non-blocking."
+    )
+    instructions.set_line_wrap(True)
+    instructions.set_max_width_chars(50)
+    main_box.pack_start(instructions, True, True, 0)
+
+    # Buttons
+    button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=15)
+    button_box.set_halign(Gtk.Align.CENTER)
+
+    install_btn = Gtk.Button(label="📥 Install Update")
+    install_btn.set_size_request(140, 40)
+
+    ignore_btn = Gtk.Button(label="🔕 Ignore")
+    ignore_btn.set_size_request(100, 40)
+
+    close_btn = Gtk.Button(label="❌ Close")
+    close_btn.set_size_request(80, 40)
+
+    button_box.pack_start(install_btn, False, False, 0)
+    button_box.pack_start(ignore_btn, False, False, 0)
+    button_box.pack_start(close_btn, False, False, 0)
+    main_box.pack_start(button_box, False, False, 0)
+
+    response = [None]
+
+    def on_install_clicked(button):
+        response[0] = "install"
+        window.destroy()
+
+    def on_ignore_clicked(button):
+        response[0] = "ignore"
+        window.destroy()
+
+    def on_close_clicked(button):
+        response[0] = "close"
+        window.destroy()
+
+    install_btn.connect("clicked", on_install_clicked)
+    ignore_btn.connect("clicked", on_ignore_clicked)
+    close_btn.connect("clicked", on_close_clicked)
+
+    window.add(main_box)
+    window.show_all()
+    window.connect("destroy", lambda w: Gtk.main_quit())
+
+    Gtk.main()
+    return response[0]
+
+
+def show_terminal_prompt(local_ver, remote_ver):
+    """Fallback: show update prompt in terminal"""
+    print(f"\n=== OpenRiot Update Available ===")
+    print(f"Current: {local_ver} → Available: {remote_ver}\n")
+    print("1) Install Update")
+    print("2) Ignore")
+    print("3) Close")
+
+    try:
+        choice = input("Choose [1]: ").strip() or "1"
+    except (EOFError, KeyboardInterrupt):
+        return "close"
+
+    if choice == "1":
+        return "install"
+    elif choice == "2":
+        return "ignore"
+    else:
+        return "close"
+
+
+def main():
+    log_msg("Starting version check", "INFO")
+
+    # Create lock file
+    if not create_lock_file():
+        print("Another version check is already running.")
+        sys.exit(0)
+
+    try:
+        # Get versions
+        local_ver = get_local_version()
+        remote_ver = get_remote_version()
+
+        log_msg(f"Local: {local_ver}, Remote: {remote_ver}", "INFO")
+
+        # Check if update available
+        if not is_newer_version(local_ver, remote_ver):
+            log_msg("No update available", "INFO")
+            # Clear state if up to date
+            if os.path.exists(STATE_FILE):
+                os.remove(STATE_FILE)
+            print(f'{{"text":"-","tooltip":"OpenRiot up to date ({local_ver})","class":"update-none"}}')
+            sys.exit(0)
+
+        # Check if user has seen this version
+        seen_ver = ""
+        try:
+            with open(STATE_FILE, "r") as f:
+                seen_ver = f.read().strip()
+        except FileNotFoundError:
+            pass
+
+        # Handle --click from waybar
+        if "--click" in sys.argv:
+            if seen_ver == remote_ver:
+                # Already seen - just notify and exit
+                subprocess.Popen(["notify-send", "-t", "2000",
+                    "OpenRiot Up to Date", f"Version {local_ver} is the latest"])
+            else:
+                # Mark as seen
+                with open(STATE_FILE, "w") as f:
+                    f.write(remote_ver)
+
+                # Show dialog or launch upgrade
+                if "--gui" in sys.argv or not sys.stdout.isatty():
+                    result = show_gtk_dialog(local_ver, remote_ver)
+                    if result == "install":
+                        launch_upgrade_terminal()
+                else:
+                    result = show_terminal_prompt(local_ver, remote_ver)
+                    if result == "install":
+                        launch_upgrade_terminal()
+            sys.exit(0)
+
+        # Output for waybar
+        if seen_ver == remote_ver:
+            print(f'{{"text":"󰏖","tooltip":"OpenRiot update available (seen)\\nCurrent: {local_ver}\\nAvailable: {remote_ver}","class":"update-seen"}}')
+        else:
+            print(f'{{"text":"󰚰","tooltip":"OpenRiot update available!\\nCurrent: {local_ver}\\nAvailable: {remote_ver}","class":"update-available"}}')
+
+    finally:
+        cleanup_lock_file()
+
+
+if __name__ == "__main__":
+    main()

@@ -58,6 +58,7 @@ desktop:
             - pattern: sway/*
             - pattern: waybar/*
             - pattern: backgrounds/*
+            - pattern: bin/*
         commands:
             - "mkdir -p ~/.config/sway"
             - "mkdir -p ~/.config/waybar"

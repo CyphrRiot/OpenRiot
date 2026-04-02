@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """
 OpenRiot Swaylock Background Generator
-Generates a lock screen image with time, date, username, hostname, and background.
+Generates a lock screen image with time, date, username, hostname, battery, crypto, and background.
 Works standalone on OpenBSD — no OpenRiot binary dependency.
 """
+
+import json
 import os
 import subprocess
+import time
+
 from PIL import Image, ImageDraw, ImageFont
 
 BACKGROUND_DIR = os.path.expanduser("~/.local/share/openriot/backgrounds")
@@ -79,6 +83,85 @@ def main():
     bb = d.textbbox((0, 0), h, font=FSM)
     hh = bb[3] - bb[1]
     d.text((30, H - hh - 40), h, fill=PURPLE, font=FSM)
+
+    # Battery status — bottom center
+    try:
+        result = subprocess.run(
+            ["apm", "-l"], capture_output=True, text=True, timeout=2
+        )
+        if result.returncode == 0:
+            percent = result.stdout.strip()
+            ac_result = subprocess.run(
+                ["apm", "-a"], capture_output=True, text=True, timeout=2
+            )
+            charging = (
+                ac_result.stdout.strip() == "1" if ac_result.returncode == 0 else False
+            )
+            icon = "⚡" if charging else "🔋"
+            bat_text = f"{icon} {percent}%"
+            bb = d.textbbox((0, 0), bat_text, font=FSM)
+            bw = bb[2] - bb[0]
+            d.text(
+                ((W - bw) // 2, H - (bb[3] - bb[1]) - 40),
+                bat_text,
+                fill=LGRAY,
+                font=FSM,
+            )
+    except (
+        subprocess.TimeoutExpired,
+        FileNotFoundError,
+        subprocess.CalledProcessError,
+    ):
+        pass  # apm not available (desktop machine) — skip silently
+
+    # Crypto price (BTC) — top right
+    crypto_text = ""
+    cache_file = "/tmp/openriot-crypto-cache.json"
+    try:
+        # Check cache first
+        if os.path.exists(cache_file):
+            mtime = os.path.getmtime(cache_file)
+            if time.time() - mtime < 300:  # 5 minute TTL
+                with open(cache_file) as f:
+                    data = json.load(f)
+                    btc = data.get("bitcoin", {}).get("usd")
+                    if btc:
+                        crypto_text = f"₿ ${btc:,.0f}"
+
+        # Fetch fresh if no cache
+        if not crypto_text:
+            result = subprocess.run(
+                [
+                    "curl",
+                    "-s",
+                    "--max-time",
+                    "5",
+                    "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=6,
+            )
+            if result.returncode == 0:
+                data = json.loads(result.stdout)
+                btc = data.get("bitcoin", {}).get("usd")
+                if btc:
+                    crypto_text = f"₿ ${btc:,.0f}"
+                    # Cache it
+                    with open(cache_file, "w") as f:
+                        json.dump(data, f)
+    except (
+        subprocess.TimeoutExpired,
+        FileNotFoundError,
+        json.JSONDecodeError,
+        subprocess.CalledProcessError,
+    ):
+        pass  # Network error or curl not found — skip silently
+
+    if crypto_text:
+        bb = d.textbbox((0, 0), crypto_text, font=FSM)
+        bw = bb[2] - bb[0]
+        d.text((W - bw - 30, 30), crypto_text, fill=LGRAY, font=FSM)
 
     # Save
     out = Image.new("RGB", (W, H), DGRAY)
