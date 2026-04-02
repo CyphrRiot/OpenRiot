@@ -242,6 +242,18 @@ mkdir -p "$TMPSITE/etc/openriot"
 git archive HEAD | gzip -n > "$TMPSITE/etc/openriot/repo.tar.gz"
 info "Repo archive created ($(du -h "$TMPSITE/etc/openriot/repo.tar.gz" | cut -f1))"
 
+	# Pre-fetch wlsunset source for offline build
+	info "Fetching wlsunset source for offline build..."
+	_wlsunset_tmp="$WORK/wlsunset-src"
+	rm -rf "$_wlsunset_tmp"
+	if git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset "$_wlsunset_tmp" 2>/dev/null; then
+		(cd "$_wlsunset_tmp" && git archive HEAD | gzip -n > "$TMPSITE/etc/openriot/wlsunset.tar.gz")
+		info "wlsunset source bundled ($(du -h "$TMPSITE/etc/openriot/wlsunset.tar.gz" | cut -f1))"
+	else
+		info "wlsunset clone failed — will build from source during openriot install"
+	fi
+	rm -rf "$_wlsunset_tmp"
+
 (cd "$TMPSITE" && tar czf "$SITE_TGZ" .)
 rm -rf "$TMPSITE"
 info "site79.tgz ready"

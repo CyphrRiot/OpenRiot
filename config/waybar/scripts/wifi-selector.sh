@@ -2,8 +2,8 @@
 # OpenRiot - WiFi Selector
 # OpenBSD compatible — uses ifconfig(8) for WiFi management
 #
-# Scans for available networks and connects using wofi as the selector.
-# Requires: wofi, doas
+# Scans for available networks and connects using fuzzel as the selector.
+# Requires: fuzzel, doas
 
 # Find the wireless interface
 IFACE=$(ifconfig | awk '/^[a-z]/ { iface=$1 } /ieee80211/ { print iface; exit }' | tr -d ':')
@@ -27,8 +27,8 @@ if [ -z "$NETWORKS" ]; then
     exit 1
 fi
 
-# Show network selector via wofi
-SELECTED=$(printf '%s\n' "$NETWORKS" | wofi --dmenu --prompt "WiFi Network:" --insensitive)
+# Show network selector via fuzzel
+SELECTED=$(printf '%s\n' "$NETWORKS" | fuzzel --dmenu --prompt "WiFi Network: ")
 
 if [ -z "$SELECTED" ]; then
     exit 0
@@ -40,8 +40,8 @@ SECURED=$(ifconfig "$IFACE" scan 2>/dev/null \
     | grep -c "privacy" || true)
 
 if [ "$SECURED" -gt 0 ]; then
-    # Prompt for password via wofi
-    PASSWORD=$(printf '' | wofi --dmenu --prompt "Password for $SELECTED:" --password)
+    # Prompt for password via fuzzel
+    PASSWORD=$(printf '' | fuzzel --dmenu --prompt "Password for $SELECTED: " --password)
 
     if [ -z "$PASSWORD" ]; then
         notify-send -t 3000 "WiFi" "No password entered, cancelled"

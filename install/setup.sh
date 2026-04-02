@@ -119,7 +119,7 @@ install_packages() {
 
     # Desktop (Sway)
     info "Installing Sway desktop packages..."
-    pkg_add sway waybar wofi swaylock swayidle swaybg grim
+    pkg_add sway waybar fuzzel swaylock swayidle swaybg grim
 
     # Applications
     info "Installing application packages..."

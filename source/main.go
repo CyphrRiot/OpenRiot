@@ -7,14 +7,21 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	tea "github.com/charmbracelet/bubbletea"
 
+	"openriot/audio"
+	"openriot/backgrounds"
 	"openriot/config"
+	"openriot/detect"
+	"openriot/display"
 	"openriot/git"
 	"openriot/installer"
 	"openriot/logger"
+	"openriot/mullvad"
 	"openriot/tui"
+	"openriot/windows"
 )
 
 // Injected at build time via Makefile ldflags:
@@ -35,11 +42,51 @@ var gitInputDone = make(chan bool, 1)
 var testMode bool
 
 func main() {
+	// CLI-only commands (run and exit immediately)
+	if len(os.Args) >= 2 && os.Args[1] == "--volume" {
+		os.Exit(audio.Run(os.Args[2:]))
+	}
+	if len(os.Args) >= 2 && os.Args[1] == "--brightness" {
+		os.Exit(display.Run(os.Args[2:]))
+	}
+	if len(os.Args) >= 2 && os.Args[1] == "--lock" {
+		cmd := exec.Command("swaylock", "-f")
+		cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+		cmd.Stdin = nil
+		cmd.Stdout = nil
+		cmd.Stderr = nil
+		cmd.Start()
+		return
+	}
+	if len(os.Args) >= 2 && os.Args[1] == "--suspend" {
+		exec.Command("zzz").Run()
+		return
+	}
+	if len(os.Args) >= 2 && os.Args[1] == "--power-menu" {
+		exec.Command("fuzzel", "--dmenu", "--prompt=Power: ", "--width=30", "--lines=6").Run()
+		return
+	}
+	if len(os.Args) >= 2 && os.Args[1] == "--swaybg-next" {
+		os.Exit(backgrounds.Next())
+	}
+	if len(os.Args) >= 2 && os.Args[1] == "--suspend-if-undocked" {
+		detect.SuspendIfUndocked()
+		return
+	}
+	if len(os.Args) >= 2 && os.Args[1] == "--fix-offscreen-windows" {
+		os.Exit(windows.FixOffscreenWindows())
+	}
+	if len(os.Args) >= 2 && os.Args[1] == "--mullvad-setup" {
+		os.Exit(mullvad.Setup())
+	}
+	if len(os.Args) >= 2 && os.Args[1] == "--switch-window" {
+		exec.Command("swaymsg", "-t", "get_tree").Run()
+		return
+	}
 	// Check for test mode flag (for testing on Linux without OpenBSD)
 	for _, arg := range os.Args[1:] {
 		if arg == "--test" || arg == "-t" {
 			testMode = true
-			logger.LogMessage("INFO", "Running in TEST MODE (Linux)")
 		}
 		if arg == "--version" {
 			fmt.Println("openriot", version)
@@ -54,11 +101,6 @@ func main() {
 	}
 	defer logger.Close()
 
-	logger.LogMessage("INFO", "OpenRiot Installer starting...")
-
-	// Set up version getter for TUI
-	tui.SetVersionGetter(func() string { return version })
-
 	// Load configuration from packages.yaml
 	configPath := config.FindConfigFile()
 	if configPath == "" {
@@ -72,65 +114,32 @@ func main() {
 		os.Exit(1)
 	}
 
-	packages := cfg.GetPackages()
+	// Set up version getter for TUI
+	tui.SetVersionGetter(func() string { return version })
 
-	if testMode {
-		logger.LogMessage("INFO", "Package install skipped (test mode)")
-	} else if err := installer.InstallPackages(packages); err != nil {
-		logger.LogMessage("WARN", fmt.Sprintf("Package install skipped (not OpenBSD?): %v", err))
-	} else {
-		logger.LogMessage("SUCCESS", "Packages installed successfully!")
-	}
+	// ---- TUI MUST be created first, before any install steps ----
+	model := tui.NewInstallModel()
+	program := tea.NewProgram(model)
 
-	// Deploy configuration files (from packages.yaml)
-	logger.LogMessage("INFO", "Deploying configuration files...")
+	// Set up unified logger with TUI program (must be before SetProgramReady)
+	logger.SetProgram(program)
 
-	// Determine repo directory based on mode
-	var repoDir string
-	if testMode {
-		// In test mode, use development directory
-		repoDir = os.Getenv("HOME") + "/Code/OpenRiot"
-	} else {
-		// In production, binary is in install/ relative to repo
-		execPath, err := os.Executable()
-		if err != nil {
-			logger.LogMessage("WARN", "Could not determine executable path")
-			repoDir = "/opt/openriot"
-		} else {
-			// Assume install/openriot -> repo is one level up
-			repoDir = filepath.Dir(filepath.Dir(execPath))
-		}
-	}
+	// Wire progress and step updates to TUI
+	logger.SetProgressCallback(func(p float64) {
+		program.Send(tui.ProgressMsg(p))
+	})
+	logger.SetStepCallback(func(step string) {
+		program.Send(tui.StepMsg(step))
+	})
 
-	if err := installer.CopyConfigs(repoDir, cfg); err != nil {
-		logger.LogMessage("WARN", fmt.Sprintf("Config deployment skipped: %v", err))
-	} else {
-		logger.LogMessage("SUCCESS", "Configuration files deployed!")
-	}
-
-	// Execute commands from packages.yaml
-	logger.LogMessage("INFO", "Running configuration commands...")
-	if err := installer.ExecCommands(cfg, testMode); err != nil {
-		logger.LogMessage("WARN", fmt.Sprintf("Some commands failed: %v", err))
-	}
-
-	// Set Fish as default shell (skip in test mode)
-	if !testMode {
-		logger.LogMessage("INFO", "Setting Fish as default shell...")
-		if err := setupFishShell(); err != nil {
-			logger.LogMessage("WARN", fmt.Sprintf("Fish shell setup skipped: %v", err))
-		} else {
-			logger.LogMessage("SUCCESS", "Fish shell set as default!")
-		}
-	} else {
-		logger.LogMessage("INFO", "Fish shell setup skipped (test mode)")
+	// Wire git package to TUI program (OpenBSD only)
+	git.SetProgram(program)
+	if gitInputDone != nil {
+		git.SetGitInputChannel(gitInputDone)
 	}
 
 	// Initialize OpenRouter input channel
 	openRouterInputDone = make(chan bool, 1)
-
-	// Initialize git input channel
-	gitInputDone = make(chan bool, 1)
 
 	// Set up git credential callbacks
 	tui.SetGitCallbacks(
@@ -158,17 +167,74 @@ func main() {
 		},
 	)
 
-	model := tui.NewInstallModel()
-	program := tea.NewProgram(model)
+	// Mark program as ready — NOW logger.LogMessage will route to TUI
+	logger.LogMessage("INFO", "OpenRiot Installer starting...")
+	logger.SetProgramReady(true)
 
-	// Set up unified logger with TUI program (must be first)
-	logger.SetProgram(program)
+	// ---- Run all install steps in goroutines so TUI stays responsive ----
+	packages := cfg.GetPackages()
 
-	// Wire git package to TUI program (OpenBSD only)
-	git.SetProgram(program)
-	if gitInputDone != nil {
-		git.SetGitInputChannel(gitInputDone)
+	// Determine repo directory based on mode (needed by multiple goroutines)
+	var repoDir string
+	if testMode {
+		repoDir = os.Getenv("HOME") + "/Code/OpenRiot"
+	} else {
+		execPath, err := os.Executable()
+		if err != nil {
+			logger.LogMessage("WARN", "Could not determine executable path")
+			repoDir = "/opt/openriot"
+		} else {
+			repoDir = filepath.Dir(filepath.Dir(execPath))
+		}
 	}
+
+	// Run package installation in background
+	go func() {
+		program.Send(tui.StepMsg("Installing packages..."))
+		program.Send(tui.ProgressMsg(0.0))
+		if testMode {
+			logger.LogMessage("INFO", "Package install skipped (test mode)")
+			program.Send(tui.ProgressMsg(1.0))
+		} else if err := installer.InstallPackages(packages); err != nil {
+			logger.LogMessage("WARN", fmt.Sprintf("Package install skipped (not OpenBSD?): %v", err))
+			program.Send(tui.ProgressMsg(1.0))
+		} else {
+			logger.LogMessage("SUCCESS", "Packages installed successfully!")
+			program.Send(tui.ProgressMsg(1.0))
+		}
+	}()
+
+	// Run config deployment in background
+	go func() {
+		program.Send(tui.StepMsg("Deploying configuration..."))
+		program.Send(tui.ProgressMsg(0.3))
+		if err := installer.CopyConfigs(repoDir, cfg); err != nil {
+			logger.LogMessage("WARN", fmt.Sprintf("Config deployment skipped: %v", err))
+		} else {
+			logger.LogMessage("SUCCESS", "Configuration files deployed!")
+		}
+		program.Send(tui.ProgressMsg(0.6))
+	}()
+
+	// Run command execution in background
+	go func() {
+		program.Send(tui.StepMsg("Running commands..."))
+		program.Send(tui.ProgressMsg(0.7))
+		if err := installer.ExecCommands(cfg, testMode); err != nil {
+			logger.LogMessage("WARN", fmt.Sprintf("Some commands failed: %v", err))
+		}
+		program.Send(tui.ProgressMsg(0.9))
+	}()
+
+	// Run source builds in background
+	go func() {
+		program.Send(tui.StepMsg("Building from source..."))
+		program.Send(tui.ProgressMsg(0.8))
+		if err := installer.SourceBuilds(cfg, testMode); err != nil {
+			logger.LogMessage("WARN", fmt.Sprintf("Source builds: %v", err))
+		}
+		program.Send(tui.ProgressMsg(0.92))
+	}()
 
 	// Run git configuration and OpenRouter prompt in background (OpenBSD only)
 	if !testMode {
@@ -184,9 +250,7 @@ func main() {
 		// Skip OpenRouter setup in test mode - just let TUI display
 	}
 
-	// Mark program as ready before starting
-	logger.SetProgramReady(true)
-
+	// ---- Run TUI main loop ----
 	if _, err := program.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error running program: %v\n", err)
 		os.Exit(1)
@@ -207,20 +271,17 @@ func writeOpenRouterToFish(apiKey string) {
 
 	fishConfigPath := filepath.Join(usr.HomeDir, ".config", "fish", "config.fish")
 
-	// Read existing config
 	content, err := os.ReadFile(fishConfigPath)
 	if err != nil {
 		logger.LogMessage("ERROR", "Failed to read fish config: "+err.Error())
 		return
 	}
 
-	// Check if OpenRouter already exists
 	if strings.Contains(string(content), "OPENROUTER_API_KEY") {
 		logger.LogMessage("INFO", "OpenRouter already configured in fish config")
 		return
 	}
 
-	// Append OpenRouter config
 	openRouterConfig := `
 
 # OpenRouter LLM Configuration
@@ -249,15 +310,12 @@ func setupFishShell() error {
 
 	fishPath := "/usr/local/bin/fish"
 
-	// Check if fish is installed
 	if _, err := os.Stat(fishPath); os.IsNotExist(err) {
 		return fmt.Errorf("fish not found at %s", fishPath)
 	}
 
-	// Add fish to /etc/shells if not already present
 	shellsContent, err := os.ReadFile("/etc/shells")
 	if err != nil {
-		// May fail if not running as root, that's okay
 		logger.LogMessage("INFO", "Could not check /etc/shells (may need root)")
 	} else {
 		if !strings.Contains(string(shellsContent), fishPath) {
@@ -271,200 +329,9 @@ func setupFishShell() error {
 		}
 	}
 
-	// Change default shell using chsh
 	cmd := exec.Command("chsh", "-s", fishPath, usr.Username)
 	if output, err := cmd.CombinedOutput(); err != nil {
-		// chsh may fail without root, but fish will still work
 		logger.LogMessage("WARN", "Could not set fish as default shell (may need root): "+string(output))
-	}
-
-	return nil
-}
-
-// deployConfigs copies configuration files from the repo to ~/.config/
-func deployConfigs() error {
-	usr, err := user.Current()
-	if err != nil {
-		return fmt.Errorf("failed to get current user: %w", err)
-	}
-
-	homeDir := usr.HomeDir
-	configDir := filepath.Join(homeDir, ".config")
-
-	// List of configs to deploy
-	configs := map[string]string{
-		"fish/config.fish":      "fish/config.fish",
-		"nvim/init.lua":         "nvim/init.lua",
-		"nvim/lazyvim.json":     "nvim/lazyvim.json",
-		"foot/cypherriot.ini":   "foot/cypherriot.ini",
-		"sway/config":           "sway/config",
-		"sway/keybindings.conf": "sway/keybindings.conf",
-		"waybar/config":         "waybar/config",
-	}
-
-	// Get the directory where the openriot binary is located
-	// This assumes the configs are bundled with the binary or in a standard location
-	execPath, err := os.Executable()
-	if err != nil {
-		return fmt.Errorf("failed to get executable path: %w", err)
-	}
-	repoDir := filepath.Dir(execPath)
-
-	// Also check for ../config relative to executable (development mode)
-	devConfigDir := filepath.Join(filepath.Dir(execPath), "..", "config")
-	if _, err := os.Stat(devConfigDir); err == nil {
-		repoDir = filepath.Dir(execPath)
-	}
-
-	// Backgrounds go to ~/.local/share/openriot/backgrounds
-	bgDir := filepath.Join(homeDir, ".local", "share", "openriot", "backgrounds")
-	if err := os.MkdirAll(bgDir, 0755); err != nil {
-		logger.LogMessage("WARN", "Failed to create backgrounds directory: "+err.Error())
-	} else {
-		bgSrc := filepath.Join(repoDir, "..", "backgrounds")
-		if _, err := os.Stat(bgSrc); err == nil {
-			// Copy all jpg files from backgrounds directory
-			entries, err := os.ReadDir(bgSrc)
-			if err == nil {
-				for _, entry := range entries {
-					if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".jpg") {
-						srcPath := filepath.Join(bgSrc, entry.Name())
-						destPath := filepath.Join(bgDir, entry.Name())
-						if data, err := os.ReadFile(srcPath); err == nil {
-							if err := os.WriteFile(destPath, data, 0644); err == nil {
-								logger.LogMessage("INFO", "Deployed background "+entry.Name())
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// Create ~/.config if it doesn't exist
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		return fmt.Errorf("failed to create config directory: %w", err)
-	}
-
-	for src, dest := range configs {
-		srcPath := filepath.Join(repoDir, src)
-		destPath := filepath.Join(configDir, dest)
-
-		// Skip if source doesn't exist
-		if _, err := os.Stat(srcPath); os.IsNotExist(err) {
-			logger.LogMessage("INFO", "Skipping "+src+" (not found)")
-			continue
-		}
-
-		// Create destination directory
-		destDir := filepath.Dir(destPath)
-		if err := os.MkdirAll(destDir, 0755); err != nil {
-			logger.LogMessage("WARN", "Failed to create directory "+destDir+": "+err.Error())
-			continue
-		}
-
-		// Copy file
-		data, err := os.ReadFile(srcPath)
-		if err != nil {
-			logger.LogMessage("WARN", "Failed to read "+srcPath+": "+err.Error())
-			continue
-		}
-
-		if err := os.WriteFile(destPath, data, 0644); err != nil {
-			logger.LogMessage("WARN", "Failed to write "+destPath+": "+err.Error())
-			continue
-		}
-
-		logger.LogMessage("INFO", "Deployed "+dest)
-	}
-
-	return nil
-}
-
-// deployConfigsTest uses local config directory for testing on Linux
-func deployConfigsTest() error {
-	usr, err := user.Current()
-	if err != nil {
-		return fmt.Errorf("failed to get current user: %w", err)
-	}
-
-	homeDir := usr.HomeDir
-	configDir := filepath.Join(homeDir, ".config")
-
-	// List of configs to deploy
-	configs := map[string]string{
-		"fish/config.fish":      "fish/config.fish",
-		"nvim/init.lua":         "nvim/init.lua",
-		"nvim/lazyvim.json":     "nvim/lazyvim.json",
-		"foot/cypherriot.ini":   "foot/cypherriot.ini",
-		"sway/config":           "sway/config",
-		"sway/keybindings.conf": "sway/keybindings.conf",
-		"waybar/config":         "waybar/config",
-	}
-
-	// Backgrounds go to ~/.local/share/openriot/backgrounds
-	bgDir := filepath.Join(homeDir, ".local", "share", "openriot", "backgrounds")
-	if err := os.MkdirAll(bgDir, 0755); err != nil {
-		logger.LogMessage("WARN", "Failed to create backgrounds directory: "+err.Error())
-	} else {
-		bgSrc := "/home/grendel/Code/OpenRiot/backgrounds"
-		if _, err := os.Stat(bgSrc); err == nil {
-			// Copy all jpg files from images directory
-			entries, err := os.ReadDir(bgSrc)
-			if err == nil {
-				for _, entry := range entries {
-					if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".jpg") {
-						srcPath := filepath.Join(bgSrc, entry.Name())
-						destPath := filepath.Join(bgDir, entry.Name())
-						if data, err := os.ReadFile(srcPath); err == nil {
-							if err := os.WriteFile(destPath, data, 0644); err == nil {
-								logger.LogMessage("INFO", "Deployed background "+entry.Name())
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// Create ~/.config if it doesn't exist
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		return fmt.Errorf("failed to create config directory: %w", err)
-	}
-
-	// Use local config directory from repo
-	repoDir := "/home/grendel/Code/OpenRiot/config"
-
-	for src, dest := range configs {
-		srcPath := filepath.Join(repoDir, src)
-		destPath := filepath.Join(configDir, dest)
-
-		// Skip if source doesn't exist
-		if _, err := os.Stat(srcPath); os.IsNotExist(err) {
-			logger.LogMessage("INFO", "Skipping "+src+" (not found)")
-			continue
-		}
-
-		// Create destination directory
-		destDir := filepath.Dir(destPath)
-		if err := os.MkdirAll(destDir, 0755); err != nil {
-			logger.LogMessage("WARN", "Failed to create directory "+destDir+": "+err.Error())
-			continue
-		}
-
-		// Copy file
-		data, err := os.ReadFile(srcPath)
-		if err != nil {
-			logger.LogMessage("WARN", "Failed to read "+srcPath+": "+err.Error())
-			continue
-		}
-
-		if err := os.WriteFile(destPath, data, 0644); err != nil {
-			logger.LogMessage("WARN", "Failed to write "+destPath+": "+err.Error())
-			continue
-		}
-
-		logger.LogMessage("INFO", "Deployed "+dest)
 	}
 
 	return nil

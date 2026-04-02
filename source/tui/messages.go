@@ -100,6 +100,20 @@ func GetLogPath() string {
 	return "/tmp/archriot-install.log"
 }
 
+// Progress and step callbacks — set by main.go to feed TUI
+var progressCallback func(float64)
+var stepCallback func(string)
+
+// SetProgressCallback sets the callback for progress bar updates (0.0 to 1.0)
+func SetProgressCallback(fn func(float64)) {
+	progressCallback = fn
+}
+
+// SetStepCallback sets the callback for current step name updates
+func SetStepCallback(fn func(string)) {
+	stepCallback = fn
+}
+
 // Git callback functions
 var gitCompletionCallback func(bool)
 var gitUsernameCallback func(string)
