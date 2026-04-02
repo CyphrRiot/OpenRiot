@@ -1,4 +1,4 @@
-/* ArchRiot Waybar Modules */
+/* OpenRiot Waybar Modules */
 /* Core system modules for waybar configuration */
 
 /* NOTE: hyprland-workspaces, Custom Modules, Custom Vertical & Groups on a separate files */
@@ -42,8 +42,8 @@
 	"on-click-middle": "",
 	"on-click-right": "",
 	"on-update": "",
-	"on-scroll-up": "$HOME/.local/share/archriot/install/archriot --brightness up",
-	"on-scroll-down": "$HOME/.local/share/archriot/install/archriot --brightness down",
+	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --brightness up",
+	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --brightness down",
 	"smooth-scrolling-threshold": 1,
 },
 
@@ -77,7 +77,7 @@
 	"format-time": "{H}h {M}min",
 	"tooltip": true,
 	"tooltip-format": "{timeTo} {power}w",
-	"on-click-right": "$HOME/.local/share/archriot/install/archriot --power-menu",
+	"on-click-right": "$HOME/.local/share/openriot/install/openriot --power-menu",
 },
 
 "bluetooth": {
@@ -233,8 +233,8 @@
 	"on-click": "playerctl previous",
 	"on-click-right": "playerctl next",
 	"scroll-step": 5.0,
-	"on-scroll-up": "$HOME/.local/share/archriot/install/archriot --volume inc",
-	"on-scroll-down": "$HOME/.local/share/archriot/install/archriot --volume dec",
+	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume inc",
+	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume dec",
 	"smooth-scrolling-threshold": 1,
 	"tooltip": true,
 	"tooltip-format": "{status_icon} {dynamic}\nLeft Click: previous\nMid Click: Pause\nRight Click: Next",
@@ -299,10 +299,10 @@
 		],
 	},
 	"scroll-step": 5.0,
-	"on-click": "$HOME/.local/share/archriot/install/archriot --volume toggle",
+	"on-click": "$HOME/.local/share/openriot/install/openriot --volume toggle",
 	"on-click-right": "pavucontrol -t 3",
-	"on-scroll-up": "$HOME/.local/share/archriot/install/archriot --volume inc",
-	"on-scroll-down": "$HOME/.local/share/archriot/install/archriot --volume dec",
+	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume inc",
+	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume dec",
 	"tooltip-format": "{icon} {desc} | {volume}%",
 	"smooth-scrolling-threshold": 1,
 },
@@ -331,10 +331,10 @@
 	"format": "{format_source}",
 	"format-source": " {volume}%",
 	"format-source-muted": "",
-	"on-click": "$HOME/.local/share/archriot/install/archriot --volume mic-toggle",
+	"on-click": "$HOME/.local/share/openriot/install/openriot --volume mic-toggle",
 	"on-click-right": "pavucontrol -t 4",
-	"on-scroll-up": "$HOME/.local/share/archriot/install/archriot --volume mic-inc",
-	"on-scroll-down": "$HOME/.local/share/archriot/install/archriot --volume mic-dec",
+	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume mic-inc",
+	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume mic-dec",
 	"tooltip-format": "{source_desc} | {source_volume}%",
 	"scroll-step": 5,
 },
@@ -348,10 +348,10 @@
 "wireplumber": {
 	"format": "{icon} {volume} %",
 	"format-muted": " Mute",
-	"on-click": "$HOME/.local/share/archriot/install/archriot --volume toggle",
+	"on-click": "$HOME/.local/share/openriot/install/openriot --volume toggle",
 	"on-click-right": "pavucontrol -t 3",
-	"on-scroll-up": "$HOME/.local/share/archriot/install/archriot --volume inc",
-	"on-scroll-down": "$HOME/.local/share/archriot/install/archriot --volume dec",
+	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume inc",
+	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume dec",
 	"format-icons": [
 		"", "", "󰕾", ""
 	],

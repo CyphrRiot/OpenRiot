@@ -49,7 +49,7 @@ desktop:
         packages:
             - sway
             - waybar
-            - wofi
+            - fuzzel
             - swaylock
             - swayidle
             - swaybg
@@ -105,9 +105,9 @@ source:
     wlsunset:
         packages: []
         build:
-            - "git clone https://git.sr.ht/~kennylevinsen/wlsunset"
-            - "cd wlsunset && meson setup build --prefix=/usr/local --buildtype=release"
-            - "cd wlsunset && meson compile -C build"
+            - "if [ -f /etc/openriot/wlsunset.tar.gz ]; then tar -xzf /etc/openriot/wlsunset.tar.gz -C /tmp; else git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset /tmp/wlsunset; fi"
+            - "cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release"
+            - "cd /tmp/wlsunset && meson compile -C build"
             - "doas meson install -C build"
         depends: [core.base]
         start: "Building wlsunset from source"
@@ -115,14 +115,14 @@ source:
         type: "Source"
         critical: false
 # NOT NEEDED FOR OPENBSD (kept for reference)
-# These ArchRiot packages have no OpenBSD equivalent:
+# These OpenRiot packages have no OpenBSD equivalent:
 #
 # secure-boot: OpenBSD has its own boot security
 # hyprland: replaced by sway
 # hyprlock: replaced by swaylock
 # hypridle: replaced by swayidle
 # hyprshot: replaced by grim
-# fuzzel: replaced by wofi
+# wofi: replaced by fuzzel (fuzzel is available on OpenBSD, matches ArchRiot)
 # kitty: replaced by foot (Wayland native)
 # ghostty: not in OpenBSD packages
 # paru/yay: replaced by pkg_add

@@ -1,4 +1,4 @@
-/* ArchRiot Waybar Vertical Modules */
+/* OpenRiot Waybar Vertical Modules */
 /* Modules optimized for vertical layouts and orientations */
 
 /* NOTE: hyprland-workspaces, Custom Modules & Groups on a separate files */
@@ -34,8 +34,8 @@
 	"on-click-middle": "",
 	"on-click-right": "",
 	"on-update": "",
-	"on-scroll-up": "/usr/bin/bash -lc '~/.local/share/archriot/install/archriot --brightness up'",
-	"on-scroll-down": "/usr/bin/bash -lc '~/.local/share/archriot/install/archriot --brightness down'",
+	"on-scroll-up": "/usr/bin/bash -lc '~/.local/share/openriot/install/openriot --brightness up'",
+	"on-scroll-down": "/usr/bin/bash -lc '~/.local/share/openriot/install/openriot --brightness down'",
 	"smooth-scrolling-threshold": 1,
 	"tooltip-format": "backlight {percent}%",
 },
@@ -91,10 +91,10 @@
 		],
 	},
 	"scroll-step": 5.0,
-	"on-click": "$HOME/.local/share/archriot/install/archriot --volume toggle",
+	"on-click": "$HOME/.local/share/openriot/install/openriot --volume toggle",
 	"on-click-right": "pavucontrol -t 3",
-	"on-scroll-up": "$HOME/.local/share/archriot/install/archriot --volume inc",
-	"on-scroll-down": "$HOME/.local/share/archriot/install/archriot --volume dec",
+	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume inc",
+	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume dec",
 	"tooltip-format": "{icon} {desc} | {volume}%",
 	"smooth-scrolling-threshold": 1,
 },
@@ -104,9 +104,9 @@
 	"format-source": "󰍬",
 	"format-source-muted": "󰍭",
 	"on-click-right": "pavucontrol",
-	"on-click": "$HOME/.local/share/archriot/install/archriot --volume mic-toggle",
-	"on-scroll-up": "$HOME/.local/share/archriot/install/archriot --volume mic-inc",
-	"on-scroll-down": "$HOME/.local/share/archriot/install/archriot --volume mic-dec",
+	"on-click": "$HOME/.local/share/openriot/install/openriot --volume mic-toggle",
+	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume mic-inc",
+	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume mic-dec",
 	"max-volume": 100,
 	"tooltip": true,
 	"tooltip-format": "{source_desc} | {source_volume}%",
@@ -114,7 +114,7 @@
 
 "custom/power_vertical": {
 	"format": "⏻",
-	"on-click": "$HOME/.local/share/archriot/install/archriot --power-menu",
+	"on-click": "$HOME/.local/share/openriot/install/openriot --power-menu",
 	"tooltip": true,
 	"tooltip-format": "Left Click: Logout Menu",
 },

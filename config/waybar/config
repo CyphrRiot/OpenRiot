@@ -50,7 +50,7 @@
             "custom/network",          // Network (ifconfig)
             "custom/wireguard",        // WireGuard VPN status
             "custom/separator#blank",
-            "battery",                 // Battery (apm on OpenBSD)
+            "custom/battery",          // Battery (apm on OpenBSD)
             "custom/separator#blank",
             "custom/openriot-update",  // OpenRiot update check
             "custom/separator#blank",
