@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-OPENBSD_MIN_VERSION=7.8
+OPENBSD_MIN_VERSION=7.9
 REPO_URL="${REPO_URL:-https://github.com/cypherriot/OpenRiot}"
 CONFIG_BRANCH="${CONFIG_BRANCH:-main}"
 
@@ -150,9 +150,19 @@ build_wlsunset() {
     }
     trap cleanup EXIT
 
-    info "Cloning wlsunset..."
     cd "$tmpdir"
-    git clone https://git.sr.ht/~kennylevinsen/wlsunset
+
+    # Check for offline tarball first
+    if [ -f /etc/openriot/wlsunset.tar.gz ]; then
+        info "Extracting wlsunset from offline package..."
+        tar -xzf /etc/openriot/wlsunset.tar.gz
+    elif [ -f "$HOME/.local/share/openriot/wlsunset.tar.gz" ]; then
+        info "Extracting wlsunset from local package..."
+        tar -xzf "$HOME/.local/share/openriot/wlsunset.tar.gz"
+    else
+        info "Cloning wlsunset..."
+        git clone https://git.sr.ht/~kennylevinsen/wlsunset
+    fi
 
     cd wlsunset
     info "Building wlsunset with meson..."
@@ -230,12 +240,12 @@ deploy_configs() {
     info "Deploying Sway configuration..."
     if [ -d "$REPO_SOURCE/config/sway" ]; then
         cp -f "$REPO_SOURCE/config/sway/config" "$HOME/.config/sway/config"
-        cp -f config/sway/keybindings.conf "$HOME/.config/sway/keybindings.conf" 2>/dev/null || true
-        cp -f config/sway/monitors.conf "$HOME/.config/sway/monitors.conf" 2>/dev/null || true
-        cp -f config/sway/windowrules.conf "$HOME/.config/sway/windowrules.conf" 2>/dev/null || true
-        cp -f config/sway/swayidle.conf "$HOME/.config/sway/swayidle.conf" 2>/dev/null || true
-        cp -f config/sway/swaylock.conf "$HOME/.config/sway/swaylock.conf" 2>/dev/null || true
-        cp -f config/sway/swaylock-wrapper.sh "$HOME/.config/sway/swaylock-wrapper.sh" 2>/dev/null || true
+        cp -f "$REPO_SOURCE/config/sway/keybindings.conf" "$HOME/.config/sway/keybindings.conf" 2>/dev/null || true
+        cp -f "$REPO_SOURCE/config/sway/monitors.conf" "$HOME/.config/sway/monitors.conf" 2>/dev/null || true
+        cp -f "$REPO_SOURCE/config/sway/windowrules.conf" "$HOME/.config/sway/windowrules.conf" 2>/dev/null || true
+        cp -f "$REPO_SOURCE/config/sway/swayidle.conf" "$HOME/.config/sway/swayidle.conf" 2>/dev/null || true
+        cp -f "$REPO_SOURCE/config/sway/swaylock.conf" "$HOME/.config/sway/swaylock.conf" 2>/dev/null || true
+        cp -f "$REPO_SOURCE/config/sway/swaylock-wrapper.sh" "$HOME/.config/sway/swaylock-wrapper.sh" 2>/dev/null || true
         cp -f "$REPO_SOURCE/config/sway/swaylock-wrapper.py" "$HOME/.config/sway/swaylock-wrapper.py" 2>/dev/null || true
     fi
 

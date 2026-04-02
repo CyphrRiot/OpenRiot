@@ -45,6 +45,7 @@ exec wlsunset -t 3500
 # OpenBSD: no systemd suspend — use zzz(8) for suspend.
 # =============================================================================
 exec swayidle -w \
+    timeout 240 '$HOME/.config/sway/brightness-dim.sh dim' \
     timeout 300 'swaylock -f' \
     timeout 600 'swaymsg output * dpms off' \
     resume 'swaymsg output * dpms on' \
