@@ -6,7 +6,7 @@
 
 ## **OpenBSD + Sway — One Command to Your Desktop**
 
-> One command. Complete Sway desktop. Zero compromises.
+#### One command. Complete Sway desktop. Zero compromises.
 
 ![Version](https://img.shields.io/badge/version-0.6-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
