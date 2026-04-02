@@ -196,6 +196,13 @@ if [ ! -f ~/.openriot-installed ]; then
         curl -fsSL https://openriot.org/setup.sh | sh && touch ~/.openriot-installed
     fi
 fi
+
+# OpenRiot: show welcome screen on first login (GTK version with Python fallback to shell)
+if [ -f "$HOME/.local/share/openriot/config/bin/openriot-welcome.py" ]; then
+    python3 "$HOME/.local/share/openriot/config/bin/openriot-welcome.py" 2>/dev/null || true
+elif [ -f "$HOME/.local/share/openriot/config/bin/openriot-welcome.sh" ]; then
+    $HOME/.local/share/openriot/config/bin/openriot-welcome.sh
+fi
 EOF
         log "openriot hook added to $profile"
     fi

@@ -4,11 +4,11 @@
 
 # :: 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥 ::
 
-## **⚠️ WARNING: OpenRiot is IN PROGRESS and will not (yet) install! ⚠️**
+## **OpenBSD + Sway — One Command to Your Desktop**
 
-### **One Command. Complete Environment. Zero Compromises.**
+> One command. Complete Sway desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-0.4-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-0.6-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![Sway](https://img.shields.io/badge/Sway-Wayland-312e81?logo=wayland&logoColor=a855f7&labelColor=1e1b4b)
@@ -49,6 +49,7 @@ _Built on OpenBSD with Sway, because security and aesthetics shouldn't be mutual
 - [⌨️ Master Your OpenRiot Desktop](#master-your-openriot-desktop)
 - [🔄 System Management](#system-management)
 - [🧰 Advanced Usage](#advanced-usage)
+    - [Mullvad VPN on OpenBSD](#mullvad-vpn-on-openbsd)
 - [🔧 Troubleshooting](#troubleshooting)
 - [📄 License](#license)
 - [📋 Progress](#progress) — Project status, plan, and architecture
@@ -271,27 +272,50 @@ curl -fsSL https://openriot.org/setup.sh | sh
 
 #### You do NOT have OpenBSD installed
 
-⚠️ **Warning: ISO will replace a drive with OpenBSD + OpenRiot. ⚠️**
-
-1. **📥 Download OpenRiot ISO**
-    - **[OpenRiot ISO](https://github.com/CyphrRiot/OpenRiot/releases)**
-    - Verify the SHA256 checksum before flashing
-
-2. **🔧 Create bootable USB**
+1. **📥 Download ISO**
 
     ```bash
-    dd if=openriot-*.iso of=/dev/sdX bs=1M status=progress
+    curl -fsSL https://github.com/CyphrRiot/OpenRiot/releases/latest/download/openriot.iso -o openriot.iso
     ```
 
-3. **🚀 Boot and install**
+    Or download directly at [OpenRiot ISO](https://OpenRiot.org/isos/openriot.iso)
+
+2. **🔧 Create Bootable USB**
+
+    **Option A — dd (Linux/macOS):**
+
+    ```bash
+    sudo dd if=openriot.iso of=/dev/sdX bs=1M status=progress
+    ```
+
+    **Option B — Ventoy (recommended for multi-boot):**
+    - Install Ventoy on USB: https://www.ventoy.net/
+    - Copy `.iso` to Ventoy partition
+    - Boot and select from Ventoy menu
+
+3. **🚀 Install OpenBSD**
     - Boot from USB
-    - Choose `(I)nstall`
-    - Answer the prompts (autoinstall answers are pre-filled)
-    - After base install, log in and run:
+    - Choose `(I)nstall` — fully automated
+    - Enter disk encryption passphrase when prompted
+    - Create your user account
+    - After install completes, log in
+
+4. **✅ First Boot**
+   The installer runs automatically on first login:
+
+    ```bash
+    # Just log in — everything installs automatically
+    ```
+
+    Or run manually:
 
     ```bash
     curl -fsSL https://openriot.org/setup.sh | sh
     ```
+
+5. **🔄 Reboot**
+    - Log out and back in
+    - Type `sway` to start your desktop
 
 <a id="master-your-openriot-desktop"></a>
 
@@ -344,6 +368,64 @@ pkg_add -l | less
 <a id="advanced-usage"></a>
 
 ## 🧰 Advanced Usage
+
+### Mullvad VPN on OpenBSD
+
+The simplest way to run Mullvad VPN on OpenBSD using WireGuard:
+
+#### 1. Install WireGuard Tools
+
+```bash
+doas pkg_add wireguard-tools
+```
+
+#### 2. Generate Mullvad Config
+
+1. Log in at: https://mullvad.net/account/wireguard-config
+2. Select **Linux** as platform
+3. Generate a new key pair
+4. Choose a single location (avoid multihop for first test)
+5. Download the `.conf` file
+
+#### 3. Place the Config
+
+```bash
+doas mkdir -p /etc/wireguard
+doas mv ~/Downloads/mullvad-*.conf /etc/wireguard/wg0.conf
+```
+
+#### 4. Connect
+
+```bash
+doas wg-quick up wg0
+```
+
+#### 5. Verify
+
+- Visit: https://mullvad.net/check (should show green "You are connected")
+- Or run: `curl -4 ifconfig.me` (should show Mullvad IP)
+
+#### Disconnect
+
+```bash
+doas wg-quick down wg0
+```
+
+#### Auto-start at Boot (Optional)
+
+```bash
+doas rcctl enable wg
+doas rcctl start wg
+```
+
+#### DNS Leaks
+
+wg-quick handles DNS automatically. If you see leaks, manually set in `/etc/resolv.conf`:
+
+```
+nameserver 193.138.218.74
+lookup file bind
+```
 
 ### Environment Variables
 

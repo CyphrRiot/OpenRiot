@@ -5,6 +5,7 @@ import (
 	"os/exec"
 
 	"openriot/logger"
+	"openriot/tui"
 )
 
 // InstallPackages installs packages using pkg_add
@@ -29,17 +30,28 @@ func InstallPackages(packages []string) error {
 
 	logger.LogMessage("INFO", fmt.Sprintf("Installing %d packages with pkg_add", len(toInstall)))
 
-	// Install all packages at once
-	cmd := exec.Command("pkg_add", toInstall...)
-	output, err := cmd.CombinedOutput()
+	// Install packages one at a time for progress tracking
+	total := float64(len(toInstall))
+	for i, pkg := range toInstall {
+		logger.LogMessage("INFO", fmt.Sprintf("Installing %s...", pkg))
 
-	if err != nil {
-		outputStr := string(output)
-		if len(outputStr) > 300 {
-			outputStr = outputStr[:300] + "..."
+		cmd := exec.Command("pkg_add", pkg)
+		output, err := cmd.CombinedOutput()
+
+		if err != nil {
+			outputStr := string(output)
+			if len(outputStr) > 300 {
+				outputStr = outputStr[:300] + "..."
+			}
+			logger.LogMessage("ERROR", fmt.Sprintf("Failed to install %s: %s", pkg, outputStr))
+			return fmt.Errorf("pkg_add failed for %s: %w", pkg, err)
 		}
-		logger.LogMessage("ERROR", fmt.Sprintf("pkg_add failed: %s", outputStr))
-		return fmt.Errorf("pkg_add failed: %w", err)
+
+		logger.LogMessage("SUCCESS", fmt.Sprintf("✅ Installed %s", pkg))
+
+		// Send progress update
+		progress := float64(i+1) / total * 100
+		tui.GetModel().SetProgress(progress)
 	}
 
 	logger.LogMessage("SUCCESS", fmt.Sprintf("✅ Installed %d packages", len(toInstall)))

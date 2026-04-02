@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"openriot/tui"
-
 	tea "github.com/charmbracelet/bubbletea"
+
+	"openriot/tui"
 )
 
 var (
@@ -17,6 +17,7 @@ var (
 	emojiSupport bool = true
 	program      *tea.Program
 	programReady bool = false
+	testMode     bool = false
 
 	// Progress and step callbacks for TUI integration
 	progressCallback func(float64)
@@ -67,11 +68,20 @@ func Log(status, category, operation, message string) {
 	fmt.Fprintf(os.Stdout, "%s%s\n", emoji, message)
 }
 
+// SetTestMode enables test mode which slows down log output
+func SetTestMode(enabled bool) {
+	testMode = enabled
+}
+
 // LogMessage writes a simple message log
 func LogMessage(level, message string) {
 	// If we have a TUI program and it's ready, send log to it
 	if program != nil && programReady {
 		program.Send(tui.LogMsg(message))
+		// In test mode, add a brief delay between log messages so we can see them
+		if testMode {
+			time.Sleep(300 * time.Millisecond)
+		}
 		return
 	}
 	// Otherwise, fall back to stdout
@@ -94,7 +104,7 @@ func LogStep(step string) {
 
 // InitLogger initializes the log file
 func InitLogger() error {
-	logDir := filepath.Join(os.Getenv("HOME"), ".local", "share", "openriot", "logs")
+	logDir := filepath.Join(os.Getenv("HOME"), ".cache", "openriot", "logs")
 	os.MkdirAll(logDir, 0755)
 
 	logPath = filepath.Join(logDir, fmt.Sprintf("openriot-%s.log", time.Now().Format("2006-01-02")))
