@@ -29,7 +29,7 @@ if ! have stormy; then
 fi
 
 # Load config (LOCATION variable) if present
-# Prefer Waybar config, fallback to ArchRiot config
+# Prefer Waybar config, fallback to OpenRiot config
 CFG=""
 if [ -f "$HOME/.config/waybar/weather.conf" ]; then
   CFG="$HOME/.config/waybar/weather.conf"

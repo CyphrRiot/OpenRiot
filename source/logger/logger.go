@@ -17,6 +17,10 @@ var (
 	emojiSupport bool = true
 	program      *tea.Program
 	programReady bool = false
+
+	// Progress and step callbacks for TUI integration
+	progressCallback func(float64)
+	stepCallback     func(string)
 )
 
 // SetProgram sets the TUI program for log integration
@@ -27,6 +31,16 @@ func SetProgram(p *tea.Program) {
 // SetProgramReady marks the TUI program as running (safe to Send)
 func SetProgramReady(ready bool) {
 	programReady = ready
+}
+
+// SetProgressCallback sets the callback for progress updates
+func SetProgressCallback(fn func(float64)) {
+	progressCallback = fn
+}
+
+// SetStepCallback sets the callback for step name updates
+func SetStepCallback(fn func(string)) {
+	stepCallback = fn
 }
 
 // Log writes a log entry to file and console
@@ -62,6 +76,20 @@ func LogMessage(level, message string) {
 	}
 	// Otherwise, fall back to stdout
 	Log(level, "General", "Log", message)
+}
+
+// LogProgress updates the progress bar (0.0 to 1.0)
+func LogProgress(progress float64) {
+	if progressCallback != nil {
+		progressCallback(progress)
+	}
+}
+
+// LogStep updates the current step name
+func LogStep(step string) {
+	if stepCallback != nil {
+		stepCallback(step)
+	}
 }
 
 // InitLogger initializes the log file

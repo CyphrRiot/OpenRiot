@@ -61,7 +61,7 @@ PKGS="git rsync bc-gh python fastfetch"
 # core.shell
 PKGS="$PKGS fish neovim foot fzf ripgrep htop tree fd"
 # desktop.sway
-PKGS="$PKGS sway waybar wofi swaylock swayidle swaybg grim"
+PKGS="$PKGS sway waybar fuzzel swaylock swayidle swaybg grim"
 # desktop.apps
 PKGS="$PKGS thunar thunar-archive firefox flare-messenger tdesktop"
 # system.tools
@@ -196,32 +196,6 @@ EOF
         log "openriot hook added to $profile"
     fi
 done
-
-# ============================================================
-# STEP 9: Build wlsunset from source
-# ============================================================
-log "Step 9: Building wlsunset from source..."
-
-WLSUNSET=/usr/local/bin/wlsunset
-if [ -x "$WLSUNSET" ]; then
-    log "wlsunset already installed — skipping"
-elif command -v git >/dev/null 2>&1 && command -v meson >/dev/null 2>&1; then
-    _tmp=$(mktemp -d)
-    log "Cloning wlsunset..."
-    git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset "$_tmp/wlsunset" 2>/dev/null && {
-        cd "$_tmp/wlsunset"
-        meson setup build --prefix=/usr/local --buildtype=release
-        meson install -C build
-        cd /
-        rm -rf "$_tmp"
-        log "wlsunset built and installed"
-    } || {
-        rm -rf "$_tmp"
-        log "WARNING: wlsunset build failed — skipping"
-    }
-else
-    log "WARNING: git or meson not available — wlsunset build skipped"
-fi
 
 # ============================================================
 # Done

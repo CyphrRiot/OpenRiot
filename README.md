@@ -21,15 +21,13 @@
 
 </div>
 
-## **OpenRiot: The OpenBSD System You've Always Wanted**
+## **OpenRiot: A Functional OpenBSD Desktop**
 
 OpenRiot is the answer to every time you've thought "Why can't an OpenBSD installation just work correctly from the start?" Built on the same principles as [ArchRiot](https://ArchRiot.org) — perfect the details once, get it right every time.
 
 - Read the [Post on X](https://x.com/CyphrRiot/status/2039409143891837297?s=20) to understand why OpenRiot was created and more about the creator's vision for the system.
 
 ### **Curated to be correct:**
-
-> "Linux has never been about quality. There are so many parts of the system that are just these cheap little hacks, and it happens to run." -Theo de Raadt
 
 - **🪟 Sway Tiling** — i3-compatible Wayland compositor with OpenBSD's legendary stability
 - **⚡ Robust Binary** — Atomic operations, pledge/unveil security, zero dependency hell
@@ -54,6 +52,8 @@ _Built on OpenBSD with Sway, because security and aesthetics shouldn't be mutual
 - [🔧 Troubleshooting](#troubleshooting)
 - [📄 License](#license)
 - [📋 Progress](#progress) — Project status, plan, and architecture
+
+> "Linux has never been about quality. There are so many parts of the system that are just these cheap little hacks, and it happens to run." -Theo de Raadt
 
 <a id="supported-systems"></a>
 
@@ -302,7 +302,7 @@ OpenRiot uses **Sway** (i3-compatible Wayland compositor). Keybindings mirror Ar
 | Key                   | Action                   |
 | --------------------- | ------------------------ |
 | `Super + Return`      | Terminal (foot)          |
-| `Super + D`           | App Launcher (wofi)      |
+| `Super + D`           | App Launcher (fuzzel)    |
 | `Super + F`           | File Manager (Thunar)    |
 | `Super + B`           | Browser                  |
 | `Super + L`           | Lock Screen              |

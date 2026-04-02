@@ -1,5 +1,5 @@
-/* ArchRiot Waybar Styling */
-/* Core waybar CSS for ArchRiot desktop environment */
+/* OpenRiot Waybar Styling */
+/* Core waybar CSS for OpenRiot desktop environment */
 
 /* Import central color definitions */
 @import url("colors.css");
@@ -147,10 +147,10 @@ tooltip {
 #custom-light_dark,
 #custom-lock,
 #custom-hint,
-#custom-archriot-update,
-#custom-archriot-update.update-new,
-#custom-archriot-update.update-seen,
-#custom-archriot-update.update-none,
+#custom-openriot-update,
+#custom-openriot-update.update-new,
+#custom-openriot-update.update-seen,
+#custom-openriot-update.update-none,
 #custom-hypridle,
 #custom-menu,
 #custom-playerctl,
@@ -548,7 +548,7 @@ label:focus {
 }
 
 /* Mullvad VPN module */
-#custom-mullvad {
+#custom-wireguard {
     padding-left: 0px; /* Tightened spacing */
     padding-right: 6px;
     border-radius: 6px;
@@ -556,11 +556,11 @@ label:focus {
     transition: all 0.3s ease;
 }
 
-#custom-mullvad.mullvad-connected {
+#custom-wireguard.wg-connected {
     color: @memory_color; /* Same as FREE RAM */
 }
 
-#custom-mullvad.mullvad-disconnected {
+#custom-wireguard.wg-disconnected {
     color: @memory_color; /* Same as FREE RAM */
 }
 
@@ -577,25 +577,25 @@ label:focus {
     padding: 0 5px;
 }
 
-/* ArchRiot Update Notification Styling */
-#custom-archriot-update {
+/* OpenRiot Update Notification Styling */
+#custom-openriot-update {
     font-size: 110%;
     padding: 0 5px;
 }
 
 /* New update - pulsing urgent red */
-#custom-archriot-update.update-new {
+#custom-openriot-update.update-new {
     color: @accent1; /* Pink/red color for urgency */
     animation: pulse 2s ease-in-out infinite alternate;
 }
 
 /* Update seen but not upgraded - steady purple like power/lock */
-#custom-archriot-update.update-seen {
+#custom-openriot-update.update-seen {
     color: @power_color; /* Same purple as power/lock icons */
 }
 
 /* No updates - dark purple like power/lock icons */
-#custom-archriot-update.update-none {
+#custom-openriot-update.update-none {
     color: @power_color; /* Same purple as power/lock icons */
 }
 

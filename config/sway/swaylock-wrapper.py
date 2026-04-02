@@ -2,7 +2,7 @@
 """
 OpenRiot Swaylock Background Generator
 Generates a lock screen image with time, date, username, hostname, and background.
-Works standalone on OpenBSD — no ArchRiot binary dependency.
+Works standalone on OpenBSD — no OpenRiot binary dependency.
 """
 import os
 import subprocess

@@ -1,6 +1,6 @@
 # =============================================================================
 # OpenRiot Fish Shell Configuration
-# Ported from ArchRiot for OpenBSD
+# Ported from OpenRiot for OpenBSD
 # =============================================================================
 
 # Greeting with fastfetch if available
