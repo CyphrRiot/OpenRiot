@@ -139,7 +139,7 @@ Now, focus on the workflow:
 ## Canonical Versions (single source of truth: Makefile)
 
 ```
-OPENRIOT_VERSION = 0.4
+OPENRIOT_VERSION = 0.6
 OPENBSD_VERSION  = 7.9
 ARCH             = amd64
 ```
