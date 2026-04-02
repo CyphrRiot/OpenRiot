@@ -378,24 +378,24 @@ qemu-system-x86_64 -cdrom isos/openriot-0.4.iso -m 2G -enable-kvm -nic none
 
 ### Current Status Summary
 
-| Layer | Component                     | Status      |
-| ----- | ----------------------------- | ----------- |
-| 1.1   | build-iso.sh                  | ✅ DONE     |
-| 1.2.1 | download-packages.sh          | ✅ DONE     |
-| 1.2.2 | generate-index.sh             | ✅ DONE     |
-| 1.2.3 | Integrate index into download | ✅ DONE     |
-| 1.2.4 | Copy packages to ISO          | ✅ DONE     |
-| 1.3   | install.site                  | ✅ DONE     |
-| 1.4   | **Test ISO build**            | 🔴 **NEXT** |
-| —     | Canonical versioning          | ✅ DONE     |
-| 2.1   | TUI test mode                 | ✅ DONE     |
-| 2.2   | Config deployment             | ✅ DONE     |
-| 2.3   | Command execution             | ✅ DONE     |
-| 2.4   | Package install               | ✅ DONE     |
-| 2.5   | Source builds                 | ⬜ TODO     |
-| 2.6   | TUI polish                    | ⬜ TODO     |
-| 3.1   | setup.sh                      | ⬜ TODO     |
-| 3.2   | Hosting                       | ⬜ TODO     |
+| Layer | Component                     | Status     |
+| ----- | ----------------------------- | ---------- |
+| 1.1   | build-iso.sh                  | ✅ DONE    |
+| 1.2.1 | download-packages.sh          | ✅ DONE    |
+| 1.2.2 | generate-index.sh             | ✅ DONE    |
+| 1.2.3 | Integrate index into download | ✅ DONE    |
+| 1.2.4 | Copy packages to ISO          | ✅ DONE    |
+| 1.3   | install.site                  | ✅ DONE    |
+| 1.4   | Test ISO build                | ⏳ PENDING |
+| —     | Canonical versioning          | ✅ DONE    |
+| 2.1   | TUI test mode                 | ✅ DONE    |
+| 2.2   | Config deployment             | ✅ DONE    |
+| 2.3   | Command execution             | ✅ DONE    |
+| 2.4   | Package install               | ✅ DONE    |
+| 2.5   | Source builds                 | ✅ DONE    |
+| 2.6   | TUI polish                    | ⬜ TODO    |
+| 3.1   | setup.sh                      | ✅ DONE    |
+| 3.2   | Hosting                       | ⬜ TODO    |
 
 ### ⚠️ Session Notes (important context for next chat)
 

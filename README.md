@@ -27,15 +27,15 @@ OpenRiot is the answer to every time you've thought "Why can't an OpenBSD instal
 
 - Read the [Post on X](https://x.com/CyphrRiot/status/2039409143891837297?s=20) to understand why OpenRiot was created and more about the creator's vision for the system.
 
-**Curated to be correct:**
+### **Curated to be correct:**
+
+> "Linux has never been about quality. There are so many parts of the system that are just these cheap little hacks, and it happens to run." -Theo de Raadt
 
 - **🪟 Sway Tiling** — i3-compatible Wayland compositor with OpenBSD's legendary stability
 - **⚡ Robust Binary** — Atomic operations, pledge/unveil security, zero dependency hell
 - **🛡️ Privacy** — Zero telemetry, zero tracking, zero data harvesting
 - **🎨 Aesthetics** — Carefully crafted dark themes that work at any hour
 - **💎 OpenBSD** — The most security-audited OS on the planet
-
-> "Linux has never been about quality. There are so many parts of the system that are just these cheap little hacks, and it happens to run." -Theo de Raadt
 
 _Built on OpenBSD with Sway, because security and aesthetics shouldn't be mutually exclusive._
 
