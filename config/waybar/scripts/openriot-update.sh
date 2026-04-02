@@ -7,7 +7,7 @@ mkdir -p "$(dirname "$STATE_FILE")"
 
 # Get versions
 local_version=$(cat ~/.local/share/openriot/VERSION 2>/dev/null || echo "unknown")
-remote_version=$(timeout 10 curl -s https://raw.githubusercontent.com/CyphrRiot/OpenRiot/master/VERSION 2>/dev/null || echo "unknown")
+remote_version=$(timeout 10 curl -s https://openriot.org/VERSION 2>/dev/null || echo "unknown")
 
 # Compare semantic versions - returns 0 if remote is newer
 is_newer_version() {
