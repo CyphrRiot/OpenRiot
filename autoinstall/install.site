@@ -190,8 +190,8 @@ for homedir in /home/*; do
 
 # OpenRiot: bootstrap setup.sh on first login
 if [ ! -f ~/.openriot-installed ]; then
-    if [ -f "$HOME/.local/share/openriot/install/setup.sh" ]; then
-        sh "$HOME/.local/share/openriot/install/setup.sh" && touch ~/.openriot-installed
+    if [ -f "$HOME/.local/share/openriot/setup.sh" ]; then
+        sh "$HOME/.local/share/openriot/setup.sh" && touch ~/.openriot-installed
     else
         curl -fsSL https://openriot.org/setup.sh | sh && touch ~/.openriot-installed
     fi

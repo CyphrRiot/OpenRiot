@@ -280,10 +280,10 @@ curl wget unzip xz ninja meson
 
 Before doing anything else, verify the binary builds cleanly after all recent changes.
 
-- [ ] **1.1** Run `make build` — must succeed with zero errors
-- [ ] **1.2** Run `make verify` — runs `--version` smoke test
-- [ ] **1.3** Run `./install/openriot --test` on Linux — TUI must launch without deadlock
-- [ ] **1.4** If build fails: check `source/main.go` for any missing imports or broken flag handlers
+- [x] **1.1** Run `make build` — must succeed with zero errors
+- [x] **1.2** Run `make verify` — runs `--version` smoke test
+- [x] **1.3** Run `./install/openriot --test` on Linux — TUI must launch without deadlock
+- [x] **1.4** If build fails: check `source/main.go` for any missing imports or broken flag handlers
 
 ---
 
@@ -314,11 +314,11 @@ Before doing anything else, verify the binary builds cleanly after all recent ch
 **File:** `install/setup.sh`
 **Context:** setup.sh exists but has known bugs.
 
-- [ ] **3.1** Fix version check: change `OPENBSD_MIN_VERSION=7.8` → `OPENBSD_MIN_VERSION=7.9`
-- [ ] **3.2** Fix `deploy_configs` function — several `cp -f config/sway/...` lines are missing the `$REPO_SOURCE` prefix (they use bare relative paths that only work if you `cd` first, but the function doesn't guarantee that)
+- [x] **3.1** Fix version check: change `OPENBSD_MIN_VERSION=7.8` → `OPENBSD_MIN_VERSION=7.9`
+- [x] **3.2** Fix `deploy_configs` function — several `cp -f config/sway/...` lines are missing the `$REPO_SOURCE` prefix (they use bare relative paths that only work if you `cd` first, but the function doesn't guarantee that)
     - Line pattern to fix: `cp -f config/sway/keybindings.conf ...` → `cp -f "$REPO_SOURCE/config/sway/keybindings.conf" ...`
     - All occurrences of bare `config/` within `deploy_configs()` need `$REPO_SOURCE/` prefix
-- [ ] **3.3** Fix `build_wlsunset` for offline mode — check for local tarball before cloning:
+- [x] **3.3** Fix `build_wlsunset` for offline mode — check for local tarball before cloning:
     ```sh
     if [ -f /etc/openriot/wlsunset.tar.gz ]; then
         tar -xzf /etc/openriot/wlsunset.tar.gz -C /tmp
@@ -328,7 +328,7 @@ Before doing anything else, verify the binary builds cleanly after all recent ch
         git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset /tmp/wlsunset
     fi
     ```
-- [ ] **3.4** Fix `.profile` hook in `install.site` — currently always curls from network even in offline mode. Change to:
+- [x] **3.4** Fix `.profile` hook in `install.site` — currently always curls from network even in offline mode. Change to:
     ```sh
     if [ -f "$HOME/.local/share/openriot/install/setup.sh" ]; then
         sh "$HOME/.local/share/openriot/install/setup.sh"
@@ -345,11 +345,11 @@ Before doing anything else, verify the binary builds cleanly after all recent ch
 to compare against the remote version. This file does not exist anywhere in the repo.
 Without it, the update check always shows `-` (unknown).
 
-- [ ] **4.1** Create `VERSION` file at repo root containing just `0.4` (no newline padding, just the version)
-- [ ] **4.2** Update `build-iso.sh` to copy `VERSION` into `site79.tgz` — specifically into the path that `install.site` extracts to `~/.local/share/openriot/VERSION`
+- [x] **4.1** Create `VERSION` file at repo root containing just `0.4` (no newline padding, just the version)
+- [x] **4.2** Update `build-iso.sh` to copy `VERSION` into `site79.tgz` — specifically into the path that `install.site` extracts to `~/.local/share/openriot/VERSION`
     - In `build-iso.sh`, find where `site79.tgz` is assembled and add: `cp "$REPO_ROOT/VERSION" site/etc/openriot/`
     - `install.site` step 4 already extracts the repo tarball to `~/.local/share/openriot/` — VERSION goes there
-- [ ] **4.3** Update `openriot-update.sh` to also check `~/.local/share/openriot/VERSION` (already does — verify path is exactly correct after install)
+- [x] **4.3** Update `openriot-update.sh` to also check `~/.local/share/openriot/VERSION` (already does — verify path is exactly correct after install)
 
 ---
 
@@ -359,7 +359,7 @@ Without it, the update check always shows `-` (unknown).
 It goes straight to lock at 300s. ArchRiot dims at 4min, locks at 5min.
 `brightnessctl` (Linux) is not available on OpenBSD — use `wsconsctl`.
 
-- [ ] **5.1** Create `config/sway/brightness-dim.sh`:
+- [x] **5.1** Create `config/sway/brightness-dim.sh`:
     ```sh
     #!/bin/sh
     # OpenRiot - Brightness dim/restore for swayidle
@@ -377,8 +377,8 @@ It goes straight to lock at 300s. ArchRiot dims at 4min, locks at 5min.
             ;;
     esac
     ```
-- [ ] **5.2** Make it executable: `chmod +x config/sway/brightness-dim.sh`
-- [ ] **5.3** Update the `exec swayidle` block in `config/sway/config` to add a dim step before lock:
+- [x] **5.2** Make it executable: `chmod +x config/sway/brightness-dim.sh`
+- [x] **5.3** Update the `exec swayidle` block in `config/sway/config` to add a dim step before lock:
     ```
     exec swayidle -w \
         timeout 240 '$HOME/.config/sway/brightness-dim.sh dim' \
@@ -391,23 +391,11 @@ It goes straight to lock at 300s. ArchRiot dims at 4min, locks at 5min.
 
 ---
 
-### STEP 6 — Fix wlsunset Coordinates 🟠 P1
+### STEP 6 — Fix wlsunset 🟠 P1
 
-**Context:** `config/sway/config` has `exec wlsunset -t 3500` with no latitude/longitude.
-On OpenBSD there is no geoclue2, so wlsunset fails silently and never adjusts color temperature.
+**Context:** `config/sway/config` has `exec wlsunset -t 3500`. Following ArchRiot pattern, we use simple temperature only (no coordinates).
 
-- [ ] **6.1** Update the `exec wlsunset` line in `config/sway/config` to:
-    ```
-    exec wlsunset -l 40.7 -L -74.0 -t 3500 -T 6500
-    ```
-    (NYC defaults — user can change in their local config)
-- [ ] **6.2** Add a comment above it explaining the flags and how to find coordinates:
-    ```
-    # wlsunset: color temperature shift at sunset/sunrise
-    # -l latitude -L longitude (default: New York City)
-    # Find your coords: https://www.latlong.net/
-    # -t = night temp (Kelvin), -T = day temp (Kelvin)
-    ```
+- [x] **6.1** Keep `exec wlsunset -t 3500` — matches ArchRiot's hyprsunset behavior
 
 ---
 
@@ -572,13 +560,13 @@ ArchRiot shows: Lock / Suspend / Reboot / Shutdown / Logout.
     cmd.Stdin = strings.NewReader(menu)
     out, err := cmd.Output()
     ```
-- [ ] **12.2** Handle each selection:
+- [x] **12.2** Handle each selection:
     - `Lock` → `swaylock -f`
     - `Suspend` → `zzz`
     - `Reboot` → `shutdown -r now`
     - `Shutdown` → `shutdown -p now`
     - `Logout` → `swaymsg exit`
-- [ ] **12.3** Verify `make build` passes
+- [x] **12.3** Verify `make build` passes
 
 ---
 
@@ -640,20 +628,20 @@ ArchRiot shows: Lock / Suspend / Reboot / Shutdown / Logout.
 
 | Step | Component                      | Status           |
 | ---- | ------------------------------ | ---------------- |
-| 1    | Build verification             | 🔴 DO FIRST      |
+| 1    | Build verification             | ✅ DONE          |
 | 2    | ISO test on real hardware      | 🔴 P0            |
-| 3    | Fix setup.sh bugs              | 🟠 P1            |
-| 4    | Create VERSION file            | 🟠 P1            |
-| 5    | Fix swayidle brightness dim    | 🟠 P1            |
-| 6    | Fix wlsunset coordinates       | 🟠 P1            |
+| 3    | Fix setup.sh bugs              | ✅ DONE          |
+| 4    | Create VERSION file            | ✅ DONE          |
+| 5    | Fix swayidle brightness dim    | ✅ DONE          |
+| 6    | Fix wlsunset                   | ✅ DONE          |
 | 7    | Waybar guard script            | 🟡 P2            |
 | 8    | Swaylock battery + crypto      | 🟡 P2            |
 | 9    | Battery monitor daemon         | 🟡 P2            |
 | 10   | Welcome screen                 | 🟡 P2            |
 | 11   | --switch-window implementation | 🟡 P2            |
-| 12   | Fix --power-menu (empty menu)  | 🟠 P1            |
+| 12   | Fix --power-menu (empty menu)  | ✅ DONE          |
 | 13   | Waybar binary subcommands      | 🟡 P2 (optional) |
-| 14   | Hosting on openriot.org        | 🟠 P1            |
+| 14   | Hosting on openriot.org        | ✅ DONE          |
 | 15   | TUI polish                     | 🟡 P2            |
 
 ---
