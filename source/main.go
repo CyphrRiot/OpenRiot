@@ -63,7 +63,26 @@ func main() {
 		return
 	}
 	if len(os.Args) >= 2 && os.Args[1] == "--power-menu" {
-		exec.Command("fuzzel", "--dmenu", "--prompt=Power: ", "--width=30", "--lines=6").Run()
+		menu := "Lock\nSuspend\nReboot\nShutdown\nLogout"
+		cmd := exec.Command("fuzzel", "--dmenu", "--prompt=Power: ", "--width=20", "--lines=5")
+		cmd.Stdin = strings.NewReader(menu)
+		out, err := cmd.Output()
+		if err != nil {
+			return
+		}
+		choice := strings.TrimSpace(string(out))
+		switch choice {
+		case "Lock":
+			exec.Command("swaylock", "-f").Run()
+		case "Suspend":
+			exec.Command("zzz").Run()
+		case "Reboot":
+			exec.Command("shutdown", "-r", "now").Run()
+		case "Shutdown":
+			exec.Command("shutdown", "-p", "now").Run()
+		case "Logout":
+			exec.Command("swaymsg", "exit").Run()
+		}
 		return
 	}
 	if len(os.Args) >= 2 && os.Args[1] == "--swaybg-next" {
