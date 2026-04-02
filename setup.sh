@@ -88,7 +88,7 @@ check_uid() {
 
 OPENRIOT_LOCAL="$HOME/.local/share/openriot"
 
-if [ -d "$OPENRIOT_LOCAL" ] && [ -f "$OPENRIOT_LOCAL/install/setup.sh" ]; then
+if [ -d "$OPENRIOT_LOCAL" ] && [ -f "$OPENRIOT_LOCAL/setup.sh" ]; then
     info "Offline mode: using repo from ~/.local/share/openriot/"
     OFFLINE_MODE=1
 else
