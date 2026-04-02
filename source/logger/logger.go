@@ -5,13 +5,29 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"openriot/tui"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 var (
 	logFile      *os.File
 	logPath      string
 	emojiSupport bool = true
+	program      *tea.Program
+	programReady bool = false
 )
+
+// SetProgram sets the TUI program for log integration
+func SetProgram(p *tea.Program) {
+	program = p
+}
+
+// SetProgramReady marks the TUI program as running (safe to Send)
+func SetProgramReady(ready bool) {
+	programReady = ready
+}
 
 // Log writes a log entry to file and console
 func Log(status, category, operation, message string) {
@@ -39,6 +55,12 @@ func Log(status, category, operation, message string) {
 
 // LogMessage writes a simple message log
 func LogMessage(level, message string) {
+	// If we have a TUI program and it's ready, send log to it
+	if program != nil && programReady {
+		program.Send(tui.LogMsg(message))
+		return
+	}
+	// Otherwise, fall back to stdout
 	Log(level, "General", "Log", message)
 }
 

@@ -8,7 +8,7 @@
 
 ### **One Command. Complete Environment. Zero Compromises.**
 
-![Version](https://img.shields.io/badge/version-0.1-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-0.4-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![Sway](https://img.shields.io/badge/Sway-Wayland-312e81?logo=wayland&logoColor=a855f7&labelColor=1e1b4b)
@@ -35,12 +35,15 @@ OpenRiot is the answer to every time you've thought "Why can't an OpenBSD instal
 - **🎨 Aesthetics** — Carefully crafted dark themes that work at any hour
 - **💎 OpenBSD** — The most security-audited OS on the planet
 
+> "Linux has never been about quality. There are so many parts of the system that are just these cheap little hacks, and it happens to run." -Theo de Raadt
+
 _Built on OpenBSD with Sway, because security and aesthetics shouldn't be mutually exclusive._
 
 ## 📚 Navigate This Guide
 
 - [✅ Supported Systems](#supported-systems) — **Read first!**
 - [✅ Supported Network Hardware](#supported-network-hardware) — **Read first!**
+- [⚠️ UEFI/BIOS Settings](#uefibios-settings) — **Required before install**
 - [🔊 Bluetooth](#bluetooth) — **No native support; see workarounds**
 - [🚀 Choose Your OpenRiot Experience](#choose-your-openriot-experience)
     - [🔥 Method 1: Install Script](#method-1-install-script)
@@ -136,11 +139,65 @@ For full hardware details, see the [OpenBSD Hardware Compatibility List](https:/
 
 For full compatibility, see [iwx(4)](https://man.openbsd.org/iwx.4), [urtwn(4)](https://man.openbsd.org/urtwn.4), and [athn(4)](https://man.openbsd.org/athn.4) man pages.
 
+<a id="uefibios-settings"></a>
+
+## ⚠️ UEFI/BIOS Settings
+
+There are several **UEFI/BIOS settings** you should verify or adjust before installing **OpenBSD**. These ensure the installer boots reliably, hardware is detected correctly, and post-install features like suspend/resume and WiFi work as expected.
+
+OpenBSD boots in **pure UEFI mode** and does **not** support Secure Boot. Most modern hardware is compatible once these settings are correct.
+
+### How to Enter BIOS
+
+Power on your machine and tap the appropriate key during boot (commonly **F1**, **F2**, **Del**, or **Esc** — consult your manufacturer's docs). You can also tap **F12** (or equivalent) for a one-time boot menu to select your install USB.
+
+### Recommended UEFI/BIOS Settings
+
+The following settings are broadly applicable across modern laptops and desktops. Not all will be present on every system — locate the equivalents for your hardware.
+
+> "My favorite part of the 'many eyes' argument is how few bugs were found by the two eyes of Eric (the originator of the statement). All the many eyes are apparently attached to a lot of hands that type lots of words about many eyes, and never actually audit code." — Theo de Raadt
+
+| Category           | Setting                               | Recommended Value                  | Why It Matters for OpenBSD                                                                                                       |
+| ------------------ | ------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Boot**           | Secure Boot                           | **Disabled**                       | **Critical.** OpenBSD's bootloader is not signed with Microsoft's keys. Enabled Secure Boot prevents the installer from booting. |
+| **Boot**           | UEFI/Legacy Boot                      | **UEFI Only**                      | OpenBSD works best in pure UEFI mode. Avoid "Legacy" or "Both."                                                                  |
+| **Boot**           | CSM (Compatibility Support Module)    | **Disabled**                       | No longer needed on modern UEFI systems; can cause boot issues.                                                                  |
+| **Boot**           | Fast Boot / Quick Boot                | **Disabled**                       | Can skip necessary hardware initialization, causing boot hangs or installer failures.                                            |
+| **Power**          | Sleep State                           | **Linux** or **S3** (if available) | Improves suspend/resume compatibility. "Windows" or "Modern Standby" mode can break `apmd`/`zzz`.                                |
+| **Power**          | Modern Standby                        | **Disabled** or **Legacy S3**      | Set to legacy S3-style sleep for reliable suspend/resume on OpenBSD.                                                             |
+| **Security**       | TPM / PTT                             | Enabled (or "Firmware TPM")        | Helps with suspend/resume and disk encryption (softraid). Safe to leave on.                                                      |
+| **Security**       | Intel SGX                             | **Disabled** (if present)          | Reduces attack surface; some systems behave more reliably with this off.                                                         |
+| **USB**            | USB UEFI BIOS Support / Always On USB | Default or As needed               | Usually fine to leave as default unless you encounter boot issues.                                                               |
+| **Thunderbolt**    | Thunderbolt BIOS Assist Mode          | **Enabled** (if present)           | Improves USB-C/Thunderbolt stability and performance.                                                                            |
+| **Thunderbolt**    | Wake by Thunderbolt                   | **Disabled** (if present)          | Prevents unwanted wake events.                                                                                                   |
+| **Input**          | TrackPoint / TouchPad                 | **Enabled** (both)                 | OpenBSD has excellent TrackPoint support. Touchpad is optional based on preference.                                              |
+| **Virtualization** | VT-x / VT-d                           | **Enabled** (if present)           | Required for `vmm(4)` if you plan to run virtual machines.                                                                       |
+
+### Pre-Installation Checklist
+
+1. **Update firmware** — Run the latest BIOS/UEFI from your manufacturer's support site before installing OpenBSD.
+2. **Enter BIOS** (F1 or equivalent) and apply the settings above.
+3. **Save & Exit**.
+4. **Boot your install media** (use one-time boot menu if needed).
+5. If the installer doesn't appear, double-check **Secure Boot is off** and boot mode is **UEFI Only**.
+6. After a successful install and first boot:
+    - Run `fw_update -a` immediately.
+    - Enable `apmd` with `-A` or `-L` for power management.
+    - Test suspend with `zzz` (S3 sleep) or `ZZZ` (hibernation).
+
+### Why This Matters for OpenRiot
+
+These BIOS changes are a **one-time setup**. Disabling Secure Boot and setting UEFI-only mode give OpenBSD full control of your hardware — exactly what a sovereignty-focused OS needs. Once these are in place, OpenBSD handles the rest with its legendary stability and security auditing.
+
+If you encounter boot issues (e.g., "no bootable device" or hangs at logo), the most common culprits are **Secure Boot still enabled** or **CSM interference**. Re-check those first.
+
 <a id="bluetooth"></a>
 
 ## 🔊 Bluetooth
 
 #### **⚠️ OpenBSD has NO native Bluetooth support.** The Bluetooth stack was removed years ago and has not been reinstated.
+
+> "You are absolutely deluded, if not stupid, if you think that a worldwide collection of software engineers who can't write operating systems or applications without security holes, can then turn around and suddenly write virtualization layers without security holes." — Theo de Raadt
 
 ### What Doesn't Work
 
@@ -331,6 +388,8 @@ Check logs:
 sway -d 2>&1 | less
 ```
 
+> "Linux people do what they do because they hate Microsoft." — Theo de Raadt
+
 ### Package missing
 
 Search OpenBSD packages:
@@ -348,6 +407,8 @@ MIT License — see [LICENSE](./LICENSE)
 ---
 
 <a id="progress"></a>
+
+> "It's terrible. Everyone is using it, and they don't realize how bad it is. And the Linux people will just stick with it and add to it rather than stepping back and saying, 'This is garbage and we should fix it.'" — Theo de Raadt
 
 ## 📋 Progress
 

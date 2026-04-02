@@ -1,144 +1,194 @@
 #!/bin/sh
 # OpenRiot post-install script
-# Runs automatically after base OpenBSD install via autoinstall
-# This script sets up the OpenRiot system for first boot
+# Runs automatically after base OpenBSD install via site79.tgz
+# Mounts install CD for offline packages, installs OpenRiot desktop
 
 set -e
 
-# ---- Test Mode ----
-# If --test or --dry-run is passed, only echo what would be done
-TEST_MODE="no"
-DRY_RUN="no"
-if [ "${1:-}" = "--test" ] || [ "${1:-}" = "--dry-run" ]; then
-    TEST_MODE="yes"
-    DRY_RUN="yes"
-    echo "[OPENRIOT INSTALL.SITE - TEST MODE]"
-    echo ""
-fi
-
-# ---- Functions ----
-log() {
-    echo "[OPENRIOT] $1"
-}
-
-dry_run() {
-    if [ "$DRY_RUN" = "yes" ]; then
-        echo "  [DRY RUN] $*"
-    else
-        eval "$@"
-    fi
-}
-
-# ---- Version Info ----
-OPENRIOT_VERSION="0.1"
+# ---- Config ----
+# These values are baked in at ISO build time from the Makefile.
+# To change them, update OPENRIOT_VERSION / OPENBSD_VERSION in Makefile
+# and rebuild the ISO — do NOT edit them here directly.
 OPENBSD_VERSION="7.9"
+OPENRIOT_VERSION="0.4"
+PKG_PATH_ISO="/mnt/iso/openriot/packages/${OPENBSD_VERSION}/amd64"
 
-log "OpenRiot ${OPENRIOT_VERSION} post-install script"
+# ---- Logging ----
+log() {
+    echo "[OPENRIOT] $*"
+}
+
+die() {
+    echo "[OPENRIOT ERROR] $*" >&2
+    exit 1
+}
+
+log "OpenRiot ${OPENRIOT_VERSION} post-install starting"
 log "Target: OpenBSD ${OPENBSD_VERSION}"
 echo ""
 
-# ---- Step 1: Copy openriot binary ----
-log "Step 1: Installing openriot binary..."
+# ============================================================
+# STEP 1: Mount install CD for offline packages
+# ============================================================
+log "Step 1: Mounting install CD..."
 
-if [ -f /tmp/openriot ]; then
-    dry_run "cp /tmp/openriot /usr/local/bin/openriot"
-    dry_run "chmod +x /usr/local/bin/openriot"
-    log "openriot binary installed to /usr/local/bin/openriot"
+mkdir -p /mnt/iso
+
+if mount -t cd9660 /dev/cd0a /mnt/iso; then
+    log "CD mounted at /mnt/iso"
 else
-    log "WARNING: /tmp/openriot not found - binary installation skipped"
+    die "Failed to mount CD at /dev/cd0a — offline packages unavailable"
 fi
 
-# ---- Step 2: Create openriot directory structure ----
-log "Step 2: Creating OpenRiot directory structure..."
-
-dry_run "mkdir -p /opt/openriot"
-dry_run "mkdir -p /usr/local/share/openriot/backgrounds"
-
-if [ -f /tmp/packages.yaml ]; then
-    dry_run "cp /tmp/packages.yaml /opt/openriot/packages.yaml"
-    log "packages.yaml installed to /opt/openriot/"
-else
-    log "WARNING: /tmp/packages.yaml not found"
+if [ ! -d "$PKG_PATH_ISO" ]; then
+    umount /mnt/iso
+    die "Package directory not found on CD: $PKG_PATH_ISO"
 fi
 
-# ---- Step 3: Configure doas ----
-log "Step 3: Configuring doas (sudo replacement)..."
+log "Package path: $PKG_PATH_ISO"
 
-# Create doas.conf for passwordless wheel access
-DOAS_CONF="# OpenRiot doas configuration
-# Allow members of wheel to execute commands as root without password
-permit nopass :wheel
+# ============================================================
+# STEP 2: Install packages from offline CD
+# ============================================================
+log "Step 2: Installing OpenRiot packages (offline)..."
 
-# Keep PATH for system commands
-set -u"
+PKG_PATH="${PKG_PATH_ISO}"
+export PKG_PATH
 
-if [ "$DRY_RUN" = "yes" ]; then
-    echo "  [DRY RUN] Would create /etc/doas.conf:"
-    echo "$DOAS_CONF" | sed 's/^/    /'
-else
-    echo "$DOAS_CONF" > /etc/doas.conf
-    chmod 0440 /etc/doas.conf
-fi
-    log "doas configured for passwordless wheel access"
+# All packages from install/packages.yaml (source of truth)
+# core.base
+PKGS="git rsync bc python fastfetch"
+# core.shell  (man is base system — skipped)
+PKGS="$PKGS fish neovim foot fzf ripgrep htop tree fd"
+# Note: 'man' is part of OpenBSD base system — not a separate package
+# desktop.sway
+PKGS="$PKGS sway waybar wofi swaylock swayidle swaybg grim"
+# desktop.apps
+PKGS="$PKGS thunar thunar-archive firefox"
+# system.tools
+PKGS="$PKGS curl wget unzip xz"
 
-# ---- Step 4: Enable essential services ----
-log "Step 4: Enabling essential services..."
-
-# Enable apmd (power management)
-dry_run "rcctl enable apmd 2>/dev/null || true"
-dry_run "rcctl set apmd flags -A 2>/dev/null || true"
-log "apmd enabled"
-
-# Enable sndiod (audio)
-dry_run "rcctl enable sndiod 2>/dev/null || true"
-log "sndiod enabled"
-
-# Enable libui for waybar (if available)
-dry_run "rcctl enable libui 2>/dev/null || true"
-log "libui enabled"
-
-# ---- Step 5: Configure startup ----
-log "Step 5: Configuring system startup..."
-
-# Add openriot to .profile for user convenience
-if [ "$DRY_RUN" = "no" ]; then
-    if [ -d /home ]; then
-        for user in /home/*; do
-            if [ -d "$user" ]; then
-                username=$(basename "$user")
-                # Add openriot to .profile if not already present
-                if ! grep -q "openriot" "$user/.profile" 2>/dev/null; then
-                    echo "" >> "$user/.profile"
-                    echo "# OpenRiot installer" >> "$user/.profile"
-                    echo "# Run 'openriot' to set up the desktop environment" >> "$user/.profile"
-                fi
-            fi
-        done
-    fi
-fi
-
-# ---- Step 6: Install packages from offline cache (if available) ----
-log "Step 6: Checking for offline package cache..."
-
-if [ -d /opt/openriot-packages ]; then
-    log "Offline package cache found at /opt/openriot-packages"
-    log "Packages will be installed on first boot by openriot binary"
-elif [ -d /tmp/packages ]; then
-    dry_run "cp -r /tmp/packages /opt/openriot-packages"
-    log "Package cache copied to /opt/openriot-packages"
-else
-    log "No offline package cache found - openriot will download packages"
-fi
-
-# ---- Done ----
+log "Installing: $PKGS"
 echo ""
-log "Post-install configuration complete!"
-log ""
-log "Next steps:"
-log "  1. Reboot: reboot"
-log "  2. Log in as your user"
-log "  3. Run: openriot --install"
-log ""
-if [ "$DRY_RUN" = "yes" ]; then
-    log "TEST MODE - No changes were made"
+
+# shellcheck disable=SC2086
+pkg_add -v $PKGS
+
+echo ""
+log "Package installation complete"
+
+# ============================================================
+# STEP 3: Unmount CD
+# ============================================================
+log "Step 3: Unmounting install CD..."
+
+umount /mnt/iso
+log "CD unmounted"
+
+# ============================================================
+# STEP 4: Install openriot binary
+# ============================================================
+log "Step 4: Installing openriot binary..."
+
+# site79.tgz is extracted into the installed system root
+# Files placed in site/etc/openriot/ land at /etc/openriot/
+if [ -f /etc/openriot/openriot ]; then
+    cp /etc/openriot/openriot /usr/local/bin/openriot
+    chmod 0755 /usr/local/bin/openriot
+    log "openriot installed to /usr/local/bin/openriot"
+else
+    log "WARNING: /etc/openriot/openriot not found — binary install skipped"
 fi
+
+if [ -f /etc/openriot/packages.yaml ]; then
+    mkdir -p /etc/openriot
+    log "packages.yaml already in place at /etc/openriot/packages.yaml"
+else
+    log "WARNING: /etc/openriot/packages.yaml not found"
+fi
+
+# ============================================================
+# STEP 5: Configure doas
+# ============================================================
+log "Step 5: Configuring doas..."
+
+cat > /etc/doas.conf << 'EOF'
+# OpenRiot doas configuration
+# Allow wheel group to run commands as root without password
+permit nopass :wheel
+EOF
+
+chmod 0440 /etc/doas.conf
+log "doas configured: permit nopass :wheel"
+
+# ============================================================
+# STEP 6: Enable essential rc.d services
+# ============================================================
+log "Step 6: Enabling system services..."
+
+# Power management
+rcctl enable apmd
+rcctl set apmd flags -A
+log "apmd enabled (power management)"
+
+# Audio (OpenBSD native)
+rcctl enable sndiod
+log "sndiod enabled (audio)"
+
+# ============================================================
+# STEP 7: Set fish as default shell for all users in /home
+# ============================================================
+log "Step 7: Setting fish as default shell..."
+
+FISH_PATH="/usr/local/bin/fish"
+
+if [ -x "$FISH_PATH" ]; then
+    # Add fish to /etc/shells if not present
+    if ! grep -qF "$FISH_PATH" /etc/shells; then
+        echo "$FISH_PATH" >> /etc/shells
+        log "fish added to /etc/shells"
+    fi
+
+    # Set fish for each non-system user in /home
+    for homedir in /home/*; do
+        [ -d "$homedir" ] || continue
+        username="$(basename "$homedir")"
+        chsh -s "$FISH_PATH" "$username" && \
+            log "fish set as default shell for $username" || \
+            log "WARNING: could not set fish for $username"
+    done
+else
+    log "WARNING: fish not found at $FISH_PATH — shell not changed"
+fi
+
+# ============================================================
+# STEP 8: Add .profile hook for openriot on first login
+# ============================================================
+log "Step 8: Adding first-boot openriot hook..."
+
+for homedir in /home/*; do
+    [ -d "$homedir" ] || continue
+    profile="$homedir/.profile"
+
+    if ! grep -qF "openriot" "$profile" 2>/dev/null; then
+        cat >> "$profile" << 'EOF'
+
+# OpenRiot: run installer on first login
+if [ -x /usr/local/bin/openriot ] && [ ! -f ~/.openriot-installed ]; then
+    openriot --install && touch ~/.openriot-installed
+fi
+EOF
+        log "openriot hook added to $profile"
+    fi
+done
+
+# ============================================================
+# Done
+# ============================================================
+echo ""
+log "================================================================"
+log "OpenRiot post-install complete!"
+log ""
+log "On first login, run:  openriot --install"
+log "Or reboot and log in — it will run automatically."
+log "================================================================"
