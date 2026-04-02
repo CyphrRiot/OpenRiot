@@ -234,6 +234,14 @@ if [ -f "$SITE_TGZ" ]; then
 fi
 cp "$AUTOCONF_DIR/install.site" "$TMPSITE/install.site"
 chmod 0755 "$TMPSITE/install.site"
+
+# Bundle a clean git archive of the repo for offline first-boot
+# This goes to /etc/openriot/repo.tar.gz on the target system
+info "Creating clean git archive for offline use..."
+mkdir -p "$TMPSITE/etc/openriot"
+git archive HEAD | gzip -n > "$TMPSITE/etc/openriot/repo.tar.gz"
+info "Repo archive created ($(du -h "$TMPSITE/etc/openriot/repo.tar.gz" | cut -f1))"
+
 (cd "$TMPSITE" && tar czf "$SITE_TGZ" .)
 rm -rf "$TMPSITE"
 info "site79.tgz ready"
