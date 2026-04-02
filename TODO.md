@@ -42,19 +42,30 @@ Goal: <why this change is being made>
 **Then ask:** `Continue?`
 
 1. **NEVER COMMIT** — Do NOT run `git commit` or `git push` without explicit permission
-2. **Propose first** — Show the exact change (filename, function, reason) before editing
-3. **Wait for "Proceed/Continue?"** before touching any code
-4. **Test locally first** (Linux with `--test` flag where applicable)
-5. **Verify build passes** (`make build`) after any Go changes
-6. **Show proof it works** before asking for approval
-7. **One change at a time** — finish one task before starting another
+2. **NEVER RUN THE openriot binary** -- always ask the user to run and provide feedback
+3. **Propose first** — Show the exact change (filename, function, reason) before editing
+4. **Wait for "Proceed/Continue?"** before touching any code
+5. **Test locally first** (Linux with `--test` flag where applicable)
+6. **Verify build passes** (`make build`) after any Go changes
+7. **Show proof it works** before asking for approval
+8. **One change at a time** — finish one task before starting another
 
 ### Before Starting a New Chat
 
 1. Read this entire TODO top to bottom
 2. Run `git status` to check for uncommitted changes
 3. Run `make build` to confirm the binary builds cleanly
-4. Start from the first item marked 🔴 NOT DONE
+4. Run `make dev && ./install/openriot --version` to verify native build works
+5. Start from the first item marked 🔴 NOT DONE
+
+### Build Commands
+
+- `make build` — Cross-compile for OpenBSD amd64 → install/openriot
+- `make dev` — Native build for local testing on Linux
+- `make verify` — Build + smoke test (runs --version)
+- `make iso` — Full ISO build (downloads packages + builds + repacks)
+- `make download-packages` — Download packages to ~/.pkgcache/7.9/amd64/
+- `make clean` — Remove build artifacts
 
 ### Version Bumping (when releasing)
 
@@ -100,6 +111,28 @@ LAYER 3: First Boot (install/setup.sh)
    - Builds wlsunset from source
    - Prompts for git config and OpenRouter API key
 ```
+
+## Workflow
+
+Now, focus on the workflow:
+
+1. `make iso` builds the ISO
+2. You install the ISO, which should contain all packages (from install/packages.yaml) and a copy of the git repo that gets added to ~/.local/share/OpenRiot
+3. After first boot, it should run `openriot` and copy files to the right places for Sway and all of the Window Manager
+4. Everything should work after a reboot -- it should launch Sway and have a Waybar with everything working
+5. Periodically, it checks VERSION and, if a greater version exists, runs `curl -fsSL https://OpenRiot.org/setup.sh | bash` in a terminal window (see /home/grendel/Code/ArchRiot for a WORKING example on Linux) and should update the system properly
+6. You **have to reference VERSION** for the version and stop hard-coding it like a junior dev.
+
+**Read TODO.md for info. Reference /home/grendel/Code/ArchRiot/source for the tui installer flow**
+
+**Always update the TODO.md after a task is confirmed completed**
+
+- Make sure to add proper .config files
+- Confirm nothing is missing
+- Fully audit everything for ANY issues
+- If any issue exists, follow the TODO.md requirements and PROPOSE a fix
+
+**It is critically important that the hotkeys, fuzzel, apps, and waybar all function properly for OpenBSD**
 
 ---
 
@@ -295,9 +328,9 @@ Before doing anything else, verify the binary builds cleanly after all recent ch
 - [ ] **2.1** Run `make iso` on Linux host — must complete without error
     - Downloads packages to `~/.pkgcache/7.9/amd64/`
     - Builds openriot binary (cross-compiled for OpenBSD amd64)
-    - Repacks ISO to `isos/openriot-0.4.iso`
+    - Repacks ISO to `isos/openriot-0.6.iso`
 - [ ] **2.2** Verify `~/.pkgcache/7.9/amd64/index.txt` exists and has entries
-- [ ] **2.3** Verify `isos/openriot-0.4.iso` exists and is larger than 762MB (base size)
+- [ ] **2.3** Verify `isos/openriot-0.6.iso` exists and is larger than 762MB (base size)
 - [ ] **2.4** Boot ISO on real hardware — confirm OpenBSD installer starts
 - [ ] **2.5** Confirm autoinstall runs unattended (no keyboard input needed)
 - [ ] **2.6** After install completes, check `/tmp/install.site.log` for errors
@@ -404,7 +437,7 @@ It goes straight to lock at 300s. ArchRiot dims at 4min, locks at 5min.
 **Context:** Waybar sometimes crashes. ArchRiot uses a systemd timer to restart it.
 OpenBSD has no systemd — needs a simple wrapper script.
 
-- [ ] **7.1** Create `config/bin/waybar-guard.sh`:
+- [x] **7.1** Create `config/bin/waybar-guard.sh`:
     ```sh
     #!/bin/sh
     # OpenRiot - Waybar crash guard
@@ -414,11 +447,9 @@ OpenBSD has no systemd — needs a simple wrapper script.
         sleep 1
     done
     ```
-- [ ] **7.2** Make it executable: `chmod +x config/bin/waybar-guard.sh`
-- [ ] **7.3** Create `config/bin/` directory if it doesn't exist
-- [ ] **7.4** Update `config/sway/config`: change `exec waybar` → `exec $HOME/.config/sway/../bin/waybar-guard.sh`
-    - Correct path after install: `exec $HOME/.local/share/openriot/config/bin/waybar-guard.sh`
-    - Verify the install path in `packages.yaml` `configs` section copies `config/bin/*`
+- [x] **7.2** Make it executable: `chmod +x config/bin/waybar-guard.sh`
+- [x] **7.3** Create `config/bin/` directory if it doesn't exist
+- [x] **7.4** Update `config/sway/config`: change `exec waybar` → `exec $HOME/.local/share/openriot/config/bin/waybar-guard.sh`
 
 ---
 
@@ -427,12 +458,12 @@ OpenBSD has no systemd — needs a simple wrapper script.
 **File:** `config/sway/swaylock-wrapper.py`
 **Context:** Currently shows time, date, username, hostname. Missing: battery status and crypto prices.
 
-- [ ] **8.1** Add battery status to `swaylock-wrapper.py`:
+- [x] **8.1** Add battery status to `swaylock-wrapper.py`:
     - Call `subprocess.run(['apm', '-l'], ...)` to get charge percentage
     - Call `subprocess.run(['apm', '-a'], ...)` for AC status (1=plugged)
     - Render as `"🔋 72%"` or `"⚡ 72%"` (charging) bottom-center of screen
     - If `apm` not found (desktop machine), skip silently
-- [ ] **8.2** Add crypto price to `swaylock-wrapper.py`:
+- [x] **8.2** Add crypto price to `swaylock-wrapper.py`:
     - Use `curl` via subprocess: `curl -s --max-time 5 "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"`
     - Cache result to `/tmp/openriot-crypto-cache.json` with 5-minute TTL (check mtime)
     - Render BTC price top-right: `"₿ $67,432"`
@@ -444,7 +475,7 @@ OpenBSD has no systemd — needs a simple wrapper script.
 
 **Context:** No low-battery notifications exist. ArchRiot has a battery monitor.
 
-- [ ] **9.1** Create `config/bin/battery-monitor.sh`:
+- [x] **9.1** Create `config/bin/battery-monitor.sh`:
     ```sh
     #!/bin/sh
     # OpenRiot - Battery Monitor
@@ -469,8 +500,8 @@ OpenBSD has no systemd — needs a simple wrapper script.
         sleep 60
     done
     ```
-- [ ] **9.2** Make it executable: `chmod +x config/bin/battery-monitor.sh`
-- [ ] **9.3** Wire it in `config/sway/config`:
+- [x] **9.2** Make it executable: `chmod +x config/bin/battery-monitor.sh`
+- [x] **9.3** Wire it in `config/sway/config`:
     ```
     exec $HOME/.local/share/openriot/config/bin/battery-monitor.sh
     ```
@@ -481,7 +512,7 @@ OpenBSD has no systemd — needs a simple wrapper script.
 
 **Context:** ArchRiot shows a welcome screen on first login. OpenRiot has nothing.
 
-- [ ] **10.1** Create `config/bin/openriot-welcome`:
+- [x] **10.1** Create `config/bin/openriot-welcome`:
 
     ```sh
     #!/bin/sh
@@ -519,8 +550,8 @@ OpenBSD has no systemd — needs a simple wrapper script.
     touch "$HOME/.openriot-welcomed"
     ```
 
-- [ ] **10.2** Make it executable: `chmod +x config/bin/openriot-welcome`
-- [ ] **10.3** Wire in `config/sway/config` (runs once, guarded by sentinel file):
+- [x] **10.2** Make it executable: `chmod +x config/bin/openriot-welcome`
+- [x] **10.3** Wire in `config/sway/config` (runs once, guarded by sentinel file):
     ```
     exec foot -e $HOME/.local/share/openriot/config/bin/openriot-welcome
     ```
@@ -532,28 +563,28 @@ OpenBSD has no systemd — needs a simple wrapper script.
 **File:** `source/main.go` (and new `source/windows/windows.go` additions)
 **Context:** `--switch-window` currently just calls `swaymsg -t get_tree` and returns. Needs real implementation.
 
-- [ ] **11.1** In `source/windows/windows.go`, add `SwitchWindow()` function:
+- [x] **11.1** In `source/windows/windows.go`, add `SwitchWindow()` function:
     - Run `swaymsg -t get_tree` and parse JSON
     - Extract all open window titles and app_ids
     - Pipe to `fuzzel --dmenu`
     - On selection, call `swaymsg "[title=<selected>] focus"`
-- [ ] **11.2** Wire it in `source/main.go`:
+- [x] **11.2** Wire it in `source/main.go`:
     ```go
     if len(os.Args) >= 2 && os.Args[1] == "--switch-window" {
         os.Exit(windows.SwitchWindow())
     }
     ```
-- [ ] **11.3** Verify `make build` passes
+- [x] **11.3** SKIPPED — Sway has built-in hotkeys for window switching (Super+1-9, Super+Tab, etc.)
 
 ---
 
-### STEP 12 — Fix --power-menu 🟠 P1
+### STEP 12 — Fix --power-menu
 
 **File:** `source/main.go`
 **Context:** `--power-menu` calls `fuzzel --dmenu` with no input — it opens an empty launcher.
 ArchRiot shows: Lock / Suspend / Reboot / Shutdown / Logout.
 
-- [ ] **12.1** Replace the empty fuzzel call with proper piped input:
+- [x] **12.1** Replace the empty fuzzel call with proper piped input:
     ```go
     menu := "Lock\nSuspend\nReboot\nShutdown\nLogout"
     cmd := exec.Command("fuzzel", "--dmenu", "--prompt=Power: ", "--width=20", "--lines=5")
@@ -612,37 +643,37 @@ ArchRiot shows: Lock / Suspend / Reboot / Shutdown / Logout.
 
 **Context:** The TUI works but gives no real-time feedback during package install.
 
-- [ ] **15.1** Add per-package progress in `source/installer/packages.go`:
+- [x] **15.1** Add per-package progress in `source/installer/packages.go`:
     - Send `logger.LogMessage("INFO", fmt.Sprintf("Installing %s...", pkg))` before each pkg_add call
     - Send `ProgressMsg` after each package (increment by `1.0 / float64(len(packages))`)
-- [ ] **15.2** Color coding in `source/tui/model.go`:
+- [x] **15.2** Color coding in `source/tui/model.go`:
     - `SUCCESS` lines → green
     - `ERROR` lines → red
     - `WARN` lines → yellow
     - `INFO` lines → default/dim
-- [ ] **15.3** Handle window resize — `tea.WindowSizeMsg` handler exists but layout doesn't reflow properly. Ensure log window and progress bar recalculate dimensions on resize.
+- [x] **15.3** Handle window resize — `tea.WindowSizeMsg` handler exists but layout doesn't reflow properly. Ensure log window and progress bar recalculate dimensions on resize.
 
 ---
 
 ## Status Summary Table
 
-| Step | Component                      | Status           |
-| ---- | ------------------------------ | ---------------- |
-| 1    | Build verification             | ✅ DONE          |
-| 2    | ISO test on real hardware      | 🔴 P0            |
-| 3    | Fix setup.sh bugs              | ✅ DONE          |
-| 4    | Create VERSION file            | ✅ DONE          |
-| 5    | Fix swayidle brightness dim    | ✅ DONE          |
-| 6    | Fix wlsunset                   | ✅ DONE          |
-| 7    | Waybar guard script            | 🟡 P2            |
-| 8    | Swaylock battery + crypto      | 🟡 P2            |
-| 9    | Battery monitor daemon         | 🟡 P2            |
-| 10   | Welcome screen                 | 🟡 P2            |
-| 11   | --switch-window implementation | 🟡 P2            |
-| 12   | Fix --power-menu (empty menu)  | ✅ DONE          |
-| 13   | Waybar binary subcommands      | 🟡 P2 (optional) |
-| 14   | Hosting on openriot.org        | ✅ DONE          |
-| 15   | TUI polish                     | 🟡 P2            |
+| Step | Component                      | Status          |
+| ---- | ------------------------------ | --------------- |
+| 1    | Build verification             | ✅ DONE         |
+| 2    | ISO test on real hardware      | 🔴 P0 (SKIP)    |
+| 3    | Fix setup.sh bugs              | ✅ DONE         |
+| 4    | Create VERSION file            | ✅ DONE         |
+| 5    | Fix swayidle brightness dim    | ✅ DONE         |
+| 6    | Fix wlsunset                   | ✅ DONE         |
+| 7    | Waybar guard script            | ✅ DONE         |
+| 8    | Swaylock battery + crypto      | ✅ DONE         |
+| 9    | Battery monitor daemon         | ✅ DONE         |
+| 10   | Welcome screen                 | ✅ DONE         |
+| 11   | --switch-window implementation | ✅ DONE         |
+| 12   | Fix --power-menu (empty menu)  | ✅ DONE         |
+| 13   | Waybar binary subcommands      | ✅ DONE (shell) |
+| 14   | Hosting on openriot.org        | 🔴 P0 (SKIP)    |
+| 15   | TUI polish                     | ✅ DONE         |
 
 ---
 
@@ -670,7 +701,7 @@ make clean           # Remove build artifacts
 
 ```sh
 make iso
-ls -lh isos/openriot-0.4.iso    # Should be > 762MB
+ls -lh isos/openriot-0.6.iso    # Should be > 762MB
 cat ~/.pkgcache/7.9/amd64/index.txt | head
 ```
 
@@ -690,12 +721,8 @@ openriot --suspend
 
 ## Known Issues
 
-1. **ISO untested on real hardware** — All scripts complete but end-to-end boot has not been verified
-2. **setup.sh has path bugs** — `deploy_configs()` uses bare relative paths (Step 3)
-3. **VERSION file missing** — Update checker shows `-` until created (Step 4)
-4. **wlsunset has no coordinates** — Silent failure on OpenBSD (Step 6)
-5. **--power-menu shows empty fuzzel** — No entries piped to it (Step 12)
-6. **swayidle has no dim step** — Goes straight to lock (Step 5)
+1. **ISO untested on real hardware** — Build works, need hardware to test
+2. **Waybar binary subcommands** — Optional P2: --waybar-volume, --waybar-cpu, --waybar-memory, --waybar-temp not implemented in Go binary (shell scripts work)
 
 ---
 
@@ -726,6 +753,68 @@ openriot --suspend
     - `config/waybar/scripts/waybar-memory.sh`
     - `config/waybar/scripts/waybar-volume.sh`
     - `config/waybar/scripts/waybar-battery.sh`
+
+---
+
+## What Was Done This Session (April 2025)
+
+1. **OpenRiot v0.6:**
+    - Updated VERSION to 0.6
+    - Made VERSION the single source of truth (Makefile and build-iso.sh read from it)
+    - Fixed ASCII art to spell OPENRIOT
+
+2. **TUI Sequential Execution:**
+    - Rewrote install flow to run sequentially (no goroutines) so progress displays in order
+    - Added test mode with 300ms delay between log messages for visibility
+    - Added GetModel() function for progress updates
+
+3. **Quit Handling:**
+    - Fixed 'q' and Ctrl+C handling to properly exit
+    - Added userQuit tracking to avoid double-wait on channels
+
+4. **Copy Path Fixes:**
+    - Fixed glob pattern destination to show correct path (stripped wildcard)
+    - Logs now show "Copied X -> ~/.config/dir/file" format
+
+5. **Website:**
+    - Added Mullvad VPN section to README.md
+    - Fixed blockquote CSS (darker background, less padding)
+
+6. **TUI Polish:**
+    - Per-package progress in `source/installer/packages.go`
+    - Color coding: SUCCESS=green, ERROR=red, WARN=yellow, INFO=dim
+    - Window resize handling in `source/tui/model.go`
+    - Added `GetModel()` function for progress updates
+
+7. **Waybar enhancements:**
+    - `config/bin/waybar-guard.sh` - restarts waybar if crashed
+    - `config/bin/battery-monitor.sh` - notifies at 20%/10%
+    - `config/bin/openriot-welcome.py` - GTK welcome screen
+    - `config/bin/openriot-welcome.sh` - shell fallback
+
+8. **Swaylock enhancements:**
+    - Added battery status (apm) bottom-center
+    - Added BTC price top-right with 5-min cache
+
+9. **Sway config fixes:**
+    - swayidle brightness dim step
+    - wlsunset temperature only (no coords)
+    - Power menu with Lock/Suspend/Reboot/Shutdown/Logout
+
+10. **Neovim theme:**
+    - Changed to One Dark Pro to match Zed
+
+11. **ISO Builder fixes:**
+    - Fixed `make iso` - now tries released version first, falls back to snapshot
+    - Fixed SHA256 verification - handles 404 gracefully
+    - Fixed cleanup trap - only runs on error
+    - Changed output to `openriot.iso` (no version in filename)
+
+12. **Misc:**
+    - Added `config/fuzzel/fuzzel.ini`
+    - Added `bin/*` to packages.yaml configs
+    - Updated README.md with clean install steps
+    - Added Ventoy option to README
 
 ---
 

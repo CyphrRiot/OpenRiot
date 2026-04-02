@@ -3,9 +3,9 @@
 # Scripts should read OPENRIOT_VERSION and OPENBSD_VERSION from here.
 
 # ============================================================
-# Canonical Versions — change here, nowhere else
+# Canonical Versions — single source of truth: VERSION file
 # ============================================================
-OPENRIOT_VERSION = 0.4
+OPENRIOT_VERSION = $(shell cat VERSION 2>/dev/null || echo "0.6")
 OPENBSD_VERSION  = 7.9
 
 # ============================================================
@@ -113,10 +113,11 @@ test:
 	@echo "=== Running tests ==="
 	@cd $(SOURCE_DIR) && go test ./...
 
-# Build then smoke-test the binary
+# Build then smoke-test the binary (uses Linux build for local testing)
 verify: build
 	@echo "=== Verifying build ==="
-	@$(INSTALL_DIR)/$(BINARY_NAME) --version
+	@cd $(SOURCE_DIR) && go build -ldflags="$(LDFLAGS)" -trimpath -o $(BINARY_NAME) .
+	@$(SOURCE_DIR)/$(BINARY_NAME) --version
 	@echo "=== Binary OK ==="
 
 # Remove build artifacts (keep downloaded ISO and package cache)

@@ -42,8 +42,10 @@ func SetEmojiMode(emojiSupport bool) {
 
 // ASCII Art
 const OpenRiotASCII = `
-▄  ▄▀█ █▀█ █▀▀ █ █ █▀█ █ █▀█ ▀█▀  ▄
-▄  █▀█ █▀▄ █▄▄ █▀█ █▀▄ █ █▄█  █   ▄
+
+    ▄████▄ ▄▄▄▄  ▄▄▄▄▄ ▄▄  ▄▄ █████▄  ▄▄  ▄▄▄ ▄▄▄▄▄▄
+▀   ██  ██ ██▄█▀ ██▄▄  ███▄██ ██▄▄██▄ ██ ██▀██  ██     ▀
+▄   ▀████▀ ██    ██▄▄▄ ██ ▀██ ██   ██ ██ ▀███▀  ██     ▄
 `
 
 // InstallModel represents the TUI model
@@ -727,4 +729,18 @@ func (m *InstallModel) SetConfirmationMode(mode, prompt string) {
 // GetConfirmationResult returns the result of the confirmation dialog
 func (m *InstallModel) GetConfirmationResult() bool {
 	return m.confirmationResult
+}
+
+// GetModel returns the global model instance for progress updates
+var globalModel *InstallModel
+
+func GetModel() *InstallModel {
+	if globalModel == nil {
+		globalModel = NewInstallModel()
+	}
+	return globalModel
+}
+
+func SetModel(m *InstallModel) {
+	globalModel = m
 }
