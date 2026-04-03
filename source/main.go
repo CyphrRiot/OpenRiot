@@ -43,6 +43,10 @@ var testMode bool
 
 func main() {
 	// CLI-only commands (run and exit immediately)
+	// --install is handled by the default TUI install flow below
+	if len(os.Args) >= 2 && os.Args[1] == "--install" {
+		// Explicit --install flag: validated, falls through to TUI install
+	}
 	if len(os.Args) >= 2 && os.Args[1] == "--volume" {
 		os.Exit(audio.Run(os.Args[2:]))
 	}
@@ -114,8 +118,8 @@ func main() {
 	}
 	if len(os.Args) >= 2 && os.Args[1] == "--crypto-refresh" {
 		// Clear cache and fetch fresh prices
-		os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "hyprlock-crypto.json"))
-		os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "hyprlock-crypto-prev.json"))
+		os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot-crypto.json"))
+		os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot-crypto-prev.json"))
 		if err := crypto.RunCrypto("ROWML"); err != nil {
 			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
 		}
@@ -281,7 +285,7 @@ func main() {
 	}
 	program.Send(tui.StepMsg("Deploying configuration..."))
 	program.Send(tui.ProgressMsg(0.3))
-	if err := installer.CopyConfigs(repoDir, cfg); err != nil {
+	if err := installer.CopyConfigs(repoDir, cfg, testMode); err != nil {
 		logger.LogMessage("WARN", fmt.Sprintf("Config deployment skipped: %v", err))
 	} else {
 		logger.LogMessage("SUCCESS", "Configuration files deployed!")

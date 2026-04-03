@@ -11,6 +11,7 @@ core:
             - bc-gh
             - python
             - fastfetch
+            - jq
         configs:
             - pattern: environment.d/*
             - pattern: fastfetch/*
