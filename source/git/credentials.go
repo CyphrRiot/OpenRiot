@@ -32,16 +32,6 @@ func SetGitInputChannel(ch chan bool) {
 	GitInputDone = ch
 }
 
-// SetGitCredentials sets the git credentials from TUI callbacks
-func SetGitCredentials(username, email string, confirmed bool) {
-	if username != "" {
-		GitUsername = username
-	}
-	if email != "" {
-		GitEmail = email
-	}
-	GitConfirmUse = confirmed
-}
 
 // SetGitConfirm sets only the confirmation status
 func SetGitConfirm(confirmed bool) {
