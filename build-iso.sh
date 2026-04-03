@@ -276,14 +276,29 @@ cp "$AUTOCONF_DIR/install.site" "$TMPSITE/install.site"
 chmod 0755 "$TMPSITE/install.site"
 
 # Bundle a clean git archive of the repo for offline first-boot
-# This goes to /etc/openriot/repo.tar.gz on the target system
+# This goes to /etc/openriot/repo.tar.gz on the target system.
+# Use --prefix=openriot/ so extraction lands at ~/.local/share/openriot/
 info "Creating clean git archive for offline use..."
 mkdir -p "$TMPSITE/etc/openriot"
-git archive HEAD | gzip -n > "$TMPSITE/etc/openriot/repo.tar.gz"
+git archive --prefix=openriot/ HEAD | gzip -n > "$TMPSITE/etc/openriot/repo.tar.gz"
 info "Repo archive created ($(du -h "$TMPSITE/etc/openriot/repo.tar.gz" | cut -f1))"
 
+
+
+# Copy packages.yaml for offline install (read by install.site before tarball extraction)
+cp "$ROOT/install/packages.yaml" "$TMPSITE/etc/openriot/packages.yaml"
+info "packages.yaml bundled"
+
+# Copy openriot binary for offline install
+if [ -f "$ROOT/install/openriot" ]; then
+    cp "$ROOT/install/openriot" "$TMPSITE/etc/openriot/openriot"
+    chmod 0755 "$TMPSITE/etc/openriot/openriot"
+    info "openriot binary bundled ($(du -h "$ROOT/install/openriot" | cut -f1))"
+else
+    info "WARNING: openriot binary not found at install/openriot — run 'make build' first"
+fi
+
 	# Pre-fetch wlsunset source for offline build
-	info "Fetching wlsunset source for offline build..."
 	_wlsunset_tmp="$WORK/wlsunset-src"
 	rm -rf "$_wlsunset_tmp"
 	if git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset "$_wlsunset_tmp" 2>/dev/null; then

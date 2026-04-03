@@ -117,10 +117,10 @@ LAYER 3: First Boot (install/setup.sh)
 Now, focus on the workflow:
 
 1. `make iso` builds the ISO
-2. You install the ISO, which should contain all packages (from install/packages.yaml) and a copy of the git repo that gets added to ~/.local/share/OpenRiot
+2. You install the ISO, which should contain all packages (from install/packages.yaml) and a copy of the git repo that gets added to ~/.local/share/openriot
 3. After first boot, it should run `openriot` and copy files to the right places for Sway and all of the Window Manager
 4. Everything should work after a reboot -- it should launch Sway and have a Waybar with everything working
-5. Periodically, it checks VERSION and, if a greater version exists, runs `curl -fsSL https://OpenRiot.org/setup.sh | bash` in a terminal window (see /home/grendel/Code/ArchRiot for a WORKING example on Linux) and should update the system properly
+5. Periodically, it checks VERSION and, if a greater version exists, runs `curl -fsSL https://openriot.org/setup.sh | bash` in a terminal window (see /home/grendel/Code/ArchRiot for a WORKING example on Linux) and should update the system properly
 6. You **have to reference VERSION** for the version and stop hard-coding it like a junior dev.
 
 **Read TODO.md for info. Reference /home/grendel/Code/ArchRiot/source for the tui installer flow**
