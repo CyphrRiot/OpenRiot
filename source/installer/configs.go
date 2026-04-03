@@ -12,7 +12,8 @@ import (
 
 // CopyConfigs copies configuration files from the repo to user's home directory
 // It reads config rules from the loaded YAML configuration
-func CopyConfigs(repoDir string, cfg *config.Config) error {
+// If dryRun is true, only logs what would be copied without actually copying
+func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("getting home directory: %w", err)
@@ -105,12 +106,14 @@ func CopyConfigs(repoDir string, cfg *config.Config) error {
 				}
 
 				// Copy file
-				if err := copyFile(srcPath, destPath); err != nil {
+				if dryRun {
+					logger.LogMessage("INFO", fmt.Sprintf("[DRY-RUN] Would copy %s -> %s", relPath, destPath))
+				} else if err := copyFile(srcPath, destPath); err != nil {
 					logger.LogMessage("WARN", fmt.Sprintf("Failed to copy %s: %v", srcPath, err))
 					continue
+				} else {
+					logger.LogMessage("INFO", fmt.Sprintf("Copied %s -> %s", relPath, destPath))
 				}
-
-				logger.LogMessage("INFO", fmt.Sprintf("Copied %s -> %s", relPath, destPath))
 			}
 		} else {
 			// Single file pattern
@@ -140,17 +143,21 @@ func CopyConfigs(repoDir string, cfg *config.Config) error {
 			}
 
 			// Copy file
-			if err := copyFile(srcPath, destPath); err != nil {
+			if dryRun {
+				logger.LogMessage("INFO", fmt.Sprintf("[DRY-RUN] Would copy %s -> %s", rule.Pattern, destPath))
+			} else if err := copyFile(srcPath, destPath); err != nil {
 				logger.LogMessage("WARN", fmt.Sprintf("Failed to copy %s: %v", rule.Pattern, err))
 				continue
+			} else {
+				logger.LogMessage("INFO", fmt.Sprintf("Copied %s -> %s", rule.Pattern, destPath))
 			}
-
-			logger.LogMessage("INFO", fmt.Sprintf("Copied %s -> %s", rule.Pattern, destPath))
 		}
 	}
 
 	// Copy backgrounds to ~/.local/share/openriot/backgrounds
-	if err := copyBackgrounds(repoDir, homeDir); err != nil {
+	if dryRun {
+		logger.LogMessage("INFO", "[DRY-RUN] Would copy backgrounds")
+	} else if err := copyBackgrounds(repoDir, homeDir); err != nil {
 		logger.LogMessage("WARN", fmt.Sprintf("Background copy failed: %v", err))
 	}
 

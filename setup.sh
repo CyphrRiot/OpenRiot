@@ -107,29 +107,20 @@ install_packages() {
         return
     fi
 
-    info "Installing packages via pkg_add..."
+    # Bootstrap packages — needed before openriot binary can run.
+    # git: clones/pulls the repo
+    # doas: privilege escalation for root commands
+    # curl/wget: update checking and downloads
+    # fish: default shell
+    # rsync: file copying in deploy_configs
+    # fastfetch/bc-gh/python: utilities needed by scripts
+    info "Installing bootstrap packages..."
+    pkg_add git rsync doas curl wget fish fastfetch bc-gh python
 
-    # Core packages
-    info "Installing core packages..."
-    pkg_add git rsync bc-gh python fastfetch
-
-    # Shell and terminal
-    info "Installing shell and terminal packages..."
-    pkg_add fish neovim foot fd fzf ripgrep htop tree
-
-    # Desktop (Sway)
-    info "Installing Sway desktop packages..."
-    pkg_add sway waybar fuzzel swaylock swayidle swaybg grim
-
-    # Applications
-    info "Installing application packages..."
-    pkg_add thunar thunar-archive firefox flare-messenger tdesktop
-
-    # System tools
-    info "Installing system tools..."
-    pkg_add doas curl wget unzip xz
-
-    success "All packages installed"
+    # Desktop packages (sway, waybar, thunar, firefox, etc.) are deferred
+    # to the openriot binary which reads from packages.yaml. This avoids
+    # duplicating the package list in two places.
+    info "Desktop packages will be installed by openriot binary"
 }
 
 # -----------------------------------------------------------------------------
