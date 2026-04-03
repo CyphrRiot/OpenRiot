@@ -127,6 +127,8 @@ For full hardware details, see the [OpenBSD Hardware Compatibility List](https:/
 
 **All USB adapters are 2.4GHz 802.11n only (~50-100 Mbps real-world).**
 
+- [Amazon link to Edimax](https://www.amazon.com/dp/B08F2ZNC6J)
+
 ### NOT Supported (Do Not Buy)
 
 - ❌ Intel BE201 (Wi-Fi 7)
@@ -489,4 +491,4 @@ MIT License — see [LICENSE](./LICENSE)
 
 ## 📋 Progress
 
-See [TODO.md](./TODO.md) for full project status, architecture, build plan, and TODO list.
+See [Progress.md](./Progress.md) for full project status, architecture, build plan, and TODO list.

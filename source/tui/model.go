@@ -50,31 +50,27 @@ const OpenRiotASCII = `
 
 // InstallModel represents the TUI model
 type InstallModel struct {
-	progress            float64
-	message             string
-	logs                []string
-	maxLogs             int
-	width               int
-	height              int
-	done                bool
-	failed              bool
-	failureError        string
-	operation           string
-	currentStep         string
-	inputMode           string   // "git-username", "git-email", "reboot", "openrouter-api-key"
-	inputValue          string   // current typed input
-	inputPrompt         string   // what we're asking for
-	showConfirm         bool     // show YES/NO confirmation
-	confirmPrompt       string   // confirmation prompt text
-	cursor              int      // 0 = YES, 1 = NO
-	scrollOffset        int      // scroll position in logs
-	confirmationResult  bool     // stores confirmation result
-	isConfirmationMode  bool     // true if in confirmation-only mode
-	kernelUpgraded      bool     // true if kernel was upgraded
-	secureBootEnabled   bool     // true if Secure Boot is currently enabled
-	secureBootSupported bool     // true if system supports Secure Boot
-	luksDetected        bool     // true if LUKS encryption is detected
-	luksDevices         []string // list of detected LUKS devices
+	progress           float64
+	message            string
+	logs               []string
+	maxLogs            int
+	width              int
+	height             int
+	done               bool
+	failed             bool
+	failureError       string
+	operation          string
+	currentStep        string
+	inputMode          string // "git-username", "git-email", "reboot", "openrouter-api-key"
+	inputValue         string // current typed input
+	inputPrompt        string // what we're asking for
+	showConfirm        bool   // show YES/NO confirmation
+	confirmPrompt      string // confirmation prompt text
+	cursor             int    // 0 = YES, 1 = NO
+	scrollOffset       int    // scroll position in logs
+	confirmationResult bool   // stores confirmation result
+	isConfirmationMode bool   // true if in confirmation-only mode
+
 }
 
 // NewInstallModel creates a new installation model
@@ -196,54 +192,16 @@ func (m *InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case DoneMsg:
 		m.done = true
-		m.setInputMode("reboot", "🔄 Reboot now? ")
+		m.setInputMode("reboot", "🔄 Reboot now?")
 		m.showConfirm = true
-
-		// Check if kernel was upgraded to determine prompt and default
-		if m.kernelUpgraded {
-			m.confirmPrompt = "🔄 Reboot now? (Linux Kernel upgraded, you really should reboot)"
-			m.cursor = 0 // Default to YES for kernel upgrades
-		} else {
-			m.confirmPrompt = "🔄 Reboot now?"
-			m.cursor = 1 // Default to NO for regular upgrades
-		}
+		m.confirmPrompt = "🔄 Reboot now?"
+		m.cursor = 1 // Default to NO
 		return m, nil
 
 	case UpgradeMsg:
+		// OpenBSD system upgrade prompt
 		m.showConfirm = true
-		m.confirmPrompt = "⚠️ Full Arch Linux Upgrade?"
-		m.cursor = 1 // Default to NO (conservative)
-		return m, nil
-
-	case PreservationPromptMsg:
-		m.showConfirm = true
-		m.confirmPrompt = "🔧 Restore your hyprland modifications?"
-		m.cursor = 0 // Default to YES (user wants their settings)
-		return m, nil
-
-	case KernelUpgradeMsg:
-		m.kernelUpgraded = bool(msg)
-		return m, nil
-
-	case SecureBootStatusMsg:
-		m.secureBootEnabled = msg.Enabled
-		m.secureBootSupported = msg.Supported
-		m.luksDetected = msg.LuksUsed
-		m.luksDevices = msg.LuksDevices
-		return m, nil
-
-	case SecureBootPromptMsg:
-		if !m.secureBootEnabled && m.secureBootSupported && m.luksDetected {
-			m.showConfirm = true
-			deviceList := strings.Join(m.luksDevices, ", ")
-			m.confirmPrompt = fmt.Sprintf("🛡️ Enable Secure Boot? (%s)", deviceList)
-			m.cursor = 1 // Default to NO (conservative)
-		}
-		return m, nil
-
-	case SecureBootContinuationPromptMsg:
-		m.showConfirm = true
-		m.confirmPrompt = "🔄 Continue Secure Boot setup?"
+		m.confirmPrompt = "🔄 Check for OpenBSD updates?"
 		m.cursor = 1 // Default to NO (conservative)
 		return m, nil
 
@@ -566,34 +524,21 @@ func (m *InstallModel) setInputMode(mode, prompt string) {
 // handleConfirmSelection processes YES/NO confirmation selection
 func (m *InstallModel) handleConfirmSelection() (tea.Model, tea.Cmd) {
 	if m.confirmPrompt == "❌ Installation Failed - Exit?" {
-		// Respect selection: YES quits, NO keeps TUI open, RETRY triggers callback
+		// YES quits, NO keeps TUI open for inspection
 		if m.cursor == 0 { // YES selected
 			return m, tea.Quit
-		}
-		if m.cursor == 2 { // RETRY selected
-			// Reset state so UI shows progress again
-			m.failed = false
-			m.done = false
-			m.failureError = ""
-			m.showConfirm = false
-			m.setProgress(0.0)
-			m.setCurrentStep("Retrying installation...")
-			if retryCompletionCallback != nil {
-				retryCompletionCallback(true)
-			}
-			return m, nil
 		}
 		// NO selected: hide confirmation, keep failure view/logs visible
 		m.showConfirm = false
 		return m, nil
 	} else if strings.HasPrefix(m.confirmPrompt, "🔄 Reboot now?") {
-		// Reboot confirmation (handles both regular and kernel upgrade prompts)
+		// Reboot confirmation
 		if m.cursor == 0 && SetRebootFlag != nil { // YES selected
 			SetRebootFlag(true)
 		}
 		return m, tea.Quit
-	} else if m.confirmPrompt == "⚠️ Full Arch Linux Upgrade?" {
-		// Upgrade confirmation - send result back through callback
+	} else if m.confirmPrompt == "🔄 Check for OpenBSD updates?" {
+		// OpenBSD upgrade confirmation - send result back through callback
 		m.showConfirm = false
 		m.confirmPrompt = ""
 		// Signal completion through external callback
@@ -608,33 +553,6 @@ func (m *InstallModel) handleConfirmSelection() (tea.Model, tea.Cmd) {
 		// Signal completion through external callback
 		if gitCompletionCallback != nil {
 			gitCompletionCallback(m.cursor == 0) // YES = 0, NO = 1
-		}
-		return m, nil
-	} else if strings.HasPrefix(m.confirmPrompt, "🛡️ Enable Secure Boot?") {
-		// Secure Boot confirmation - send result back through callback
-		m.showConfirm = false
-		m.confirmPrompt = ""
-		// Signal completion through external callback
-		if secureBootCompletionCallback != nil {
-			secureBootCompletionCallback(m.cursor == 0) // YES = 0, NO = 1
-		}
-		return m, nil
-	} else if m.confirmPrompt == "🔄 Continue Secure Boot setup?" {
-		// Secure Boot continuation - send result back through callback
-		m.showConfirm = false
-		m.confirmPrompt = ""
-		// Signal completion through external callback
-		if secureBootContinuationCallback != nil {
-			secureBootContinuationCallback(m.cursor == 0) // YES = 0, NO = 1
-		}
-		return m, nil
-	} else if m.confirmPrompt == "🔧 Restore your hyprland modifications?" {
-		// Preservation confirmation - send result back through callback
-		m.showConfirm = false
-		m.confirmPrompt = ""
-		// Signal completion through external callback
-		if preservationCompletionCallback != nil {
-			preservationCompletionCallback(m.cursor == 0) // YES = 0, NO = 1
 		}
 		return m, nil
 	} else if m.confirmPrompt == "🤖 Setup OpenRouter for Neovim AI?" {

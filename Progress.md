@@ -1,8 +1,5 @@
 # OpenRiot — Project TODO & Progress
 
-> **⚠️ NOTE:** All 24 bugs from Prompt.md have been fixed (April 2026).
-> Prompt.md can be removed once the ISO is tested on real hardware.
-
 > **OpenRiot** transforms a fresh OpenBSD installation into a fully-configured Sway desktop — in one command.
 > It is the OpenBSD counterpart to [ArchRiot](https://archriot.org).
 
@@ -24,128 +21,10 @@ All configuration is declarative, version-controlled, and reproducible.
 
 ---
 
-## Workflow Rules — NEVER DEVIATE
-
-### On Every Change
-
-**Every response MUST start with:**
-
-```
-Completed: <brief description of what was just done>
-Next Task: <description of next task>
-```
-
-**Then provide:**
-
-```
-Files: <list of files to be modified>
-Goal: <why this change is being made>
-```
-
-**Then ask:** `Continue?`
-
-1. **NEVER COMMIT** — Do NOT run `git commit` or `git push` without explicit permission
-2. **NEVER RUN THE openriot binary** -- always ask the user to run and provide feedback
-3. **Propose first** — Show the exact change (filename, function, reason) before editing
-4. **Wait for "Proceed/Continue?"** before touching any code
-5. **Test locally first** (Linux with `--test` flag where applicable)
-6. **Verify build passes** (`make build`) after any Go changes
-7. **Show proof it works** before asking for approval
-8. **One change at a time** — finish one task before starting another
-
-### Before Starting a New Chat
-
-1. Read this entire TODO top to bottom
-2. Run `git status` to check for uncommitted changes
-3. Run `make build` to confirm the binary builds cleanly
-4. Run `make dev && ./install/openriot --version` to verify native build works
-5. Start from the first item marked 🔴 NOT DONE
-
-### Build Commands
-
-- `make build` — Cross-compile for OpenBSD amd64 → install/openriot
-- `make dev` — Native build for local testing on Linux
-- `make verify` — Build + smoke test (runs --version)
-- `make iso` — Full ISO build (downloads packages + builds + repacks)
-- `make download-packages` — Download packages to ~/.pkgcache/7.9/amd64/
-- `make clean` — Remove build artifacts
-
-### Version Bumping (when releasing)
-
-1. Confirm version in `Makefile` (`OPENRIOT_VERSION`)
-2. Run `make build` — verify it passes
-3. Update README.md badge if needed
-4. `git commit -am "Release vX.X: [brief changes]"`
-5. `git tag -a vX.X -m "Version X.X release: [details]"`
-6. `git push origin master && git push origin vX.X`
-
----
-
-## Architecture: Three Layers
-
-```
-LAYER 1: ISO Builder (build-iso.sh)
-  Produces a bootable OpenBSD ISO with offline packages + openriot binary bundled.
-
-LAYER 2: Go Installer (openriot binary)
-  Runs on the installed system. Installs packages, deploys configs, handles CLI flags.
-  Entry point: source/main.go
-  Triggered by: openriot --install (called from .profile on first login)
-
-LAYER 3: First Boot (setup.sh)
-  Minimal bootstrap script. Detects offline (ISO) vs online (curl) mode.
-  Handles: package installation (online only), doas config, fish shell.
-  Hands off to openriot --install for config deployment (via packages.yaml).
-  Usage (online): curl -fsSL https://openriot.org/setup.sh | sh
-  Usage (ISO): runs automatically on first login via .profile hook
-```
-
-### Install Flow (ISO path)
-
-```
-1. Boot ISO
-2. autoinstall/install.conf answers all OpenBSD installer prompts
-3. install.site runs post-install:
-   - Mounts CD, installs packages offline via pkg_add
-   - Copies openriot binary to /usr/local/bin/
-   - Configures doas, enables apmd + sndiod
-   - Sets fish as default shell
-   - Adds .profile hook: runs openriot --install on first login
-4. User logs in → openriot --install runs:
-   - Deploys all config files
-   - Runs commands from packages.yaml
-   - Builds wlsunset from source
-   - Prompts for git config and OpenRouter API key
-```
-
-## Workflow
-
-Now, focus on the workflow:
-
-1. `make iso` builds the ISO
-2. You install the ISO, which should contain all packages (from install/packages.yaml) and a copy of the git repo that gets added to ~/.local/share/openriot
-3. After first boot, it should run `openriot` and copy files to the right places for Sway and all of the Window Manager
-4. Everything should work after a reboot -- it should launch Sway and have a Waybar with everything working
-5. Periodically, it checks VERSION and, if a greater version exists, runs `curl -fsSL https://openriot.org/setup.sh | bash` in a terminal window (see /home/grendel/Code/ArchRiot for a WORKING example on Linux) and should update the system properly
-6. You **have to reference VERSION** for the version and stop hard-coding it like a junior dev.
-
-**Read TODO.md for info. Reference /home/grendel/Code/ArchRiot/source for the tui installer flow**
-
-**Always update the TODO.md after a task is confirmed completed**
-
-- Make sure to add proper .config files
-- Confirm nothing is missing
-- Fully audit everything for ANY issues
-- If any issue exists, follow the TODO.md requirements and PROPOSE a fix
-
-**It is critically important that the hotkeys, fuzzel, apps, and waybar all function properly for OpenBSD**
-
----
-
 ## Canonical Versions (single source of truth: Makefile)
 
 ```
-OPENRIOT_VERSION = 0.6
+OPENRIOT_VERSION = 0.8 (or whatever is current)
 OPENBSD_VERSION  = 7.9
 ARCH             = amd64
 ```
@@ -249,7 +128,6 @@ curl wget unzip xz ninja meson
 - `thermald`, `tlp` — apmd handles power
 - `mullvad` app — use WireGuard directly (`openriot --mullvad-setup`)
 - `xdg-desktop-portal-wlr` — not in OpenBSD packages
-- `wl-clipboard` — not in OpenBSD packages
 - `kanshi` — not in OpenBSD packages
 
 ---
@@ -318,6 +196,10 @@ curl wget unzip xz ninja meson
 
 **Priority key: 🔴 P0 (blocking) | 🟠 P1 (important) | 🟡 P2 (polish)**
 
+> **⚠️ APRIL 2026 AUDIT:** A full code audit revealed 30 unresolved issues.
+> See **AUDIT FINDINGS** section below the legacy steps for the complete list.
+> Work the Audit Findings steps IN ORDER before doing ISO hardware testing.
+
 ---
 
 ### STEP 1 — Build Verification 🔴 P0
@@ -335,13 +217,14 @@ Before doing anything else, verify the binary builds cleanly after all recent ch
 
 **Context:** The ISO has been built (1.1G) but never booted. This is the critical end-to-end test.
 **Do NOT use QEMU — test on real ThinkPad or compatible hardware (see README Supported Systems).**
+**⚠️ DO NOT attempt this until all 🔴 P0 Audit Findings items are resolved.**
 
 - [ ] **2.1** Run `make iso` on Linux host — must complete without error
     - Downloads packages to `~/.pkgcache/7.9/amd64/`
     - Builds openriot binary (cross-compiled for OpenBSD amd64)
-    - Repacks ISO to `isos/openriot-0.6.iso`
+    - Repacks ISO to `isos/openriot.iso`
 - [ ] **2.2** Verify `~/.pkgcache/7.9/amd64/index.txt` exists and has entries
-- [ ] **2.3** Verify `isos/openriot-0.6.iso` exists and is larger than 762MB (base size)
+- [ ] **2.3** Verify `isos/openriot.iso` exists and is larger than 762MB (base size)
 - [ ] **2.4** Boot ISO on real hardware — confirm OpenBSD installer starts
 - [ ] **2.5** Confirm autoinstall runs unattended (no keyboard input needed)
 - [ ] **2.6** After install completes, check `/tmp/install.site.log` for errors
@@ -674,23 +557,36 @@ ArchRiot shows: Lock / Suspend / Reboot / Shutdown / Logout.
 
 ## Status Summary Table
 
-| Step | Component                      | Status          |
-| ---- | ------------------------------ | --------------- |
-| 1    | Build verification             | ✅ DONE         |
-| 2    | ISO test on real hardware      | 🔴 P0 (SKIP)    |
-| 3    | Fix setup.sh bugs              | ✅ DONE         |
-| 4    | Create VERSION file            | ✅ DONE         |
-| 5    | Fix swayidle brightness dim    | ✅ DONE         |
-| 6    | Fix wlsunset                   | ✅ DONE         |
-| 7    | Waybar guard script            | ✅ DONE         |
-| 8    | Swaylock battery + crypto      | ✅ DONE         |
-| 9    | Battery monitor daemon         | ✅ DONE         |
-| 10   | Welcome screen                 | ✅ DONE         |
-| 11   | --switch-window implementation | ✅ DONE         |
-| 12   | Fix --power-menu (empty menu)  | ✅ DONE         |
-| 13   | Waybar binary subcommands      | ✅ DONE (shell) |
-| 14   | Hosting on openriot.org        | 🔴 P0 (SKIP)    |
-| 15   | TUI polish                     | ✅ DONE         |
+| Step | Component                           | Status                           |
+| ---- | ----------------------------------- | -------------------------------- |
+| 1    | Build verification                  | ✅ DONE                          |
+| 2    | ISO test on real hardware           | 🔴 NOT DONE (blocked by audit)   |
+| 3    | Fix setup.sh bugs                   | ✅ DONE                          |
+| 4    | Create VERSION file                 | ✅ DONE                          |
+| 5    | Fix swayidle brightness dim         | ✅ DONE                          |
+| 6    | Fix wlsunset                        | ✅ DONE                          |
+| 7    | Waybar guard script                 | ✅ DONE                          |
+| 8    | Swaylock battery + crypto           | ✅ DONE                          |
+| 9    | Battery monitor daemon              | ✅ DONE                          |
+| 10   | Welcome screen                      | ✅ DONE                          |
+| 11   | --switch-window implementation      | ✅ DONE (removed, not needed)    |
+| 12   | Fix --power-menu (empty menu)       | ✅ DONE                          |
+| 13   | Waybar binary subcommands           | 🟡 OPTIONAL (shell scripts work) |
+| 14   | Hosting on openriot.org             | 🔴 NOT DONE                      |
+| 15   | TUI polish                          | ✅ DONE                          |
+| A1   | packages.yaml: mako missing         | 🔴 NOT DONE                      |
+| A2   | packages.yaml: libnotify miss       | 🔴 NOT DONE                      |
+| A3   | packages.yaml: wf-recorder miss     | 🔴 NOT DONE                      |
+| A4   | doas.conf: persist vs nopass        | 🔴 NOT DONE                      |
+| A5   | Waybar: sway/window undefined       | 🔴 NOT DONE                      |
+| A6   | configs.go: scripts not deployed    | 🔴 NOT DONE (glob no recurse)    |
+| A7   | configs.go: scripts 0644 perms      | 🔴 NOT DONE                      |
+| A8   | packages.yaml: bad pkg names        | 🔴 NOT DONE                      |
+| A9   | openriot-lock.sh: magick vs convert | 🟠 NOT DONE                      |
+| A10  | sway/config: exec export noop       | 🟠 NOT DONE                      |
+| A11  | keybindings: bad swaymsg IPC        | 🟠 NOT DONE                      |
+| A12  | wireguard scripts not +x            | 🟡 NOT DONE                      |
+| A13  | **pycache** in repo                 | 🟡 NOT DONE                      |
 
 ---
 
@@ -718,7 +614,7 @@ make clean           # Remove build artifacts
 
 ```sh
 make iso
-ls -lh isos/openriot-0.6.iso    # Should be > 762MB
+ls -lh isos/openriot.iso    # Should be > 762MB
 cat ~/.pkgcache/7.9/amd64/index.txt | head
 ```
 
@@ -738,8 +634,241 @@ openriot --suspend
 
 ## Known Issues
 
-1. **ISO untested on real hardware** — Build works, need hardware to test
-2. **Waybar binary subcommands** — Optional P2: --waybar-volume, --waybar-cpu, --waybar-memory, --waybar-temp not implemented in Go binary (shell scripts work)
+1. **ISO untested on real hardware** — Build works, need hardware to test. Blocked by audit fixes below.
+2. **Waybar binary subcommands** — Optional P2: --waybar-volume, --waybar-cpu, --waybar-memory, --waybar-temp not implemented in Go binary (shell scripts work fine).
+3. **openriot.org not live** — Update check always returns `-` (unknown). Hosting must be set up before online install works.
+
+---
+
+## AUDIT FINDINGS — April 2026 Code Audit
+
+> These were found by a full read of every source file, config, and script.
+> Items marked with 🔴 are blocking; fix them before any ISO hardware test.
+> Items are ordered: fix the most impactful first.
+
+---
+
+### AUDIT FIX 1 — `configs.go` glob does not recurse into subdirectories 🔴 P0
+
+**File:** `source/installer/configs.go`
+**Problem:** `CopyConfigs()` uses `filepath.Glob()` and skips any entry where `info.IsDir()` is true. This means `pattern: waybar/*` copies files in `config/waybar/` but **skips `config/waybar/scripts/` entirely**. All waybar scripts (`waybar-cpu.sh`, `waybar-battery.sh`, etc.) are never deployed by `openriot --install`.
+
+- [ ] **A1.1** Change `CopyConfigs()` to walk directories recursively using `filepath.WalkDir()` instead of `filepath.Glob()` for glob patterns.
+- [ ] **A1.2** For each glob like `waybar/*`, walk the entire `config/waybar/` subtree and copy all files (preserving relative paths).
+- [ ] **A1.3** Verify with `--test` mode that `waybar/scripts/waybar-cpu.sh` appears in the dry-run log.
+- [ ] **A1.4** Run `make build` and confirm it passes.
+
+---
+
+### AUDIT FIX 2 — Deployed scripts are not executable (hardcoded `0644`) 🔴 P0
+
+**File:** `source/installer/configs.go`
+**Problem:** `copyFile()` calls `os.WriteFile(dest, sourceData, 0644)`. This strips the execute bit from all deployed scripts. After `openriot --install`, `waybar-guard.sh`, `battery-monitor.sh`, `openriot-lock.sh`, `brightness-dim.sh`, and all waybar scripts will be non-executable. Sway's `exec` calls will fail with "permission denied."
+
+- [ ] **A2.1** In `copyFile()`, stat the source file and preserve its permission bits.
+    ```go
+    info, err := os.Stat(source)
+    if err != nil {
+        return fmt.Errorf("stat source: %w", err)
+    }
+    if err := os.WriteFile(dest, sourceData, info.Mode()); err != nil {
+        return fmt.Errorf("writing dest file: %w", err)
+    }
+    ```
+- [ ] **A2.2** Run `make build` and confirm it passes.
+
+---
+
+### AUDIT FIX 3 — Missing packages in `packages.yaml` 🔴 P0
+
+**File:** `install/packages.yaml`
+**Problem:** Three packages are used by OpenRiot scripts but are not listed in `packages.yaml`:
+
+1. `mako` — notification daemon. Started in `sway/config` (`exec mako`), config deployed (`pattern: mako/*`), but the **package itself** is never installed.
+2. `libnotify` — provides `notify-send`. Used by `battery-monitor.sh`, `wifi-selector.sh`, `openriot-version-check`, `openriot-update.sh`. Not listed anywhere.
+3. `wf-recorder` — used by `recording-indicator.sh` (`pgrep -x wf-recorder`). Not listed.
+
+- [ ] **A3.1** Add `mako` to `desktop.sway.packages` in `packages.yaml`.
+- [ ] **A3.2** Add `libnotify` to `desktop.sway.packages` in `packages.yaml`.
+- [ ] **A3.3** Add `wf-recorder` to `desktop.sway.packages` in `packages.yaml` (note: verify exact OpenBSD package name — may be `wf-recorder` or require a port).
+
+---
+
+### AUDIT FIX 4 — Bad package names in `packages.yaml` 🔴 P0
+
+**File:** `install/packages.yaml`
+**Problem:** Three packages in `packages.yaml` do not exist in OpenBSD's package tree. They will cause `pkg_add` to fail during install:
+
+1. `flare-messenger` — Signal client. Not in OpenBSD pkg_add. Listed in `desktop.apps`.
+2. `tdesktop` — Telegram. Not in OpenBSD pkg_add. Listed in `desktop.apps`.
+3. `thunar-archive` — Thunar archive plugin. Not in OpenBSD pkg_add. Listed in `desktop.apps`.
+4. `playerctl` — MPRIS client, Linux/PulseAudio only. Listed in `desktop.media`.
+
+- [ ] **A4.1** Remove `flare-messenger` from `desktop.apps.packages`.
+- [ ] **A4.2** Remove `tdesktop` from `desktop.apps.packages`.
+- [ ] **A4.3** Remove `thunar-archive` from `desktop.apps.packages`.
+- [ ] **A4.4** Remove `playerctl` from `desktop.media.packages` (or remove the entire `desktop.media` section).
+- [ ] **A4.5** Run `make build` and confirm it passes.
+
+---
+
+### AUDIT FIX 5 — `doas.conf` inconsistency: `persist` vs `nopass` 🔴 P0
+
+**Problem:** Three places configure `doas.conf` with different rules:
+
+- `site/etc/doas.conf` → `permit persist :wheel` (requires password after timeout)
+- `autoinstall/install.site` (Step 5) → `permit nopass :wheel` (truly passwordless)
+- `install/packages.yaml` (system.tools.commands) → `permit persist :wheel`
+
+`install.site` runs first and sets `nopass`. Then `openriot --install` overwrites it with `persist`, breaking passwordless `doas` for the rest of the install and for the user.
+
+- [ ] **A5.1** Standardize on `permit persist :wheel` everywhere (recommended — safer than `nopass`).
+    - Update `autoinstall/install.site` Step 5: change `permit nopass :wheel` → `permit persist :wheel`.
+    - Update `site/etc/doas.conf`: already correct (`persist`).
+    - `install/packages.yaml` already correct (`persist`).
+- [ ] **A5.2** Alternatively, decide on `nopass` everywhere and update the other two files.
+
+---
+
+### AUDIT FIX 6 — `sway/window` module used in Waybar but not defined 🔴 P0
+
+**File:** `config/waybar/config`
+**Problem:** `modules-left` includes `"sway/window"` (line 30). This module is NOT defined in `Modules`, `ModulesCustom`, `ModulesGroups`, or any other included file. Waybar will log an error and the window title area will be blank/broken.
+
+- [ ] **A6.1** Add `sway/window` definition to `config/waybar/Modules`:
+    ```json
+    "sway/window": {
+        "format": "{}",
+        "max-length": 60,
+        "rewrite": {
+            "(.*) — Mozilla Firefox": " $1",
+            "(.*) - fish": "> [$1]"
+        }
+    }
+    ```
+- [ ] **A6.2** Alternatively, remove `"sway/window"` from `modules-left` in `config/waybar/config` if window titles in the bar are not desired.
+
+---
+
+### AUDIT FIX 7 — `fw_update -a` must be run with `doas` 🟠 P1
+
+**File:** `install/packages.yaml`
+**Problem:** `system.tools.commands` contains `"fw_update -a"`. `ExecCommands()` runs commands as the current user. `fw_update` requires root — this will fail silently with a permissions error.
+
+- [ ] **A7.1** Change `"fw_update -a"` → `"doas fw_update -a"` in `install/packages.yaml`.
+
+---
+
+### AUDIT FIX 8 — `openriot-lock.sh` uses `magick` (ImageMagick 7) but OpenBSD ships ImageMagick 6 (`convert`) 🟠 P1
+
+**File:** `config/bin/openriot-lock.sh`
+**Problem:** The main `generate_bg()` function calls `magick "$BG_IMAGE" ...` — this is the ImageMagick 7 CLI. OpenBSD's `ImageMagick` package is version 6, which uses `convert`. The script has a `convert` fallback only in `ensure_background()`, not in `generate_bg()`. The lock screen background will fail to generate on a real OpenBSD system.
+
+- [ ] **A8.1** In `generate_bg()`, change `magick` → `convert` (OpenBSD uses IM6).
+- [ ] **A8.2** Alternatively make it portable:
+    ```sh
+    IM_CMD="magick"
+    command -v magick >/dev/null 2>&1 || IM_CMD="convert"
+    $IM_CMD "$BG_IMAGE" -resize ...
+    ```
+- [ ] **A8.3** Test that `convert` produces the correct output on the target system.
+
+---
+
+### AUDIT FIX 9 — `exec export` in `sway/config` is a no-op 🟠 P1
+
+**File:** `config/sway/config`
+**Problem:** Lines 30–32 use `exec export VAR=value`. In Sway, `exec` spawns a subprocess — the shell runs `export` and exits immediately. The environment variables are **not** set in Sway's environment. These three lines have no effect.
+
+- [ ] **A9.1** Remove the three `exec export` lines from `config/sway/config`.
+- [ ] **A9.2** Add the environment variables to `~/.profile` (or `~/.config/fish/config.fish`) instead, so they are set before Sway starts:
+    ```sh
+    export XDG_CURRENT_DESKTOP=sway
+    export XDG_SESSION_TYPE=wayland
+    export XDG_SEAT=seat0
+    ```
+- [ ] **A9.3** Alternatively, use Sway's `exec_always` with a proper wrapper: `exec_always export` still won't work — the only correct Sway method is setting them in the launch environment before `sway` is called.
+
+---
+
+### AUDIT FIX 10 — Screenshot window keybinding uses invalid `swaymsg` IPC type 🟠 P1
+
+**File:** `config/sway/keybindings.conf`
+**Problem:** The window screenshot binding (`Shift+Print`) calls:
+
+```sh
+swaymsg -t get_focused_window
+```
+
+`get_focused_window` is not a valid Sway IPC message type. The correct type is `get_tree` (filtered), or the binding should use `swaymsg -t get_focused` and extract the geometry. As-is, the keybinding produces an error and takes no screenshot.
+
+- [ ] **A10.1** Fix the window screenshot binding. Simplest correct approach — capture the focused container:
+    ```
+    bindsym --release Shift+Print exec grim -g "$(swaymsg -t get_tree | jq -r '.. | select(.focused?) | .rect | "\(.x),\(.y) \(.width)x\(.height)"')" - | wl-copy
+    ```
+- [ ] **A10.2** Test that `Shift+Print` produces a screenshot of the focused window.
+
+---
+
+### AUDIT FIX 11 — `wireguard-click.sh` and `wireguard-status.sh` are not executable 🟡 P2
+
+**File:** `config/waybar/scripts/wireguard-click.sh`, `config/waybar/scripts/wireguard-status.sh`
+**Problem:** Both files have permissions `-rw-r--r--` (not executable). Waybar will fail to run them.
+
+- [ ] **A11.1** `chmod +x config/waybar/scripts/wireguard-click.sh`
+- [ ] **A11.2** `chmod +x config/waybar/scripts/wireguard-status.sh`
+- [ ] **A11.3** Ensure these permissions are preserved in git: `git update-index --chmod=+x config/waybar/scripts/wireguard-click.sh config/waybar/scripts/wireguard-status.sh`
+
+---
+
+### AUDIT FIX 12 — `__pycache__` directories committed to repo 🟡 P2
+
+**Problem:** `config/sway/__pycache__/` and `config/bin/__pycache__/` exist in the repo. These should never be committed and will appear in the git archive bundled into the ISO.
+
+- [ ] **A12.1** Add to `.gitignore` (create it if it doesn't exist):
+    ```
+    __pycache__/
+    *.pyc
+    *.pyo
+    ```
+- [ ] **A12.2** Remove the directories from the repo: `git rm -r --cached config/sway/__pycache__/ config/bin/__pycache__/`
+
+---
+
+### AUDIT FIX 13 — `openriot-version-check` terminal fallback gets `EOFError` when run headless 🟡 P2
+
+**File:** `config/bin/openriot-version-check`
+**Problem:** `openriot-update.sh` calls `openriot-version-check --click --gui &` as a background process (no terminal attached). When GTK is unavailable (`GTK_AVAILABLE = False`), it falls back to `show_terminal_prompt()` which calls `input("Choose [1]: ")`. With no tty, this immediately raises `EOFError` and returns `"close"` — so the update dialog never works without GTK.
+
+- [ ] **A13.1** In `show_terminal_prompt()`, wrap `input()` in a try/except and default to `"close"` cleanly (already done partially — verify the `except (EOFError, KeyboardInterrupt)` path returns `"close"` with no error output).
+- [ ] **A13.2** When running as a background process with no tty and no GTK, emit a `notify-send` notification instead:
+    ```python
+    subprocess.run(["notify-send", "-t", "10000", "OpenRiot Update Available",
+                    f"v{remote_ver} available. Run openriot-version-check to upgrade."])
+    ```
+
+---
+
+### AUDIT FIX 14 — `py3-gobject3` not in `packages.yaml` (GTK welcome screen non-functional) 🟡 P2
+
+**File:** `install/packages.yaml`
+**Problem:** `config/bin/openriot-welcome.py` requires `gi` (PyGObject / GTK3 Python bindings). The OpenBSD package is `py3-gobject3`. Without it, the GTK welcome screen always falls back to the shell version.
+
+- [ ] **A14.1** Add `py3-gobject3` to `desktop.apps.packages` in `packages.yaml`.
+- [ ] **A14.2** Verify the package name is correct for OpenBSD 7.9 (`pkg_add py3-gobject3`).
+
+---
+
+### AUDIT FIX 15 — Hosting on openriot.org 🟠 P1
+
+**Context:** The curl-pipe install method requires hosting at openriot.org. Update check always returns `-` until this is live.
+
+- [ ] **A15.1** Build final release binary: `make build`
+- [ ] **A15.2** Host `openriot` binary at `https://openriot.org/bin/openriot` (OpenBSD amd64)
+- [ ] **A15.3** Host `setup.sh` at `https://openriot.org/setup.sh`
+- [ ] **A15.4** Host `VERSION` file at `https://openriot.org/VERSION`
+- [ ] **A15.5** Verify TLS is working on `openriot.org`
+- [ ] **A15.6** Test: `curl -fsSL https://openriot.org/setup.sh | sh` on a clean OpenBSD 7.9 VM
 
 ---
 

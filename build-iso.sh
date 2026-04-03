@@ -289,6 +289,10 @@ info "Repo archive created ($(du -h "$TMPSITE/etc/openriot/repo.tar.gz" | cut -f
 cp "$ROOT/install/packages.yaml" "$TMPSITE/etc/openriot/packages.yaml"
 info "packages.yaml bundled"
 
+# Copy VERSION for offline use (openriot-update.sh and binary rely on it)
+cp "$ROOT/VERSION" "$TMPSITE/etc/openriot/VERSION"
+info "VERSION bundled"
+
 # Copy openriot binary for offline install
 if [ -f "$ROOT/install/openriot" ]; then
     cp "$ROOT/install/openriot" "$TMPSITE/etc/openriot/openriot"
