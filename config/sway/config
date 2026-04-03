@@ -49,13 +49,17 @@ fi
 # =============================================================================
 # swayidle handles idle detection, lock screen, and DPMS.
 # OpenBSD: no systemd suspend — use zzz(8) for suspend.
+#
+# Background refresh: openriot-lock.sh runs every 30 mins to update crypto prices.
+# swaylock --clock shows live time on top of the static background.
 # =============================================================================
+exec sh -c 'while true; do $HOME/.local/share/openriot/config/bin/openriot-lock.sh; sleep 1800; done &'
 exec swayidle -w \
     timeout 240 '$HOME/.config/sway/brightness-dim.sh dim' \
-    timeout 300 'swaylock -f' \
+    timeout 300 'swaylock -f -i /tmp/swaylock-bg.png --clock --timestr "%%I:%%M %%p"' \
     timeout 600 'swaymsg output * dpms off' \
     resume 'swaymsg output * dpms on' \
-    before_sleep 'swaylock -f'
+    before_sleep 'swaylock -f -i /tmp/swaylock-bg.png --clock --timestr "%%I:%%M %%p"'
 
 # =============================================================================
 # INPUT CONFIGURATION

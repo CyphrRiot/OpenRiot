@@ -15,14 +15,13 @@ import (
 	"openriot/audio"
 	"openriot/backgrounds"
 	"openriot/config"
+	"openriot/crypto"
 	"openriot/detect"
 	"openriot/display"
 	"openriot/git"
 	"openriot/installer"
 	"openriot/logger"
-	"openriot/mullvad"
 	"openriot/tui"
-	"openriot/windows"
 )
 
 // Injected at build time via Makefile ldflags:
@@ -93,21 +92,34 @@ func main() {
 		detect.SuspendIfUndocked()
 		return
 	}
-	if len(os.Args) >= 2 && os.Args[1] == "--fix-offscreen-windows" {
-		os.Exit(windows.FixOffscreenWindows())
-	}
-	if len(os.Args) >= 2 && os.Args[1] == "--mullvad-setup" {
-		os.Exit(mullvad.Setup())
-	}
-	if len(os.Args) >= 2 && os.Args[1] == "--switch-window" {
-		os.Exit(windows.SwitchWindow())
-	}
+
 	// Check for version flag first (before any other processing)
 	for _, arg := range os.Args[1:] {
 		if arg == "--version" {
 			fmt.Println("openriot", version)
 			os.Exit(0)
 		}
+	}
+
+	// Crypto price commands
+	if len(os.Args) >= 2 && os.Args[1] == "--crypto" {
+		mode := "BTC"
+		if len(os.Args) >= 3 {
+			mode = os.Args[2]
+		}
+		if err := crypto.RunCrypto(mode); err != nil {
+			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
+		}
+		return
+	}
+	if len(os.Args) >= 2 && os.Args[1] == "--crypto-refresh" {
+		// Clear cache and fetch fresh prices
+		os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "hyprlock-crypto.json"))
+		os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "hyprlock-crypto-prev.json"))
+		if err := crypto.RunCrypto("ROWML"); err != nil {
+			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
+		}
+		return
 	}
 
 	// Check for test mode flag (for testing on Linux without OpenBSD)

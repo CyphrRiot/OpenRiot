@@ -19,9 +19,7 @@
 
 </div>
 
-## **OpenRiot: A Functional OpenBSD Desktop**
-
-OpenRiot is the answer to every time you've thought "Why can't an OpenBSD installation just work correctly from the start?" Built on the same principles as [ArchRiot](https://ArchRiot.org) — perfect the details once, get it right every time.
+OpenRiot is the answer to every time you've thought "Why can't an OpenBSD installation just work correctly from the start and give me a fully functional desktop environment that's actually usable?" Built on the same principles as [ArchRiot](https://ArchRiot.org) and by the same creator. If you liked ArchRiot, you'll love OpenRiot.
 
 - Read the [Post on X](https://x.com/CyphrRiot/status/2039409143891837297?s=20) to understand why OpenRiot was created and more about the creator's vision for the system.
 

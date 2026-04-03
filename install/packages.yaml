@@ -57,15 +57,18 @@ desktop:
             - swayidle
             - swaybg
             - grim
+            - ImageMagick
         configs:
             - pattern: sway/*
             - pattern: waybar/*
             - pattern: backgrounds/*
             - pattern: bin/*
+            - pattern: fonts/*
         commands:
             - "mkdir -p ~/.config/sway"
             - "mkdir -p ~/.config/waybar"
             - "mkdir -p ~/.local/share/openriot/backgrounds"
+            - "mkdir -p ~/.local/share/fonts && cp $HOME/.local/share/openriot/config/fonts/PaperMono-Regular.ttf ~/.local/share/fonts/ 2>/dev/null || true"
         depends: [core.base]
         start: "Installing Sway desktop"
         end: "Sway desktop installed"
