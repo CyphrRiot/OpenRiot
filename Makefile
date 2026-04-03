@@ -5,7 +5,7 @@
 # ============================================================
 # Canonical Versions — single source of truth: VERSION file
 # ============================================================
-OPENRIOT_VERSION = $(shell cat VERSION 2>/dev/null || echo "0.6")
+OPENRIOT_VERSION = $(shell cat VERSION 2>/dev/null || echo "0.7")
 OPENBSD_VERSION  = 7.9
 
 # ============================================================

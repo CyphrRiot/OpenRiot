@@ -249,12 +249,13 @@ func main() {
 	if testMode {
 		repoDir = os.Getenv("HOME") + "/Code/OpenRiot"
 	} else {
-		execPath, err := os.Executable()
-		if err != nil {
-			logger.LogMessage("WARN", "Could not determine executable path")
-			repoDir = "/opt/openriot"
-		} else {
-			repoDir = filepath.Dir(filepath.Dir(execPath))
+		homeDir, _ := os.UserHomeDir()
+		repoDir = filepath.Join(homeDir, ".local", "share", "openriot")
+		// Fallback for running directly from a repo checkout on OpenBSD
+		if _, err := os.Stat(filepath.Join(repoDir, "install", "packages.yaml")); os.IsNotExist(err) {
+			if execPath, err := os.Executable(); err == nil {
+				repoDir = filepath.Dir(filepath.Dir(execPath))
+			}
 		}
 	}
 

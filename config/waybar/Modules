@@ -16,8 +16,8 @@
 		"󰈸"
 	],
 	"tooltip-format": "CPU Temperature: {temperatureC}°C",
-	"on-click": "gnome-system-monitor",
-	"on-click-right": "gnome-system-monitor"
+	"on-click": "foot -e btop",
+	"on-click-right": "foot -e btop"
 },
 
 "backlight": {
@@ -159,8 +159,8 @@
 	"format-icons": [
 		"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"
 	],
-	"on-click": "gnome-system-monitor",
-	"on-click-right": "gnome-system-monitor",
+	"on-click": "foot -e btop",
+	"on-click-right": "foot -e btop",
 	"tooltip": true,
 	"tooltip-format": "CPU Usage: {usage}% | Load: {load} | Icon: {icon}"
 },
@@ -219,8 +219,8 @@
 	"format": "{percentage}% 󰾆",  // Show percentage instead since it's more reliable
 	"tooltip": true,
 	"tooltip-format": "Used: {used:0.1f}GB | Available: {avail:0.1f}GB | Total: {total:0.1f}GB ({percentage}%)",
-	"on-click": "gnome-system-monitor",
-	"on-click-right": "gnome-system-monitor"
+	"on-click": "foot -e btop",
+	"on-click-right": "foot -e btop"
 },
 
 "mpris": {
