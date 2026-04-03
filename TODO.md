@@ -758,59 +758,92 @@ openriot --suspend
 
 ## What Was Done This Session (April 2025)
 
-1. **OpenRiot v0.6:**
+1. **ISO Build Path Fixes:**
+    - `build-iso.sh`: Fixed `git archive --prefix=openriot/` so repo tarball extracts to `~/.local/share/openriot/` (not flat)
+    - `autoinstall/install.site`: Removed dead `openriot-HEAD` rename code
+    - `autoinstall/install.site`: Replaced hardcoded PKGS with awk parser reading from `/etc/openriot/packages.yaml`
+    - `autoinstall/install.site`: Removed hardcoded `OPENRIOT_VERSION`, banner now says "OpenRiot post-install starting"
+
+2. **Dead Code Cleanup:**
+    - Removed `source/mullvad/` and `source/windows/` (not needed on OpenBSD/Sway)
+    - Removed `--signal`, `--wallet`, `--pomodoro-click`, `--switch-window`, `--fix-offscreen-windows`, `--mullvad-setup` from main.go
+    - Removed dead keybindings from `config/sway/keybindings.conf`
+    - Deleted `config/sway/swaylock-wrapper.py`, `config/sway/swaylock-wrapper.sh`, `config/sway/swaylock.conf` (replaced by openriot-lock.sh)
+
+3. **New Source Files (was untracked):**
+    - `source/audio/volume.go` — `--volume` for media keys
+    - `source/backgrounds/backgrounds.go` — `--swaybg-next` for wallpaper cycling
+    - `source/detect/detect.go` — dock/undock detection
+    - `source/display/display.go` — `--brightness` for brightness keys
+    - `source/crypto/crypto.go` — `--crypto`, `--crypto-refresh` (ported from ArchRiot)
+    - `source/crypto/trading.go` — trading helpers
+    - `config/crypto.toml` — crypto portfolio config
+    - `source/go.mod`: Added `github.com/BurntSushi/toml` dependency
+
+4. **Lock Screen (NEW):**
+    - Created `config/bin/openriot-lock.sh` — ImageMagick-based swaylock background generator
+    - Uses PaperMono font (added to `config/fonts/`) for consistent aesthetic
+    - Auto-detects screen resolution via `swaymsg` or `xrandr`
+    - Generates time (12hr format), date, crypto holdings, user@host, uptime
+    - Crypto refreshes every 30 mins via background loop
+    - `swaylock --clock` shows live clock on top of static background
+    - Updated `config/sway/config` swayidle to use openriot-lock.sh + swaylock --clock
+    - Added PaperMono font deployment to `packages.yaml` (desktop.sway configs + mkdir)
+    - Added `ImageMagick` package to `packages.yaml` for OpenBSD
+
+5. **OpenRiot v0.6:**
     - Updated VERSION to 0.6
     - Made VERSION the single source of truth (Makefile and build-iso.sh read from it)
     - Fixed ASCII art to spell OPENRIOT
 
-2. **TUI Sequential Execution:**
+6. **TUI Sequential Execution:**
     - Rewrote install flow to run sequentially (no goroutines) so progress displays in order
     - Added test mode with 300ms delay between log messages for visibility
     - Added GetModel() function for progress updates
 
-3. **Quit Handling:**
+7. **Quit Handling:**
     - Fixed 'q' and Ctrl+C handling to properly exit
     - Added userQuit tracking to avoid double-wait on channels
 
-4. **Copy Path Fixes:**
+8. **Copy Path Fixes:**
     - Fixed glob pattern destination to show correct path (stripped wildcard)
     - Logs now show "Copied X -> ~/.config/dir/file" format
 
-5. **Website:**
+9. **Website:**
     - Added Mullvad VPN section to README.md
     - Fixed blockquote CSS (darker background, less padding)
 
-6. **TUI Polish:**
+10. **TUI Polish:**
     - Per-package progress in `source/installer/packages.go`
     - Color coding: SUCCESS=green, ERROR=red, WARN=yellow, INFO=dim
     - Window resize handling in `source/tui/model.go`
     - Added `GetModel()` function for progress updates
 
-7. **Waybar enhancements:**
+11. **Waybar enhancements:**
     - `config/bin/waybar-guard.sh` - restarts waybar if crashed
     - `config/bin/battery-monitor.sh` - notifies at 20%/10%
     - `config/bin/openriot-welcome.py` - GTK welcome screen
     - `config/bin/openriot-welcome.sh` - shell fallback
 
-8. **Swaylock enhancements:**
+12. **Swaylock enhancements:**
     - Added battery status (apm) bottom-center
     - Added BTC price top-right with 5-min cache
 
-9. **Sway config fixes:**
+13. **Sway config fixes:**
     - swayidle brightness dim step
     - wlsunset temperature only (no coords)
     - Power menu with Lock/Suspend/Reboot/Shutdown/Logout
 
-10. **Neovim theme:**
+14. **Neovim theme:**
     - Changed to One Dark Pro to match Zed
 
-11. **ISO Builder fixes:**
+15. **ISO Builder fixes:**
     - Fixed `make iso` - now tries released version first, falls back to snapshot
     - Fixed SHA256 verification - handles 404 gracefully
     - Fixed cleanup trap - only runs on error
     - Changed output to `openriot.iso` (no version in filename)
 
-12. **Misc:**
+16. **Misc:**
     - Added `config/fuzzel/fuzzel.ini`
     - Added `bin/*` to packages.yaml configs
     - Updated README.md with clean install steps

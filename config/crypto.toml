@@ -1,0 +1,23 @@
+# CoinGecko API key (optional but recommended to avoid rate limits)
+# Get a free API key at: https://www.coingecko.com/en/api
+api_key = ""
+
+# Indicator settings
+[indicators]
+rsi_period = 14
+oversold = 30
+overbought = 70
+bb_period = 16
+bb_std = 2.0
+
+# Crypto holdings - leave values at 0 to disable P/L display
+pairs = [
+    { sym = "XMR", coin = "monero",    held = 0, entry = 0 },
+    { sym = "ZEC", coin = "zcash",     held = 0, entry = 0 },
+    { sym = "BTC", coin = "bitcoin",   held = 0, entry = 0 },
+]
+
+# Display settings
+[display]
+show_totals = false   # Set to true to show total holdings + gains line
+max_pairs = 6         # Maximum crypto pairs to display
