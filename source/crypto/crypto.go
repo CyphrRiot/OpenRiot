@@ -313,26 +313,26 @@ func fetchOHLC(coinID string, days int, apiKey string) []float64 {
 	if apiKey != "" {
 		url += "&x_cg_demo_api_key=" + apiKey
 	}
-	// DEBUG: fetchOHLC for %s url=%s")
+
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("User-Agent", "ArchRiot/hyprlock-crypto")
 
 	client := &http.Client{Timeout: 8 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		// DEBUG: fetchOHLC error for %s: %v")
+	
 		return nil
 	}
 	defer resp.Body.Close()
 
 	var data map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		// DEBUG: fetchOHLC json error for %s: %v")
+	
 		return nil
 	}
 
 	if prices, ok := data["prices"].([]interface{}); ok {
-		// DEBUG: got %d prices for %s\n", len(prices), coinID)
+	
 		result := make([]float64, len(prices))
 		for i, p := range prices {
 			if arr, ok := p.([]interface{}); ok && len(arr) > 1 {
@@ -343,7 +343,7 @@ func fetchOHLC(coinID string, days int, apiKey string) []float64 {
 		}
 		return result
 	}
-	// DEBUG: no prices in response for %s, data=%v")
+
 	return nil
 }
 

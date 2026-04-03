@@ -5,7 +5,7 @@
 # ============================================================
 # Canonical Versions — single source of truth: VERSION file
 # ============================================================
-OPENRIOT_VERSION = $(shell cat VERSION 2>/dev/null || echo "0.7")
+OPENRIOT_VERSION = $(shell cat VERSION 2>/dev/null || echo "0.8")
 OPENBSD_VERSION  = 7.9
 
 # ============================================================
@@ -45,8 +45,7 @@ build:
 		go build \
 		-ldflags="$(LDFLAGS)" \
 		-trimpath \
-		-o $(BINARY_NAME) .
-	@mv $(SOURCE_DIR)/$(BINARY_NAME) $(INSTALL_DIR)/$(BINARY_NAME)
+		-o ../$(INSTALL_DIR)/$(BINARY_NAME) .
 	@chmod 0755 $(INSTALL_DIR)/$(BINARY_NAME)
 	@echo "=== Build complete: $(INSTALL_DIR)/$(BINARY_NAME) ==="
 
@@ -56,8 +55,7 @@ dev:
 	@cd $(SOURCE_DIR) && \
 		go build \
 		-ldflags="-X main.version=$(OPENRIOT_VERSION) -X main.openbsdVersion=$(OPENBSD_VERSION)" \
-		-o $(BINARY_NAME) .
-	@mv $(SOURCE_DIR)/$(BINARY_NAME) $(INSTALL_DIR)/$(BINARY_NAME)
+		-o ../$(INSTALL_DIR)/$(BINARY_NAME) .
 	@chmod 0755 $(INSTALL_DIR)/$(BINARY_NAME)
 	@echo "=== Dev build complete: $(INSTALL_DIR)/$(BINARY_NAME) ==="
 
@@ -73,8 +71,7 @@ ultra:
 		go build \
 		-ldflags="$(LDFLAGS) -extldflags '-static'" \
 		-trimpath \
-		-o $(BINARY_NAME) .
-	@mv $(SOURCE_DIR)/$(BINARY_NAME) $(INSTALL_DIR)/$(BINARY_NAME)
+		-o ../$(INSTALL_DIR)/$(BINARY_NAME) .
 	@chmod 0755 $(INSTALL_DIR)/$(BINARY_NAME)
 	@if command -v upx > /dev/null 2>&1; then \
 		echo "Compressing with UPX..."; \
@@ -114,10 +111,9 @@ test:
 	@cd $(SOURCE_DIR) && go test ./...
 
 # Build then smoke-test the binary (uses Linux build for local testing)
-verify: build
+verify: dev
 	@echo "=== Verifying build ==="
-	@cd $(SOURCE_DIR) && go build -ldflags="$(LDFLAGS)" -trimpath -o $(BINARY_NAME) .
-	@$(SOURCE_DIR)/$(BINARY_NAME) --version
+	@$(INSTALL_DIR)/$(BINARY_NAME) --version
 	@echo "=== Binary OK ==="
 
 # Remove build artifacts (keep downloaded ISO and package cache)

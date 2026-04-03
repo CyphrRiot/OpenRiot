@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-0.6-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-0.8-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![Sway](https://img.shields.io/badge/Sway-Wayland-312e81?logo=wayland&logoColor=a855f7&labelColor=1e1b4b)
@@ -328,7 +328,6 @@ OpenRiot uses **Sway** (i3-compatible Wayland compositor). Keybindings mirror Ar
 | `Super + L`           | Lock Screen              |
 | `Super + 1-6`         | Switch Workspace         |
 | `Super + Shift + 1-6` | Move Window to Workspace |
-| `Super + Shift + L`   | Lock Screen              |
 | `Print`               | Screenshot (region)      |
 | `Super + Shift + H`   | Keybindings Help         |
 

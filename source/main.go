@@ -377,39 +377,3 @@ set -gx OPENROUTER_BASE_URL "https://openrouter.ai/api/v1"
 
 	logger.LogMessage("SUCCESS", "OpenRouter API key saved to fish config")
 }
-
-// setupFishShell sets Fish as the default shell
-func setupFishShell() error {
-	usr, err := user.Current()
-	if err != nil {
-		return fmt.Errorf("failed to get current user: %w", err)
-	}
-
-	fishPath := "/usr/local/bin/fish"
-
-	if _, err := os.Stat(fishPath); os.IsNotExist(err) {
-		return fmt.Errorf("fish not found at %s", fishPath)
-	}
-
-	shellsContent, err := os.ReadFile("/etc/shells")
-	if err != nil {
-		logger.LogMessage("INFO", "Could not check /etc/shells (may need root)")
-	} else {
-		if !strings.Contains(string(shellsContent), fishPath) {
-			f, err := os.OpenFile("/etc/shells", os.O_APPEND|os.O_WRONLY, 0644)
-			if err != nil {
-				logger.LogMessage("WARN", "Could not add fish to /etc/shells (may need root)")
-			} else {
-				defer f.Close()
-				f.WriteString(fishPath + "\n")
-			}
-		}
-	}
-
-	cmd := exec.Command("chsh", "-s", fishPath, usr.Username)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		logger.LogMessage("WARN", "Could not set fish as default shell (may need root): "+string(output))
-	}
-
-	return nil
-}
