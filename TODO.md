@@ -1,5 +1,8 @@
 # OpenRiot — Project TODO & Progress
 
+> **⚠️ NOTE:** All 24 bugs from Prompt.md have been fixed (April 2026).
+> Prompt.md can be removed once the ISO is tested on real hardware.
+
 > **OpenRiot** transforms a fresh OpenBSD installation into a fully-configured Sway desktop — in one command.
 > It is the OpenBSD counterpart to [ArchRiot](https://archriot.org).
 
@@ -89,9 +92,12 @@ LAYER 2: Go Installer (openriot binary)
   Entry point: source/main.go
   Triggered by: openriot --install (called from .profile on first login)
 
-LAYER 3: First Boot (install/setup.sh)
-  Shell script for users who already have OpenBSD installed (no ISO).
-  Usage: curl -fsSL https://openriot.org/setup.sh | sh
+LAYER 3: First Boot (setup.sh)
+  Minimal bootstrap script. Detects offline (ISO) vs online (curl) mode.
+  Handles: package installation (online only), doas config, fish shell.
+  Hands off to openriot --install for config deployment (via packages.yaml).
+  Usage (online): curl -fsSL https://openriot.org/setup.sh | sh
+  Usage (ISO): runs automatically on first login via .profile hook
 ```
 
 ### Install Flow (ISO path)
@@ -159,7 +165,7 @@ ARCH             = amd64
 | `autoinstall/install.conf`          | Autoinstall answers for OpenBSD installer                    |
 | `autoinstall/install.site`          | Post-install script (runs from site79.tgz)                   |
 | `install/packages.yaml`             | **Source of truth** for all packages, configs, commands      |
-| `install/setup.sh`                  | Curl-pipe bootstrap for existing OpenBSD installs            |
+| `setup.sh`                          | Curl-pipe bootstrap for existing OpenBSD installs            |
 | `source/main.go`                    | Go binary entry point, all CLI flags                         |
 | `source/audio/volume.go`            | `--volume` via sndioctl                                      |
 | `source/display/display.go`         | `--brightness` via wsconsctl                                 |
@@ -290,7 +296,7 @@ curl wget unzip xz ninja meson
 | 2.12    | custom/lock                    | `ModulesCustom`                                                              | hyprlock → swaylock -f                                |
 | 2.12    | custom/arch                    | `ModulesCustom`                                                              | 󰀻 icon, nwg-drawer → fuzzel                           |
 | 2.12    | custom/battery                 | `ModulesCustom`, `waybar/config`                                             | Built-in battery → custom/battery via apm             |
-| 2.10.4a | swaylock: time/date/user       | `config/sway/swaylock-wrapper.py`                                            | Python + PIL, works on OpenBSD                        |
+| 2.10.4a | swaylock: time/date/user       | `config/bin/openriot-lock.sh`                                                | ImageMagick-based, works on OpenBSD                   |
 | —       | Sway config                    | `config/sway/config`                                                         | Ported from ArchRiot                                  |
 | —       | Waybar config                  | `config/waybar/config`                                                       | All modules OpenBSD-native                            |
 | —       | Fish config                    | `config/fish/`                                                               | Ported from ArchRiot                                  |
@@ -299,7 +305,12 @@ curl wget unzip xz ninja meson
 | —       | Fuzzel config                  | `config/fuzzel/fuzzel.ini`                                                   | Tokyo Night theme                                     |
 | —       | Mako config                    | `config/mako/`                                                               | Notification daemon                                   |
 | —       | Backgrounds                    | `backgrounds/`                                                               | 16 CypherRiot wallpapers                              |
-| 3.1     | setup.sh exists                | `install/setup.sh`                                                           | Has bugs — see 3.1 below                              |
+| 3.1     | setup.sh                       | `setup.sh`                                                                   | ✅ ArchRiot-style, all bugs fixed — see STEP 3        |
+
+| — | foot config deployed | `packages.yaml: pattern: foot/*` | ✅ Added |
+| — | fuzzel config deployed | `packages.yaml: pattern: fuzzel/*` | ✅ Added |
+| — | mako config deployed | `packages.yaml: pattern: mako/*` | ✅ Added |
+| — | firmware update | `packages.yaml: fw_update -a` | ✅ Added |
 
 ---
 
@@ -342,9 +353,9 @@ Before doing anything else, verify the binary builds cleanly after all recent ch
 
 ---
 
-### STEP 3 — Fix setup.sh Bugs 🟠 P1
+### STEP 3 — Fix setup.sh Bugs 🟠 P1 ✅ COMPLETED
 
-**File:** `install/setup.sh`
+**File:** `setup.sh`
 **Context:** setup.sh exists but has known bugs.
 
 - [x] **3.1** Fix version check: change `OPENBSD_MIN_VERSION=7.8` → `OPENBSD_MIN_VERSION=7.9`
@@ -363,12 +374,18 @@ Before doing anything else, verify the binary builds cleanly after all recent ch
     ```
 - [x] **3.4** Fix `.profile` hook in `install.site` — currently always curls from network even in offline mode. Change to:
     ```sh
-    if [ -f "$HOME/.local/share/openriot/install/setup.sh" ]; then
-        sh "$HOME/.local/share/openriot/install/setup.sh"
+    if [ -f "$HOME/.local/share/openriot/setup.sh" ]; then
+        sh "$HOME/.local/share/openriot/setup.sh"
     else
         curl -fsSL https://openriot.org/setup.sh | sh
     fi
     ```
+- [x] **3.5** Restructure setup.sh to ArchRiot-style (May 2025):
+    - Removed ALL manual cp commands (sway, fish, backgrounds, bin, fonts)
+    - setup.sh now minimal bootstrap: detects offline/online, runs openriot --install
+    - openriot --install handles ALL config deployment via packages.yaml
+    - wlsunset build moved to packages.yaml source.builds section
+    - Binary called with exec (replaces process)
 
 ---
 
@@ -631,7 +648,7 @@ ArchRiot shows: Lock / Suspend / Reboot / Shutdown / Logout.
 
 - [ ] **14.1** Build final release binary: `make build`
 - [ ] **14.2** Host `openriot` binary at `https://openriot.org/bin/openriot` (OpenBSD amd64)
-- [ ] **14.3** Host `install/setup.sh` at `https://openriot.org/setup.sh`
+- [ ] **14.3** Host `setup.sh` at `https://openriot.org/setup.sh`
 - [ ] **14.4** Host `VERSION` file at `https://openriot.org/VERSION` (for update check)
     - **NOTE:** `openriot-update.sh` currently checks GitHub raw URL — update it to point to `https://openriot.org/VERSION` once hosted
 - [ ] **14.5** Verify TLS is working on `openriot.org`
@@ -743,7 +760,7 @@ openriot --suspend
 2. **wofi → fuzzel (full replacement — COMPLETE):**
     - `install/packages.yaml` — wofi replaced with fuzzel in desktop.sway
     - `autoinstall/install.site` — wofi → fuzzel in PKGS
-    - `install/setup.sh` — wofi → fuzzel in pkg_add call
+    - `setup.sh` — wofi → fuzzel in pkg_add call
     - `config/waybar/scripts/wifi-selector.sh` — wofi → fuzzel in dmenu calls
     - `README.md` — keybinding table updated
 
@@ -753,6 +770,67 @@ openriot --suspend
     - `config/waybar/scripts/waybar-memory.sh`
     - `config/waybar/scripts/waybar-volume.sh`
     - `config/waybar/scripts/waybar-battery.sh`
+
+---
+
+## What Was Done This Session (May 2025)
+
+### All 24 Bugs from Prompt.md FIXED ✅
+
+1. **BUG 1** — Makefile fallback version: 0.6 → 0.7
+2. **BUG 2** — packages.yaml header: 7.8 → 7.9
+3. **BUG 3** — packages.yaml: Added btop, slurp, wl-clipboard, playerctl, gnome-text-editor, desktop.media section
+4. **BUG 4** — setup.sh: Fixed bare relative paths for fish configs
+5. **BUG 5** — setup.sh: Replaced dead swaylock refs with openriot-lock.sh; Added config/bin/ and fonts deployment
+6. **BUG 6** — setup.sh: Added openriot binary invocation with Offline/Online distinction
+7. **BUG 7** — main.go: Fixed repoDir to use ~/.local/share/openriot with execPath fallback
+8. **BUG 8** — monitors.conf: Removed Hyprland env= syntax
+9. **BUG 9** — sway/config: Fixed exec_always if/then to sh -c wrapper
+10. **BUG 10** — sway/config: Added exec swaybg for wallpaper
+11. **BUG 11** — sway/config: Added resume for brightness restore after dim
+12. **BUG 12** — swaylock %% format: Reverted — was working on OpenBSD
+13. **BUG 13** — keybindings.conf: Ghostty → foot --app-id=floating_foot
+14. **BUG 14-17** — Already fixed by BUG 3 (packages added)
+15. **BUG 18** — openriot-welcome.sh: Hardcoded v0.4 → dynamic VERSION
+16. **BUG 19** — openriot-welcome.py: Hardcoded v0.4 → dynamic VERSION
+17. **BUG 20** — openriot-version-check: /proc/PID → os.kill(pid, 0) for OpenBSD
+18. **BUG 21** — ModulesWorkspaces: All Hyprland → Sway conversion (single clean default)
+19. **BUG 22** — Modules: gnome-system-monitor → foot -e btop (3 places)
+20. **BUG 23** — install.site: Removed misleading curl instruction
+21. **BUG 24** — TODO.md: Fixed all install/setup.sh → setup.sh references
+
+### Architecture Restructured (ArchRiot-style) ✅
+
+- **setup.sh**: Now minimal bootstrap only
+    - Removed ALL manual cp commands (sway, fish, backgrounds, bin, fonts)
+    - Detects offline (ISO) vs online (curl) mode
+    - Runs openriot --install via exec (replaces process)
+    - wlsunset build removed (now in packages.yaml source.builds)
+
+- **openriot --install**: Handles ALL config deployment via packages.yaml
+    - CopyConfigs reads packages.yaml patterns
+    - Deploys sway/_, waybar/_, fish/_, foot/_, fuzzel/_, mako/_, backgrounds/_, bin/_, fonts/_, btop/themes/_
+
+### New Config Patterns Added to packages.yaml ✅
+
+- `pattern: foot/*`
+- `pattern: fuzzel/*`
+- `pattern: mako/*`
+- `pattern: bin/*` (already existed, confirmed)
+
+### Other Fixes ✅
+
+- **fw_update -a**: Added to packages.yaml system.tools.commands
+- **ModulesWorkspaces**: Replaced with clean single sway/workspaces default with running-app icons
+- **Brightness resume**: Added to swayidle after dim timeout
+- **openriot-lock.sh**: Fixed to deploy to ~/.local/share/openriot/config/bin/ (not ~/.config/sway/)
+
+### Build Verification ✅
+
+- `make dev`: Linux native build passes
+- `make verify`: Cross-compile passes
+- `./install/openriot --version`: Reports 0.7
+- `./install/openriot --crypto ROWML`: Crypto output correct
 
 ---
 

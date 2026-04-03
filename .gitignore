@@ -10,6 +10,7 @@ config/omarchy/user.env
 
 # NEVER commit .work
 .work/
+.work
 
 # Temporary files
 *.tmp

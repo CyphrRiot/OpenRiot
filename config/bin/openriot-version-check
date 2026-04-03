@@ -4,20 +4,22 @@ OpenRiot Version Check - Handles update notifications and upgrade flow
 OpenBSD compatible - uses swaymsg for dispatch, foot terminal
 """
 
-import os
-import sys
 import json
+import os
 import subprocess
-import urllib.request
+import sys
 import urllib.error
+import urllib.request
 from datetime import datetime
 
 # Try to import GTK (may not be available on all systems)
 try:
     import gi
+
     gi.require_version("Gtk", "3.0")
     gi.require_version("Gdk", "3.0")
-    from gi.repository import Gtk, Gdk, GLib
+    from gi.repository import Gdk, GLib, Gtk
+
     GTK_AVAILABLE = True
 except ImportError:
     GTK_AVAILABLE = False
@@ -58,7 +60,7 @@ def get_remote_version():
     try:
         req = urllib.request.Request(
             "https://openriot.org/VERSION",
-            headers={"User-Agent": "OpenRiot-VersionCheck/1.0"}
+            headers={"User-Agent": "OpenRiot-VersionCheck/1.0"},
         )
         with urllib.request.urlopen(req, timeout=10) as resp:
             return resp.read().decode("utf-8").strip()
@@ -99,10 +101,13 @@ def create_lock_file():
             try:
                 with open(LOCK_FILE, "r") as f:
                     old_pid = f.read().strip()
-                if old_pid.isdigit() and not os.path.exists(f"/proc/{old_pid}"):
-                    os.remove(LOCK_FILE)
-                else:
-                    return False
+                if old_pid.isdigit():
+                    try:
+                        os.kill(int(old_pid), 0)  # Signal 0 checks if process exists
+                    except (OSError, ProcessLookupError):
+                        os.remove(LOCK_FILE)  # Process dead, remove stale lock
+                    else:
+                        return False  # Process still running
             except (ValueError, OSError):
                 os.remove(LOCK_FILE)
 
@@ -136,7 +141,7 @@ def launch_upgrade_terminal():
             ["swaymsg", "exec", terminal_cmd],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
         )
 
         if result.returncode == 0:
@@ -145,11 +150,15 @@ def launch_upgrade_terminal():
         else:
             log_msg(f"swaymsg dispatch failed: {result.stderr}", "ERROR")
             # Fallback: try direct execution
-            subprocess.Popen(["foot", "-e", "sh", "-c", f"cd $HOME && {update_command} && read"])
+            subprocess.Popen(
+                ["foot", "-e", "sh", "-c", f"cd $HOME && {update_command} && read"]
+            )
             return True
     except FileNotFoundError:
         log_msg("swaymsg not found, trying direct terminal launch", "WARNING")
-        subprocess.Popen(["foot", "-e", "sh", "-c", f"cd $HOME && {update_command} && read"])
+        subprocess.Popen(
+            ["foot", "-e", "sh", "-c", f"cd $HOME && {update_command} && read"]
+        )
         return True
     except Exception as e:
         log_msg(f"Failed to launch terminal: {e}", "ERROR")
@@ -287,7 +296,9 @@ def main():
             # Clear state if up to date
             if os.path.exists(STATE_FILE):
                 os.remove(STATE_FILE)
-            print(f'{{"text":"-","tooltip":"OpenRiot up to date ({local_ver})","class":"update-none"}}')
+            print(
+                f'{{"text":"-","tooltip":"OpenRiot up to date ({local_ver})","class":"update-none"}}'
+            )
             sys.exit(0)
 
         # Check if user has seen this version
@@ -302,8 +313,15 @@ def main():
         if "--click" in sys.argv:
             if seen_ver == remote_ver:
                 # Already seen - just notify and exit
-                subprocess.Popen(["notify-send", "-t", "2000",
-                    "OpenRiot Up to Date", f"Version {local_ver} is the latest"])
+                subprocess.Popen(
+                    [
+                        "notify-send",
+                        "-t",
+                        "2000",
+                        "OpenRiot Up to Date",
+                        f"Version {local_ver} is the latest",
+                    ]
+                )
             else:
                 # Mark as seen
                 with open(STATE_FILE, "w") as f:
@@ -322,9 +340,13 @@ def main():
 
         # Output for waybar
         if seen_ver == remote_ver:
-            print(f'{{"text":"󰏖","tooltip":"OpenRiot update available (seen)\\nCurrent: {local_ver}\\nAvailable: {remote_ver}","class":"update-seen"}}')
+            print(
+                f'{{"text":"󰏖","tooltip":"OpenRiot update available (seen)\\nCurrent: {local_ver}\\nAvailable: {remote_ver}","class":"update-seen"}}'
+            )
         else:
-            print(f'{{"text":"󰚰","tooltip":"OpenRiot update available!\\nCurrent: {local_ver}\\nAvailable: {remote_ver}","class":"update-available"}}')
+            print(
+                f'{{"text":"󰚰","tooltip":"OpenRiot update available!\\nCurrent: {local_ver}\\nAvailable: {remote_ver}","class":"update-available"}}'
+            )
 
     finally:
         cleanup_lock_file()

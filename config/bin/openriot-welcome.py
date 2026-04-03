@@ -54,9 +54,17 @@ class WelcomeWindow:
         main_box.pack_start(title, False, False, 10)
 
         # Version
+        version_file = os.path.join(
+            os.path.expanduser("~"), ".local/share/openriot/VERSION"
+        )
+        version_str = (
+            open(version_file).read().strip() if os.path.exists(version_file) else "0.7"
+        )
         version = Gtk.Label()
         version.set_markup(
-            '<span size="14000" color="#a6adc8">v0.4 on OpenBSD 7.9</span>'
+            '<span size="14000" color="#a6adc8">v{} on OpenBSD 7.9</span>'.format(
+                version_str
+            )
         )
         version.set_halign(Gtk.Align.CENTER)
         main_box.pack_start(version, False, False, 0)

@@ -34,15 +34,14 @@ exec export XDG_SEAT=seat0
 # =============================================================================
 # AUTOSTART APPLICATIONS
 # =============================================================================
+exec swaybg -i "$HOME/.local/share/openriot/backgrounds/riot_01.jpg" -m fill
 exec mako
 exec $HOME/.local/share/openriot/config/bin/waybar-guard.sh
 exec wlsunset -t 3500
 exec $HOME/.local/share/openriot/config/bin/battery-monitor.sh
 
 # Welcome screen (runs once on first login)
-exec_always if [ ! -f "$HOME/.openriot-welcomed" ]; then
-    foot -e "$HOME/.local/share/openriot/config/bin/openriot-welcome.sh"
-fi
+exec_always sh -c 'if [ ! -f "$HOME/.openriot-welcomed" ]; then foot -e "$HOME/.local/share/openriot/config/bin/openriot-welcome.sh"; fi'
 
 # =============================================================================
 # IDLE MANAGEMENT (swayidle)
@@ -56,6 +55,7 @@ fi
 exec sh -c 'while true; do $HOME/.local/share/openriot/config/bin/openriot-lock.sh; sleep 1800; done &'
 exec swayidle -w \
     timeout 240 '$HOME/.config/sway/brightness-dim.sh dim' \
+    resume '$HOME/.config/sway/brightness-dim.sh restore' \
     timeout 300 'swaylock -f -i /tmp/swaylock-bg.png --clock --timestr "%%I:%%M %%p"' \
     timeout 600 'swaymsg output * dpms off' \
     resume 'swaymsg output * dpms on' \

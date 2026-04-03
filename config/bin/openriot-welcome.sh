@@ -12,7 +12,7 @@ cat << 'EOF'
      ╚██████╔╝██║     ███████╗██║ ╚███║██║  ██║██║╚██████╔╝   ██║
       ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚══╝╚═╝  ╚═╝╚═╝ ╚═════╝    ╚═╝
 
-    Welcome to OpenRiot v0.4 on OpenBSD 7.9
+    Welcome to OpenRiot v$(cat $HOME/.local/share/openriot/VERSION 2>/dev/null || echo "0.7") on OpenBSD 7.9
 
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
