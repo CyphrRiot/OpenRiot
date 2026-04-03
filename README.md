@@ -4,7 +4,7 @@
 
 # :: 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥 ::
 
-## One command. Complete Sway OpenBSD desktop. Zero compromises.
+## One command. Complete OpenBSD desktop. Zero compromises.
 
 ![Version](https://img.shields.io/badge/version-0.6-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)

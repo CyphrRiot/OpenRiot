@@ -33,6 +33,9 @@ core:
             - htop
             - tree
             - fd
+            - gnupg
+            - meson
+            - ninja
         configs:
             - pattern: fish/*
             - pattern: nvim/*
