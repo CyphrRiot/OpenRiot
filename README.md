@@ -138,6 +138,8 @@ For full compatibility, see [iwx(4)](https://man.openbsd.org/iwx.4), [urtwn(4)](
 
 <a id="uefibios-settings"></a>
 
+> "My favorite part of the 'many eyes' argument is how few bugs were found by the two eyes of Eric (the originator of the statement). All the many eyes are apparently attached to a lot of hands that type lots of words about many eyes, and never actually audit code." — Theo de Raadt
+
 ## ⚠️ UEFI/BIOS Settings
 
 There are several **UEFI/BIOS settings** you should verify or adjust before installing **OpenBSD**. These ensure the installer boots reliably, hardware is detected correctly, and post-install features like suspend/resume and WiFi work as expected.
@@ -151,8 +153,6 @@ Power on your machine and tap the appropriate key during boot (commonly **F1**, 
 ### Recommended UEFI/BIOS Settings
 
 The following settings are broadly applicable across modern laptops and desktops. Not all will be present on every system — locate the equivalents for your hardware.
-
-> "My favorite part of the 'many eyes' argument is how few bugs were found by the two eyes of Eric (the originator of the statement). All the many eyes are apparently attached to a lot of hands that type lots of words about many eyes, and never actually audit code." — Theo de Raadt
 
 | Category           | Setting                               | Recommended Value                  | Why It Matters for OpenBSD                                                                                                       |
 | ------------------ | ------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
@@ -491,6 +491,3 @@ MIT License — see [LICENSE](./LICENSE)
 ## 📋 Progress
 
 See [TODO.md](./TODO.md) for full project status, architecture, build plan, and TODO list.
-
-**OpenRiot** — A Functional OpenBSD desktop system  
-Created by [CyphrRiot](https://github.com/CyphrRiot)

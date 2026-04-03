@@ -218,7 +218,7 @@ deploy_configs() {
     mkdir -p "$HOME/.config/fish/functions"
     mkdir -p "$HOME/.local/share/openriot/config"
 
-    # Use local repo if available (offline), otherwise clone from git
+    # Use local repo if available (offline), otherwise clone/pull from git
     if [ "$OFFLINE_MODE" = "1" ]; then
         info "Using offline repo at $HOME/.local/share/openriot/"
         REPO_SOURCE="$HOME/.local/share/openriot"
@@ -234,33 +234,6 @@ deploy_configs() {
             git clone -b "$CONFIG_BRANCH" "$REPO_URL" .
         fi
         REPO_SOURCE="$HOME/.local/share/openriot"
-    fi
-
-    # Link Sway config
-    info "Deploying Sway configuration..."
-    if [ -d "$REPO_SOURCE/config/sway" ]; then
-        cp -f "$REPO_SOURCE/config/sway/config" "$HOME/.config/sway/config"
-        cp -f "$REPO_SOURCE/config/sway/keybindings.conf" "$HOME/.config/sway/keybindings.conf" 2>/dev/null || true
-        cp -f "$REPO_SOURCE/config/sway/monitors.conf" "$HOME/.config/sway/monitors.conf" 2>/dev/null || true
-        cp -f "$REPO_SOURCE/config/sway/windowrules.conf" "$HOME/.config/sway/windowrules.conf" 2>/dev/null || true
-        cp -f "$REPO_SOURCE/config/sway/swayidle.conf" "$HOME/.config/sway/swayidle.conf" 2>/dev/null || true
-        cp -f "$REPO_SOURCE/config/sway/swaylock.conf" "$HOME/.config/sway/swaylock.conf" 2>/dev/null || true
-        cp -f "$REPO_SOURCE/config/sway/swaylock-wrapper.sh" "$HOME/.config/sway/swaylock-wrapper.sh" 2>/dev/null || true
-        cp -f "$REPO_SOURCE/config/sway/swaylock-wrapper.py" "$HOME/.config/sway/swaylock-wrapper.py" 2>/dev/null || true
-    fi
-
-    # Link Fish config
-    info "Deploying Fish shell configuration..."
-    if [ -d "$REPO_SOURCE/config/fish" ]; then
-        cp -f "$REPO_SOURCE/config/fish/config.fish" "$HOME/.config/fish/config.fish"
-        cp -f config/fish/conf.d/* "$HOME/.config/fish/conf.d/" 2>/dev/null || true
-        cp -f config/fish/functions/* "$HOME/.config/fish/functions/" 2>/dev/null || true
-    fi
-
-    # Link backgrounds
-    if [ -d "$REPO_SOURCE/backgrounds" ]; then
-        mkdir -p "$HOME/.local/share/openriot/backgrounds"
-        cp -f "$REPO_SOURCE/backgrounds/"* "$HOME/.local/share/openriot/backgrounds/" 2>/dev/null || true
     fi
 
     success "Configuration files deployed"
@@ -335,10 +308,21 @@ main() {
     check_openbsd_version
     check_uid
     install_packages
-    build_wlsunset
     configure_doas
     deploy_configs
     set_fish_shell
+
+    # Invoke the openriot binary for TUI install (git config, OpenRouter, source builds)
+    # Handles config deployment via packages.yaml and source builds (wlsunset)
+    if [ -x "$REPO_SOURCE/install/openriot" ]; then
+        if [ "$OFFLINE_MODE" = "1" ]; then
+            info "Running OpenRiot TUI installer... (Offline)"
+        else
+            info "Running OpenRiot TUI installer... (Online)"
+        fi
+        exec "$REPO_SOURCE/install/openriot"
+    fi
+
     prompt_start_sway
 
     echo ""
