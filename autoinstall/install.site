@@ -6,11 +6,8 @@
 set -e
 
 # ---- Config ----
-# These values are baked in at ISO build time from the Makefile.
-# To change them, update OPENRIOT_VERSION / OPENBSD_VERSION in Makefile
-# and rebuild the ISO — do NOT edit them here directly.
+# OPENBSD_VERSION is baked in at ISO build time.
 OPENBSD_VERSION="7.9"
-OPENRIOT_VERSION="0.4"
 PKG_PATH_ISO="/mnt/iso/openriot/packages/${OPENBSD_VERSION}/amd64"
 
 # ---- Logging ----
@@ -23,7 +20,7 @@ die() {
     exit 1
 }
 
-log "OpenRiot ${OPENRIOT_VERSION} post-install starting"
+log "OpenRiot post-install starting"
 log "Target: OpenBSD ${OPENBSD_VERSION}"
 echo ""
 
@@ -55,18 +52,19 @@ log "Step 2: Installing OpenRiot packages (offline)..."
 PKG_PATH="${PKG_PATH_ISO}"
 export PKG_PATH
 
-# All packages from install/packages.yaml (source of truth)
-# core.base
-PKGS="git rsync bc-gh python fastfetch"
-# core.shell
-PKGS="$PKGS fish neovim foot fzf ripgrep htop tree fd"
-# desktop.sway
-PKGS="$PKGS sway waybar fuzzel swaylock swayidle swaybg grim"
-# desktop.apps
-PKGS="$PKGS thunar thunar-archive firefox flare-messenger tdesktop"
-# system.tools
-PKGS="$PKGS curl wget unzip xz ninja meson"
+# Parse packages from /etc/openriot/packages.yaml (source of truth)
+# Same awk parser logic as download-packages.sh
+PKGS=$(awk '
+/^[[:space:]]+packages:/ { in_pkg=1; next }
+/^[[:space:]]+[a-z]+:/ { in_pkg=0 }
+/^[[:space:]]+-[[:space:]]/ && in_pkg {
+    sub(/^[[:space:]]*-[[:space:]]+/, ""); sub(/#.*/, ""); gsub(/"/, "");
+    sub(/[[:space:]]+$/, "");
+    if ($1 ~ /^[a-zA-Z][a-zA-Z0-9_-]*$/) printf "%s ", $1
+}
+' /etc/openriot/packages.yaml)
 
+log "Parsed packages from packages.yaml"
 log "Installing: $PKGS"
 echo ""
 
@@ -95,10 +93,7 @@ if [ -f /etc/openriot/repo.tar.gz ]; then
     for homedir in /home/*; do
         [ -d "$homedir/.local/share" ] || mkdir -p "$homedir/.local/share"
         tar xzf /etc/openriot/repo.tar.gz -C "$homedir/.local/share/" 2>/dev/null && {
-            # Rename the extracted directory from openriot-HEAD/ to openriot/
-            if [ -d "$homedir/.local/share/openriot-HEAD" ]; then
-                mv "$homedir/.local/share/openriot-HEAD" "$homedir/.local/share/openriot"
-            fi
+
             log "Repo extracted to $homedir/.local/share/openriot/"
         } || log "WARNING: could not extract repo for $homedir"
     done
