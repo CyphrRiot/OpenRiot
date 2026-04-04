@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Foot Terminal
+GenericName=Terminal
+Comment=Fast, lightweight Wayland terminal emulator
+Icon=foot
+Exec=foot
+Terminal=false
+Type=Application
+Categories=System;TerminalEmulator;
+Keywords=terminal;console;wayland;

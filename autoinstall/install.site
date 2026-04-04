@@ -1,14 +1,16 @@
 #!/bin/sh
 # OpenRiot post-install script
 # Runs automatically after base OpenBSD install via site79.tgz
-# Mounts install CD for offline packages, installs OpenRiot desktop
+# Uses openriot.tgz bundled on the ISO for offline package installation
 
 set -e
 
 # ---- Config ----
 # OPENBSD_VERSION is baked in at ISO build time.
 OPENBSD_VERSION="7.9"
-PKG_PATH_ISO="/mnt/iso/openriot/packages/${OPENBSD_VERSION}/amd64"
+
+# Packages from openriot.tgz (extracted to / by OpenBSD installer)
+PKG_PATH_LOCAL="/openriot/packages/${OPENBSD_VERSION}/amd64"
 
 # ---- Logging ----
 log() {
@@ -25,35 +27,47 @@ log "Target: OpenBSD ${OPENBSD_VERSION}"
 echo ""
 
 # ============================================================
-# STEP 1: Mount install CD for offline packages
+# STEP 1: Extract openriot.tgz if present (bundled on ISO)
 # ============================================================
-log "Step 1: Mounting install CD..."
+log "Step 1: Extracting openriot.tgz for offline packages..."
 
-mkdir -p /mnt/iso
-
-if mount -t cd9660 /dev/cd0a /mnt/iso; then
-    log "CD mounted at /mnt/iso"
+if [ -f /openriot.tgz ]; then
+    log "Found openriot.tgz — extracting to /"
+    tar xzf /openriot.tgz -C /
+    log "openriot.tgz extracted successfully"
 else
-    die "Failed to mount CD at /dev/cd0a — offline packages unavailable"
+    log "WARNING: openriot.tgz not found at /openriot.tgz"
 fi
-
-if [ ! -d "$PKG_PATH_ISO" ]; then
-    umount /mnt/iso
-    die "Package directory not found on CD: $PKG_PATH_ISO"
-fi
-
-log "Package path: $PKG_PATH_ISO"
 
 # ============================================================
-# STEP 2: Install packages from offline CD
+# STEP 2: Install packages from local openriot packages
 # ============================================================
 log "Step 2: Installing OpenRiot packages (offline)..."
 
-PKG_PATH="${PKG_PATH_ISO}"
+# Verify packages are available locally
+if [ ! -d "$PKG_PATH_LOCAL" ]; then
+    die "Package directory not found: $PKG_PATH_LOCAL"
+fi
+
+# Check for packages
+PKG_COUNT=$(find "$PKG_PATH_LOCAL" -maxdepth 1 -name '*.tgz' 2>/dev/null | wc -l | tr -d ' ')
+if [ "$PKG_COUNT" -eq 0 ]; then
+    die "No packages found in $PKG_PATH_LOCAL"
+fi
+log "Found $PKG_COUNT packages"
+
+# Use PKG_PATH for local installation (no network needed)
+PKG_PATH="${PKG_PATH_LOCAL}"
 export PKG_PATH
+PKG_SIGNED=no
+export PKG_SIGNED
+
+# Keep installurl for post-reboot online updates
+# This is used when running openriot --install after first boot
+echo "http://cdn.openbsd.org/pub/OpenBSD" > /etc/installurl
+log "installurl configured for online updates"
 
 # Parse packages from /etc/openriot/packages.yaml (source of truth)
-# Same awk parser logic as download-packages.sh
 PKGS=$(awk '
 /^[[:space:]]+packages:/ { in_pkg=1; next }
 /^[[:space:]]+[a-z]+:/ { in_pkg=0 }
@@ -75,25 +89,16 @@ echo ""
 log "Package installation complete"
 
 # ============================================================
-# STEP 3: Unmount CD
+# STEP 3: Extract offline repo and prepare openriot
 # ============================================================
-log "Step 3: Unmounting install CD..."
-
-umount /mnt/iso
-log "CD unmounted"
-
-# ============================================================
-# STEP 4: Extract offline repo and prepare openriot
-# ============================================================
-log "Step 4: Extracting offline OpenRiot repo..."
+log "Step 3: Extracting offline OpenRiot repo..."
 
 # /etc/openriot/repo.tar.gz is bundled in site79.tgz from the ISO build
 # Extract it to ~/.local/share/openriot/ so setup.sh can run offline
 if [ -f /etc/openriot/repo.tar.gz ]; then
     for homedir in /home/*; do
         [ -d "$homedir/.local/share" ] || mkdir -p "$homedir/.local/share"
-        tar xzf /etc/openriot/repo.tar.gz -C "$homedir/.local/share/" 2>/dev/null && {
-
+        tar xzf /etc/openriot/repo.tar.gz -C "$homedir/.local/share/" && {
             log "Repo extracted to $homedir/.local/share/openriot/"
         } || log "WARNING: could not extract repo for $homedir"
     done
@@ -118,9 +123,9 @@ else
 fi
 
 # ============================================================
-# STEP 5: Configure doas
+# STEP 4: Configure doas
 # ============================================================
-log "Step 5: Configuring doas..."
+log "Step 4: Configuring doas..."
 
 cat > /etc/doas.conf << 'EOF'
 # OpenRiot doas configuration
@@ -132,9 +137,9 @@ chmod 0440 /etc/doas.conf
 log "doas configured: permit persist :wheel"
 
 # ============================================================
-# STEP 6: Enable essential rc.d services
+# STEP 5: Enable essential rc.d services
 # ============================================================
-log "Step 6: Enabling system services..."
+log "Step 5: Enabling system services..."
 
 # Power management
 rcctl enable apmd
@@ -146,9 +151,9 @@ rcctl enable sndiod
 log "sndiod enabled (audio)"
 
 # ============================================================
-# STEP 7: Set fish as default shell for all users in /home
+# STEP 6: Set fish as default shell for all users in /home
 # ============================================================
-log "Step 7: Setting fish as default shell..."
+log "Step 6: Setting fish as default shell..."
 
 FISH_PATH="/usr/local/bin/fish"
 
@@ -172,9 +177,9 @@ else
 fi
 
 # ============================================================
-# STEP 8: Add .profile hook for openriot on first login
+# STEP 7: Add .profile hook for openriot on first login
 # ============================================================
-log "Step 8: Adding first-boot openriot hook..."
+log "Step 7: Adding first-boot openriot hook..."
 
 for homedir in /home/*; do
     [ -d "$homedir" ] || continue

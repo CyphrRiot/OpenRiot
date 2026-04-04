@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Telegram Desktop
+GenericName=Telegram Messenger
+Comment=Official desktop client for Telegram messenger
+Icon=tdesktop
+Exec=tdesktop
+Terminal=false
+Type=Application
+Categories=Network;InstantMessaging;
+Keywords=telegram;messenger;chat;

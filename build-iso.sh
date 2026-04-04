@@ -177,6 +177,13 @@ get_sha256() {
     grep "^SHA256 (${ISO_NAME}) = " "$DL_DIR/SHA256" 2>/dev/null | sed 's/.*= *//' | tr -d ' \n'
 }
 
+# Get SHA256.sig (GnuPG signature for secure verification)
+get_sha256_sig() {
+    local base_url="$1"
+    local sig_url="${base_url}/SHA256.sig"
+    curl -fsSL -o "$DL_DIR/SHA256.sig" "$sig_url" 2>/dev/null || return 1
+}
+
 # Try released version SHA256 first
 info "Checking for released version SHA256..."
 RELEASE_BASE="$MIRROR/${OPENBSD_VERSION}/${ARCH}"
@@ -193,6 +200,17 @@ fi
 
 if [ -z "$EXPECTED" ]; then
     die "Could not find SHA256 for $ISO_NAME"
+fi
+
+# Download SHA256.sig for secure install verification
+info "Downloading SHA256.sig..."
+if ! get_sha256_sig "$RELEASE_BASE" 2>/dev/null; then
+    get_sha256_sig "$SNAPSHOT_BASE" 2>/dev/null || true
+fi
+if [ -f "$DL_DIR/SHA256.sig" ]; then
+    info "SHA256.sig downloaded successfully"
+else
+    info "WARNING: SHA256.sig not available — continuing without signature verification"
 fi
 
 info "Computing SHA256 of downloaded ISO..."
@@ -318,6 +336,32 @@ rm -rf "$TMPSITE"
 info "site79.tgz ready"
 
 # ============================================================
+# STEP 4b: Create openriot.tgz with all offline packages
+# ============================================================
+log "Step 4b: Creating openriot.tgz with offline packages"
+
+OPENRIOT_TGZ="$WORK/openriot.tgz"
+rm -f "$OPENRIOT_TGZ"
+
+# Create openriot packages directory structure
+PKG_STAGING="$WORK/pkg_staging"
+rm -rf "$PKG_STAGING"
+mkdir -p "$PKG_STAGING/openriot/packages/${OPENBSD_VERSION}/${ARCH}"
+
+# Copy all packages and index
+info "Copying $PKG_COUNT packages to staging..."
+cp "$PKG_CACHE"/*.tgz "$PKG_STAGING/openriot/packages/${OPENBSD_VERSION}/${ARCH}/"
+cp "$PKG_CACHE/index.txt" "$PKG_STAGING/openriot/packages/${OPENBSD_VERSION}/${ARCH}/"
+
+info "Creating openriot.tgz..."
+(cd "$PKG_STAGING" && tar czf "$OPENRIOT_TGZ" .)
+info "openriot.tgz created ($(du -h "$OPENRIOT_TGZ" | cut -f1))"
+
+rm -rf "$PKG_STAGING"
+
+# openriot.tgz will be copied to ISO in Step 7
+
+# ============================================================
 # STEP 5: Inject install.conf into ISO contents
 # ============================================================
 log "Step 5: Injecting install.conf"
@@ -338,10 +382,19 @@ else
 fi
 
 # ============================================================
-# STEP 7: Copy offline packages into ISO contents
+# STEP 7: Copy openriot.tgz and packages into ISO
 # ============================================================
-log "Step 7: Copying offline packages into ISO"
+log "Step 7: Copying openriot.tgz and packages into ISO"
 
+# Copy openriot.tgz to root of ISO for offline install
+if [ -f "$OPENRIOT_TGZ" ]; then
+    cp "$OPENRIOT_TGZ" "$ISO_CONTENTS/openriot.tgz"
+    info "openriot.tgz injected at ISO root ($(du -h "$OPENRIOT_TGZ" | cut -f1))"
+else
+    info "WARNING: openriot.tgz not found — skipping"
+fi
+
+# Also copy packages to openriot/packages/ on ISO (for reference/compatibility)
 PKG_ISO_DIR="$ISO_CONTENTS/$PKG_DEST"
 mkdir -p "$PKG_ISO_DIR"
 
