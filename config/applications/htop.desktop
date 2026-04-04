@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Htop System Monitor
+GenericName=System Monitor
+Comment=Interactive process viewer and system monitor
+Icon=utilities-system-monitor
+Exec=foot -e htop
+Terminal=false
+Type=Application
+Categories=System;Monitor;
+Keywords=system;monitor;process;htop;
