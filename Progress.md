@@ -873,6 +873,47 @@ openriot --suspend
 
 ---
 
+## What Was Done in Last Session (May 2025)
+
+1. **ISO Builder Overhaul — Fully Offline Install:**
+    - **build-iso.sh**: Major restructuring
+        - Removed bsd.rd injection (Step 3.5) — fuse2fs doesn't work on Linux, requires OpenBSD + rdsetroot
+        - Added SHA256 regeneration after modifying sets (Step 7)
+        - Removed game79.tgz and xserv79.tgz from ISO (~90MB savings)
+        - Kept xbase79.tgz (X11 libs needed for Xwayland/Sway)
+        - site79.tgz now includes openriot.tgz (Step 4c)
+        - Virtual disk: 5GB (test-iso.sh), partitions: 2GB root, 1GB swap, home \*
+
+    - **autoinstall/install.conf**: Updated for offline/interactive install
+        - `Location of sets = cd0` (offline, no HTTP)
+        - `Is the site79.tgz set part of the above list? = yes`
+        - `Skip firmware update = yes`
+        - `Do you expect to run the X Window System? = no`
+
+    - **autoinstall/install.site**: Critical bug fixes
+        - `/etc/openriot/VERSION` now correctly set to OpenBSD version (7.9), not OpenRiot version (0.9)
+        - Removed `die` calls — package installation failures are now non-fatal warnings
+        - repo.tar.gz extraction improved with better directory creation
+
+    - **autopartitionning.template**: Updated for 5GB disk
+        - `/ 2G`, `swap 1G`, `/home *`
+
+2. **README.md**: Added Method 3: Interactive Install
+    - Cleaned up Method 2 to reference Method 3
+    - Step-by-step interactive install instructions with partition layout
+
+3. **Test Infrastructure:**
+    - `test-iso.sh`: Creates 5GB qcow2 in ~/.cache/, boots ISO in QEMU for install testing
+    - `test-image.sh`: Boots installed system from ~/.cache/openriot-test.qcow2
+    - `.gitignore`: Updated to ignore _.qcow2, .work/, isos/_.iso
+
+4. **Key Limitation — Autoinstall doesn't work on Linux builds:**
+    - OpenBSD's autoinstall requires `auto_install.conf` embedded in bsd.rd
+    - This requires `rdsetroot` tool (OpenBSD only) or `fuse2fs` (not available)
+    - Workaround: Use interactive install (`i`) — all defaults pre-filled except site79.tgz selection
+
+---
+
 ## What Was Done in Last Session (April 2025)
 
 1. **Waybar module audit and cleanup (Step 2.12 — COMPLETE):**
