@@ -63,6 +63,7 @@ desktop:
             - slurp
             - wl-clipboard
             - ImageMagick
+            - wf-recorder
         configs:
             - pattern: sway/*
             - pattern: waybar/*
@@ -71,11 +72,13 @@ desktop:
             - pattern: fonts/*
             - pattern: foot/*
             - pattern: fuzzel/*
-            - pattern: mako/*
+            - pattern: applications/*
         commands:
             - "mkdir -p ~/.config/sway"
             - "mkdir -p ~/.config/waybar"
             - "mkdir -p ~/.local/share/openriot/backgrounds"
+            - "mkdir -p ~/.local/share/applications"
+            - "cp $HOME/.local/share/openriot/config/applications/*.desktop ~/.local/share/applications/ 2>/dev/null || true"
             - "mkdir -p ~/.local/share/fonts && cp $HOME/.local/share/openriot/config/fonts/PaperMono-Regular.ttf ~/.local/share/fonts/ 2>/dev/null || true"
         depends: [core.base]
         start: "Installing Sway desktop"
@@ -85,14 +88,12 @@ desktop:
 
     apps:
         packages:
-            - thunar
-            - thunar-archive
             - firefox
             - flare-messenger
             - tdesktop
             - gnome-text-editor
+            - lf
         configs:
-            - pattern: Thunar/*
             - pattern: gtk-3.0/*
             - pattern: gtk-4.0/*
         depends: [core.base, desktop.sway]

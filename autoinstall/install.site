@@ -124,12 +124,12 @@ log "Step 5: Configuring doas..."
 
 cat > /etc/doas.conf << 'EOF'
 # OpenRiot doas configuration
-# Allow wheel group to run commands as root without password
-permit nopass :wheel
+# Allow wheel group to run commands as root with password persistence
+permit persist :wheel
 EOF
 
 chmod 0440 /etc/doas.conf
-log "doas configured: permit nopass :wheel"
+log "doas configured: permit persist :wheel"
 
 # ============================================================
 # STEP 6: Enable essential rc.d services

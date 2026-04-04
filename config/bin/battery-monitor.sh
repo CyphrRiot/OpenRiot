@@ -1,6 +1,6 @@
 #!/bin/sh
 # OpenRiot - Battery Monitor
-# Sends mako notifications at 20% and 10% thresholds
+# Sends waybar notifications at 20% and 10% thresholds via openriot --notify
 
 NOTIFIED_20=0
 NOTIFIED_10=0
@@ -11,11 +11,11 @@ while true; do
 
     if [ "$ac" = "0" ]; then
         if [ "$percent" -le 10 ] && [ "$NOTIFIED_10" = "0" ]; then
-            notify-send -u critical "Battery Critical" "${percent}% — plug in now"
+            openriot --notify "Battery Critical" "${percent}% — plug in now" --urgency critical
             NOTIFIED_10=1
             NOTIFIED_20=1
         elif [ "$percent" -le 20 ] && [ "$NOTIFIED_20" = "0" ]; then
-            notify-send -u normal "Battery Low" "${percent}% remaining"
+            openriot --notify "Battery Low" "${percent}% remaining"
             NOTIFIED_20=1
         fi
     else

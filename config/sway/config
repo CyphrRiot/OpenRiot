@@ -19,7 +19,7 @@ source ~/.config/sway/monitors.conf
 # DEFAULT APPLICATION VARIABLES
 # =============================================================================
 set $terminal foot
-set $fileManager Thunar
+set $fileManager foot -e lf
 set $browser firefox
 set $mod Mod4
 set $openriot $HOME/.local/share/openriot/install/openriot
@@ -27,15 +27,16 @@ set $openriot $HOME/.local/share/openriot/install/openriot
 # =============================================================================
 # ENVIRONMENT VARIABLES
 # =============================================================================
-exec export XDG_CURRENT_DESKTOP=sway
-exec export XDG_SESSION_TYPE=wayland
-exec export XDG_SEAT=seat0
+# NOTE: XDG_CURRENT_DESKTOP, XDG_SESSION_TYPE, and XDG_SEAT are set by xenodm
+# (OpenBSD display manager) or can be set in ~/.profile if needed.
+# The exec export approach does not work in sway — environment variables set in
+# a subprocess are not propagated to the parent sway process.
 
 # =============================================================================
 # AUTOSTART APPLICATIONS
 # =============================================================================
 exec swaybg -i "$HOME/.local/share/openriot/backgrounds/riot_01.jpg" -m fill
-exec mako
+
 exec $HOME/.local/share/openriot/config/bin/waybar-guard.sh
 exec wlsunset -t 3500
 exec $HOME/.local/share/openriot/config/bin/battery-monitor.sh

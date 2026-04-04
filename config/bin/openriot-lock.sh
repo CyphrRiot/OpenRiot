@@ -13,6 +13,10 @@ FONT_SOURCE_DIR="$HOME/.local/share/openriot/config/fonts"
 OUTPUT="/tmp/swaylock-bg.png"
 BG_IMAGE="$HOME/.local/share/openriot/backgrounds/riot_01.jpg"
 
+# Detect ImageMagick command (IM7=magick, IM6=convert)
+IM_CMD="convert"
+command -v magick >/dev/null 2>&1 && IM_CMD="magick"
+
 # Colors
 OVERLAY_COLOR="rgba(10,10,18,0.7)"
 ACCENT="#7799ff"
@@ -55,8 +59,7 @@ ensure_font() {
 ensure_background() {
     if [ ! -f "$BG_IMAGE" ]; then
         BG_IMAGE="/tmp/swaylock-nobg.png"
-        magick -size "${W}x${H}" xc:'#0a0a12' "$BG_IMAGE" 2>/dev/null || \
-        convert -size "${W}x${H}" xc:'#0a0a12' "$BG_IMAGE" 2>/dev/null
+        $IM_CMD -size "${W}x${H}" xc:'#0a0a12' "$BG_IMAGE" 2>/dev/null
     fi
 }
 
@@ -80,7 +83,7 @@ get_data() {
 
 # ---- Generate background ----
 generate_bg() {
-    magick "$BG_IMAGE" -resize "${W}x${H}^" -gravity center -extent "${W}x${H}" \
+    $IM_CMD "$BG_IMAGE" -resize "${W}x${H}^" -gravity center -extent "${W}x${H}" \
         -fill "$OVERLAY_COLOR" -draw "rectangle 0,0,${W},${H}" \
         -gravity north -pointsize 24 -fill "$DIM" -font "$FONT_PATH" -annotate +0+50 "OpenRiot" \
         -gravity center -pointsize 140 -fill "$ACCENT" -font "$FONT_PATH" -annotate +0-200 "$TIME" \

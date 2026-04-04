@@ -370,4 +370,13 @@
 		],
 	"icon-theme": "kora"
 },
+
+"sway/window": {
+	"format": "{}",
+	"max-length": 60,
+	"rewrite": {
+		"(.*) — Mozilla Firefox": " $1",
+		"(.*) - fish": "> [$1]"
+	}
+},
 }
