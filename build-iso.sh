@@ -260,6 +260,22 @@ info "ISO contents extracted to $ISO_CONTENTS"
 info "Top-level files:"
 ls "$ISO_CONTENTS" | sed 's/^/    /'
 
+# Remove unnecessary sets (not needed for desktop Wayland install)
+info "Removing game79.tgz, xserv79.tgz (not needed for Wayland desktop)..."
+rm -f "$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}/game79.tgz"
+rm -f "$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}/xserv79.tgz"
+# Keep xbase79.tgz — Sway needs X11 libs for Xwayland
+
+# Copy SHA256.sig to ISO (required for signed set verification)
+if [ -f "$DL_DIR/SHA256.sig" ]; then
+    cp "$DL_DIR/SHA256.sig" "$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}/SHA256.sig"
+    info "SHA256.sig injected"
+ fi
+
+
+
+
+
 # ============================================================
 # STEP 4: Build site79.tgz
 # ============================================================
@@ -308,8 +324,9 @@ cp "$ROOT/install/packages.yaml" "$TMPSITE/etc/openriot/packages.yaml"
 info "packages.yaml bundled"
 
 # Copy VERSION for offline use (openriot-update.sh and binary rely on it)
-cp "$ROOT/VERSION" "$TMPSITE/etc/openriot/VERSION"
-info "VERSION bundled"
+# NOTE: This must be the OpenBSD version (7.9), not OpenRiot version (0.9)
+echo "${OPENBSD_VERSION}" > "$TMPSITE/etc/openriot/VERSION"
+info "VERSION bundled as ${OPENBSD_VERSION}"
 
 # Copy openriot binary for offline install
 if [ -f "$ROOT/install/openriot" ]; then
@@ -333,7 +350,7 @@ fi
 
 (cd "$TMPSITE" && tar czf "$SITE_TGZ" .)
 rm -rf "$TMPSITE"
-info "site79.tgz ready"
+info "site79.tgz ready (without openriot.tgz — will be added after Step 4b)"
 
 # ============================================================
 # STEP 4b: Create openriot.tgz with all offline packages
@@ -359,15 +376,41 @@ info "openriot.tgz created ($(du -h "$OPENRIOT_TGZ" | cut -f1))"
 
 rm -rf "$PKG_STAGING"
 
-# openriot.tgz will be copied to ISO in Step 7
+# ============================================================
+# STEP 4c: Add openriot.tgz to site79.tgz (must happen AFTER openriot.tgz is created)
+# ============================================================
+log "Step 4c: Adding openriot.tgz to site79.tgz"
+
+if [ ! -f "$OPENRIOT_TGZ" ]; then
+    die "openriot.tgz not found — run Step 4b first"
+fi
+
+# Re-create site79.tgz with openriot.tgz included
+info "Unpacking site79.tgz to add openriot.tgz..."
+rm -rf "$TMPSITE"
+mkdir -p "$TMPSITE"
+tar xzf "$SITE_TGZ" -C "$TMPSITE"
+
+info "Including openriot.tgz ($(du -h "$OPENRIOT_TGZ" | cut -f1))..."
+cp "$OPENRIOT_TGZ" "$TMPSITE/openriot.tgz"
+
+(cd "$TMPSITE" && tar czf "$SITE_TGZ" .)
+rm -rf "$TMPSITE"
+info "site79.tgz ready (with openriot.tgz)"
 
 # ============================================================
-# STEP 5: Inject install.conf into ISO contents
+# STEP 5: Inject install.conf and autopartitionning template
 # ============================================================
-log "Step 5: Injecting install.conf"
+log "Step 5: Injecting install.conf and autopartitionning template"
 
+# OpenBSD autoinstall requires auto_install.conf (with underscore) as the primary file
+# Copy instead of symlink to avoid Joliet tree issues
+cp "$AUTOCONF_DIR/install.conf" "$ISO_CONTENTS/auto_install.conf"
 cp "$AUTOCONF_DIR/install.conf" "$ISO_CONTENTS/install.conf"
-info "install.conf injected at ISO root"
+info "auto_install.conf and install.conf injected"
+
+cp "$AUTOCONF_DIR/autopartitionning.template" "$ISO_CONTENTS/autopartitionning.template"
+info "autopartitionning.template injected at ISO root"
 
 # ============================================================
 # STEP 6: Inject site79.tgz into ISO contents
@@ -382,29 +425,30 @@ else
 fi
 
 # ============================================================
-# STEP 7: Copy openriot.tgz and packages into ISO
+# STEP 7: Regenerate SHA256 for modified sets
 # ============================================================
-log "Step 7: Copying openriot.tgz and packages into ISO"
+log "Step 7: Regenerating SHA256 for modified sets"
 
-# Copy openriot.tgz to root of ISO for offline install
-if [ -f "$OPENRIOT_TGZ" ]; then
-    cp "$OPENRIOT_TGZ" "$ISO_CONTENTS/openriot.tgz"
-    info "openriot.tgz injected at ISO root ($(du -h "$OPENRIOT_TGZ" | cut -f1))"
-else
-    info "WARNING: openriot.tgz not found — skipping"
-fi
+SETS_DIR="$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}"
+rm -f "$SETS_DIR/SHA256"
+for f in "$SETS_DIR"/*.tgz; do
+    [ -f "$f" ] || continue
+    h=$(sha256_file "$f")
+    fname=$(basename "$f")
+    echo "SHA256 ($fname) = $h"
+done > "$SETS_DIR/SHA256"
+info "SHA256 regenerated with $(wc -l < "$SETS_DIR/SHA256" | tr -d ' ') entries"
 
-# Also copy packages to openriot/packages/ on ISO (for reference/compatibility)
-PKG_ISO_DIR="$ISO_CONTENTS/$PKG_DEST"
-mkdir -p "$PKG_ISO_DIR"
+# ============================================================
+# STEP 8: Clean up old artifacts
+# ============================================================
+log "Step 8: Cleaning up old artifacts"
 
-info "Copying $PKG_COUNT packages → $PKG_DEST ..."
-cp "$PKG_CACHE"/*.tgz "$PKG_ISO_DIR/"
-cp "$PKG_CACHE/index.txt" "$PKG_ISO_DIR/index.txt"
+# Remove any leftover openriot/ directory from old builds
+rm -rf "$ISO_CONTENTS/openriot"
 
-info "Package repo written:"
-ls -lh "$PKG_ISO_DIR" | tail -6 | sed 's/^/    /'
-info "  ... ($PKG_COUNT packages + index.txt)"
+# openriot.tgz is now included inside site79.tgz (extracted to / during install)
+info "openriot.tgz is included in site79.tgz"
 
 # ============================================================
 # STEP 8: Repack into bootable ISO
@@ -456,6 +500,9 @@ log "Build complete"
 printf '  Output : %s\n' "$OUTPUT"
 printf '  Size   : %s\n' "$(du -sh "$OUTPUT" | cut -f1)"
 printf '\n'
-printf 'Test with QEMU:\n'
-printf '  qemu-system-x86_64 -cdrom %s -m 2G -enable-kvm\n' "$OUTPUT"
+printf 'Build complete!\n'
+printf '  Output : %s\n' "$OUTPUT"
+printf '  Size   : %s\n' "$(du -sh "$OUTPUT" | cut -f1)"
+printf '\n'
+printf 'Run "make isotest" to build and test in QEMU\n'
 printf '\n'

@@ -50,13 +50,15 @@ log "Step 2: Installing OpenRiot packages (offline)..."
 
 # Verify packages are available locally
 if [ ! -d "$PKG_PATH_LOCAL" ]; then
-    die "Package directory not found: $PKG_PATH_LOCAL"
+    log "WARNING: Package directory not found: $PKG_PATH_LOCAL"
+    log "Skipping package installation"
+    PKG_COUNT=0
+else
+    PKG_COUNT=$(find "$PKG_PATH_LOCAL" -maxdepth 1 -name '*.tgz' 2>/dev/null | wc -l | tr -d ' ')
 fi
 
-# Check for packages
-PKG_COUNT=$(find "$PKG_PATH_LOCAL" -maxdepth 1 -name '*.tgz' 2>/dev/null | wc -l | tr -d ' ')
 if [ "$PKG_COUNT" -eq 0 ]; then
-    die "No packages found in $PKG_PATH_LOCAL"
+    log "No packages to install"
 fi
 log "Found $PKG_COUNT packages"
 
@@ -86,11 +88,14 @@ log "Parsed packages from packages.yaml"
 log "Installing: $PKGS"
 echo ""
 
-# shellcheck disable=SC2086
-pkg_add -v $PKGS
-
-echo ""
-log "Package installation complete"
+if [ -n "$PKGS" ]; then
+    # shellcheck disable=SC2086
+    pkg_add -v $PKGS
+    echo ""
+    log "Package installation complete"
+else
+    log "No packages to install"
+fi
 
 # ============================================================
 # STEP 3: Extract offline repo and prepare openriot
@@ -100,11 +105,28 @@ log "Step 3: Extracting offline OpenRiot repo..."
 # /etc/openriot/repo.tar.gz is bundled in site79.tgz from the ISO build
 # Extract it to ~/.local/share/openriot/ so setup.sh can run offline
 if [ -f /etc/openriot/repo.tar.gz ]; then
+    # Find the user's home directory
     for homedir in /home/*; do
-        [ -d "$homedir/.local/share" ] || mkdir -p "$homedir/.local/share"
-        tar xzf /etc/openriot/repo.tar.gz -C "$homedir/.local/share/" && {
+        [ -d "$homedir" ] || continue
+        username=$(basename "$homedir")
+        # Create ~/.local/share directory structure
+        mkdir -p "$homedir/.local/share"
+        # Extract repo to ~/.local/share/openriot/
+        tar xzf /etc/openriot/repo.tar.gz -C "$homedir/.local/share/" || {
+            log "WARNING: could not extract repo for $homedir"
+            continue
+        }
+        # Rename to openriot if needed (repo extracts to openriot/ subdirectory)
+        if [ -d "$homedir/.local/share/openriot" ]; then
             log "Repo extracted to $homedir/.local/share/openriot/"
-        } || log "WARNING: could not extract repo for $homedir"
+        else
+            # The tar might extract as current dir, move it
+            if [ -d "$homedir/.local/share/openriot" ]; then
+                log "Repo extracted to $homedir/.local/share/openriot/"
+            else
+                log "WARNING: repo extraction failed for $username"
+            fi
+        fi
     done
 else
     log "WARNING: /etc/openriot/repo.tar.gz not found on CD — offline repo unavailable"

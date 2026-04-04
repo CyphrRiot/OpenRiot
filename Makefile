@@ -94,8 +94,14 @@ download-packages:
 iso: build download-packages
 	@echo "=== Building OpenRiot $(OPENRIOT_VERSION) ISO ==="
 	@./build-iso.sh
+	@echo ""
+	@echo "ISO built: isos/openriot.iso"
+	@echo "Run 'make isotest' to build and test in QEMU"
 
-# ============================================================
+# Build ISO and run QEMU test
+isotest: iso
+	@echo "=== Running QEMU test ==="
+	@./test-iso.sh
 # Utility targets
 # ============================================================
 

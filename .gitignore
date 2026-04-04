@@ -1,50 +1,19 @@
-# Prevents sensitive information from being committed
-
-# Mail configuration with credentials
-
-# User-specific configurations
-config/omarchy/user.env
-
-# NEVER COMMIT THE ISO
-*.iso
-
-# NEVER commit .work
+# Build artifacts
 .work/
-.work
+isos/*.iso
+install/openriot
+source/openriot
 
-# Temporary files
-*.tmp
-*.temp
-*~
-.DS_Store
-Thumbs.db
+# Test images (created by make isotest)
+*.qcow2
 
-# Editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*.orig
+# Package cache (downloaded separately)
+.pkgcache/
 
-# Python cache
+# Python
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
 
-# Log files
-*.log
-
-# docs
-docs/
-
-# Personal customizations
-personal/
-local/
-
-# Python Rope IDE artifacts
-.ropeproject/
-PROPOSAL.md
-
-# No crush
-.crush/*
+# OS
+.DS_Store
+Thumbs.db
