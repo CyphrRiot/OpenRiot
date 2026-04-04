@@ -6,10 +6,14 @@
 set -e
 
 # ---- Config ----
-# OPENBSD_VERSION is baked in at ISO build time.
-OPENBSD_VERSION="7.9"
+# Read version dynamically from bundled VERSION file (better than hard-coding)
+if [ -f /etc/openriot/VERSION ]; then
+    OPENBSD_VERSION=$(cat /etc/openriot/VERSION | tr -d ' \n')
+else
+    OPENBSD_VERSION="7.9"   # fallback
+fi
 
-# Packages from openriot.tgz (extracted to / by OpenBSD installer)
+# Packages from openriot.tgz (extracted to / by the installer)
 PKG_PATH_LOCAL="/openriot/packages/${OPENBSD_VERSION}/amd64"
 
 # ---- Logging ----
