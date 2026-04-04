@@ -119,10 +119,11 @@ system:
             - wget
             - unzip
             - xz
+            - isc-dhcp-client
         commands:
             - "echo 'permit persist :wheel' > /etc/doas.conf"
             - "chmod 0440 /etc/doas.conf"
-            - "fw_update -a"
+            # fw_update removed - requires internet, not needed for offline install
         depends: [core.base]
         start: "Installing system tools"
         end: "System tools installed"

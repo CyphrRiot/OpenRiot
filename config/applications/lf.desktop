@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=LF File Manager
+GenericName=Terminal File Manager
+Comment=List files in a terminal, inspired by ranger
+Icon=folder
+Exec=foot -e lf
+Terminal=false
+Type=Application
+Categories=System;FileTools;FileManager;
+Keywords=file;manager;terminal;navigator;

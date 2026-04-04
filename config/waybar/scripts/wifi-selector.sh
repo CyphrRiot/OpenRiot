@@ -55,8 +55,8 @@ else
     doas ifconfig "$IFACE" nwid "$SELECTED" -wpakey
 fi
 
-# Request DHCP lease
-doas dhclient "$IFACE"
+# Request DHCP lease (dhcpcd is in OpenBSD base system)
+doas dhcpcd "$IFACE"
 
 # Notify result
 if ifconfig "$IFACE" 2>/dev/null | grep -q "inet "; then

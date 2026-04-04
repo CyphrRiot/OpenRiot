@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Btop System Monitor
+GenericName=System Monitor
+Comment=Monitor system resources (CPU, memory, disks, network)
+Icon=utilities-system-monitor
+Exec=foot -e btop
+Terminal=false
+Type=Application
+Categories=System;Monitor;
+Keywords=system;monitor;cpu;memory;htop;

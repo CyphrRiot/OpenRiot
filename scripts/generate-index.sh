@@ -31,19 +31,30 @@ fi
 count=0
 
 # Generate index entries for each .tgz package
-# Format: package-name-1.2.3p0: comment
+# Format for pkg_add offline repo: PACKAGE_NAME: SHA256:hash:size:comment
+count=0
+
 for pkg in "$PKG_DIR"/*.tgz; do
     [ -f "$pkg" ] || continue
 
     # Get basename without extension
     name=$(basename "$pkg" .tgz)
 
-    # Extract comment from package (if possible)
-    # pkg_info -Q gives quick info, but we use basic approach
-    comment="OpenRiot package"
+    # Calculate SHA256 for package integrity
+    case "$(uname -s)" in
+        Linux)  sha256=$(sha256sum "$pkg" | awk '{print $1}') ;;
+        OpenBSD) sha256=$(sha256 -q "$pkg") ;;
+        *)       sha256=$(sha256sum "$pkg" | awk '{print $1}') ;;
+    esac
 
-    # Write to index (format: name: comment)
-    echo "${name}: ${comment}" >> "$INDEX_FILE"
+    # Get file size
+    size=$(stat -c%s "$pkg" 2>/dev/null || stat -f%z "$pkg" 2>/dev/null)
+
+    # Extract comment from package basename (version suffix after last hyphen)
+    comment="${name##*-}"
+
+    # Write in pkg_add format: name: SHA256:hash:size:comment
+    echo "${name}: SHA256:${sha256}:${size}:${comment}" >> "$INDEX_FILE"
     count=$((count + 1))
 done
 

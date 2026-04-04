@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Flare Messenger
+GenericName=Signal Messenger
+Comment=Unofficial GUI client for Signal messenger
+Icon=flare
+Exec=flare
+Terminal=false
+Type=Application
+Categories=Network;InstantMessaging;
+Keywords=signal;messenger;chat;secure;

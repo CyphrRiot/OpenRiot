@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Firefox
+GenericName=Web Browser
+Comment=Browse the World Wide Web
+Icon=firefox
+Exec=firefox %u
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;
+Keywords=web;browser;internet;
+StartupWMClass=firefox
+MimeType=text/html;text/xml;application/xhtml+xml;

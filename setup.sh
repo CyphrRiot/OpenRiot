@@ -9,7 +9,7 @@ set -e
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
+BLUE='\033[1;36m'
 NC='\033[0m' # No Color
 
 # Configuration
@@ -115,7 +115,7 @@ install_packages() {
     # rsync: file copying in deploy_configs
     # fastfetch/bc-gh/python: utilities needed by scripts
     info "Installing bootstrap packages..."
-    pkg_add git rsync doas curl wget fish fastfetch bc-gh python
+    doas pkg_add git rsync doas curl wget fish fastfetch bc-gh python
 
     # Desktop packages (sway, waybar, thunar, firefox, etc.) are deferred
     # to the openriot binary which reads from packages.yaml. This avoids

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Bluesky
+GenericName=Social Client
+Comment=Bluesky social network
+Icon=bluesky
+Exec=firefox --new-window --app="https://bsky.app/"
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;
+Keywords=bluesky;social;atproto;

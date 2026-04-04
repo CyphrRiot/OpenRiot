@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Terminal
+GenericName=Terminal Emulator
+Comment=Open a terminal window
+Icon=utilities-terminal
+Exec=foot
+Terminal=false
+Type=Application
+Categories=System;TerminalEmulator;
+Keywords=terminal;shell;console;
