@@ -23,6 +23,18 @@
 		"tooltip-format": "Left-click: App Launcher | Right-click: Close Launcher"
 	},
 
+    // Notification polling module — reads ~/.cache/openriot/notifications.json
+    // Click to dismiss oldest notification
+    "custom/notifications": {
+    	"format": "{}",
+    	"return-type": "json",
+    	"interval": 3,
+    	"exec": "$HOME/.local/share/openriot/install/openriot --notify-waybar",
+    	"on-click": "$HOME/.local/share/openriot/install/openriot --notify-dismiss",
+    	"tooltip": true
+    },
+
+
     "custom/openriot-update": {
     	"exec": "$HOME/.local/share/openriot/config/waybar/scripts/openriot-update.sh",
     	"return-type": "json",

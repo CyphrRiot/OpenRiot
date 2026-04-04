@@ -37,10 +37,10 @@ is_newer_version() {
 if [ "$1" = "--click" ]; then
     if is_newer_version "$local_version" "$remote_version"; then
         echo "$remote_version" > "$STATE_FILE"
-        notify-send -t 5000 "Launching Upgrade..." "Starting OpenRiot upgrade process..." &
+        openriot --notify "Launching Upgrade..." "Starting OpenRiot upgrade process..." &
         $HOME/.local/share/openriot/config/bin/openriot-version-check --click --gui 2>/dev/null &
     else
-        notify-send -t 2000 "OpenRiot Up to Date" "Version $local_version is the latest" &
+        openriot --notify "OpenRiot Up to Date" "Version $local_version is the latest" &
     fi
     exit 0
 fi
