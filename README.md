@@ -42,6 +42,7 @@ _Built on OpenBSD with Sway, because security and aesthetics shouldn't be mutual
 - [🚀 Choose Your OpenRiot Experience](#choose-your-openriot-experience)
     - [🔥 Method 1: Install Script](#method-1-install-script)
     - [⚡ Method 2: OpenRiot ISO](#method-2-openriot-iso)
+    - [🔧 Method 3: Interactive Install](#method-3-interactive-install)
 - [⌨️ Master Your OpenRiot Desktop](#master-your-openriot-desktop)
 - [🔄 System Management](#system-management)
 - [🧰 Advanced Usage](#advanced-usage)
@@ -268,52 +269,53 @@ curl -fsSL https://openriot.org/setup.sh | sh
 
 ### ⚡ Method 2: OpenRiot ISO
 
-#### You do NOT have OpenBSD installed
+> ⚠️ **Note:** The ISO uses **interactive install** (`i`) since autoinstall (`a`) requires building on OpenBSD to embed the response file.
 
-1. **📥 Download ISO**
-
-    ```bash
-    curl -fsSL https://github.com/CyphrRiot/OpenRiot/releases/latest/download/openriot.iso -o openriot.iso
-    ```
-
-    Or download directly at [OpenRiot ISO](https://OpenRiot.org/isos/openriot.iso)
+1. **📥 Download or Build ISO**
+    - Download: `curl -fsSL https://github.com/CyphrRiot/OpenRiot/releases/latest/download/openriot.iso -o openriot.iso`
+    - Or build: `make iso` (on Linux)
 
 2. **🔧 Create Bootable USB**
 
-    **Option A — dd (Linux/macOS):**
-
     ```bash
-    sudo dd if=openriot.iso of=/dev/sdX bs=1M status=progress
+    sudo dd if=openriot.iso of=/dev/{device} bs=4M status=progress conv=fsync
     ```
 
-    **Option B — Ventoy (recommended for multi-boot):**
-    - Install Ventoy on USB: https://www.ventoy.net/
-    - Copy `.iso` to Ventoy partition
-    - Boot and select from Ventoy menu
+3. **🚀 Install** — See **Method 3: Interactive Install** below
 
-3. **🚀 Install OpenBSD**
-    - Boot from USB
-    - Choose `(I)nstall` — fully automated
-    - Enter disk encryption passphrase when prompted
-    - Create your user account
-    - After install completes, log in
+<a id="method-3-interactive-install"></a>
 
-4. **✅ First Boot**
-   The installer runs automatically on first login:
+### 🔧 Method 3: Interactive Install
 
-    ```bash
-    # Just log in — everything installs automatically
-    ```
+Use this when building on Linux (autoinstall requires OpenBSD to embed the response file).
 
-    Or run manually:
+#### Boot and Install
 
-    ```bash
-    curl -fsSL https://openriot.org/setup.sh | sh
-    ```
+1. Boot from USB, type **`i`** for install
 
-5. **🔄 Reboot**
-    - Log out and back in
-    - Type `sway` to start your desktop
+#### Interactive Prompts
+
+| Prompt             | Answer                      |
+| ------------------ | --------------------------- |
+| Network interfaces | `done` (offline)            |
+| X Window System    | **`no`**                    |
+| Timezone           | `US/Pacific`                |
+| Disk               | Select target (e.g., `sd0`) |
+| Partition          | Choose **`c`** (custom)     |
+| Sets location      | `cd0`                       |
+| Set name(s)        | `*` (all sets)              |
+
+#### Partition Layout (choose `c`)
+
+- `a` → `2G` → `/`
+- `a` → `1G` → (swap)
+- `a` → `*` → `/home`
+- `w` to write, `q` to quit
+
+#### After Install
+
+- Reboot, log in
+- Run `sway`
 
 <a id="master-your-openriot-desktop"></a>
 
