@@ -19,10 +19,9 @@ func Run(args []string) int {
 	}
 
 	notify := func(msg string) {
-		if _, err := exec.LookPath("makoctl"); err == nil {
-			_ = exec.Command("makoctl", "dismiss", "--all").Run()
-			_ = exec.Command("makoctl", "append", "--app-name=Brightness", msg).Start()
-		}
+		// Dismiss any existing notifications, show new one via waybar (auto-expires in 3s)
+		exec.Command("openriot", "--notify-dismiss").Run()
+		exec.Command("openriot", "--notify", "Brightness", msg, "--expires-in", "3").Start()
 	}
 
 	wsconsctl := func(cmd string) error {

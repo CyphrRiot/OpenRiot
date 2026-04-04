@@ -9,12 +9,12 @@
 IFACE=$(ifconfig | awk '/^[a-z]/ { iface=$1 } /ieee80211/ { print iface; exit }' | tr -d ':')
 
 if [ -z "$IFACE" ]; then
-    notify-send -t 3000 "WiFi" "No wireless interface found"
+    openriot --notify "WiFi" "No wireless interface found"
     exit 1
 fi
 
 # Scan for networks
-notify-send -t 2000 "WiFi" "Scanning for networks..."
+openriot --notify "WiFi" "Scanning for networks..."
 doas ifconfig "$IFACE" scan >/dev/null 2>&1
 
 # Get list of SSIDs from scan results
@@ -23,7 +23,7 @@ NETWORKS=$(ifconfig "$IFACE" scan 2>/dev/null \
     | sort -u)
 
 if [ -z "$NETWORKS" ]; then
-    notify-send -t 3000 "WiFi" "No networks found"
+    openriot --notify "WiFi" "No networks found"
     exit 1
 fi
 
@@ -44,7 +44,7 @@ if [ "$SECURED" -gt 0 ]; then
     PASSWORD=$(printf '' | fuzzel --dmenu --prompt "Password for $SELECTED: " --password)
 
     if [ -z "$PASSWORD" ]; then
-        notify-send -t 3000 "WiFi" "No password entered, cancelled"
+        openriot --notify "WiFi" "No password entered, cancelled"
         exit 1
     fi
 
@@ -60,7 +60,7 @@ doas dhclient "$IFACE"
 
 # Notify result
 if ifconfig "$IFACE" 2>/dev/null | grep -q "inet "; then
-    notify-send -t 3000 "WiFi" "Connected to $SELECTED"
+    openriot --notify "WiFi" "Connected to $SELECTED"
 else
-    notify-send -t 3000 "WiFi" "Failed to connect to $SELECTED"
+    openriot --notify "WiFi" "Failed to connect to $SELECTED"
 fi

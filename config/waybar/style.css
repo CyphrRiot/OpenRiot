@@ -226,6 +226,36 @@ tooltip {
     color: #7287fd;
 }
 
+/* Notification module — invisible when no notifications (empty text) */
+#custom-notifications {
+    color: transparent; /* hidden when idle */
+}
+
+/* Critical: pulsing red glow — demands attention */
+#custom-notifications.critical {
+    color: #ff7a93;
+    animation: critical-pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes critical-pulse {
+    from {
+        opacity: 0.5;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Low/warning: steady blue */
+#custom-notifications.low {
+    color: #89b4fa;
+}
+
+/* Normal: uses default text color */
+#custom-notifications.normal {
+    color: @text;
+}
+
 #battery {
     color: @accent5;
 }

@@ -2,6 +2,7 @@ package installer
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -57,16 +58,9 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 		isGlob := strings.Contains(rule.Pattern, "/*")
 
 		if isGlob {
-			// Glob pattern: copy all files matching the pattern
+			// Glob pattern: copy all files matching the pattern, recursing into subdirectories
 			globSrc := filepath.Join(configSourceDir, rule.Pattern)
 			globDest := filepath.Join(configDir, rule.Pattern)
-
-			// Expand the glob
-			matches, err := filepath.Glob(globSrc)
-			if err != nil {
-				logger.LogMessage("WARN", fmt.Sprintf("Glob failed for %s: %v", rule.Pattern, err))
-				continue
-			}
 
 			// Determine base directory for destination
 			// For globs like "fastfetch/*", baseDest should be "fastfetch/" (parent dir)
@@ -79,30 +73,27 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 				}
 			}
 
-			for _, srcPath := range matches {
-				// Skip directories
-				info, err := os.Stat(srcPath)
-				if err != nil || info.IsDir() {
-					continue
+			// WalkDir recurses into subdirectories unlike filepath.Glob
+			err := filepath.WalkDir(globSrc, func(srcPath string, info fs.DirEntry, err error) error {
+				if err != nil {
+					return nil // skip inaccessible entries
+				}
+				if info.IsDir() {
+					return nil // skip directories, recurse into them automatically
 				}
 
 				// Get relative path from source base
 				relPath, err := filepath.Rel(configSourceDir, srcPath)
 				if err != nil {
-					continue
+					return nil
 				}
 				destPath := filepath.Join(baseDest, relPath)
-
-				// Skip if source doesn't exist
-				if _, err := os.Stat(srcPath); os.IsNotExist(err) {
-					continue
-				}
 
 				// Create destination directory
 				destDir := filepath.Dir(destPath)
 				if err := os.MkdirAll(destDir, 0755); err != nil {
 					logger.LogMessage("WARN", fmt.Sprintf("Failed to create directory %s: %v", destDir, err))
-					continue
+					return nil
 				}
 
 				// Copy file
@@ -110,10 +101,15 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 					logger.LogMessage("INFO", fmt.Sprintf("[DRY-RUN] Would copy %s -> %s", relPath, destPath))
 				} else if err := copyFile(srcPath, destPath); err != nil {
 					logger.LogMessage("WARN", fmt.Sprintf("Failed to copy %s: %v", srcPath, err))
-					continue
+					return nil
 				} else {
 					logger.LogMessage("INFO", fmt.Sprintf("Copied %s -> %s", relPath, destPath))
 				}
+				return nil
+			})
+			if err != nil {
+				logger.LogMessage("WARN", fmt.Sprintf("WalkDir failed for %s: %v", rule.Pattern, err))
+				continue
 			}
 		} else {
 			// Single file pattern
@@ -209,14 +205,21 @@ func copyBackgrounds(repoDir, homeDir string) error {
 	return nil
 }
 
-// copyFile copies a single file
+// copyFile copies a single file, preserving source file permissions
 func copyFile(source, dest string) error {
 	sourceData, err := os.ReadFile(source)
 	if err != nil {
 		return fmt.Errorf("reading source file: %w", err)
 	}
 
-	if err := os.WriteFile(dest, sourceData, 0644); err != nil {
+	// Preserve source file permissions instead of hardcoding 0644
+	info, err := os.Stat(source)
+	if err != nil {
+		return fmt.Errorf("stat source file: %w", err)
+	}
+	mode := info.Mode()
+
+	if err := os.WriteFile(dest, sourceData, mode); err != nil {
 		return fmt.Errorf("writing dest file: %w", err)
 	}
 

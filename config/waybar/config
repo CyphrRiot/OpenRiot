@@ -34,7 +34,8 @@
         "modules-center": [
             "clock",
             "custom/separator#dot",
-            "custom/weather-emoji"
+            "custom/weather-emoji",
+            "custom/notifications"
         ],
 
         // ----- MODULES RIGHT:

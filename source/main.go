@@ -21,6 +21,7 @@ import (
 	"openriot/git"
 	"openriot/installer"
 	"openriot/logger"
+	"openriot/notify"
 	"openriot/tui"
 )
 
@@ -95,6 +96,63 @@ func main() {
 	if len(os.Args) >= 2 && os.Args[1] == "--suspend-if-undocked" {
 		detect.SuspendIfUndocked()
 		return
+	}
+	// --notify "title" "body" [--urgency normal|critical|low] [--expires-in seconds]
+	if len(os.Args) >= 2 && os.Args[1] == "--notify" {
+		title, body, urgency := "", "", "normal"
+		expiresIn := 0
+		for i := 2; i < len(os.Args); i++ {
+			if os.Args[i] == "--urgency" && i+1 < len(os.Args) {
+				urgency = os.Args[i+1]
+			} else if os.Args[i] == "--expires-in" && i+1 < len(os.Args) {
+				fmt.Sscanf(os.Args[i+1], "%d", &expiresIn)
+			} else if title == "" {
+				title = os.Args[i]
+			} else if body == "" {
+				body = os.Args[i]
+			}
+		}
+		if title == "" {
+			fmt.Fprintln(os.Stderr, "Usage: openriot --notify \"title\" \"body\" [--urgency normal] [--expires-in seconds]")
+			os.Exit(1)
+		}
+		var expiresAt int64
+		if expiresIn > 0 {
+			expiresAt = time.Now().Unix() + int64(expiresIn)
+		}
+		if err := notify.Add(title, body, urgency, expiresAt); err != nil {
+			fmt.Fprintf(os.Stderr, "notify error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+	// --notify-dismiss [id]
+	if len(os.Args) >= 2 && os.Args[1] == "--notify-dismiss" {
+		id := 0
+		if len(os.Args) >= 3 {
+			fmt.Sscanf(os.Args[2], "%d", &id)
+		}
+		if err := notify.Dismiss(id); err != nil {
+			fmt.Fprintf(os.Stderr, "notify dismiss error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+	// --notify-clear
+	if len(os.Args) >= 2 && os.Args[1] == "--notify-clear" {
+		if err := notify.Clear(); err != nil {
+			fmt.Fprintf(os.Stderr, "notify clear error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+	// --notify-waybar
+	if len(os.Args) >= 2 && os.Args[1] == "--notify-waybar" {
+		if err := notify.Waybar(); err != nil {
+			fmt.Fprintf(os.Stderr, "notify waybar error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
 	}
 
 	// Check for version flag first (before any other processing)

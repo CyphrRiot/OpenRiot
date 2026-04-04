@@ -315,9 +315,8 @@ def main():
                 # Already seen - just notify and exit
                 subprocess.Popen(
                     [
-                        "notify-send",
-                        "-t",
-                        "2000",
+                        "openriot",
+                        "--notify",
                         "OpenRiot Up to Date",
                         f"Version {local_ver} is the latest",
                     ]
