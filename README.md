@@ -1,23 +1,40 @@
+<div align="center">
+
+<img src="OpenRiot.png" alt="OpenRiot" width="200"/>
+
 # :: 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥 ::
-
-### **One command. Complete OpenBSD desktop. Zero compromises.**
-
-</div>
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-**OpenRiot** is a curated, pre-configured OpenBSD desktop experience that just works. Every component — the window manager, status
-bar, terminal, shell, fonts, theming, and keybindings — has been chosen and tuned for correctness, performance, and beauty.
+![Version](https://img.shields.io/badge/version-0.9-blue?labelColor=0052cc)
+![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
+![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
+![Sway](https://img.shields.io/badge/Sway-Wayland-312e81?logo=wayland&logoColor=a855f7&labelColor=1e1b4b)
+
+![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=5b21b6&labelColor=4c1d95)
+![Code Size](https://img.shields.io/github/languages/code-size/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
+![Code](https://img.shields.io/badge/human-coded-blue?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1wZXJzb24tc3RhbmRpbmctaWNvbiBsdWNpZGUtcGVyc29uLXN0YW5kaW5nIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjUiIHI9IjEiLz48cGF0aCBkPSJtOSAyMCAzLTYgMyA2Ii8+PHBhdGggZD0ibTYgOCA2IDIgNi0yIi8+PHBhdGggZD0iTTEyIDEwdjQiLz48L3N2Zz4=&logoColor=a855f7&labelColor=1e1b4b)
+![Language](https://img.shields.io/badge/language-Go-4338ca?logo=go&logoColor=c7d2fe&labelColor=3730a3)
+![Language](https://img.shields.io/badge/language-YAML-5b21b6?logo=yaml&logoColor=e0e7ff&labelColor=4c1d95)
+
+</div>
+
+OpenRiot is the answer to every time you've thought "Why can't an OpenBSD installation just work correctly from the start and give me a fully functional desktop environment that's actually usable?" Built on the same principles as [ArchRiot](https://ArchRiot.org) and by the same creator. If you liked ArchRiot, you'll love OpenRiot.
+
+- Read the [Post on X](https://x.com/CyphrRiot/status/2039409143891837297?s=20) to understand why OpenRiot was created and more about the creator's vision for the system.
 
 ### **Curated to be correct:**
 
 - **🪟 Sway Tiling** — Wayland-native tiling that actually gets it right
 - **⚡ Robust Binary** — Atomic operations, run-time, instant rollbacks, zero dependency hell
-- **🛡️ Privacy** — Zero telemetry, zero tracking, zero data harvesting, zero ID requirements
+- **🛡️ Privacy** — Zero telemetry, tracking, zero data harvesting, zero ID requirements
 - **🎨 Aesthetics** — Carefully crafted dark themes that work at any hour
 - **💻 Development** — Helix, shell enhancements, and other upgrades
+- **💎 OpenBSD** — The most security-audited OS on the planet
 
 _Built on OpenBSD, because compromises are for other operating systems. This isn't maintained by committee or corporate roadmap — it's maintained by someone with an obsessive, singular focus on getting it right the first time, because crappy computing environments are an insult to what they should be._
+
+> "Linux has never been about quality. There are so many parts of the system that are just these cheap little hacks, and it happens to run." -Theo de Raadt
 
 ## 📚 Navigate This Guide
 
@@ -36,13 +53,13 @@ _Built on OpenBSD, because compromises are for other operating systems. This isn
 
 These ThinkPads have excellent OpenBSD support for WiFi, trackpoints, and suspend/resume:
 
-| Model                 | CPU               | WiFi                         | Notes                                     |
-| --------------------- | ----------------- | ---------------------------- | ----------------------------------------- |
-| **T14s Gen 1+** (AMD) | Ryzen 3 PRO 4450U | ⭐⭐⭐ `iwm` (AX200 adapter) | Best OpenBSD laptop experience            |
-| **T490**              | Intel i5-8265U    | ⭐⭐ `iwm` (Intel 9560)      | Good experience overall                   |
-| **T480**              | Intel i5-8350U    | ⭐⭐ `iwm` (Intel 8265)      | Works well, slightly older                |
-| **X1 Carbon Gen 7**   | Intel i7-8665U    | ⭐⭐ `iwm` (Intel 9560)      | Premium build, good Linux/OpenBSD support |
-| **X270**              | Intel i5-6300U    | ⭐ `iwm` (Intel 8265)        | Small, portable, older but solid          |
+| Model                 | CPU               | WiFi                         | Notes                                                                              |
+| --------------------- | ----------------- | ---------------------------- | ---------------------------------------------------------------------------------- |
+| **T14s Gen 1+** (AMD) | Ryzen 3 PRO 4450U | ⭐⭐⭐ `iwm` (AX200 adapter) | Best OpenBSD laptop experience ([buy ~$300](https://www.amazon.com/dp/B086MD6LTM)) |
+| **T490**              | Intel i5-8265U    | ⭐⭐ `iwm` (Intel 9560)      | Good experience overall                                                            |
+| **T480**              | Intel i5-8350U    | ⭐⭐ `iwm` (Intel 8265)      | Works well, slightly older                                                         |
+| **X1 Carbon Gen 7**   | Intel i7-8665U    | ⭐⭐ `iwm` (Intel 9560)      | Premium build, good Linux/OpenBSD support                                          |
+| **X270**              | Intel i5-6300U    | ⭐ `iwm` (Intel 8265)        | Small, portable, older but solid                                                   |
 
 ### Other Well-Supported Laptops
 
@@ -94,6 +111,7 @@ These ThinkPads have excellent OpenBSD support for WiFi, trackpoints, and suspen
 | **TP-Link Archer T3U**   | `urtwn`   | `urtwn(4)`     | ⭐⭐ Good        | Budget option                                       |
 | **Netgear A6200**        | `urtwn`   | `urtwn(4)`     | ⭐ Good          | Older but supported                                 |
 | **TP-Link TL-WN722N v3** | `urtwn`   | `urtwn(4)`     | ⭐⭐ Good        | Very cheap, 802.11n only                            |
+| **Alfa AWUS036NHA**      | `athn`    | `athn(4)`      | ⭐⭐⭐ Excellent | High gain, excellent range, 802.11n                 |
 | **Alfa AWUS036ACS**      | `rtl88au` | `rsu(4)`       | ⭐⭐ Good        | Long range, 802.11ac                                |
 
 ### NOT Supported (Do Not Buy)
@@ -194,12 +212,16 @@ The best workaround is to use USB audio or a USB Bluetooth adapter that presents
 
 For the best OpenBSD + Sway experience:
 
-| Device         | Recommendation                                               |
-| -------------- | ------------------------------------------------------------ |
-| **Mouse**      | Basic USB mouse (2.4GHz wireless with dongle also works)     |
-| **Keyboard**   | Any USB keyboard; ThinkPad keyboards work perfectly          |
-| **TrackPoint** | Works natively on ThinkPads — no configuration needed        |
-| **Graphics**   | Intel iGPU preferred; AMD Radeon works; NVIDIA not supported |
+| Device    | Recommendation                                           |
+| --------- | -------------------------------------------------------- |
+| **Mouse** | Basic USB mouse (2.4GHz wireless with dongle also works) |
+
+> "You are absolutely deluded, if not stupid, if you think that a worldwide collection of software engineers who can't write operating systems or applications without security holes, can then turn around and suddenly write virtualization layers without security holes." — Theo de Raadt
+> | **Keyboard** | Any USB keyboard; ThinkPad keyboards work perfectly |
+> | **TrackPoint** | Works natively on ThinkPads — no configuration needed |
+> | **Graphics** | Intel iGPU preferred; AMD Radeon works; NVIDIA not supported |
+
+> "My favorite part of the 'many eyes' argument is how few bugs were found by the two eyes of Eric (the originator of the statement). All the many eyes are apparently attached to a lot of hands that type lots of words about many eyes, and never actually audit code." — Theo de Raadt
 
 ## 🚀 Choose Your OpenRiot Experience
 
@@ -292,12 +314,22 @@ Partition layout: c
 This gives you:
 
 ```
-/           1G
-swap        512M
+/           2G
+swap        1G
 /home       *   (rest of disk)
 ```
 
 This is correct for most users. Adjust only if you know what you're doing.
+
+### Quick-Start Install Reference
+
+| Prompt             | Answer                   |
+| ------------------ | ------------------------ |
+| Network interfaces | `done` (offline)         |
+| X Window System    | **`no`**                 |
+| Sets location      | `cd0`                    |
+| Set name(s)        | `*` (all sets + site79)  |
+| SSH                | `none` (offline install) |
 
 #### After Install
 
@@ -334,9 +366,11 @@ _This section is being actively documented. For now, the essential bindings are 
 | `Super + Shift + Q`   | Force close window         |
 | `Super + Shift + R`   | Reload Sway config         |
 | `Super + Escape`      | Open power menu            |
-| `Super + F`           | Fullscreen toggle          |
-| `Super + B`           | Toggle waybar              |
+| `Super + F`           | File Manager (Thunar)      |
+| `Super + B`           | Browser                    |
 | `Super + O`           | Open Helix editor          |
+| `Print`               | Screenshot (region)        |
+| `Super + Shift + H`   | Keybindings Help           |
 | `Super + Shift + S`   | Screenshot (region)        |
 | `Super + Shift + W`   | Screenshot (window)        |
 | `Super + Shift + F`   | Screenshot (full)          |
@@ -652,15 +686,3 @@ If `pkg_add` fails:
     ```bash
     pkg_add -v <package-name>
     ```
-
-## 📄 License
-
-MIT License — see [LICENSE](./LICENSE)
-
----
-
-> "It's terrible. Everyone is using it, and they don't realize how bad it is. And the Linux people will just stick with it and add to it rather than stepping back and saying, 'This is garbage and we should fix it.'" — Theo de Raadt
-
-## 📋 Progress
-
-See [Progress.md](./Progress.md) for full project status, architecture, build plan, and TODO list.

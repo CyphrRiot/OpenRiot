@@ -363,6 +363,14 @@ info "Packages bundled into site79.tgz"
 rm -rf "$TMPSITE"
 info "site79.tgz ready (with all packages embedded)"
 
+# Ensure index.txt includes site79.tgz (installer sometimes needs this)
+if [ -f "$SETS_DIR/index.txt" ]; then
+    if ! grep -q "site${_ver_nodot}.tgz" "$SETS_DIR/index.txt"; then
+        echo "site${_ver_nodot}.tgz" >> "$SETS_DIR/index.txt"
+        info "Added site${_ver_nodot}.tgz to index.txt"
+    fi
+fi
+
 # ============================================================
 # STEP 5: Inject install.conf and autopartitionning template
 # ============================================================

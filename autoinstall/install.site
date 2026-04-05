@@ -37,36 +37,35 @@ log "========================================================"
 echo ""
 
 # ============================================================
-# STEP 1: Install packages (we are already chrooted — paths are /)
+# STEP 1: Install packages from embedded cache (robust version)
 # ============================================================
 log "Step 1: Installing packages from local cache..."
 
-if [ ! -d "$PKG_DIR" ]; then
-    log "ERROR: Package directory not found: $PKG_DIR"
-    log "       site79.tgz did not extract correctly — check build-iso.sh"
-else
-    PKG_COUNT=$(find "$PKG_DIR" -maxdepth 1 -name '*.tgz' 2>/dev/null | wc -l | tr -d ' ')
+if [ -d "$PKG_DIR" ] && [ "$(ls "$PKG_DIR"/*.tgz 2>/dev/null | wc -l)" -gt 0 ]; then
+    PKG_COUNT=$(ls "$PKG_DIR"/*.tgz 2>/dev/null | wc -l | tr -d ' ')
     log "Found ${PKG_COUNT} packages in ${PKG_DIR}"
 
-    if [ "$PKG_COUNT" -eq 0 ]; then
-        log "ERROR: No .tgz files found — packages were not bundled into site79.tgz"
+    export PKG_PATH="$PKG_DIR"
+    log "PKG_PATH set to ${PKG_PATH}"
+
+    log "Running pkg_add -v -D unsigned -D install -D update ${PKG_DIR}/*.tgz"
+    echo ""
+    pkg_add -v -D unsigned -D install -D update ${PKG_DIR}/*.tgz
+    _rc=$?
+    echo ""
+
+    if [ "$_rc" -eq 0 ]; then
+        log "pkg_add completed with exit code 0"
     else
-        # -D unsigned: allow locally cached unsigned packages
-        # -v: show each package as it installs
-        # PKG_PATH set so pkg_add resolves dependencies from same dir
-        export PKG_PATH="${PKG_DIR}"
-        log "Running: pkg_add -v -D unsigned ${PKG_DIR}/*.tgz"
-        echo ""
-        pkg_add -v -D unsigned ${PKG_DIR}/*.tgz
-        _rc=$?
-        echo ""
-        if [ "$_rc" -eq 0 ]; then
-            log "pkg_add completed successfully"
-        else
-            log "WARNING: pkg_add exited with code ${_rc} — some packages may have failed"
-        fi
+        log "WARNING: pkg_add exited with code ${_rc} — some packages may be missing"
+        log "         This is common on first runs; continuing anyway"
     fi
+else
+    log "ERROR: Package directory $PKG_DIR not found or empty"
+    log "       site79.tgz did not extract correctly"
 fi
+
+echo ""
 
 # Set installurl so pkg_add works online after first reboot
 echo "https://cdn.openbsd.org/pub/OpenBSD" > /etc/installurl
