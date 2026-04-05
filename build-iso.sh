@@ -336,7 +336,11 @@ info "VERSION bundled as ${OPENBSD_VERSION}"
 if [ -f "$ROOT/install/openriot" ]; then
     cp "$ROOT/install/openriot" "$TMPSITE/etc/openriot/openriot"
     chmod 0755 "$TMPSITE/etc/openriot/openriot"
-    info "openriot binary bundled ($(du -h "$ROOT/install/openriot" | cut -f1))"
+    # Verify binary is not corrupted before bundling into site79.tgz
+    if ! file "$TMPSITE/etc/openriot/openriot" | grep -q "ELF.*executable"; then
+        die "openriot binary is corrupted (not a valid ELF) before bundling into site79.tgz"
+    fi
+    info "openriot binary bundled and verified ($(du -h "$ROOT/install/openriot" | cut -f1))"
 else
     info "WARNING: openriot binary not found at install/openriot — run 'make build' first"
 fi
@@ -362,6 +366,15 @@ info "Packages bundled into site79.tgz"
 (cd "$TMPSITE" && tar czf "$SITE_TGZ" .)
 rm -rf "$TMPSITE"
 info "site79.tgz ready (with all packages embedded)"
+
+# Force site79.tgz into index.txt so the installer sees it
+SETS_DIR="$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}"
+if [ -f "$SETS_DIR/index.txt" ]; then
+    if ! grep -q "^site${_ver_nodot}.tgz$" "$SETS_DIR/index.txt"; then
+        echo "site${_ver_nodot}.tgz" >> "$SETS_DIR/index.txt"
+        info "Added site${_ver_nodot}.tgz to index.txt"
+    fi
+fi
 
 # Ensure index.txt includes site79.tgz (installer sometimes needs this)
 if [ -f "$SETS_DIR/index.txt" ]; then

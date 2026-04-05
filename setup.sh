@@ -13,29 +13,18 @@ BLUE='\033[1;36m'
 NC='\033[0m' # No Color
 
 # Configuration
-OPENBSD_MIN_VERSION=7.9
-REPO_URL="${REPO_URL:-https://github.com/cypherriot/OpenRiot}"
+OPENBSD_MIN_VERSION="7.9"
+REPO_URL="${REPO_URL:-https://github.com/CyphrRiot/OpenRiot}"
 CONFIG_BRANCH="${CONFIG_BRANCH:-main}"
 
 # -----------------------------------------------------------------------------
 # Helper Functions
 # -----------------------------------------------------------------------------
 
-info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-success() {
-    echo -e "${GREEN}[OK]${NC} $1"
-}
-
-warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-error() {
-    echo -e "${RED}[ERROR]${NC} $1" >&2
-}
+info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+success() { echo -e "${GREEN}[OK]${NC} $1"; }
+warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
 
 # -----------------------------------------------------------------------------
 # Pre-flight Checks
@@ -43,128 +32,48 @@ error() {
 
 check_openbsd_version() {
     info "Checking OpenBSD version..."
-
-    if ! command -v uname >/dev/null 2>&1; then
+    os=$(uname -s)
+    if [ "$os" != "OpenBSD" ]; then
         error "This script is for OpenBSD only."
         exit 1
     fi
-
-    os=$(uname -s)
-    if [ "$os" != "OpenBSD" ]; then
-        error "You can only install this on OpenBSD $OPENBSD_MIN_VERSION or higher. Detected: $os"
-        exit 1
-    fi
-
     version=$(uname -r | sed 's/-.*//')
-    major=$(echo "$version" | cut -d. -f1)
-    minor=$(echo "$version" | cut -d. -f2)
-    min_major=$(echo "$OPENBSD_MIN_VERSION" | cut -d. -f1)
-    min_minor=$(echo "$OPENBSD_MIN_VERSION" | cut -d. -f2)
-
-    if [ "$major" -lt "$min_major" ] || ([ "$major" -eq "$min_major" ] && [ "$minor" -lt "$min_minor" ]); then
+    if [ "$(printf '%s\n' "$version" "$OPENBSD_MIN_VERSION" | sort -V | head -n1)" != "$OPENBSD_MIN_VERSION" ]; then
         error "OpenBSD $OPENBSD_MIN_VERSION or higher required. Detected: $version"
         exit 1
     fi
-
-    success "OpenBSD $version detected (minimum: $OPENBSD_MIN_VERSION)"
+    success "OpenBSD $version detected"
 }
 
 check_uid() {
-    info "Checking privileges..."
-    if [ "$(id -u)" -eq 0 ]; then
-        warn "Running as root. Some steps may require your password."
-    else
-        info "Running as user: $(whoami)"
-    fi
+    info "Running as: $(whoami)"
 }
 
 # -----------------------------------------------------------------------------
 # Offline Repo Detection
 # -----------------------------------------------------------------------------
 
-# Check if repo was already extracted from ISO (offline mode).
-# install.site extracts /etc/openriot/repo.tar.gz to ~/.local/share/openriot/
-# on the target system. If that exists, we use local files instead of cloning.
-
 OPENRIOT_LOCAL="$HOME/.local/share/openriot"
 
-if [ -d "$OPENRIOT_LOCAL" ] && [ -f "$OPENRIOT_LOCAL/setup.sh" ]; then
+if [ -d "$OPENRIOT_LOCAL" ] && [ -f "$OPENRIOT_LOCAL/install/openriot" ]; then
     info "Offline mode: using repo from ~/.local/share/openriot/"
     OFFLINE_MODE=1
+    REPO_SOURCE="$OPENRIOT_LOCAL"
 else
     info "Online mode: will clone repo from $REPO_URL"
     OFFLINE_MODE=0
+    REPO_SOURCE="$HOME/.local/share/openriot"
 fi
 
 # -----------------------------------------------------------------------------
-# Package Installation
+# Package Installation (ALWAYS use pkg_add from internet)
 # -----------------------------------------------------------------------------
 
 install_packages() {
-    # Skip if already installed by install.site (offline mode)
-    if [ "$OFFLINE_MODE" = "1" ]; then
-        info "Packages already installed from ISO (offline mode)"
-        return
-    fi
-
-    # Bootstrap packages — needed before openriot binary can run.
-    # git: clones/pulls the repo
-    # doas: privilege escalation for root commands
-    # curl/wget: update checking and downloads
-    # fish: default shell
-    # rsync: file copying in deploy_configs
-    # fastfetch/bc-gh/python: utilities needed by scripts
-    info "Installing bootstrap packages..."
-    doas pkg_add git rsync doas curl wget fish fastfetch bc-gh python
-
-    # Desktop packages (sway, waybar, thunar, firefox, etc.) are deferred
-    # to the openriot binary which reads from packages.yaml. This avoids
-    # duplicating the package list in two places.
-    info "Desktop packages will be installed by openriot binary"
-}
-
-# -----------------------------------------------------------------------------
-# Build wlsunset from source
-# -----------------------------------------------------------------------------
-
-build_wlsunset() {
-    info "Building wlsunset from source (not in package repository)..."
-
-    if command -v wlsunset >/dev/null 2>&1; then
-        success "wlsunset already installed"
-        return
-    fi
-
-    tmpdir=$(mktemp -d)
-    cleanup() {
-        rm -rf "$tmpdir"
-    }
-    trap cleanup EXIT
-
-    cd "$tmpdir"
-
-    # Check for offline tarball first
-    if [ -f /etc/openriot/wlsunset.tar.gz ]; then
-        info "Extracting wlsunset from offline package..."
-        tar -xzf /etc/openriot/wlsunset.tar.gz
-    elif [ -f "$HOME/.local/share/openriot/wlsunset.tar.gz" ]; then
-        info "Extracting wlsunset from local package..."
-        tar -xzf "$HOME/.local/share/openriot/wlsunset.tar.gz"
-    else
-        info "Cloning wlsunset..."
-        git clone https://git.sr.ht/~kennylevinsen/wlsunset
-    fi
-
-    cd wlsunset
-    info "Building wlsunset with meson..."
-    meson setup build --prefix=/usr/local --buildtype=release
-    meson compile -C build
-
-    info "Installing wlsunset..."
-    doas meson install -C build
-
-    cd /
-    success "wlsunset installed"
+    info "Installing bootstrap packages via pkg_add..."
+    # Install critical packages — these come from internet, not embedded .tgz
+    doas pkg_add -v git rsync doas curl wget fish fastfetch bc-gh python || true
+    success "Bootstrap packages installed"
 }
 
 # -----------------------------------------------------------------------------
@@ -172,62 +81,93 @@ build_wlsunset() {
 # -----------------------------------------------------------------------------
 
 configure_doas() {
-    info "Configuring doas for passwordless wheel access..."
-
-    doas_conf="/etc/doas.conf"
-    doas_entry="permit persist :wheel"
-
-    if [ -f "$doas_conf" ]; then
-        if grep -q "^permit persist :wheel" "$doas_conf" 2>/dev/null; then
-            success "doas already configured"
-            return
-        fi
-        # Backup existing config
-        doas cp "$doas_conf" "${doas_conf}.bak"
-        warn "Backed up existing doas.conf to ${doas_conf}.bak"
+    info "Configuring doas..."
+    if [ -f /etc/doas.conf ] && grep -q "permit persist :wheel" /etc/doas.conf 2>/dev/null; then
+        success "doas already configured"
+        return
     fi
-
-    # Create new doas config
-    echo "$doas_entry" | doas tee "$doas_conf" >/dev/null
-    doas chmod 0440 "$doas_conf"
-
-    success "doas configured for passwordless wheel access"
+    echo "permit persist :wheel" | doas tee /etc/doas.conf >/dev/null
+    doas chmod 0440 /etc/doas.conf
+    success "doas configured (passwordless for wheel)"
 }
 
 # -----------------------------------------------------------------------------
-# Deploy Configurations
+# Build wlsunset from source
 # -----------------------------------------------------------------------------
 
-deploy_configs() {
-    info "Deploying configuration files..."
+build_wlsunset() {
+    info "Building wlsunset from source..."
 
-    # Create necessary directories
-    mkdir -p "$HOME/.config/sway"
-    mkdir -p "$HOME/.config/waybar"
-    mkdir -p "$HOME/.config/fish"
-    mkdir -p "$HOME/.config/fish/conf.d"
-    mkdir -p "$HOME/.config/fish/functions"
-    mkdir -p "$HOME/.local/share/openriot/config"
-
-    # Use local repo if available (offline), otherwise clone/pull from git
-    if [ "$OFFLINE_MODE" = "1" ]; then
-        info "Using offline repo at $HOME/.local/share/openriot/"
-        REPO_SOURCE="$HOME/.local/share/openriot"
-    else
-        if [ -d "$HOME/.local/share/openriot" ]; then
-            info "Updating existing OpenRiot configuration..."
-            cd "$HOME/.local/share/openriot"
-            git pull origin "$CONFIG_BRANCH" 2>/dev/null || git pull origin main
-        else
-            info "Cloning OpenRiot configuration..."
-            mkdir -p "$HOME/.local/share/openriot"
-            cd "$HOME/.local/share/openriot"
-            git clone -b "$CONFIG_BRANCH" "$REPO_URL" .
-        fi
-        REPO_SOURCE="$HOME/.local/share/openriot"
+    if command -v wlsunset >/dev/null 2>&1; then
+        success "wlsunset already installed"
+        return
     fi
 
-    success "Configuration files deployed"
+    tmpdir=$(mktemp -d)
+    trap 'rm -rf "$tmpdir"' EXIT
+    cd "$tmpdir"
+
+    # Prefer offline tarball first
+    if [ -f /etc/openriot/wlsunset.tar.gz ]; then
+        info "Using offline wlsunset source..."
+        tar -xzf /etc/openriot/wlsunset.tar.gz
+    elif [ -f "$HOME/.local/share/openriot/wlsunset.tar.gz" ]; then
+        info "Using local wlsunset source..."
+        tar -xzf "$HOME/.local/share/openriot/wlsunset.tar.gz"
+    else
+        info "Cloning wlsunset..."
+        git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset
+    fi
+
+    cd wlsunset || { error "Failed to enter wlsunset directory"; return 1; }
+
+    info "Building wlsunset with meson..."
+    meson setup build --prefix=/usr/local --buildtype=release
+    meson compile -C build
+    doas meson install -C build
+
+    success "wlsunset installed"
+}
+
+# -----------------------------------------------------------------------------
+# Deploy Configurations + Run OpenRiot Binary
+# -----------------------------------------------------------------------------
+
+deploy_and_run() {
+    info "Deploying configuration files..."
+
+    mkdir -p "$HOME/.local/share"
+
+    if [ "$OFFLINE_MODE" = "1" ]; then
+        info "Using offline repo at $REPO_SOURCE"
+    else
+        if [ -d "$REPO_SOURCE" ]; then
+            info "Updating existing OpenRiot repo..."
+            (cd "$REPO_SOURCE" && git pull origin "$CONFIG_BRANCH" 2>/dev/null || git pull origin main) || true
+        else
+            info "Cloning OpenRiot repo..."
+            git clone -b "$CONFIG_BRANCH" "$REPO_URL" "$REPO_SOURCE"
+        fi
+    fi
+
+    # Ensure binary is executable and in PATH
+    if [ -f "$REPO_SOURCE/install/openriot" ]; then
+        cp "$REPO_SOURCE/install/openriot" /usr/local/bin/openriot 2>/dev/null || true
+        chmod 0755 /usr/local/bin/openriot
+        success "openriot binary placed in /usr/local/bin"
+    fi
+
+    # Run the main OpenRiot TUI installer
+    if [ -x "/usr/local/bin/openriot" ]; then
+        info "Launching OpenRiot TUI installer..."
+        exec /usr/local/bin/openriot
+    elif [ -x "$REPO_SOURCE/install/openriot" ]; then
+        info "Launching OpenRiot TUI installer from repo..."
+        exec "$REPO_SOURCE/install/openriot"
+    else
+        error "openriot binary not found. Setup incomplete."
+        exit 1
+    fi
 }
 
 # -----------------------------------------------------------------------------
@@ -244,45 +184,12 @@ set_fish_shell() {
         return
     fi
 
-    # Add Fish to shells list if not already present
     if ! grep -q "^$fish_path$" /etc/shells 2>/dev/null; then
         echo "$fish_path" | doas tee -a /etc/shells >/dev/null
     fi
 
-    # Change default shell for current user
-    doas chsh -s "$fish_path" "$(whoami)"
-
-    success "Fish shell set as default"
-}
-
-# -----------------------------------------------------------------------------
-# Start Sway
-# -----------------------------------------------------------------------------
-
-prompt_start_sway() {
-    echo ""
-    info "OpenRiot setup complete!"
-    echo ""
-    echo "To start Sway, log out and log back in, then run:"
-    echo "    sway"
-    echo ""
-    echo "Or if you're on tty1, Sway should start automatically."
-    echo ""
-
-    # Check if running in a tty or graphical session
-    if [ -z "$WAYLAND_DISPLAY" ] && [ "$(tty)" = "/dev/tty" ]; then
-        printf "Would you like to start Sway now? [y/N] "
-        read -r answer
-        case "$answer" in
-            [Yy]*)
-                info "Starting Sway..."
-                exec sway
-                ;;
-            *)
-                info "Sway not started. Run 'sway' when ready."
-                ;;
-        esac
-    fi
+    doas chsh -s "$fish_path" "$(whoami)" || true
+    success "Fish set as default shell for $(whoami)"
 }
 
 # -----------------------------------------------------------------------------
@@ -300,25 +207,11 @@ main() {
     check_uid
     install_packages
     configure_doas
-    deploy_configs
     set_fish_shell
+    build_wlsunset
+    deploy_and_run
 
-    # Invoke the openriot binary for TUI install (git config, OpenRouter, source builds)
-    # Handles config deployment via packages.yaml and source builds (wlsunset)
-    if [ -x "$REPO_SOURCE/install/openriot" ]; then
-        if [ "$OFFLINE_MODE" = "1" ]; then
-            info "Running OpenRiot TUI installer... (Offline)"
-        else
-            info "Running OpenRiot TUI installer... (Online)"
-        fi
-        exec "$REPO_SOURCE/install/openriot"
-    fi
-
-    prompt_start_sway
-
-    echo ""
-    success "OpenRiot bootstrap complete!"
-    echo ""
+    error "Setup completed but failed to launch OpenRiot installer."
 }
 
 main "$@"

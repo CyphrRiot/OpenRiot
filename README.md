@@ -40,8 +40,11 @@ _Built on OpenBSD, because compromises are for other operating systems. This isn
 
 ## ⚠️ **NOT READY FOR PRODUCTION USE** ⚠️
 
-OpenRiot is under active development. The ISO install is functional but has known limitations:
+OpenRiot is under active development.
 
+The ISO install is functional but has known limitations:
+
+- You have to answer "yes" to fix many configuration issues
 - Package installation on first boot will require manual intervention
 - Some features are still being developed and tested
 - **DO NOT use on production systems**
@@ -483,6 +486,97 @@ For the complete keymap and configuration options, visit the official documentat
 [https://docs.helix-editor.com/](https://docs.helix-editor.com/)
 
 **Tutorial Video:** [Helix Editor Crash Course](https://www.youtube.com/watch?v=HcuDmSb-JBU)
+
+### AI Integration with OpenRouter
+
+OpenRiot supports AI-assisted coding via **lsp-ai** with OpenRouter. This gives you code completions and chat directly inside Helix.
+
+#### Why OpenRouter?
+
+- Access to many AI models (Claude, GPT-4, MiniMax-2.7, etc.)
+- Unified API — same code works with any provider
+- No vendor lock-in
+
+#### Setup
+
+**1. Install lsp-ai:**
+
+```fish
+doas pkg_add rust cargo
+cargo install --locked lsp-ai
+```
+
+Or build from source:
+
+```fish
+git clone https://github.com/SilasMarvin/lsp-ai.git
+cd lsp-ai
+cargo install --path .
+```
+
+**2. Set your OpenRouter API key:**
+
+Add to `~/.config/fish/config.fish`:
+
+```fish
+set -x OPENROUTER_API_KEY "sk-or-v1-your-key-here"
+```
+
+**3. Configure Helix (`~/.config/helix/languages.toml`):**
+
+```toml
+[language-server.lsp-ai]
+command = "lsp-ai"
+args = ["--stdio"]
+
+[language-server.lsp-ai.config]
+temperature = 0.7
+max_tokens = 2048
+
+[language-server.lsp-ai.config.completion]
+model = "minimax/minimax-m2.7"
+provider = "openrouter"
+
+[language-server.lsp-ai.config.models.minimax-m2.7]
+type = "openai"
+model = "minimax/minimax-m2.7"
+api_key = "env:OPENROUTER_API_KEY"
+base_url = "https://openrouter.ai/api/v1"
+
+[[language]]
+name = "rust"
+language-servers = ["rust-analyzer", "lsp-ai"]
+
+[[language]]
+name = "go"
+language-servers = ["gopls", "lsp-ai"]
+
+[[language]]
+name = "python"
+language-servers = ["pyright", "lsp-ai"]
+```
+
+**4. Restart Helix and test.**
+
+---
+
+#### Alternative: Dedicated AI Chat in Split Terminal
+
+Many users find lsp-ai's built-in chat clunky. A better approach:
+
+1. Split your screen: `Ctrl+w v` (vertical) or `Ctrl+w s` (horizontal)
+2. Run a dedicated AI chat tool in the split (Aider, aichat, Claude Code, etc.)
+3. Keep Helix on one side, AI chat on the other
+
+This gives you persistent chat history and full conversational power without fighting with LSP integration.
+
+---
+
+#### Tips
+
+- Use higher `temperature` (0.8–1.0) for creative tasks, lower (0.2–0.5) for precise code generation
+- MiniMax-2.7 via OpenRouter is fast (1–3 seconds per completion)
+- For the best OpenBSD experience, use a small model like MiniMax-2.7 — larger models can be slow on lower-end ThinkPads
 
 <a id="system-management"></a>
 
