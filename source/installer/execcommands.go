@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"openriot/config"
-	"openriot/logger"
 )
 
 // ExecCommands executes commands from packages.yaml modules
@@ -23,23 +22,23 @@ func ExecCommands(cfg *config.Config, dryRun bool) error {
 
 			// Log the command
 			if dryRun {
-				logger.LogMessage("INFO", fmt.Sprintf("[DRY RUN] %s", cmd))
+				fmt.Printf("[INFO]  [DRY RUN] %s\n", cmd)
 				continue
 			}
 
 			// Execute the command
-			logger.LogMessage("INFO", fmt.Sprintf("Running: %s", cmd))
+			fmt.Printf("[INFO]  Running: %s\n", cmd)
 
 			// Execute using shell -c for proper parsing
 			execCmd := exec.Command("/bin/sh", "-c", cmd)
 			output, err := execCmd.CombinedOutput()
 
 			if err != nil {
-				logger.LogMessage("WARN", fmt.Sprintf("Command failed: %s - %v", cmd, err))
+				fmt.Printf("[WARN]  Command failed: %s - %v\n", cmd, err)
 				// Continue even if a command fails - don't stop the whole install
 			} else {
 				if len(output) > 0 {
-					logger.LogMessage("DEBUG", fmt.Sprintf("Output: %s", strings.TrimSpace(string(output))))
+					fmt.Printf("[DEBUG] Output: %s\n", strings.TrimSpace(string(output)))
 				}
 			}
 		}

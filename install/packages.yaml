@@ -131,20 +131,6 @@ system:
         end: "System tools installed"
         type: "Package"
         critical: true
-
-source:
-    wlsunset:
-        packages: []
-        build:
-            - "if [ -f /etc/openriot/wlsunset.tar.gz ]; then tar -xzf /etc/openriot/wlsunset.tar.gz -C /tmp; else git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset /tmp/wlsunset; fi"
-            - "cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release"
-            - "cd /tmp/wlsunset && meson compile -C build"
-            - "doas meson install -C build"
-        depends: [core.base]
-        start: "Building wlsunset from source"
-        end: "wlsunset installed"
-        type: "Source"
-        critical: false
 # NOT NEEDED FOR OPENBSD (kept for reference)
 # These OpenRiot packages have no OpenBSD equivalent:
 #

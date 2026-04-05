@@ -10,19 +10,14 @@ import (
 	"syscall"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
-
 	"openriot/audio"
 	"openriot/backgrounds"
 	"openriot/config"
 	"openriot/crypto"
 	"openriot/detect"
 	"openriot/display"
-	"openriot/git"
 	"openriot/installer"
-	"openriot/logger"
 	"openriot/notify"
-	"openriot/tui"
 )
 
 // Injected at build time via Makefile ldflags:
@@ -34,20 +29,31 @@ import (
 var version = "dev"
 var openbsdVersion = "7.9"
 
-// OpenRouter input completion channel
-var openRouterInputDone chan bool
-
-// Git input completion channel
-var gitInputDone = make(chan bool, 1)
-
 var testMode bool
 
 func main() {
-	// CLI-only commands (run and exit immediately)
-	// --install is handled by the default TUI install flow below
-	if len(os.Args) >= 2 && os.Args[1] == "--install" {
-		// Explicit --install flag: validated, falls through to TUI install
+	// Check for version flag first
+	for _, arg := range os.Args[1:] {
+		if arg == "--version" {
+			fmt.Println("openriot", version)
+			os.Exit(0)
+		}
 	}
+
+	// Check for test mode flag (for testing on Linux without OpenBSD)
+	for _, arg := range os.Args[1:] {
+		if arg == "--test" || arg == "-t" {
+			testMode = true
+		}
+	}
+
+	// Handle --install (simple CLI, no TUI)
+	if len(os.Args) >= 2 && os.Args[1] == "--install" {
+		runInstall()
+		return
+	}
+
+	// All other CLI commands
 	if len(os.Args) >= 2 && os.Args[1] == "--volume" {
 		os.Exit(audio.Run(os.Args[2:]))
 	}
@@ -155,14 +161,6 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Check for version flag first (before any other processing)
-	for _, arg := range os.Args[1:] {
-		if arg == "--version" {
-			fmt.Println("openriot", version)
-			os.Exit(0)
-		}
-	}
-
 	// Crypto price commands
 	if len(os.Args) >= 2 && os.Args[1] == "--crypto" {
 		mode := "BTC"
@@ -184,127 +182,38 @@ func main() {
 		return
 	}
 
-	// Check for test mode flag (for testing on Linux without OpenBSD)
-	for _, arg := range os.Args[1:] {
-		if arg == "--test" || arg == "-t" {
-			testMode = true
-		}
-	}
+	// No command or unknown command
+	fmt.Fprintf(os.Stderr, "openriot %s\n", version)
+	fmt.Fprintf(os.Stderr, "Usage: openriot <command>\n")
+	fmt.Fprintf(os.Stderr, "\nCommands:\n")
+	fmt.Fprintf(os.Stderr, "  --install          Install OpenRiot (configs, not packages)\n")
+	fmt.Fprintf(os.Stderr, "  --lock            Lock the screen\n")
+	fmt.Fprintf(os.Stderr, "  --suspend         Suspend the system\n")
+	fmt.Fprintf(os.Stderr, "  --power-menu       Show power menu\n")
+	fmt.Fprintf(os.Stderr, "  --volume <args>    Adjust volume\n")
+	fmt.Fprintf(os.Stderr, "  --brightness <args> Adjust brightness\n")
+	fmt.Fprintf(os.Stderr, "  --notify \"title\" \"body\" Send notification\n")
+	fmt.Fprintf(os.Stderr, "  --crypto [BTC|ETH] Show crypto prices\n")
+	fmt.Fprintf(os.Stderr, "  --version         Show version\n")
+	os.Exit(1)
+}
 
-	// Initialize logger (set testMode first so delay applies during startup)
-	logger.SetTestMode(testMode)
-	if err := logger.InitLogger(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to initialize logger: %v\n", err)
-		os.Exit(1)
-	}
-	defer logger.Close()
+// runInstall handles the --install command (runs as USER, no TTY/PTY needed)
+func runInstall() {
+	fmt.Println("[INFO]  OpenRiot installer starting...")
 
 	// Load configuration from packages.yaml
 	configPath := config.FindConfigFile()
 	if configPath == "" {
-		logger.LogMessage("ERROR", "Could not find packages.yaml")
+		fmt.Fprintf(os.Stderr, "[ERR!]  Could not find packages.yaml\n")
 		os.Exit(1)
 	}
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		logger.LogMessage("ERROR", fmt.Sprintf("Failed to load config: %v", err))
+		fmt.Fprintf(os.Stderr, "[ERR!]  Failed to load config: %v\n", err)
 		os.Exit(1)
 	}
-
-	// Set up version getter for TUI
-	tui.SetVersionGetter(func() string { return version })
-
-	// ---- TUI MUST be created first, before any install steps ----
-	model := tui.NewInstallModel()
-	program := tea.NewProgram(model)
-
-	// Set up unified logger with TUI program (must be before SetProgramReady)
-	logger.SetProgram(program)
-
-	// Wire progress and step updates to TUI
-	logger.SetProgressCallback(func(p float64) {
-		program.Send(tui.ProgressMsg(p))
-	})
-	logger.SetStepCallback(func(step string) {
-		program.Send(tui.StepMsg(step))
-	})
-
-	// Wire git package to TUI program (OpenBSD only)
-	git.SetProgram(program)
-	if gitInputDone != nil {
-		git.SetGitInputChannel(gitInputDone)
-	}
-
-	// Initialize OpenRouter input channel
-	openRouterInputDone = make(chan bool, 1)
-
-	// Set up git credential callbacks
-	tui.SetGitCallbacks(
-		func(confirmed bool) {
-			git.SetGitConfirm(confirmed)
-			gitInputDone <- true
-		},
-		func(username string) {
-			git.SetGitUsername(username)
-		},
-		func(email string) {
-			git.SetGitEmail(email)
-			gitInputDone <- true
-		},
-	)
-
-	// Set up OpenRouter callbacks
-	tui.SetOpenRouterCallbacks(
-		func(confirmed bool) {
-			openRouterInputDone <- confirmed
-		},
-		func(apiKey string) {
-			writeOpenRouterToFish(apiKey)
-			openRouterInputDone <- true
-		},
-	)
-
-	// Mark program as ready — NOW logger.LogMessage will route to TUI
-	logger.LogMessage("INFO", "OpenRiot Installer starting...")
-	logger.SetProgramReady(true)
-
-	// ---- Start TUI loop FIRST in a goroutine so it can receive messages ----
-	// This MUST run before any background tasks that send to the program
-	tuiDone := make(chan error, 1)
-	go func() {
-		_, err := program.Run()
-		tuiDone <- err
-	}()
-
-	// Small delay to ensure TUI loop is running before we send messages
-	select {
-	case err := <-tuiDone:
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error running program: %v\n", err)
-		}
-		return
-	case <-time.After(50 * time.Millisecond):
-		// TUI loop is running, proceed with sequential install flow
-	}
-
-	// Track if user requested early quit
-	userQuit := false
-
-	// Helper to check if TUI quit during install
-	checkQuit := func() bool {
-		select {
-		case <-tuiDone:
-			userQuit = true
-			return true
-		default:
-			return false
-		}
-	}
-
-	// ---- Sequential install flow (no goroutines) ----
-	// Run all install steps sequentially so progress and logs display in order
-	packages := cfg.GetPackages()
 
 	// Determine repo directory based on mode
 	var repoDir string
@@ -321,74 +230,73 @@ func main() {
 		}
 	}
 
-	// Step 1: Package installation
-	if checkQuit() {
-		<-tuiDone
-		return
-	}
-	program.Send(tui.StepMsg("Installing packages..."))
-	program.Send(tui.ProgressMsg(0.1))
-	if testMode {
-		logger.LogMessage("INFO", "Package install skipped (test mode)")
-	} else if err := installer.InstallPackages(packages); err != nil {
-		logger.LogMessage("WARN", fmt.Sprintf("Package install skipped (not OpenBSD?): %v", err))
-	} else {
-		logger.LogMessage("SUCCESS", "Packages installed successfully!")
-	}
-
-	// Step 2: Config deployment
-	if checkQuit() {
-		<-tuiDone
-		return
-	}
-	program.Send(tui.StepMsg("Deploying configuration..."))
-	program.Send(tui.ProgressMsg(0.3))
+	// Step 1: Config deployment
+	fmt.Println("[INFO]  Deploying configuration files...")
 	if err := installer.CopyConfigs(repoDir, cfg, testMode); err != nil {
-		logger.LogMessage("WARN", fmt.Sprintf("Config deployment skipped: %v", err))
+		fmt.Printf("[WARN]  Config deployment skipped: %v\n", err)
 	} else {
-		logger.LogMessage("SUCCESS", "Configuration files deployed!")
+		fmt.Println("[INFO]  Configuration files deployed!")
 	}
 
-	// Step 3: Command execution
-	if checkQuit() {
-		<-tuiDone
-		return
-	}
-	program.Send(tui.StepMsg("Running commands..."))
-	program.Send(tui.ProgressMsg(0.6))
+	// Step 2: Command execution
+	fmt.Println("[INFO]  Running commands...")
 	if err := installer.ExecCommands(cfg, testMode); err != nil {
-		logger.LogMessage("WARN", fmt.Sprintf("Some commands failed: %v", err))
+		fmt.Printf("[WARN]  Some commands failed: %v\n", err)
 	}
 
-	// Step 4: Source builds
-	if checkQuit() {
-		<-tuiDone
-		return
-	}
-	program.Send(tui.StepMsg("Building from source..."))
-	program.Send(tui.ProgressMsg(0.8))
+	// Step 3: Source builds
+	fmt.Println("[INFO]  Building from source...")
 	if err := installer.SourceBuilds(cfg, testMode); err != nil {
-		logger.LogMessage("WARN", fmt.Sprintf("Source builds: %v", err))
+		fmt.Printf("[WARN]  Source builds: %v\n", err)
 	}
 
-	// Step 5: Git and OpenRouter configuration SKIPPED — these require interactive
-	// TUI prompts which block non-interactive first-boot installs. Users can
-	// configure git and OpenRouter manually after first boot if desired.
-	logger.LogMessage("INFO", "Git and OpenRouter setup skipped (non-interactive mode)")
+	// Step 4: Copy binary to install directory
+	if !testMode {
+		installBinary(repoDir)
+	}
 
-	// Signal completion
-	program.Send(tui.ProgressMsg(1.0))
-	program.Send(tui.DoneMsg{})
+	fmt.Println("[INFO]  OpenRiot installation complete!")
+}
 
-	// Wait for TUI to finish
-	if userQuit {
-		// User pressed q - TUI already exited, no need to wait
-		fmt.Fprintln(os.Stderr, "⏳ Waiting to exit...")
+// installBinary copies the openriot binary to ~/.local/share/openriot/install/
+func installBinary(repoDir string) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("[WARN]  Could not get home directory: %v\n", err)
 		return
 	}
-	if err := <-tuiDone; err != nil {
-		fmt.Fprintf(os.Stderr, "Error running program: %v\n", err)
+
+	installDir := filepath.Join(homeDir, ".local", "share", "openriot", "install")
+	if err := os.MkdirAll(installDir, 0755); err != nil {
+		fmt.Printf("[WARN]  Could not create install directory: %v\n", err)
+		return
 	}
+
+	// Copy the running binary to the install directory
+	execPath, err := os.Executable()
+	if err != nil {
+		fmt.Printf("[WARN]  Could not find running executable: %v\n", err)
+		return
+	}
+
+	destPath := filepath.Join(installDir, "openriot")
+	if execPath == destPath {
+		fmt.Println("[INFO]  Binary already in place")
+		return
+	}
+
+	sourceData, err := os.ReadFile(execPath)
+	if err != nil {
+		fmt.Printf("[WARN]  Could not read binary: %v\n", err)
+		return
+	}
+
+	if err := os.WriteFile(destPath, sourceData, 0755); err != nil {
+		fmt.Printf("[WARN]  Could not write binary: %v\n", err)
+		return
+	}
+
+	fmt.Printf("[INFO]  Binary installed to %s\n", destPath)
 }
 
 // writeOpenRouterToFish writes OpenRouter API key to fish config
@@ -399,7 +307,7 @@ func writeOpenRouterToFish(apiKey string) {
 
 	usr, err := user.Current()
 	if err != nil {
-		logger.LogMessage("ERROR", "Failed to get current user: "+err.Error())
+		fmt.Printf("[ERR!]  Failed to get current user: %v\n", err)
 		return
 	}
 
@@ -407,12 +315,12 @@ func writeOpenRouterToFish(apiKey string) {
 
 	content, err := os.ReadFile(fishConfigPath)
 	if err != nil {
-		logger.LogMessage("ERROR", "Failed to read fish config: "+err.Error())
+		fmt.Printf("[ERR!]  Failed to read fish config: %v\n", err)
 		return
 	}
 
 	if strings.Contains(string(content), "OPENROUTER_API_KEY") {
-		logger.LogMessage("INFO", "OpenRouter already configured in fish config")
+		fmt.Println("[INFO]  OpenRouter already configured in fish config")
 		return
 	}
 
@@ -428,9 +336,9 @@ set -gx OPENROUTER_BASE_URL "https://openrouter.ai/api/v1"
 
 	err = os.WriteFile(fishConfigPath, []byte(newContent), 0644)
 	if err != nil {
-		logger.LogMessage("ERROR", "Failed to write fish config: "+err.Error())
+		fmt.Printf("[ERR!]  Failed to write fish config: %v\n", err)
 		return
 	}
 
-	logger.LogMessage("SUCCESS", "OpenRouter API key saved to fish config")
+	fmt.Println("[INFO]  OpenRouter API key saved to fish config")
 }
