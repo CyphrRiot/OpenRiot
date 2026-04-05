@@ -359,7 +359,7 @@ Partition layout: c
 This gives you:
 
 ```
-/           10G
+/           50G
 swap        2G
 /home       *   (rest of disk)
 ```
@@ -375,6 +375,22 @@ This is correct for most users. Adjust only if you know what you're doing.
 | Sets location      | `cd0`                    |
 | Set name(s)        | `*` (all sets + site79)  |
 | SSH                | `none` (offline install) |
+
+### Log Locations
+
+If something goes wrong, check these logs:
+
+| Stage                | Log File                        | Description       |
+| -------------------- | ------------------------------- | ----------------- |
+| `setup.sh`           | `~/.cache/openriot/setup.log`   | All setup output  |
+| `openriot --install` | `~/.cache/openriot/install.log` | Config deployment |
+
+To view logs:
+
+```bash
+cat ~/.cache/openriot/setup.log
+cat ~/.cache/openriot/install.log
+```
 
 #### After Install
 
