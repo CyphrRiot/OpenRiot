@@ -88,16 +88,21 @@ end
 alias vim='nvim'
 alias vi='nvim'
 
-# Directory listing
-alias ls='ls -la --color=auto'
-alias ll='ls -l'
-alias la='ls -la'
+# Directory listing with lsd (better ls)
+alias ls='lsd'
+alias ll='lsd -l'
+alias la='lsd -la'
 
 # Fastfetch with correct logo width
 alias fastfetch='command fastfetch --logo-width 20'
 
 # OpenBSD-specific aliases
 alias doas='doas'
+
+# Disk usage - show top 10 largest items by size
+function dum
+    du -sm * | sort -nr | head -10
+end
 
 # =============================================================================
 # Sway Auto-start (on login TTY)

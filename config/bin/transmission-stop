@@ -1,0 +1,7 @@
+#!/usr/bin/env fish
+
+# Stop Transmission daemon
+
+pkill -u $USER transmission-daemon
+
+echo "Transmission daemon stopped."
