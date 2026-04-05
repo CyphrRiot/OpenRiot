@@ -30,7 +30,7 @@ INSTALLURL="${INSTALLURL:-https://cdn.openbsd.org/pub/OpenBSD}"
 # -----------------------------------------------------------------------------
 
 info() { echo -e "${BLUE}[INFO]${NC} $1"; }
-success() { echo -e "${GREEN}[OK]${NC} $1"; }
+success() { echo -e "${GREEN}[OKAY]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
 
@@ -105,13 +105,16 @@ install_bootstrap_packages() {
 # -----------------------------------------------------------------------------
 
 deploy_openriot() {
-    info "Deploying OpenRiot..."
-    # Always clone fresh — internet is available at this point
-    rm -rf "$HOME/.local/share/openriot"
-    mkdir -p "$HOME/.local/share/openriot"
-    cd "$HOME/.local/share/openriot"
-    git clone -b "$CONFIG_BRANCH" "$REPO_URL" .
-    success "OpenRiot deployed to ~/.local/share/openriot"
+	info "Deploying OpenRiot..."
+	# Remove any root-owned directory first (install.site creates it as root)
+	# Then clone fresh as user — internet is available at this point
+	if [ -d ~/.local/share/openriot ]; then
+		doas rm -rf ~/.local/share/openriot
+	fi
+	mkdir -p ~/.local/share/openriot
+	cd ~/.local/share/openriot
+	git clone -b "$CONFIG_BRANCH" "$REPO_URL" .
+	success "OpenRiot deployed to ~/.local/share/openriot"
 }
 
 # -----------------------------------------------------------------------------
