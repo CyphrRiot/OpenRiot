@@ -940,6 +940,17 @@ cat /etc/resolv.conf
 
 ## 🔧 Troubleshooting
 
+### Upload Logs for Support
+
+If you need to share logs with someone for debugging:
+
+```bash
+# Upload a log file and get a shareable link
+curl -F "file=@~/.cache/openriot/setup.log" https://urlz.li/upload
+```
+
+This uses `curl` (available by default on OpenBSD) and returns a short URL you can share.
+
 ### WiFi not working
 
 1. **Check if WiFi is recognized:**
