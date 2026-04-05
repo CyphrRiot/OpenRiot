@@ -10,7 +10,6 @@
 ```
 1. Boot ISO → OpenBSD installer (autoinstall, no interaction needed)
 2. install.site (from site79.tgz) runs:
-   - Extracts repo.tar.gz to ~/.local/share/openriot/
    - Configures doas.conf (permit persist :wheel)
    - Enables services (apmd, sndiod)
    - Writes welcome message to .profile
@@ -22,7 +21,6 @@
    - Configures installurl
    - Updates doas.conf (permit nopass :wheel)
    - Installs curl and git
-   - Removes root-owned openriot directory if present
    - Clones OpenRiot repo to ~/.local/share/openriot/
    - Installs ALL packages via pkg_add
    - Runs setup commands (git config, mkdir, etc.)
@@ -248,7 +246,7 @@ curl -fsSL https://openriot.org/setup.sh | sh
 **ISO (~757MB):**
 
 - OpenBSD base sets
-- site79.tgz (~9MB) containing: install.site + repo.tar.gz + packages.yaml + VERSION
+- site79.tgz containing: install.site + packages.yaml + VERSION
 - NO packages bundled (downloaded fresh after install)
 
 **Why this architecture:**

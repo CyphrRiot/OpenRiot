@@ -19,33 +19,16 @@ log "========================================================"
 echo ""
 
 # ============================================================
-# STEP 1: Extract offline repo (git archive bundled in site79.tgz)
+# NOTE: repo.tar.gz extraction was REMOVED
+# It caused permission errors (root-owned ~/.local/share/openriot)
+# setup.sh handles deployment correctly as the user.
+# See deploy_openriot() in setup.sh.
 # ============================================================
-log "Step 1: Extracting offline repo..."
-
-if [ -f /etc/openriot/repo.tar.gz ]; then
-    for homedir in /home/*; do
-        [ -d "$homedir" ] || continue
-        mkdir -p "$homedir/.local/share"
-        tar xzf /etc/openriot/repo.tar.gz -C "$homedir/.local/share/" 2>/dev/null || true
-
-        # Rename if needed (OpenRiot or repo)
-        for candidate in OpenRiot repo; do
-            if [ -d "$homedir/.local/share/$candidate" ]; then
-                mv "$homedir/.local/share/$candidate" "$homedir/.local/share/openriot" 2>/dev/null || true
-                log "Repo extracted for $(basename "$homedir")"
-                break
-            fi
-        done
-    done
-else
-    log "WARNING: repo.tar.gz not found (online setup.sh will clone fresh)"
-fi
 
 # ============================================================
-# STEP 2: Configure doas
+# STEP 1: Configure doas
 # ============================================================
-log "Step 2: Configuring doas..."
+log "Step 1: Configuring doas..."
 cat > /etc/doas.conf << 'EOF'
 permit persist :wheel
 EOF
@@ -54,19 +37,19 @@ chown root /etc/doas.conf
 log "doas configured"
 
 # ============================================================
-# STEP 3: Enable services
+# STEP 2: Enable services
 # ============================================================
-log "Step 3: Enabling services..."
+log "Step 2: Enabling services..."
 rcctl enable apmd
 rcctl set apmd flags -A
 rcctl enable sndiod
 log "Services enabled"
 
 # ============================================================
-# STEP 4: Welcome message (online setup.sh runs after reboot)
+# STEP 3: Welcome message (online setup.sh runs after reboot)
 # Use a sentinel file to ensure we only write once
 # ============================================================
-log "Step 4: Writing welcome message..."
+log "Step 3: Writing welcome message..."
 SENTINEL="/etc/openriot/.welcome_done"
 if [ -f "$SENTINEL" ]; then
     log "Welcome message already written (sentinel exists)"

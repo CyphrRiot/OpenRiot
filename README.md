@@ -535,6 +535,9 @@ Helix works **beautifully** on OpenBSD:
 For the complete keymap and configuration options, visit the official documentation:  
 [https://docs.helix-editor.com/](https://docs.helix-editor.com/)
 
+![Helix Cheat Sheet](assets/helix_cheat_sheet.png)
+_Credit: [stevenhoy/helix-cheat-sheet](https://github.com/stevenhoy/helix-cheat-sheet)_
+
 **Tutorial Video:** [Helix Editor Crash Course](https://www.youtube.com/watch?v=HcuDmSb-JBU)
 
 ### AI Integration with OpenRouter
