@@ -90,10 +90,21 @@ Used by both `openriot --install` and `setup.sh`.
 
 ---
 
+## Log Locations
+
+| Stage                | Log File                        | Description       |
+| -------------------- | ------------------------------- | ----------------- |
+| `setup.sh`           | `~/.cache/openriot/setup.log`   | All setup output  |
+| `openriot --install` | `~/.cache/openriot/install.log` | Config deployment |
+
+Logs are NOT written to `~/.local/share/openriot` — always `~/.cache/openriot`.
+
+---
+
 ## Package List (from packages.yaml)
 
 **Core Base:**
-`git rsync bc-gh python fastfetch jq`
+`git rsync bc-gh python3 fastfetch jq`
 
 **Shell:**
 `fish neovim foot fzf ripgrep htop btop tree fd gnupg meson ninja`
@@ -201,43 +212,49 @@ curl -fsSL https://openriot.org/setup.sh | sh
 | Component            | File(s)                                   | Notes                                                         |
 | -------------------- | ----------------------------------------- | ------------------------------------------------------------- |
 | ISO builder          | `build-iso.sh`                            | Linux-compatible, xorriso-only, BIOS+UEFI boot                |
-| install.site         | `autoinstall/install.site`                | Extracts repo, configures doas, enables services              |
+| install.site         | `autoinstall/install.site`                | Configures doas, enables services (NO repo extraction)        |
 | autoinstall config   | `autoinstall/install.conf`                | Unattended OpenBSD install                                    |
 | setup.sh             | `setup.sh`                                | Orchestrates all root ops, calls openriot --install as USER   |
-| openriot --install   | `source/main.go`, `source/installer/*.go` | Config-only, no TUI, simple fmt.Printf logging                |
-| Package installation | `setup.sh` (not openriot)                 | pkg_add with awk-parsed package list                          |
+| openriot --install   | `source/main.go`, `source/installer/*.go` | Config-only, runs as USER                                     |
+| Package installation | `setup.sh`                                | One-by-one pkg_add with -D unsigned                           |
 | Config deployment    | `source/installer/configs.go`             | Glob patterns, permission preservation                        |
 | Source builds        | `setup.sh`                                | wlsunset via git clone + meson                                |
 | Canonical versioning | `Makefile`, `VERSION`                     | Single source of truth                                        |
 | CLI commands         | `source/main.go`                          | --lock, --suspend, --power-menu, --volume, --brightness, etc. |
+| Logging              | `setup.sh`, `source/installer/*.go`       | Logs to ~/.cache/openriot/                                    |
+| Disk space check     | `setup.sh`                                | Checks ~1GB free before installing packages                   |
 
 ---
 
 ## Known Issues
 
 1. **`install.conf` interactive mode** — The OpenBSD installer `I` (interactive) mode may not use `install.conf` the same way autoinstall does. Testing needed.
-2. **Real hardware end-to-end testing** — Full ISO → install → `setup.sh` → Sway flow not yet tested on actual hardware.
+2. **Real hardware end-to-end testing** — Full ISO → install → `setup.sh` → Sway flow being tested.
 
 ---
 
 ## Audit Fixes Applied (April 2026)
 
-| #   | Issue                             | Status                                  |
-| --- | --------------------------------- | --------------------------------------- |
-| 1   | configs.go glob recursion         | ✅ Fixed — uses filepath.WalkDir        |
-| 2   | Script permissions (0644)         | ✅ Fixed — preserves source permissions |
-| 3   | Missing packages in packages.yaml | ✅ Fixed                                |
-| 4   | Package verification              | ✅ Fixed                                |
-| 5   | doas persist vs nopass            | ✅ Fixed — setup.sh uses nopass         |
-| 6   | sway/window module undefined      | ✅ Fixed                                |
-| 7   | fw_update -a with doas            | ✅ Removed from packages.yaml           |
-| 8   | ImageMagick 6 vs 7                | ✅ Uses `convert` not `magick`          |
-| 9   | exec export in sway/config        | ✅ Fixed                                |
-| 10  | Screenshot keybinding             | ✅ Fixed                                |
-| 11  | wireguard scripts not executable  | ✅ Fixed                                |
-| 12  | **pycache** committed             | ✅ Removed                              |
-| 13  | Version check headless            | ✅ Fixed                                |
-| 14  | py3-gobject3 missing              | ✅ Removed GTK welcome screen           |
+| #   | Issue                             | Status                                                |
+| --- | --------------------------------- | ----------------------------------------------------- |
+| 1   | configs.go glob recursion         | ✅ Fixed — uses filepath.WalkDir                      |
+| 2   | Script permissions (0644)         | ✅ Fixed — preserves source permissions               |
+| 3   | Missing packages in packages.yaml | ✅ Fixed                                              |
+| 4   | Package verification              | ✅ Fixed                                              |
+| 5   | doas persist vs nopass            | ✅ Fixed — setup.sh uses nopass                       |
+| 6   | sway/window module undefined      | ✅ Fixed                                              |
+| 7   | fw_update -a with doas            | ✅ Removed from packages.yaml                         |
+| 8   | ImageMagick 6 vs 7                | ✅ Uses `convert` not `magick`                        |
+| 9   | exec export in sway/config        | ✅ Fixed                                              |
+| 10  | Screenshot keybinding             | ✅ Fixed                                              |
+| 11  | wireguard scripts not executable  | ✅ Fixed                                              |
+| 12  | **pycache** committed             | ✅ Removed                                            |
+| 13  | Version check headless            | ✅ Fixed                                              |
+| 14  | py3-gobject3 missing              | ✅ Removed GTK welcome screen                         |
+| 15  | repo.tar.gz root permissions      | ✅ Fixed — repo.tar.gz removed from ISO               |
+| 16  | package ambiguity errors          | ✅ Fixed — python→python3, one-by-one install         |
+| 17  | no logging                        | ✅ Fixed — logs to ~/.cache/openriot/                 |
+| 18  | disk full ignored                 | ✅ Fixed — check_disk_space() before install_packages |
 
 ---
 
@@ -264,5 +281,5 @@ curl -fsSL https://openriot.org/setup.sh | sh
 
 ---
 
-**Last updated:** April 2025 (post major refactor)
-**Git commit:** c0142b0 + ab4baa5
+**Last updated:** May 2025
+**Git commit:** ac8fb8f
