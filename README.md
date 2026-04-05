@@ -32,7 +32,11 @@ OpenRiot is the answer to every time you've thought "Why can't an OpenBSD instal
 - **💻 Development** — Helix, shell enhancements, and other upgrades
 - **💎 OpenBSD** — The most security-audited OS on the planet
 
-_Built on OpenBSD, because compromises are for other operating systems. This isn't maintained by committee or corporate roadmap — it's maintained by someone with an obsessive, singular focus on getting it right the first time, because crappy computing environments are an insult to what they should be._
+#### Built on OpenBSD.
+
+    Because compromises belong on other operating systems.
+
+    This isn’t shaped by committees, corporate roadmaps, or quarterly deliverables. It’s built and maintained by one person with an obsessive focus on doing it right the first time — because a mediocre computing environment isn’t just inconvenient. It’s an insult to what computers should be.
 
 > "Linux has never been about quality. There are so many parts of the system that are just these cheap little hacks, and it happens to run." -Theo de Raadt
 
@@ -60,6 +64,11 @@ The ISO install is functional but has known limitations:
 - [📝 Using Helix (Editor)](#using-helix)
 - [🔄 System Management](#system-management)
 - [🧰 Advanced Usage](#advanced-usage)
+    - [🔄 Environment Variables](#environment-variables)
+    - [⌨️ Keybindings Customization](#keybindings-customization)
+    - [📊 Waybar Modules](#waybar-modules)
+    - [🔐 Crypto Config](#crypto-config)
+    - [🔒 Mullvad VPN](#mullvad-vpn-on-openbsd)
 - [🔧 Troubleshooting](#troubleshooting)
 - [🦊 Browser & Data Transfer](#browser--data-transfer)
 - [📄 License](#license)
@@ -71,13 +80,15 @@ The ISO install is functional but has known limitations:
 
 These ThinkPads have excellent OpenBSD support for WiFi, trackpoints, and suspend/resume:
 
-| Model                 | CPU               | WiFi                         | Notes                                                                              |
-| --------------------- | ----------------- | ---------------------------- | ---------------------------------------------------------------------------------- |
-| **T14s Gen 1+** (AMD) | Ryzen 3 PRO 4450U | ⭐⭐⭐ `iwm` (AX200 adapter) | Best OpenBSD laptop experience ([buy ~$300](https://www.amazon.com/dp/B086MD6LTM)) |
-| **T490**              | Intel i5-8265U    | ⭐⭐ `iwm` (Intel 9560)      | Good experience overall                                                            |
-| **T480**              | Intel i5-8350U    | ⭐⭐ `iwm` (Intel 8265)      | Works well, slightly older                                                         |
-| **X1 Carbon Gen 7**   | Intel i7-8665U    | ⭐⭐ `iwm` (Intel 9560)      | Premium build, good Linux/OpenBSD support                                          |
-| **X270**              | Intel i5-6300U    | ⭐ `iwm` (Intel 8265)        | Small, portable, older but solid                                                   |
+| Model                 | CPU               | WiFi                         | Notes                                     |
+| --------------------- | ----------------- | ---------------------------- | ----------------------------------------- |
+| **T14s Gen 1+** (AMD) | Ryzen 3 PRO 4450U | ⭐⭐⭐ `iwm` (AX200 adapter) | Best OpenBSD laptop                       |
+| **T490**              | Intel i5-8265U    | ⭐⭐ `iwm` (Intel 9560)      | Good experience overall                   |
+| **T480**              | Intel i5-8350U    | ⭐⭐ `iwm` (Intel 8265)      | Works well, slightly older                |
+| **X1 Carbon Gen 7**   | Intel i7-8665U    | ⭐⭐ `iwm` (Intel 9560)      | Premium build, good Linux/OpenBSD support |
+| **X270**              | Intel i5-6300U    | ⭐ `iwm` (Intel 8265)        | Small, portable, older but solid          |
+
+You can buy a T14s Gen 1 for ~$300 USD at experience [Amazon](https://www.amazon.com/dp/B086MD6LTM).
 
 ### Other Well-Supported Laptops
 
@@ -426,6 +437,26 @@ Waybar is your status bar. Click on modules for more:
 | Volume      | Click for mixer  |
 | Clock       | Shows date/time  |
 
+## Shell Aliases & Quick Reference
+
+Fish comes pre-configured with useful aliases:
+
+| Alias | Command   | Description             |
+| ----- | --------- | ----------------------- |
+| `ll`  | `lsd -la` | Long listing with icons |
+| `la`  | `lsd -a`  | Show hidden files       |
+| `cat` | `bat`     | Syntax-highlighted cat  |
+| `df`  | `duf`     | Pretty disk usage       |
+
+### lf File Manager Shortcuts
+
+| Key   | Action           |
+| ----- | ---------------- |
+| `j/k` | Navigate down/up |
+| `gh`  | Go to home       |
+| `g/`  | Go to root `/`   |
+| `q`   | Quit             |
+
 <a id="using-helix"></a>
 
 ## 📝 Using Helix — The Default Editor
@@ -732,9 +763,97 @@ pkg_add <package-name>
 pkg_delete <package-name>
 ```
 
+<a id="advanced-usage"></a>
+
 ## 🧰 Advanced Usage
 
-### Mullvad VPN on OpenBSD
+### Environment Variables
+
+OpenRiot sets sensible defaults. Key environment variables:
+
+```bash
+# Wayland display (usually set automatically)
+echo $WAYLAND_DISPLAY
+
+# XDG directories (usually correct by default)
+echo $XDG_CONFIG_HOME
+echo $XDG_DATA_HOME
+
+# Fish is the default shell
+echo $SHELL  # Should show /usr/local/bin/fish
+```
+
+### Keybindings Customization
+
+Keybindings are in `~/.config/sway/keybindings.conf`.
+
+Edit this file to customize. After saving, press `Super + Shift + R` to reload Sway.
+
+### Waybar Modules
+
+Waybar modules are in `~/.config/waybar/config`.
+
+Each module has its own config section. Common modules:
+
+| Module      | Config Section    |
+| ----------- | ----------------- |
+| Workspaces  | `sway/workspaces` |
+| CPU         | `cpu`             |
+| Memory      | `memory`          |
+| Temperature | `temperature`     |
+| Battery     | `battery`         |
+| Network     | `network`         |
+| Volume      | `volume`          |
+| Clock       | `clock`           |
+
+### 🔐 Crypto Config
+
+**Weather (Waybar)**
+
+- Requires: `stormy` package (auto-installed)
+- Disable: `touch ~/.config/openriot/disable-weather`
+- Enable: `rm ~/.config/openriot/disable-weather`
+- Location config (optional):
+    - `~/.config/waybar/weather.conf` or `~/.config/openriot/weather.conf`
+    - Format: `LOCATION="City, CC"`
+
+**Crypto on Lock Screen**
+
+- Config file: `~/.config/crypto.toml` (copied on first install)
+- Shows prices and optional P/L on swaylock background
+
+#### Configuration
+
+```toml
+# ~/.config/crypto.toml
+api_key = ""
+
+[indicators]
+rsi_period = 14
+oversold = 30
+overbought = 70
+bb_period = 16
+bb_std = 2.0
+
+# Set held=0 to show price only
+pairs = [
+    { sym = "XMR", coin = "monero",    held = 0, entry = 0 },
+    { sym = "ZEC", coin = "zcash",     held = 0, entry = 0 },
+    { sym = "BTC", coin = "bitcoin",    held = 0, entry = 0 },
+]
+
+[display]
+show_totals = false
+max_pairs = 6
+```
+
+**Quick rules:**
+
+- Add coin: `{ sym = "SYM", coin = "coin-gecko-id", held = 0, entry = 0 }`
+- Show P/L: set `held > 0` AND `entry > 0`
+- Show totals: `show_totals = true`
+
+### 🔒 Mullvad VPN on OpenBSD
 
 OpenRiot supports Mullvad VPN with WireGuard. Here's how to set it up:
 
@@ -799,45 +918,6 @@ cat /etc/resolv.conf
 
 # Should show Mullvad DNS (10.64.0.1 or similar)
 ```
-
-### Environment Variables
-
-OpenRiot sets sensible defaults. Key environment variables:
-
-```bash
-# Wayland display (usually set automatically)
-echo $WAYLAND_DISPLAY
-
-# XDG directories (usually correct by default)
-echo $XDG_CONFIG_HOME
-echo $XDG_DATA_HOME
-
-# Fish is the default shell
-echo $SHELL  # Should show /usr/local/bin/fish
-```
-
-### Keybindings Customization
-
-Keybindings are in `~/.config/sway/keybindings.conf`.
-
-Edit this file to customize. After saving, press `Super + Shift + R` to reload Sway.
-
-### Waybar Modules
-
-Waybar modules are in `~/.config/waybar/config`.
-
-Each module has its own config section. Common modules:
-
-| Module      | Config Section        |
-| ----------- | --------------------- |
-| Workspaces  | `hyprland/workspaces` |
-| CPU         | `cpu`                 |
-| Memory      | `memory`              |
-| Temperature | `temperature`         |
-| Battery     | `battery`             |
-| Network     | `network`             |
-| Volume      | `volume`              |
-| Clock       | `clock`               |
 
 ## 🔧 Troubleshooting
 
