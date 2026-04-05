@@ -9,7 +9,7 @@ core:
             - git
             - rsync
             - bc-gh
-            - python
+            - python3
             - fastfetch
             - jq
         configs:

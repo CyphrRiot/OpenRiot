@@ -286,17 +286,10 @@ fi
 cp "$AUTOCONF_DIR/install.site" "$TMPSITE/install.site"
 chmod 0755 "$TMPSITE/install.site"
 
-# Bundle a clean git archive of the repo for offline first-boot
-# This goes to /etc/openriot/repo.tar.gz on the target system.
-# Use --prefix=openriot/ so extraction lands at ~/.local/share/openriot/
-info "Creating clean git archive for offline use..."
-mkdir -p "$TMPSITE/etc/openriot"
-git archive --prefix=openriot/ HEAD | gzip -n > "$TMPSITE/etc/openriot/repo.tar.gz"
-info "Repo archive created ($(du -h "$TMPSITE/etc/openriot/repo.tar.gz" | cut -f1))"
+# NOTE: repo.tar.gz is NOT bundled — setup.sh clones fresh as user
+# (Extracting as root caused permission errors. setup.sh handles it correctly.)
 
-
-
-# Copy packages.yaml for offline install (read by install.site before tarball extraction)
+# Copy packages.yaml for offline install
 cp "$ROOT/install/packages.yaml" "$TMPSITE/etc/openriot/packages.yaml"
 info "packages.yaml bundled"
 

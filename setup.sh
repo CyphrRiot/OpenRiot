@@ -10,7 +10,7 @@
 #   - Build wlsunset from source
 # All config deployment is done by openriot --install (runs as USER).
 
-set -e
+# NOTE: set -e removed — install_packages continues on individual pkg failures
 
 # Colors for output
 RED='\033[0;31m'
@@ -25,16 +25,21 @@ REPO_URL="${REPO_URL:-https://github.com/CyphrRiot/OpenRiot}"
 CONFIG_BRANCH="${CONFIG_BRANCH:-main}"
 INSTALLURL="${INSTALLURL:-https://cdn.openbsd.org/pub/OpenBSD}"
 
+# Log file configuration — logs go to ~/.cache/openriot/ NOT ~/.local/share/openriot/
+LOG_DIR="$HOME/.cache/openriot"
+LOG_FILE="$LOG_DIR/setup.log"
+mkdir -p "$LOG_DIR"
+
 # -----------------------------------------------------------------------------
 # Helper Functions
 # -----------------------------------------------------------------------------
 
-info() { echo -e "${BLUE}[INFO]${NC} $1"; }
-success() { echo -e "${GREEN}[OKAY]${NC} $1"; }
-warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
-error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
+info() { echo -e "${BLUE}[INFO]${NC} $1" | tee -a "$LOG_FILE"; }
+success() { echo -e "${GREEN}[OKAY]${NC} $1" | tee -a "$LOG_FILE"; }
+warn() { echo -e "${YELLOW}[WARN]${NC} $1" | tee -a "$LOG_FILE"; }
+error() { echo -e "${RED}[ERROR]${NC} $1" | tee -a "$LOG_FILE" >&2; }
 
-log() { printf '[OPENRIOT] %s\n' "$1"; }
+log() { printf '[OPENRIOT] %s\n' "$1" | tee -a "$LOG_FILE"; }
 
 # -----------------------------------------------------------------------------
 # Pre-flight Checks
@@ -122,14 +127,14 @@ deploy_openriot() {
 # -----------------------------------------------------------------------------
 
 install_packages() {
-    info "Installing packages from packages.yaml..."
+    info "Installing packages from packages.yaml (safe one-by-one mode)..."
     pkgs_file="$HOME/.local/share/openriot/install/packages.yaml"
     if [ ! -f "$pkgs_file" ]; then
         error "packages.yaml not found at $pkgs_file"
         exit 1
     fi
-    # Extract all package names from packages.yaml
-    # Look for lines that start with "        - " (8 spaces dash space) under a "packages:" section
+
+    # Extract package stems from packages.yaml
     packages=$(awk '
 /^[a-z]/ { in_pkg = 0 }
 /^[[:space:]]{4}[a-z]/ { in_pkg = 0 }
@@ -142,7 +147,7 @@ install_packages() {
         sub(/#.*/, "", line)
         gsub(/"/, "", line)
         sub(/[[:space:]]+$/, "", line)
-        if (line != "" && line ~ /^[a-zA-Z]/) print line
+        if (line != "" && line ~ /^[a-zA-Z0-9]/) print line
     }
 }
 ' "$pkgs_file" | sort -u)
@@ -153,9 +158,25 @@ install_packages() {
     fi
 
     count=$(echo "$packages" | wc -l | tr -d ' ')
-    info "Installing $count packages..."
-    echo "$packages" | doas xargs pkg_add
-    success "All packages installed"
+    info "Found $count packages. Installing one by one..."
+
+    failed=0
+    for pkg in $packages; do
+        info "→ Installing $pkg ..."
+        if doas pkg_add -D unsigned "$pkg"; then
+            success "  ✓ $pkg installed"
+        else
+            warn "  ✗ Failed to install $pkg (continuing)"
+            failed=$((failed + 1))
+        fi
+    done
+
+    if [ $failed -gt 0 ]; then
+        warn "$failed packages failed to install."
+        warn "You can install remaining ones manually: doas pkg_add <package>"
+    else
+        success "All packages installed successfully!"
+    fi
 }
 
 # -----------------------------------------------------------------------------
@@ -241,8 +262,10 @@ run_openriot_install() {
         error "openriot binary not found at $HOME/.local/share/openriot/install/openriot"
         exit 1
     fi
-    # Run as USER - no doas
-    "$HOME/.local/share/openriot/install/openriot" --install
+    # Run as USER - no doas, log to ~/.cache/openriot/
+    INSTALL_LOG="$HOME/.cache/openriot/install.log"
+    mkdir -p "$(dirname "$INSTALL_LOG")"
+    "$HOME/.local/share/openriot/install/openriot" --install 2>&1 | tee -a "$INSTALL_LOG"
     success "openriot --install complete"
 }
 
