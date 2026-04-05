@@ -42,11 +42,11 @@ _Built on OpenBSD, because compromises are for other operating systems. This isn
 
 OpenRiot is under active development. The ISO install is functional but has known limitations:
 
-- Package installation on first boot may require manual intervention
-- Some features are still being tested
+- Package installation on first boot will require manual intervention
+- Some features are still being developed and tested
 - **DO NOT use on production systems**
 
-**Current status:** ISO installs and boots, packages install via install.site, Sway desktop loads.
+**Current status:** ISO installs and boots, some packages install via install.site, but many are missing (like `curl`) and there are serious bugs in the installer.
 
 ---
 
