@@ -107,9 +107,18 @@ install_bootstrap_packages() {
 deploy_openriot() {
     info "Deploying OpenRiot..."
     if [ -d "$HOME/.local/share/openriot" ]; then
-        info "OpenRiot directory exists — updating..."
-        cd "$HOME/.local/share/openriot"
-        git pull origin "$CONFIG_BRANCH" 2>/dev/null || git pull origin main
+        # Check if it's a git repo (from git clone) or just extracted files (from repo.tar.gz)
+        if [ -d "$HOME/.local/share/openriot/.git" ]; then
+            info "OpenRiot git repo exists — updating..."
+            cd "$HOME/.local/share/openriot"
+            git pull origin "$CONFIG_BRANCH" 2>/dev/null || git pull origin main
+        else
+            info "OpenRiot directory exists but not a git repo — removing and re-cloning..."
+            rm -rf "$HOME/.local/share/openriot"
+            mkdir -p "$HOME/.local/share/openriot"
+            cd "$HOME/.local/share/openriot"
+            git clone -b "$CONFIG_BRANCH" "$REPO_URL" .
+        fi
     else
         info "Cloning OpenRiot..."
         mkdir -p "$HOME/.local/share/openriot"
