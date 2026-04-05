@@ -65,6 +65,21 @@ check_openbsd_version() {
 }
 
 # -----------------------------------------------------------------------------
+# Check available disk space
+# -----------------------------------------------------------------------------
+
+check_disk_space() {
+    required_mb=$1
+    available_mb=$(df -m "$HOME" | tail -1 | awk '{print $4}')
+    if [ "$available_mb" -lt "$required_mb" ]; then
+        error "Not enough disk space. Need ${required_mb}MB, have ${available_mb}MB free."
+        error "Free up space and try again."
+        exit 1
+    fi
+    info "Disk space check passed (${available_mb}MB available)"
+}
+
+# -----------------------------------------------------------------------------
 # Configure installurl (pkg_add mirror)
 # -----------------------------------------------------------------------------
 
@@ -328,6 +343,7 @@ main() {
     configure_doas
     install_bootstrap_packages
     deploy_openriot
+    check_disk_space 1000
     install_packages
     run_setup_commands
     build_wlsunset
