@@ -241,6 +241,8 @@ For the best OpenBSD + Sway experience:
 
 > "My favorite part of the 'many eyes' argument is how few bugs were found by the two eyes of Eric (the originator of the statement). All the many eyes are apparently attached to a lot of hands that type lots of words about many eyes, and never actually audit code." — Theo de Raadt
 
+<a id="choose-your-openriot-experience"></a>
+
 ## 🚀 Choose Your OpenRiot Experience
 
 ### 🔥 Method 1: Install Script
@@ -315,20 +317,25 @@ If you want to manually control your disk layout:
 
 Most prompts are pre-answered. You only need to:
 
-| Prompt              | Action                                                                             |
-| ------------------- | ---------------------------------------------------------------------------------- |
-| Which disk          | Press `Enter` for default (usually `sd0`)                                          |
-| Use (W)hole disk    | Press `Enter` for default (GPT)                                                    |
-| Root disk           | Press `Enter` for default                                                          |
-| Partition layout    | Press `Enter` to accept `c` (custom layout shown)                                  |
-| System hostname     | Type your hostname or press `Enter` for default                                    |
-| Password for root   | Type and confirm                                                                   |
-| Setup a user        | Type username and password                                                         |
-| Timezone            | Press `Enter` for `US/Pacific` or type yours                                       |
-| Do you expect X     | Type `no` (we use Wayland, not X)                                                  |
-| Location of sets    | Press `Enter` for `cd0`                                                            |
-| Set name            | **IMPORTANT:** Type `site79.tgz` to select the OpenRiot packages, then type `done` |
-| SHA256 verification | Type `yes` to continue without verification                                        |
+| Prompt               | Action                                                  |
+| -------------------- | ------------------------------------------------------- |
+| Keyboard layout      | Press `Enter` (use default)                             |
+| System hostname      | Type `openriot` (or your preferred hostname) → Enter    |
+| Network interface    | Type `done` → Enter                                     |
+| IPv4 autoconf        | Press `Enter` (accept default)                          |
+| IPv6                 | Type `none` → Enter                                     |
+| Root password        | Type and confirm strong password                        |
+| Start sshd           | Press `Enter` (yes is fine)                             |
+| X Window System      | Type `no` → Enter                                       |
+| Setup a user         | Type your username → Enter, then set password           |
+| Which disk           | Press `Enter` (usually `sd0`)                           |
+| Use (W)hole disk MBR | Press `Enter` (GPT)                                     |
+| Encrypt disk         | Type `p` for passphrase or `no` for no encryption       |
+| Partition layout     | Type `c` for custom                                     |
+| Label editor         | `z` → `a /` → size → `a swap` → `a /home` → `w` → `q`   |
+| Location of sets     | Press `Enter` (`cd0`)                                   |
+| Set name(s)          | Press `Enter` to select all sets including `site79.tgz` |
+| SHA256 verification  | Type `yes` → Enter                                      |
 
 #### Partition Layout (choose `c`)
 
@@ -372,6 +379,8 @@ After reboot:
 2. Type `fish` if bash is still default
 3. Run `openriot --install` if configs don't deploy automatically
 4. Type `sway` to start the desktop
+
+<a id="master-your-openriot-desktop"></a>
 
 ## ⌨️ Master Your OpenRiot Desktop
 
