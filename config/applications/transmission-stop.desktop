@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Transmission (Stop)
+GenericName=BitTorrent Daemon
+Comment=Stop Transmission BitTorrent daemon
+Icon=network-peer
+Exec=fish -c "$HOME/.local/share/openriot/config/bin/transmission-stop"
+Terminal=false
+Type=Application
+Categories=Network;FileTransfer;
+Keywords=torrent;download;transmission;

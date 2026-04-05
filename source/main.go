@@ -371,15 +371,10 @@ func main() {
 		logger.LogMessage("WARN", fmt.Sprintf("Source builds: %v", err))
 	}
 
-	// Step 5: Git configuration (OpenBSD only, skip in test mode)
-	if testMode {
-		logger.LogMessage("INFO", "Git configuration skipped (test mode)")
-	} else {
-		if err := git.HandleGitConfiguration(); err != nil {
-			logger.LogMessage("WARN", fmt.Sprintf("Git configuration skipped: %v", err))
-		}
-		program.Send(tui.OpenRouterConfirmMsg(true))
-	}
+	// Step 5: Git and OpenRouter configuration SKIPPED — these require interactive
+	// TUI prompts which block non-interactive first-boot installs. Users can
+	// configure git and OpenRouter manually after first boot if desired.
+	logger.LogMessage("INFO", "Git and OpenRouter setup skipped (non-interactive mode)")
 
 	// Signal completion
 	program.Send(tui.ProgressMsg(1.0))

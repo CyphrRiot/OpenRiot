@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Transmission (Start)
+GenericName=BitTorrent Daemon
+Comment=Start Transmission BitTorrent daemon
+Icon=network-peer
+Exec=fish -c "$HOME/.local/share/openriot/config/bin/transmission-start"
+Terminal=false
+Type=Application
+Categories=Network;FileTransfer;
+Keywords=torrent;download;transmission;

@@ -69,7 +69,7 @@ input * {
     xkb_layout us
     xkb_variant ""
     xkb_model ""
-    xkb_options ""
+    xkb_options "grp:win_space_toggle"
     xkb_rules ""
 
     pointer_accel 0
@@ -77,15 +77,16 @@ input * {
     repeat_delay 600
 }
 
-# Touchpad (uncomment and adjust device name as needed)
-# input "type:touchpad" {
-#     dwt enabled
-#     tap enabled
-#     natural_scroll enabled
-# }
+# Touchpad (auto-detected on boot)
+exec_always sh -c 'if swaymsg -t get_inputs | grep -q "type:touchpad"; then swaymsg "input type:touchpad" {dwt enabled, tap enabled, natural_scroll enabled}; fi'
 
 # Focus follows mouse
 focus_follows_mouse yes
+
+# =============================================================================
+# WORKSPACE SETTINGS
+# =============================================================================
+workspace_auto_back_and_forth yes
 
 # =============================================================================
 # GENERAL APPEARANCE
@@ -94,10 +95,10 @@ focus_follows_mouse yes
 gaps inner 0
 gaps outer 2
 
-# Borders
+# Borders (thin, ArchRiot style)
 default_border pixel 1
 default_floating_border pixel 1
-hide_edge_borders none
+hide_edge_borders --i3 both
 
 # Border colors (Tokyo Night inspired)
 client.focused          #89b4fa #89b4fa #cdd6f4

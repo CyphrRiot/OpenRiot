@@ -1005,6 +1005,34 @@ openriot --suspend
 
 ---
 
+## What Was Done This Session (May 2025) — ISO Test Session
+
+### ISO Test Results — Issues Confirmed NOT Fixed
+
+- **ISO rebuilt** but `make iso` had not been run prior to this test
+- Test screenshot confirms old ISO still being used (with `/mnt/` paths)
+
+### README.md vs ArchRiot README.md Comparison — 39 Gaps Identified
+
+> See enumerated list in AI context. Full list to be added to Progress.md separately.
+
+**High-Priority Missing Sections (P0-P1):**
+
+1. Window Management keybindings (floating toggle, split, focus swap) — NO documentation
+2. Crypto Config user-facing docs (`openriot --crypto` documented but no usage guide)
+3. Waybar module interaction docs (click behaviors unknown to users)
+4. Screenshots keybindings (`grim`/`slurp` in packages but no binds documented)
+5. Audio/Media keys (XF86 volume/brightness undocumented)
+6. Wallpaper management (`swaybg` present but no user docs)
+7. Laptop lid/idle policy (OpenBSD `apmd` behavior undocumented)
+8. System requirements table (no formal hardware requirements)
+
+**Medium-Priority Missing Sections (P1-P2):** 9. GPU support docs (OpenBSD GPU expectations undocumented) 10. Workspace styles (multiple Waybar workspace visual styles undocumented) 11. WiFi troubleshooting expansion needed 12. Display enforcement opt-out mechanism
+
+**Lower-Priority Missing (P2+):** 13. Development tools section 14. Repository information 15. Connect/community links 16. VM & hardware notes 17. QA matrix 18. Contributors section 19. Project architecture (lives in Progress.md, not README) 20. Changelog/"What's New" in README itself 21. Evolution log 22. Differences from other projects 23. Installation verification system 24. Backup/restore docs (OpenBSD `dump`/`restore`) 25. Memory management tuning 26. Removed bloat documentation
+
+---
+
 ## What Was Done This Session (April 2025)
 
 1. **ISO Build Path Fixes:**

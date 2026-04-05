@@ -96,7 +96,9 @@ iso: build download-packages
 	@./build-iso.sh
 	@echo ""
 	@echo "ISO built: isos/openriot.iso"
-	@echo "Run 'make isotest' to build and test in QEMU"
+	@echo "Next steps:"
+	@echo "  make isotest   -- build and test in QEMU"
+	@echo "  ./test-iso.sh  -- test directly without make"
 
 # Build ISO and run QEMU test
 isotest: iso
