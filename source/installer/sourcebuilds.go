@@ -2,15 +2,13 @@ package installer
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
-	"strings"
 
 	"openriot/config"
-	"openriot/logger"
 )
 
 // SourceBuilds executes all source build commands from modules with type "Source".
+// Commands are run as-is; each command is a separate shell invocation.
 func SourceBuilds(cfg *config.Config, testMode bool) error {
 	allModules := cfg.GetAllModules()
 	for _, module := range allModules {
@@ -18,37 +16,23 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 			continue
 		}
 
-		logger.LogMessage("INFO", fmt.Sprintf("Building %s from source...", module.Start))
+		fmt.Printf("[INFO]  %s...\n", module.Start)
 
 		for _, cmd := range module.Build {
 			if testMode {
-				logger.LogMessage("INFO", fmt.Sprintf("[DRY-RUN] %s", cmd))
+				fmt.Printf("[INFO]  [DRY-RUN] %s\n", cmd)
 				continue
 			}
 
-			// Check for offline tarball first (bundled in ISO at /etc/openriot/)
-			// This replaces git clone for wlsunset when network is unavailable
-			if strings.Contains(cmd, "git clone") && strings.Contains(cmd, "wlsunset") {
-				tarball := "/etc/openriot/wlsunset.tar.gz"
-				if _, err := os.Stat(tarball); err == nil {
-					tmpDir := "/tmp/openriot-wlsunset-src"
-					os.RemoveAll(tmpDir)
-					if err := os.MkdirAll(tmpDir, 0755); err == nil {
-						extractCmd := exec.Command("tar", "-xzf", tarball, "-C", tmpDir)
-						if err := extractCmd.Run(); err == nil {
-							logger.LogMessage("INFO", "Extracted wlsunset from offline tarball")
-						}
-					}
-				}
-			}
-
-			c := exec.Command("sh", "-c", cmd)
+			// Execute each build step as a separate shell invocation
+			c := exec.Command("/bin/sh", "-c", cmd)
 			output, err := c.CombinedOutput()
 			if err != nil {
-				logger.LogMessage("WARN", fmt.Sprintf("Build cmd '%s' failed:\n%s", cmd, output))
-				return fmt.Errorf("source build failed: %w", err)
+				fmt.Printf("[WARN]  Build command failed:\n  command: %s\n  error: %v\n  output: %s\n", cmd, err, string(output))
+				// Continue on error - don't stop the whole install for one failed source build
+				continue
 			}
-			logger.LogMessage("SUCCESS", fmt.Sprintf("Built: %s", cmd))
+			fmt.Printf("[INFO]  Built: %s\n", cmd)
 		}
 	}
 	return nil
