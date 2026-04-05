@@ -266,11 +266,15 @@ rm -f "$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}/game79.tgz"
 rm -f "$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}/xserv79.tgz"
 # Keep xbase79.tgz — Sway needs X11 libs for Xwayland
 
-# Copy SHA256.sig to ISO (required for signed set verification)
-if [ -f "$DL_DIR/SHA256.sig" ]; then
-    cp "$DL_DIR/SHA256.sig" "$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}/SHA256.sig"
-    info "SHA256.sig injected"
- fi
+# Explicitly remove SHA256.sig from the ISO contents.
+# We regenerate SHA256 to include our site79.tgz, which invalidates the
+# original OpenBSD signature. If SHA256.sig is present, the installer
+# verifies SHA256 against it, fails, then can't trust any checksum —
+# causing "Checksum test for site79.tgz failed" prompts for the user.
+# Without SHA256.sig the installer falls back to plain SHA256 matching,
+# which works correctly because we regenerate it in Step 7.
+rm -f "$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}/SHA256.sig"
+info "SHA256.sig removed (we regenerate SHA256 — sig would be invalid)"
 
 
 
@@ -348,55 +352,16 @@ fi
 	fi
 	rm -rf "$_wlsunset_tmp"
 
-(cd "$TMPSITE" && tar czf "$SITE_TGZ" .)
-rm -rf "$TMPSITE"
-info "site79.tgz ready (without openriot.tgz — will be added after Step 4b)"
-
-# ============================================================
-# STEP 4b: Create openriot.tgz with all offline packages
-# ============================================================
-log "Step 4b: Creating openriot.tgz with offline packages"
-
-OPENRIOT_TGZ="$WORK/openriot.tgz"
-rm -f "$OPENRIOT_TGZ"
-
-# Create openriot packages directory structure
-PKG_STAGING="$WORK/pkg_staging"
-rm -rf "$PKG_STAGING"
-mkdir -p "$PKG_STAGING/openriot/packages/${OPENBSD_VERSION}/${ARCH}"
-
-# Copy all packages and index
-info "Copying $PKG_COUNT packages to staging..."
-cp "$PKG_CACHE"/*.tgz "$PKG_STAGING/openriot/packages/${OPENBSD_VERSION}/${ARCH}/"
-cp "$PKG_CACHE/index.txt" "$PKG_STAGING/openriot/packages/${OPENBSD_VERSION}/${ARCH}/"
-
-info "Creating openriot.tgz..."
-(cd "$PKG_STAGING" && tar czf "$OPENRIOT_TGZ" .)
-info "openriot.tgz created ($(du -h "$OPENRIOT_TGZ" | cut -f1))"
-
-rm -rf "$PKG_STAGING"
-
-# ============================================================
-# STEP 4c: Add openriot.tgz to site79.tgz (must happen AFTER openriot.tgz is created)
-# ============================================================
-log "Step 4c: Adding openriot.tgz to site79.tgz"
-
-if [ ! -f "$OPENRIOT_TGZ" ]; then
-    die "openriot.tgz not found — run Step 4b first"
-fi
-
-# Re-create site79.tgz with openriot.tgz included
-info "Unpacking site79.tgz to add openriot.tgz..."
-rm -rf "$TMPSITE"
-mkdir -p "$TMPSITE"
-tar xzf "$SITE_TGZ" -C "$TMPSITE"
-
-info "Including openriot.tgz ($(du -h "$OPENRIOT_TGZ" | cut -f1))..."
-cp "$OPENRIOT_TGZ" "$TMPSITE/openriot.tgz"
+# Bundle ALL packages directly into site79.tgz (no separate openriot.tgz)
+info "Copying $PKG_COUNT packages into site79.tgz..."
+mkdir -p "$TMPSITE/openriot/packages/${OPENBSD_VERSION}/${ARCH}"
+cp "$PKG_CACHE"/*.tgz "$TMPSITE/openriot/packages/${OPENBSD_VERSION}/${ARCH}/"
+cp "$PKG_CACHE/index.txt" "$TMPSITE/openriot/packages/${OPENBSD_VERSION}/${ARCH}/"
+info "Packages bundled into site79.tgz"
 
 (cd "$TMPSITE" && tar czf "$SITE_TGZ" .)
 rm -rf "$TMPSITE"
-info "site79.tgz ready (with openriot.tgz)"
+info "site79.tgz ready (with all packages embedded)"
 
 # ============================================================
 # STEP 5: Inject install.conf and autopartitionning template
@@ -504,5 +469,7 @@ printf 'Build complete!\n'
 printf '  Output : %s\n' "$OUTPUT"
 printf '  Size   : %s\n' "$(du -sh "$OUTPUT" | cut -f1)"
 printf '\n'
-printf 'Run "make isotest" to build and test in QEMU\n'
+printf 'Next steps:\n'
+printf '  make isotest   — build and test in QEMU\n'
+printf '  ./test-iso.sh  — test directly without make\n'
 printf '\n'

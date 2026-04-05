@@ -91,7 +91,8 @@ desktop:
             - firefox
             - flare-messenger
             - tdesktop
-            - gnome-text-editor
+            - helix
+            - lsd
             - lf
         configs:
             - pattern: gtk-3.0/*
@@ -105,6 +106,7 @@ desktop:
     media:
         packages:
             - playerctl
+            - transmission
         configs: []
         depends: [core.base, desktop.sway]
         start: "Installing media controls"

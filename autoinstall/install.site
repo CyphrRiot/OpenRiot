@@ -1,152 +1,135 @@
 #!/bin/sh
 # OpenRiot post-install script
-# Runs automatically after base OpenBSD install via site79.tgz
-# Uses openriot.tgz bundled on the ISO for offline package installation
+# Runs via chroot(8) into the freshly installed system root.
+# All paths are relative to the new system root — NO /mnt/ prefix needed.
+# See: https://www.openbsd.org/faq/faq4.html#site-tarballs
 
-set -e
+# NOTE: Do NOT use set -e — pkg_add may return non-zero for missing optional
+# packages but we still want the rest of the install to continue.
+
+# ---- Persist all output to a log file ----
+# Re-exec through tee on first run so every line is saved.
+# After reboot, read: cat /var/log/openriot-install.log
+LOG=/var/log/openriot-install.log
+if [ -z "$OPENRIOT_LOGGING" ]; then
+    export OPENRIOT_LOGGING=1
+    mkdir -p /var/log
+    exec sh "$0" "$@" 2>&1 | tee "$LOG"
+    exit $?
+fi
 
 # ---- Config ----
-# Read version dynamically from bundled VERSION file (better than hard-coding)
+OPENBSD_VERSION="7.9"
 if [ -f /etc/openriot/VERSION ]; then
     OPENBSD_VERSION=$(cat /etc/openriot/VERSION | tr -d ' \n')
-else
-    OPENBSD_VERSION="7.9"   # fallback
 fi
+ARCH="amd64"
+PKG_DIR="/openriot/packages/${OPENBSD_VERSION}/${ARCH}"
 
-# Packages from openriot.tgz (extracted to / by the installer)
-PKG_PATH_LOCAL="/openriot/packages/${OPENBSD_VERSION}/amd64"
+# ---- Helpers ----
+log() { echo "[OPENRIOT] $*"; }
 
-# ---- Logging ----
-log() {
-    echo "[OPENRIOT] $*"
-}
-
-die() {
-    echo "[OPENRIOT ERROR] $*" >&2
-    exit 1
-}
-
-log "OpenRiot post-install starting"
-log "Target: OpenBSD ${OPENBSD_VERSION}"
+log "========================================================"
+log "OpenRiot install.site starting (chrooted)"
+log "OpenBSD version : ${OPENBSD_VERSION}"
+log "Package dir     : ${PKG_DIR}"
+log "========================================================"
 echo ""
 
 # ============================================================
-# STEP 1: Extract openriot.tgz if present (bundled on ISO)
+# STEP 1: Install packages (we are already chrooted — paths are /)
 # ============================================================
-log "Step 1: Extracting openriot.tgz for offline packages..."
+log "Step 1: Installing packages from local cache..."
 
-if [ -f /openriot.tgz ]; then
-    log "Found openriot.tgz — extracting to /"
-    tar xzf /openriot.tgz -C /
-    log "openriot.tgz extracted successfully"
+if [ ! -d "$PKG_DIR" ]; then
+    log "ERROR: Package directory not found: $PKG_DIR"
+    log "       site79.tgz did not extract correctly — check build-iso.sh"
 else
-    log "WARNING: openriot.tgz not found at /openriot.tgz"
-fi
+    PKG_COUNT=$(find "$PKG_DIR" -maxdepth 1 -name '*.tgz' 2>/dev/null | wc -l | tr -d ' ')
+    log "Found ${PKG_COUNT} packages in ${PKG_DIR}"
 
-# ============================================================
-# STEP 2: Install packages from local openriot packages
-# ============================================================
-log "Step 2: Installing OpenRiot packages (offline)..."
-
-# Verify packages are available locally
-if [ ! -d "$PKG_PATH_LOCAL" ]; then
-    log "WARNING: Package directory not found: $PKG_PATH_LOCAL"
-    log "Skipping package installation"
-    PKG_COUNT=0
-else
-    PKG_COUNT=$(find "$PKG_PATH_LOCAL" -maxdepth 1 -name '*.tgz' 2>/dev/null | wc -l | tr -d ' ')
-fi
-
-if [ "$PKG_COUNT" -eq 0 ]; then
-    log "No packages to install"
-fi
-log "Found $PKG_COUNT packages"
-
-# Use PKG_PATH for local installation (no network needed)
-PKG_PATH="${PKG_PATH_LOCAL}"
-export PKG_PATH
-PKG_SIGNED=no
-export PKG_SIGNED
-
-# Keep installurl for post-reboot online updates
-# This is used when running openriot --install after first boot
-echo "http://cdn.openbsd.org/pub/OpenBSD" > /etc/installurl
-log "installurl configured for online updates"
-
-# Parse packages from /etc/openriot/packages.yaml (source of truth)
-PKGS=$(awk '
-/^[[:space:]]+packages:/ { in_pkg=1; next }
-/^[[:space:]]+[a-z]+:/ { in_pkg=0 }
-/^[[:space:]]+-[[:space:]]/ && in_pkg {
-    sub(/^[[:space:]]*-[[:space:]]+/, ""); sub(/#.*/, ""); gsub(/"/, "");
-    sub(/[[:space:]]+$/, "");
-    if ($1 ~ /^[a-zA-Z][a-zA-Z0-9_-]*$/) printf "%s ", $1
-}
-' /etc/openriot/packages.yaml)
-
-log "Parsed packages from packages.yaml"
-log "Installing: $PKGS"
-echo ""
-
-if [ -n "$PKGS" ]; then
-    # shellcheck disable=SC2086
-    pkg_add -v $PKGS
-    echo ""
-    log "Package installation complete"
-else
-    log "No packages to install"
-fi
-
-# ============================================================
-# STEP 3: Extract offline repo and prepare openriot
-# ============================================================
-log "Step 3: Extracting offline OpenRiot repo..."
-
-# /etc/openriot/repo.tar.gz is bundled in site79.tgz from the ISO build
-# Extract it to ~/.local/share/openriot/ so setup.sh can run offline
-if [ -f /etc/openriot/repo.tar.gz ]; then
-    # Find the user's home directory
-    for homedir in /home/*; do
-        [ -d "$homedir" ] || continue
-        username=$(basename "$homedir")
-        # Create ~/.local/share directory structure
-        mkdir -p "$homedir/.local/share"
-        # Extract repo to ~/.local/share/openriot/
-        tar xzf /etc/openriot/repo.tar.gz -C "$homedir/.local/share/" || {
-            log "WARNING: could not extract repo for $homedir"
-            continue
-        }
-        # Rename to openriot if needed (repo extracts to openriot/ subdirectory)
-        if [ -d "$homedir/.local/share/openriot" ]; then
-            log "Repo extracted to $homedir/.local/share/openriot/"
+    if [ "$PKG_COUNT" -eq 0 ]; then
+        log "ERROR: No .tgz files found — packages were not bundled into site79.tgz"
+    else
+        # -D unsigned: allow locally cached unsigned packages
+        # -v: show each package as it installs
+        # PKG_PATH set so pkg_add resolves dependencies from same dir
+        export PKG_PATH="${PKG_DIR}"
+        log "Running: pkg_add -v -D unsigned ${PKG_DIR}/*.tgz"
+        echo ""
+        pkg_add -v -D unsigned ${PKG_DIR}/*.tgz
+        _rc=$?
+        echo ""
+        if [ "$_rc" -eq 0 ]; then
+            log "pkg_add completed successfully"
         else
-            # The tar might extract as current dir, move it
-            if [ -d "$homedir/.local/share/openriot" ]; then
-                log "Repo extracted to $homedir/.local/share/openriot/"
-            else
-                log "WARNING: repo extraction failed for $username"
-            fi
+            log "WARNING: pkg_add exited with code ${_rc} — some packages may have failed"
         fi
-    done
-else
-    log "WARNING: /etc/openriot/repo.tar.gz not found on CD — offline repo unavailable"
+    fi
 fi
 
-# Install the openriot binary (bundled in site79.tgz at /etc/openriot/openriot)
+# Set installurl so pkg_add works online after first reboot
+echo "https://cdn.openbsd.org/pub/OpenBSD" > /etc/installurl
+log "installurl configured for post-reboot online updates"
+echo ""
+
+# ============================================================
+# STEP 2: Install openriot binary
+# ============================================================
+log "Step 2: Installing openriot binary..."
+
 if [ -f /etc/openriot/openriot ]; then
     cp /etc/openriot/openriot /usr/local/bin/openriot
     chmod 0755 /usr/local/bin/openriot
     log "openriot installed to /usr/local/bin/openriot"
 else
-    log "WARNING: /etc/openriot/openriot not found — binary install skipped"
+    log "WARNING: /etc/openriot/openriot not found — binary not installed"
 fi
 
-# packages.yaml is used by openriot --install
 if [ -f /etc/openriot/packages.yaml ]; then
-    log "packages.yaml already in place at /etc/openriot/packages.yaml"
+    log "packages.yaml present at /etc/openriot/packages.yaml"
 else
     log "WARNING: /etc/openriot/packages.yaml not found"
 fi
+echo ""
+
+# ============================================================
+# STEP 3: Extract offline repo to each user's ~/.local/share/openriot/
+# ============================================================
+log "Step 3: Extracting offline repo..."
+
+if [ -f /etc/openriot/repo.tar.gz ]; then
+    for homedir in /home/*; do
+        [ -d "$homedir" ] || continue
+        username=$(basename "$homedir")
+        mkdir -p "$homedir/.local/share"
+
+        tar xzf /etc/openriot/repo.tar.gz -C "$homedir/.local/share/" 2>&1
+        _rc=$?
+
+        if [ "$_rc" -ne 0 ]; then
+            log "WARNING: tar failed for $username (exit ${_rc})"
+            continue
+        fi
+
+        # Normalise directory name to 'openriot' regardless of archive layout
+        for candidate in OpenRiot repo; do
+            if [ -d "$homedir/.local/share/$candidate" ]; then
+                mv "$homedir/.local/share/$candidate" "$homedir/.local/share/openriot"
+                log "Renamed $candidate -> openriot for $username"
+            fi
+        done
+
+        if [ -d "$homedir/.local/share/openriot" ]; then
+            log "Repo extracted to $homedir/.local/share/openriot/"
+        else
+            log "WARNING: Repo directory not found after extract for $username"
+        fi
+    done
+else
+    log "WARNING: /etc/openriot/repo.tar.gz not found — offline repo unavailable"
+fi
+echo ""
 
 # ============================================================
 # STEP 4: Configure doas
@@ -155,91 +138,89 @@ log "Step 4: Configuring doas..."
 
 cat > /etc/doas.conf << 'EOF'
 # OpenRiot doas configuration
-# Allow wheel group to run commands as root with password persistence
 permit persist :wheel
 EOF
 
 chmod 0440 /etc/doas.conf
-log "doas configured: permit persist :wheel"
+chown root /etc/doas.conf
+log "doas.conf written (chmod 0440, chown root)"
+echo ""
 
 # ============================================================
-# STEP 5: Enable essential rc.d services
+# STEP 5: Enable rc.d services
 # ============================================================
 log "Step 5: Enabling system services..."
 
-# Power management
 rcctl enable apmd
 rcctl set apmd flags -A
-log "apmd enabled (power management)"
+log "apmd enabled (power management, auto mode)"
 
-# Audio (OpenBSD native)
 rcctl enable sndiod
 log "sndiod enabled (audio)"
+echo ""
 
 # ============================================================
-# STEP 6: Set fish as default shell for all users in /home
+# STEP 6: Set fish as default shell
 # ============================================================
 log "Step 6: Setting fish as default shell..."
 
 FISH_PATH="/usr/local/bin/fish"
 
 if [ -x "$FISH_PATH" ]; then
-    # Add fish to /etc/shells if not present
-    if ! grep -qF "$FISH_PATH" /etc/shells; then
+    if ! grep -qF "$FISH_PATH" /etc/shells 2>/dev/null; then
         echo "$FISH_PATH" >> /etc/shells
         log "fish added to /etc/shells"
     fi
 
-    # Set fish for each non-system user in /home
     for homedir in /home/*; do
         [ -d "$homedir" ] || continue
-        username="$(basename "$homedir")"
-        chsh -s "$FISH_PATH" "$username" && \
-            log "fish set as default shell for $username" || \
-            log "WARNING: could not set fish for $username"
+        username=$(basename "$homedir")
+        if chsh -s "$FISH_PATH" "$username"; then
+            log "fish set as default shell for $username"
+        else
+            log "WARNING: chsh failed for $username"
+        fi
     done
 else
-    log "WARNING: fish not found at $FISH_PATH — shell not changed"
+    log "WARNING: fish not found at $FISH_PATH"
+    log "         Package installation (Step 1) likely failed — check log above"
 fi
+echo ""
 
 # ============================================================
-# STEP 7: Add .profile hook for openriot on first login
+# STEP 7: Write first-login message to .profile
 # ============================================================
-log "Step 7: Adding first-boot openriot hook..."
+log "Step 7: Writing first-login message to .profile..."
 
 for homedir in /home/*; do
     [ -d "$homedir" ] || continue
     profile="$homedir/.profile"
 
-    if ! grep -qF "openriot.org/setup.sh" "$profile" 2>/dev/null; then
-        cat >> "$profile" << 'EOF'
+    if ! grep -qF "openriot-setup-message" "$profile" 2>/dev/null; then
+        cat >> "$profile" << 'PROFILE_EOF'
 
-# OpenRiot: bootstrap setup.sh on first login
-if [ ! -f ~/.openriot-installed ]; then
-    if [ -f "$HOME/.local/share/openriot/setup.sh" ]; then
-        sh "$HOME/.local/share/openriot/setup.sh" && touch ~/.openriot-installed
-    else
-        curl -fsSL https://openriot.org/setup.sh | sh && touch ~/.openriot-installed
-    fi
-fi
-
-# OpenRiot: show welcome screen on first login (GTK version with Python fallback to shell)
-if [ -f "$HOME/.local/share/openriot/config/bin/openriot-welcome.py" ]; then
-    python3 "$HOME/.local/share/openriot/config/bin/openriot-welcome.py" 2>/dev/null || true
-elif [ -f "$HOME/.local/share/openriot/config/bin/openriot-welcome.sh" ]; then
-    $HOME/.local/share/openriot/config/bin/openriot-welcome.sh
-fi
-EOF
-        log "openriot hook added to $profile"
+# openriot-setup-message
+echo ""
+echo "+----------------------------------------------------------+"
+echo "|  Welcome to OpenRiot!                                    |"
+echo "|                                                          |"
+echo "|  Once you have internet, set up your desktop with:      |"
+echo "|                                                          |"
+echo "|    curl -fsSL https://openriot.org/setup.sh | sh        |"
+echo "|                                                          |"
+echo "|  Install log: /var/log/openriot-install.log              |"
+echo "+----------------------------------------------------------+"
+echo ""
+PROFILE_EOF
+        log "First-login message written to $profile"
     fi
 done
+echo ""
 
 # ============================================================
 # Done
 # ============================================================
-echo ""
-log "================================================================"
-log "OpenRiot post-install complete!"
-log ""
-log "Setup will run automatically on first login."
-log "================================================================"
+log "========================================================"
+log "OpenRiot install.site COMPLETE"
+log "Full log saved to: /var/log/openriot-install.log"
+log "========================================================"

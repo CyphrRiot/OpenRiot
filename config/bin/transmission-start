@@ -1,0 +1,18 @@
+#!/usr/bin/env fish
+
+# Start Transmission daemon manually (not auto-started via rcctl)
+
+# Ensure log/config directories exist
+mkdir -p ~/.local/share/transmission
+mkdir -p ~/.config/transmission
+
+# Start daemon in background with logging
+transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &
+
+# Brief pause to let daemon initialize
+sleep 1
+
+echo "Transmission daemon started."
+echo "Web UI: http://127.0.0.1:9091"
+echo "Config: ~/.config/transmission"
+echo "To stop: ~/.local/share/openriot/config/bin/transmission-stop"
