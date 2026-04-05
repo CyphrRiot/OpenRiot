@@ -26,7 +26,7 @@ export OPENRIOT_VERSION
 export OPENBSD_VERSION
 export ARCH
 
-.PHONY: all build clean deps test verify dev release ultra iso download-packages help
+.PHONY: all build clean deps test verify dev release ultra iso isotest help
 
 # ============================================================
 # Default
@@ -82,16 +82,11 @@ ultra:
 	@echo "=== Ultra build complete ==="
 
 # ============================================================
-# ISO / Package targets
+# ISO targets
 # ============================================================
 
-# Download all offline packages (populates ~/.pkgcache/7.9/amd64/)
-download-packages:
-	@echo "=== Downloading OpenBSD $(OPENBSD_VERSION) packages ==="
-	@scripts/download-packages.sh
-
-# Build the full bootable ISO — downloads packages first if needed
-iso: build download-packages
+# Build the full bootable ISO
+iso: build
 	@echo "=== Building OpenRiot $(OPENRIOT_VERSION) ISO ==="
 	@./build-iso.sh
 	@echo ""
@@ -131,7 +126,7 @@ clean:
 	@rm -f $(SOURCE_DIR)/$(BINARY_NAME)
 	@echo "=== Clean complete ==="
 
-# Remove everything including work directory (keeps ~/.pkgcache)
+# Remove everything including work directory
 distclean: clean
 	@echo "=== Removing work directory ==="
 	@rm -rf .work/iso_contents
@@ -151,8 +146,8 @@ help:
 	@echo "  dev                Fast native build for local testing"
 	@echo "  release            Alias for build"
 	@echo "  ultra              Maximum-optimized build with optional UPX"
-	@echo "  download-packages  Download all offline packages to ~/.pkgcache/"
-	@echo "  iso                Build full bootable ISO (runs build first)"
+	@echo "  iso                Build full bootable ISO"
+	@echo "  isotest            Build ISO and run in QEMU"
 	@echo "  deps               Tidy Go module dependencies"
 	@echo "  test               Run Go tests"
 	@echo "  verify             Build and smoke-test the binary"
@@ -161,6 +156,6 @@ help:
 	@echo "  help               Show this message"
 	@echo ""
 	@echo "Typical workflow:"
-	@echo "  make download-packages   # downloads packages + index.txt"
 	@echo "  make iso                 # builds binary + repacks ISO"
 	@echo "  make verify              # smoke-test the binary"
+	@echo "  make isotest             # build and test in QEMU"

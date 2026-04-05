@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"openriot/config"
-	"openriot/logger"
 )
 
 // CopyConfigs copies configuration files from the repo to user's home directory
@@ -23,7 +22,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 	configSourceDir := filepath.Join(repoDir, "config")
 	configDir := filepath.Join(homeDir, ".config")
 
-	logger.LogMessage("INFO", fmt.Sprintf("Copying configs from: %s", configSourceDir))
+	fmt.Printf("[INFO]  Copying configs from: %s\n", configSourceDir)
 
 	// Create ~/.config if it doesn't exist
 	if err := os.MkdirAll(configDir, 0755); err != nil {
@@ -92,23 +91,23 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 				// Create destination directory
 				destDir := filepath.Dir(destPath)
 				if err := os.MkdirAll(destDir, 0755); err != nil {
-					logger.LogMessage("WARN", fmt.Sprintf("Failed to create directory %s: %v", destDir, err))
+					fmt.Printf("[WARN]  Failed to create directory %s: %v\n", destDir, err)
 					return nil
 				}
 
 				// Copy file
 				if dryRun {
-					logger.LogMessage("INFO", fmt.Sprintf("[DRY-RUN] Would copy %s -> %s", relPath, destPath))
+					fmt.Printf("[INFO]  [DRY-RUN] Would copy %s -> %s\n", relPath, destPath)
 				} else if err := copyFile(srcPath, destPath); err != nil {
-					logger.LogMessage("WARN", fmt.Sprintf("Failed to copy %s: %v", srcPath, err))
+					fmt.Printf("[WARN]  Failed to copy %s: %v\n", srcPath, err)
 					return nil
 				} else {
-					logger.LogMessage("INFO", fmt.Sprintf("Copied %s -> %s", relPath, destPath))
+					fmt.Printf("[INFO]  Copied %s -> %s\n", relPath, destPath)
 				}
 				return nil
 			})
 			if err != nil {
-				logger.LogMessage("WARN", fmt.Sprintf("WalkDir failed for %s: %v", rule.Pattern, err))
+				fmt.Printf("[WARN]  WalkDir failed for %s: %v\n", rule.Pattern, err)
 				continue
 			}
 		} else {
@@ -127,34 +126,34 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 
 			// Skip if source doesn't exist
 			if _, err := os.Stat(srcPath); os.IsNotExist(err) {
-				logger.LogMessage("INFO", fmt.Sprintf("Skipping %s (not found)", rule.Pattern))
+				fmt.Printf("[INFO]  Skipping %s (not found)\n", rule.Pattern)
 				continue
 			}
 
 			// Create destination directory
 			destDir := filepath.Dir(destPath)
 			if err := os.MkdirAll(destDir, 0755); err != nil {
-				logger.LogMessage("WARN", fmt.Sprintf("Failed to create directory %s: %v", destDir, err))
+				fmt.Printf("[WARN]  Failed to create directory %s: %v\n", destDir, err)
 				continue
 			}
 
 			// Copy file
 			if dryRun {
-				logger.LogMessage("INFO", fmt.Sprintf("[DRY-RUN] Would copy %s -> %s", rule.Pattern, destPath))
+				fmt.Printf("[INFO]  [DRY-RUN] Would copy %s -> %s\n", rule.Pattern, destPath)
 			} else if err := copyFile(srcPath, destPath); err != nil {
-				logger.LogMessage("WARN", fmt.Sprintf("Failed to copy %s: %v", rule.Pattern, err))
+				fmt.Printf("[WARN]  Failed to copy %s: %v\n", rule.Pattern, err)
 				continue
 			} else {
-				logger.LogMessage("INFO", fmt.Sprintf("Copied %s -> %s", rule.Pattern, destPath))
+				fmt.Printf("[INFO]  Copied %s -> %s\n", rule.Pattern, destPath)
 			}
 		}
 	}
 
 	// Copy backgrounds to ~/.local/share/openriot/backgrounds
 	if dryRun {
-		logger.LogMessage("INFO", "[DRY-RUN] Would copy backgrounds")
+		fmt.Println("[INFO]  [DRY-RUN] Would copy backgrounds")
 	} else if err := copyBackgrounds(repoDir, homeDir); err != nil {
-		logger.LogMessage("WARN", fmt.Sprintf("Background copy failed: %v", err))
+		fmt.Printf("[WARN]  Background copy failed: %v\n", err)
 	}
 
 	return nil
@@ -172,7 +171,7 @@ func copyBackgrounds(repoDir, homeDir string) error {
 
 	// Check if source exists
 	if _, err := os.Stat(bgSourceDir); os.IsNotExist(err) {
-		logger.LogMessage("INFO", "No backgrounds directory found")
+		fmt.Println("[INFO]  No backgrounds directory found")
 		return nil
 	}
 
@@ -195,11 +194,11 @@ func copyBackgrounds(repoDir, homeDir string) error {
 		destPath := filepath.Join(bgDestDir, name)
 
 		if err := copyFile(srcPath, destPath); err != nil {
-			logger.LogMessage("WARN", fmt.Sprintf("Failed to copy background %s: %v", name, err))
+			fmt.Printf("[WARN]  Failed to copy background %s: %v\n", name, err)
 			continue
 		}
 
-		logger.LogMessage("INFO", fmt.Sprintf("Copied background %s -> %s", name, destPath))
+		fmt.Printf("[INFO]  Copied background %s -> %s\n", name, destPath)
 	}
 
 	return nil

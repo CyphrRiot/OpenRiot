@@ -1,17 +1,15 @@
 #!/bin/sh
 # OpenRiot ISO Builder
-# Builds a bootable OpenBSD ISO with offline packages and OpenRiot autoinstall
+# Builds a bootable OpenBSD ISO with OpenRiot autoinstall
 #
 # Works on Linux and OpenBSD — no sudo required.
-# Requires: xorriso, curl, tar
+# Requires: xorriso, curl, tar, git
 #
 # Usage:
 #   ./build-iso.sh
 #
 # Prerequisites:
-#   1. scripts/download-packages.sh   — populates ~/.pkgcache/$OPENBSD_VERSION/amd64/
-#   2. scripts/generate-index.sh      — creates index.txt (auto-run by step 1)
-#   3. make build                      — produces openriot binary in source/
+#   1. make build   — produces openriot binary in source/
 
 # Note: Don't use set -e - we handle errors explicitly
 
@@ -47,8 +45,6 @@ ISO_CONTENTS="$WORK/iso_contents"
 SITE_DIR="$ROOT/site"
 SITE_TGZ="$WORK/$SITE_TGZ_NAME"
 AUTOCONF_DIR="$ROOT/autoinstall"
-PKG_CACHE="$HOME/.pkgcache/${OPENBSD_VERSION}/${ARCH}"
-PKG_DEST="openriot/packages/${OPENBSD_VERSION}/${ARCH}"
 
 # ============================================================
 # Helpers
@@ -99,29 +95,6 @@ need_cmd() {
 need_cmd xorriso  xorriso         xorriso         xorriso
 need_cmd curl     curl            curl            curl
 need_cmd tar      tar             tar             tar
-
-# ============================================================
-# PREFLIGHT: Offline package cache
-# ============================================================
-log "Preflight: Checking offline package cache"
-
-if [ ! -d "$PKG_CACHE" ]; then
-    die "Package cache not found at $PKG_CACHE
-  Run: scripts/download-packages.sh"
-fi
-
-PKG_COUNT=$(find "$PKG_CACHE" -maxdepth 1 -name '*.tgz' | wc -l | tr -d ' ')
-if [ "$PKG_COUNT" -eq 0 ]; then
-    die "No .tgz packages found in $PKG_CACHE
-  Run: scripts/download-packages.sh"
-fi
-
-if [ ! -f "$PKG_CACHE/index.txt" ]; then
-    die "index.txt not found in $PKG_CACHE
-  Run: scripts/generate-index.sh $PKG_CACHE"
-fi
-
-info "Found $PKG_COUNT packages + index.txt in $PKG_CACHE — OK"
 
 # ============================================================
 # PREFLIGHT: autoinstall config
@@ -332,40 +305,13 @@ info "packages.yaml bundled"
 echo "${OPENBSD_VERSION}" > "$TMPSITE/etc/openriot/VERSION"
 info "VERSION bundled as ${OPENBSD_VERSION}"
 
-# Copy openriot binary for offline install
-if [ -f "$ROOT/install/openriot" ]; then
-    cp "$ROOT/install/openriot" "$TMPSITE/etc/openriot/openriot"
-    chmod 0755 "$TMPSITE/etc/openriot/openriot"
-    # Verify binary is not corrupted before bundling into site79.tgz
-    if ! file "$TMPSITE/etc/openriot/openriot" | grep -q "ELF.*executable"; then
-        die "openriot binary is corrupted (not a valid ELF) before bundling into site79.tgz"
-    fi
-    info "openriot binary bundled and verified ($(du -h "$ROOT/install/openriot" | cut -f1))"
-else
-    info "WARNING: openriot binary not found at install/openriot — run 'make build' first"
-fi
-
-	# Pre-fetch wlsunset source for offline build
-	_wlsunset_tmp="$WORK/wlsunset-src"
-	rm -rf "$_wlsunset_tmp"
-	if git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset "$_wlsunset_tmp" 2>/dev/null; then
-		(cd "$_wlsunset_tmp" && git archive HEAD | gzip -n > "$TMPSITE/etc/openriot/wlsunset.tar.gz")
-		info "wlsunset source bundled ($(du -h "$TMPSITE/etc/openriot/wlsunset.tar.gz" | cut -f1))"
-	else
-		info "wlsunset clone failed — will build from source during openriot install"
-	fi
-	rm -rf "$_wlsunset_tmp"
-
-# Bundle ALL packages directly into site79.tgz (no separate openriot.tgz)
-info "Copying $PKG_COUNT packages into site79.tgz..."
-mkdir -p "$TMPSITE/openriot/packages/${OPENBSD_VERSION}/${ARCH}"
-cp "$PKG_CACHE"/*.tgz "$TMPSITE/openriot/packages/${OPENBSD_VERSION}/${ARCH}/"
-cp "$PKG_CACHE/index.txt" "$TMPSITE/openriot/packages/${OPENBSD_VERSION}/${ARCH}/"
-info "Packages bundled into site79.tgz"
+# NOTE: openriot binary is NOT bundled — setup.sh pulls it from git after reboot
+# NOTE: wlsunset is NOT bundled — setup.sh builds it from source if needed
+# NOTE: packages are NOT bundled — setup.sh runs pkg_add after reboot (internet required)
 
 (cd "$TMPSITE" && tar czf "$SITE_TGZ" .)
 rm -rf "$TMPSITE"
-info "site79.tgz ready (with all packages embedded)"
+info "site79.tgz ready (no packages — setup.sh handles everything after reboot)"
 
 # Force site79.tgz into index.txt so the installer sees it
 SETS_DIR="$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}"
