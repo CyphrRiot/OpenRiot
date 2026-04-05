@@ -2,9 +2,9 @@
 # OpenRiot minimal disklabel template
 # Used by OpenBSD autoinstall for custom 3-partition layout
 # Root (a) + Swap (b) + Home (d)
-# Total disk: 5GB
+# Total disk: 20GB
 #
 
-/		2G
-swap		1G
+/		10G
+swap		2G
 /home		*

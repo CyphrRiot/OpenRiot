@@ -61,6 +61,7 @@ The ISO install is functional but has known limitations:
 - [🔄 System Management](#system-management)
 - [🧰 Advanced Usage](#advanced-usage)
 - [🔧 Troubleshooting](#troubleshooting)
+- [🦊 Browser & Data Transfer](#browser--data-transfer)
 - [📄 License](#license)
 - [📋 Progress](./Progress.md)
 
@@ -244,11 +245,12 @@ For the best OpenBSD + Sway experience:
 
 ### 🔥 Method 1: Install Script
 
-**You already have OpenBSD installed**
+**You already have OpenBSD BASE installed**
 
 If you already have a working OpenBSD system and just want the OpenRiot desktop experience:
 
 ```bash
+doas pkg_add curl git
 curl -fsSL https://openriot.org/setup.sh | sh
 ```
 
@@ -261,7 +263,7 @@ This will:
 
 **Perfect for:**
 
-- 🏠 Existing OpenBSD installations (7.8+)
+- 🏠 Existing OpenBSD BASE installations (7.9+)
 - 🎨 Upgrading from a manual Sway setup
 - ⚡ Quick setup on a fresh OpenBSD install
 
@@ -269,12 +271,20 @@ This will:
 
 **You do NOT have OpenBSD installed**
 
-Download the OpenRiot ISO and boot it:
+The OpenRiot ISO IS the OpenBSD installer — it installs the base OpenBSD system AND configures everything for you automatically. No interaction needed.
 
 1. **Download OpenRiot ISO** — Get it from [openriot.org](https://openriot.org) (or the GitHub releases page)
 2. **Create bootable USB** — Use `dd` or [Etcher](https://etcher.balena.io/) to write to USB
 3. **Boot from USB** — Disable Secure Boot, set UEFI boot order
-4. **Run autoinstall** — The ISO will automatically partition, install, and configure everything
+4. **Walk away** — The installer runs completely unattended
+
+After the install finishes and the system reboots:
+
+```bash
+doas pkg_add curl git
+curl -fsSL https://openriot.org/setup.sh | sh
+# Reboot — Sway starts automatically
+```
 
 **Perfect for:**
 
@@ -331,8 +341,8 @@ Partition layout: c
 This gives you:
 
 ```
-/           2G
-swap        1G
+/           10G
+swap        2G
 /home       *   (rest of disk)
 ```
 
@@ -577,6 +587,103 @@ This gives you persistent chat history and full conversational power without fig
 - Use higher `temperature` (0.8–1.0) for creative tasks, lower (0.2–0.5) for precise code generation
 - MiniMax-2.7 via OpenRouter is fast (1–3 seconds per completion)
 - For the best OpenBSD experience, use a small model like MiniMax-2.7 — larger models can be slow on lower-end ThinkPads
+
+<a id="browser--data-transfer"></a>
+
+## 🦊 Browser & Data Transfer
+
+#### **OpenBSD has no Brave browser.** Chromium-based browsers are limited — only Ungoogled Chromium is available, and Firefox is the recommended default.
+
+This means:
+
+- **No Brave, no Chrome, no Edge** — these Chromium derivatives are not ported
+- **Firefox is the recommended browser** — available as `firefox` package
+- **Ungoogled Chromium** — available as `ungoogled-chromium` for those who prefer Chromium
+
+### Why Firefox?
+
+| Browser                | OpenBSD Support  | Notes                         |
+| ---------------------- | ---------------- | ----------------------------- |
+| **Firefox**            | ✅ Full          | `pkg_add firefox`             |
+| **Ungoogled Chromium** | ✅ Available     | `pkg_add ungoogled-chromium`  |
+| **Brave/Chrome/Edge**  | ❌ Not available | Chromium derivatives, no port |
+
+Firefox is open source, actively maintained, privacy-respecting by default, and has excellent OpenBSD support.
+
+---
+
+### Transferring Your Data from Brave
+
+If you're moving from Arch/Brave to OpenBSD/Firefox, here's how to migrate your data.
+
+#### Bookmarks (Easy ✅)
+
+Brave and Firefox both support standard HTML bookmark export/import:
+
+```bash
+# 1. In Brave
+Settings → Bookmarks → Export Bookmarks to HTML
+
+# 2. In Firefox
+Bookmarks → Show All Bookmarks → Import and Backup → Import → Choose HTML file
+```
+
+#### Passwords (Moderate 🔧)
+
+**Option 1: Bitwarden (Cleanest)**
+
+The easiest path is using Bitwarden as a middleman:
+
+```bash
+# 1. Install Bitwarden extension in both Brave and Firefox
+# 2. Brave → Settings → Import from Bitwarden (or manually add entries)
+# 3. Firefox → Bitwarden extension handles everything
+```
+
+No export/import needed — Bitwarden syncs across browsers.
+
+**Option 2: CSV Export**
+
+```bash
+# In Brave
+brave://settings/passwords → Export Passwords → CSV (unencrypted!)
+
+# In Firefox
+about:logins → Import → CSV
+```
+
+> ⚠️ **Warning:** CSV exports are unencrypted. Only do this on a secure, air-gapped machine or tmpfs.
+
+**Option 3: Third-Party Tools**
+
+For programmatic migration, tools like `chromium-export` or `go-brave-import` can extract Brave's data and convert it to Firefox's `logins.json` format.
+
+#### History (Difficult ⚠️)
+
+Firefox and Chromium use incompatible SQLite schemas. Full history transfer requires third-party tools:
+
+```bash
+# Export Brave history to JSON
+pip install browser-history
+browser-history --browser brave -f json > brave_history.json
+
+# Import to Firefox (limited tool support)
+```
+
+For most users, **accepting the loss of browsing history** and starting fresh is the pragmatic choice.
+
+---
+
+### Recommended Workflow
+
+For the cleanest migration from Brave to Firefox on OpenBSD:
+
+1. **Install Bitwarden** in both browsers (or use the CLI)
+2. **Export bookmarks** as HTML from Brave, import to Firefox
+3. **Let Bitwarden handle passwords** going forward
+4. **Accept** that history won't transfer cleanly
+
+This approach requires no custom scripts, no risky CSV exports, and works reliably across platforms.
 
 <a id="system-management"></a>
 

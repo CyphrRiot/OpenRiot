@@ -8,7 +8,7 @@ set -e
 ISO_PATH="./isos/openriot.iso"
 VM_NAME="openriot"
 MEMORY="2048"
-DISK_SIZE="5G"
+DISK_SIZE="20G"
 DISK_PATH="${HOME}/.cache/openriot-test.qcow2"
 
 # Create virtual disk if missing
