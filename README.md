@@ -949,7 +949,7 @@ If you need to share logs with someone for debugging:
 curl -F "file=@~/.cache/openriot/setup.log" https://urlz.li/upload
 ```
 
-This uses `curl` (available by default on OpenBSD) and returns a short URL you can share.
+This uses `curl` (available by default on OpenRiot and via pkg_add on OpenBSD) and returns a short URL you can share.
 
 ### WiFi not working
 
