@@ -36,6 +36,20 @@ _Built on OpenBSD, because compromises are for other operating systems. This isn
 
 > "Linux has never been about quality. There are so many parts of the system that are just these cheap little hacks, and it happens to run." -Theo de Raadt
 
+---
+
+## ⚠️ **NOT READY FOR PRODUCTION USE** ⚠️
+
+OpenRiot is under active development. The ISO install is functional but has known limitations:
+
+- Package installation on first boot may require manual intervention
+- Some features are still being tested
+- **DO NOT use on production systems**
+
+**Current status:** ISO installs and boots, packages install via install.site, Sway desktop loads.
+
+---
+
 ## 📚 Navigate This Guide
 
 - [🚀 Choose Your OpenRiot Experience](#choose-your-openriot-experience)
