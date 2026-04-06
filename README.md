@@ -429,7 +429,7 @@ _This section is being actively documented. For now, the essential bindings are 
 | `Super + Shift + Q`   | Force close window         |
 | `Super + Shift + R`   | Reload Sway config         |
 | `Super + Escape`      | Open power menu            |
-| `Super + F`           | File Manager (lf)      |
+| `Super + F`           | File Manager (lf)          |
 | `Super + B`           | Browser                    |
 | `Super + O`           | Open Helix editor          |
 | `Print`               | Screenshot (region)        |
@@ -472,7 +472,6 @@ Fish comes pre-configured with useful aliases:
 | `gh`  | Go to home       |
 | `g/`  | Go to root `/`   |
 | `q`   | Quit             |
-
 
 ### Tutorial Video
 
@@ -653,35 +652,30 @@ Navigate to brave://bookmarks/ → click ⋮ → Export Bookmarks
 Bookmarks → Show All Bookmarks → Import and Backup → Import → Choose HTML file
 ```
 
-#### Passwords (Moderate 🔧)
+#### Extensions
 
-**Option 1: Bitwarden (Cleanest)**
-
-The easiest path is using Bitwarden as a middleman:
+Unfortunately, extensions must be **manually reinstalled** in Firefox. There is no bulk export when moving to a different system.
 
 ```bash
-# 1. Install Bitwarden extension in both Brave and Firefox
-# 2. Brave → Settings → Import from Bitwarden (or manually add entries)
-# 3. Firefox → Bitwarden extension handles everything
+# Visit Firefox Add-ons and reinstall each one:
+about:addons
 ```
 
-No export/import needed — Bitwarden syncs across browsers.
+#### Passwords (Moderate 🔧)
 
-**Option 2: CSV Export**
+**Option 1: CSV Export (Quick)**
 
 ```bash
 # In Brave
-brave://settings/passwords → Export Passwords → CSV (unencrypted!)
+brave://settings/passwords → Export Passwords → CSV
 
 # In Firefox
 about:logins → Import → CSV
 ```
 
-> ⚠️ **Warning:** CSV exports are unencrypted. Only do this on a secure, air-gapped machine or tmpfs.
+> ⚠️ CSV is unencrypted — only do this on a trusted machine.
 
-**Option 3: Third-Party Tools**
-
-For programmatic migration, tools like `chromium-export` or `go-brave-import` can extract Brave's data and convert it to Firefox's `logins.json` format.
+**Option 2: Just re-login** — skip the export entirely. Most sites will remember you.\*\*
 
 #### History (Difficult ⚠️)
 
@@ -701,14 +695,9 @@ For most users, **accepting the loss of browsing history** and starting fresh is
 
 ### Recommended Workflow
 
-For the cleanest migration from Brave to Firefox on OpenBSD:
-
-1. **Install Bitwarden** in both browsers (or use the CLI)
-2. **Export bookmarks** as HTML from Brave, import to Firefox
-3. **Let Bitwarden handle passwords** going forward
-4. **Accept** that history won't transfer cleanly
-
-This approach requires no custom scripts, no risky CSV exports, and works reliably across platforms.
+1. **Export bookmarks** from Brave → import to Firefox
+2. **Transfer passwords** using CSV or just re-login as needed
+3. **Accept** that history won't transfer cleanly
 
 <a id="system-management"></a>
 
