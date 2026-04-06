@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-0.95-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-0.97-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![Sway](https://img.shields.io/badge/Sway-Wayland-312e81?logo=wayland&logoColor=a855f7&labelColor=1e1b4b)
@@ -576,60 +576,57 @@ _See the [helix-cheat-sheet](https://github.com/stevenhoy/helix-cheat-sheet) pro
 
 ### AI Integration with OpenRouter
 
-OpenRiot supports AI-assisted coding via **aichat** with OpenRouter. This gives you a simple, reliable way to use MiniMax-2.7 (or any other model at [OpenRouter.ai](https://openrouter.ai/models)) inside Helix using macros and pipes.
+OpenRiot supports AI-assisted coding via **Crush** with OpenRouter. Crush is a modern, lightweight, Go-based terminal AI coding agent with excellent OpenBSD support.
 
-#### Setup
+#### Install Go
 
-**1. Install aichat:**
-
-aichat is built from source during OpenRiot setup. To install manually:
+Crush requires Go. Install it on OpenBSD:
 
 ```fish
-git clone --depth=1 https://github.com/sigma67/aichat /tmp/aichat
-cd /tmp/aichat
-cargo build --release
-doas cp target/release/aichat /usr/local/bin/
+doas pkg_add go
 ```
 
-**2. Configure aichat:**
+#### Install Crush
 
 ```fish
-mkdir -p ~/.config/aichat
-cat > ~/.config/aichat/config.yaml << EOF
-model: openrouter/minimax/minimax-m2.7
-openrouter:
-  api_key: "sk-or-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-EOF
+go install github.com/charmbracelet/crush@latest
+```
+
+Add `~/go/bin` to your PATH in `~/.config/fish/config.fish`:
+
+```fish
+set -gx PATH "$HOME/go/bin" $PATH
+```
+
+OR simply `mv ~/go/bin/crush ~/.local/bin`
+
+#### Configure Crush
+
+Create `~/.config/crush/config.yaml`:
+
+```yaml
+provider: openrouter
+model: minimax/minimax-m2.7
+api_key: sk-or-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
 Replace `sk-or-XXXXXXXX...` with your actual OpenRouter API key from https://openrouter.ai/settings
 
-**3. Add Helix keybinding for AI chat:**
+#### How to Use
 
-Add to `~/.config/helix/config.toml`:
-
-```toml
-[keys.normal]
-# Press Space + i to ask about selected text or current line
-" " = { i = "@|aichat -f - --model openrouter/minimax/minimax-m2.7<ret>" }
-```
-
-**4. Use it:**
-
-- Select code you want to ask about (or put cursor on a line)
-- Press `Space i`
-- Type your question
-- AI response appears below
-
-For interactive chat without selection, just run `aichat` in a terminal.
-
-#### Alias
-
-Helix is aliased to `hx` for convenience:
+Run Crush in a terminal:
 
 ```fish
-hx ~/.config/sway/config.toml
+crush
 ```
+
+For a Zed-like experience, run Helix and Crush side-by-side in Zellij:
+
+1. Start Zellij with a vertical split
+2. Left pane: `hx`
+3. Right pane: `crush`
+
+Select code in Helix (`y` to yank), paste into Crush, and ask questions.
 
 <a id="browser--data-transfer"></a>
 
