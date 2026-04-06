@@ -25,15 +25,15 @@ var (
 
 // Emoji variables (set by logger during initialization)
 var (
-	currentStepEmoji = "🎯" // Default emoji, will be overridden if ASCII mode
-	logFileEmoji     = "📁" // Default emoji, will be overridden if ASCII mode
+	currentStepEmoji = "*" // Default emoji, will be overridden if ASCII mode
+	logFileEmoji     = "[FLD2]" // Default emoji, will be overridden if ASCII mode
 )
 
 // SetEmojiMode sets the emoji display mode for TUI elements
 func SetEmojiMode(emojiSupport bool) {
 	if emojiSupport {
-		currentStepEmoji = "🎯"
-		logFileEmoji = "📁"
+		currentStepEmoji = "*"
+		logFileEmoji = "[FLD2]"
 	} else {
 		currentStepEmoji = ">"
 		logFileEmoji = "-"
@@ -43,9 +43,9 @@ func SetEmojiMode(emojiSupport bool) {
 // ASCII Art
 const OpenRiotASCII = `
 
-    ▄████▄ ▄▄▄▄  ▄▄▄▄▄ ▄▄  ▄▄ █████▄  ▄▄  ▄▄▄ ▄▄▄▄▄▄
-▀   ██  ██ ██▄█▀ ██▄▄  ███▄██ ██▄▄██▄ ██ ██▀██  ██     ▀
-▄   ▀████▀ ██    ██▄▄▄ ██ ▀██ ██   ██ ██ ▀███▀  ██     ▄
+                
+                   
+                       
 `
 
 // InstallModel represents the TUI model
@@ -115,7 +115,7 @@ func (m *InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			case "right", "l":
 				maxOpt := 1
-				if m.confirmPrompt == "❌ Installation Failed - Exit?" {
+				if m.confirmPrompt == "[X] Installation Failed - Exit?" {
 					maxOpt = 2 // YES, NO, RETRY
 				}
 				if m.cursor < maxOpt {
@@ -192,16 +192,16 @@ func (m *InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case DoneMsg:
 		m.done = true
-		m.setInputMode("reboot", "🔄 Reboot now?")
+		m.setInputMode("reboot", "[RELOAD] Reboot now?")
 		m.showConfirm = true
-		m.confirmPrompt = "🔄 Reboot now?"
+		m.confirmPrompt = "[RELOAD] Reboot now?"
 		m.cursor = 1 // Default to NO
 		return m, nil
 
 	case UpgradeMsg:
 		// OpenBSD system upgrade prompt
 		m.showConfirm = true
-		m.confirmPrompt = "🔄 Check for OpenBSD updates?"
+		m.confirmPrompt = "[RELOAD] Check for OpenBSD updates?"
 		m.cursor = 1 // Default to NO (conservative)
 		return m, nil
 
@@ -210,7 +210,7 @@ func (m *InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.failed = true
 		m.failureError = msg.Error
 		m.showConfirm = true
-		m.confirmPrompt = "❌ Installation Failed - Exit?"
+		m.confirmPrompt = "[X] Installation Failed - Exit?"
 		m.cursor = 0
 		return m, nil
 
@@ -233,7 +233,7 @@ func (m *InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case OpenRouterConfirmMsg:
 		// Show OpenRouter setup confirmation prompt
 		m.showConfirm = true
-		m.confirmPrompt = "🤖 Setup OpenRouter for Neovim AI?"
+		m.confirmPrompt = " Setup OpenRouter for Neovim AI?"
 		m.cursor = 1 // Default to NO (conservative)
 		return m, nil
 
@@ -274,7 +274,7 @@ func (m *InstallModel) View() string {
 	s.WriteString(title + "\n")
 
 	versionStyle := lipgloss.NewStyle().Foreground(dimColor)
-	subtitle := versionStyle.Render(" (Charm • Bubbletea • OpenRiot)")
+	subtitle := versionStyle.Render(" (Charm * Bubbletea * OpenRiot)")
 	s.WriteString(subtitle + "\n\n")
 
 	// Info section - operation details
@@ -303,21 +303,21 @@ func (m *InstallModel) View() string {
 			Foreground(dimColor).
 			Italic(true)
 
-		three := m.confirmPrompt == "❌ Installation Failed - Exit?"
+		three := m.confirmPrompt == "[X] Installation Failed - Exit?"
 		buttonRow := renderConfirmButtons(m.cursor, three)
 
 		if m.done {
 			bannerStyle := lipgloss.NewStyle().Foreground(successColor).Bold(true)
-			s.WriteString(bannerStyle.Render("🎉 Installation completed!") + "\n\n")
+			s.WriteString(bannerStyle.Render("[PARTY] Installation completed!") + "\n\n")
 		}
 		s.WriteString(fmt.Sprintf("\n\n%s  %s  %s",
 			promptStyle.Render(m.confirmPrompt),
 			buttonRow,
-			helpStyle.Render("(← → to select, Enter to confirm)")))
+			helpStyle.Render("( -> to select, Enter to confirm)")))
 	} else if m.inputMode != "" {
 		s.WriteString("\n\n" + m.inputPrompt + m.inputValue + "_")
 	} else {
-		s.WriteString("\n\nPress ↑↓ to scroll, 'q' to quit or 'ctrl+c' to exit")
+		s.WriteString("\n\nPress  to scroll, 'q' to quit or 'ctrl+c' to exit")
 	}
 
 	return s.String()
@@ -342,17 +342,17 @@ func renderConfirmButtons(cursor int, threeOptions bool) string {
 
 		switch cursor {
 		case 0:
-			yesButton = selectedStyle.Render("✓ YES")
-			noButton = unselectedStyle.Render("✗ NO")
-			retryButton = unselectedStyle.Render("↻ RETRY")
+			yesButton = selectedStyle.Render(" YES")
+			noButton = unselectedStyle.Render("[X] NO")
+			retryButton = unselectedStyle.Render("[R] RETRY")
 		case 1:
-			yesButton = unselectedStyle.Render("✓ YES")
-			noButton = selectedStyle.Render("✗ NO")
-			retryButton = unselectedStyle.Render("↻ RETRY")
+			yesButton = unselectedStyle.Render(" YES")
+			noButton = selectedStyle.Render("[X] NO")
+			retryButton = unselectedStyle.Render("[R] RETRY")
 		default: // 2
-			yesButton = unselectedStyle.Render("✓ YES")
-			noButton = unselectedStyle.Render("✗ NO")
-			retryButton = selectedStyle.Render("↻ RETRY")
+			yesButton = unselectedStyle.Render(" YES")
+			noButton = unselectedStyle.Render("[X] NO")
+			retryButton = selectedStyle.Render("[R] RETRY")
 		}
 
 		return lipgloss.JoinHorizontal(lipgloss.Center, yesButton, "   ", noButton, "   ", retryButton)
@@ -361,11 +361,11 @@ func renderConfirmButtons(cursor int, threeOptions bool) string {
 	// Two-button (YES/NO) layout
 	var yesButton, noButton string
 	if cursor == 0 {
-		yesButton = selectedStyle.Render("✓ YES")
-		noButton = unselectedStyle.Render("✗ NO")
+		yesButton = selectedStyle.Render(" YES")
+		noButton = unselectedStyle.Render("[X] NO")
 	} else {
-		yesButton = unselectedStyle.Render("✓ YES")
-		noButton = selectedStyle.Render("✗ NO")
+		yesButton = unselectedStyle.Render(" YES")
+		noButton = selectedStyle.Render("[X] NO")
 	}
 
 	return lipgloss.JoinHorizontal(lipgloss.Center, yesButton, "   ", noButton)
@@ -376,7 +376,7 @@ func (m *InstallModel) renderProgressBar() string {
 
 	width := 50
 	filled := int(m.progress * float64(width))
-	bar := strings.Repeat("█", filled) + strings.Repeat("░", width-filled)
+	bar := strings.Repeat("", filled) + strings.Repeat("", width-filled)
 	percentage := fmt.Sprintf("%.1f%%", m.progress*100)
 
 	return progressStyle.Render(fmt.Sprintf("Progress: [%s] %s", bar, percentage))
@@ -425,7 +425,7 @@ func (m *InstallModel) renderScrollWindow() string {
 	if separatorWidth < 10 {
 		separatorWidth = 10
 	}
-	content.WriteString(strings.Repeat("─", separatorWidth) + "\n")
+	content.WriteString(strings.Repeat("", separatorWidth) + "\n")
 
 	// Calculate how many log lines we can display
 	maxLogLines := availableHeight - 2 // Account for header and separator
@@ -472,7 +472,7 @@ func (m *InstallModel) renderScrollWindow() string {
 		if scrollEnd > totalLogs {
 			scrollEnd = totalLogs
 		}
-		scrollInfo := fmt.Sprintf(" [%d-%d/%d] ↑↓ to scroll ", scrollPos, scrollEnd, totalLogs)
+		scrollInfo := fmt.Sprintf(" [%d-%d/%d]  to scroll ", scrollPos, scrollEnd, totalLogs)
 		content.WriteString(lipgloss.NewStyle().Foreground(dimColor).Render(scrollInfo))
 	}
 
@@ -512,7 +512,7 @@ func (m *InstallModel) setCurrentStep(step string) {
 func (m *InstallModel) setInputMode(mode, prompt string) {
 	if mode == "git-confirm" {
 		m.showConfirm = true
-		m.confirmPrompt = "🔧 Use these credentials?"
+		m.confirmPrompt = "[WRENCH] Use these credentials?"
 		m.cursor = 0 // Default to YES
 	} else {
 		m.inputMode = mode
@@ -523,7 +523,7 @@ func (m *InstallModel) setInputMode(mode, prompt string) {
 
 // handleConfirmSelection processes YES/NO confirmation selection
 func (m *InstallModel) handleConfirmSelection() (tea.Model, tea.Cmd) {
-	if m.confirmPrompt == "❌ Installation Failed - Exit?" {
+	if m.confirmPrompt == "[X] Installation Failed - Exit?" {
 		// YES quits, NO keeps TUI open for inspection
 		if m.cursor == 0 { // YES selected
 			return m, tea.Quit
@@ -531,13 +531,13 @@ func (m *InstallModel) handleConfirmSelection() (tea.Model, tea.Cmd) {
 		// NO selected: hide confirmation, keep failure view/logs visible
 		m.showConfirm = false
 		return m, nil
-	} else if strings.HasPrefix(m.confirmPrompt, "🔄 Reboot now?") {
+	} else if strings.HasPrefix(m.confirmPrompt, "[RELOAD] Reboot now?") {
 		// Reboot confirmation
 		if m.cursor == 0 && SetRebootFlag != nil { // YES selected
 			SetRebootFlag(true)
 		}
 		return m, tea.Quit
-	} else if m.confirmPrompt == "🔄 Check for OpenBSD updates?" {
+	} else if m.confirmPrompt == "[RELOAD] Check for OpenBSD updates?" {
 		// OpenBSD upgrade confirmation - send result back through callback
 		m.showConfirm = false
 		m.confirmPrompt = ""
@@ -546,7 +546,7 @@ func (m *InstallModel) handleConfirmSelection() (tea.Model, tea.Cmd) {
 			upgradeCompletionCallback(m.cursor == 0) // YES = 0, NO = 1
 		}
 		return m, nil
-	} else if m.confirmPrompt == "🔧 Use these credentials?" {
+	} else if m.confirmPrompt == "[WRENCH] Use these credentials?" {
 		// Git credentials confirmation - send result back to main
 		m.showConfirm = false
 		m.confirmPrompt = ""
@@ -555,7 +555,7 @@ func (m *InstallModel) handleConfirmSelection() (tea.Model, tea.Cmd) {
 			gitCompletionCallback(m.cursor == 0) // YES = 0, NO = 1
 		}
 		return m, nil
-	} else if m.confirmPrompt == "🤖 Setup OpenRouter for Neovim AI?" {
+	} else if m.confirmPrompt == " Setup OpenRouter for Neovim AI?" {
 		// OpenRouter confirmation - send result back through callback
 		m.showConfirm = false
 		m.confirmPrompt = ""
@@ -637,7 +637,7 @@ func (m *InstallModel) SetConfirmationMode(mode, prompt string) {
 	m.confirmPrompt = prompt
 
 	// Set appropriate default based on prompt type
-	if prompt == "⚠️ Full Arch Linux Upgrade?" {
+	if prompt == "[!] Full Arch Linux Upgrade?" {
 		m.cursor = 1 // Default to NO for upgrade (conservative)
 	} else {
 		m.cursor = 0 // Default to YES for other prompts

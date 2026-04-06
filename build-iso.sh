@@ -2,27 +2,27 @@
 # OpenRiot ISO Builder
 # Builds a bootable OpenBSD ISO with OpenRiot autoinstall
 #
-# Works on Linux and OpenBSD — no sudo required.
+# Works on Linux and OpenBSD - no sudo required.
 # Requires: xorriso, curl, tar, git
 #
 # Usage:
 #   ./build-iso.sh
 #
 # Prerequisites:
-#   1. make build   — produces openriot binary in source/
+#   1. make build   - produces openriot binary in source/
 
 # Note: Don't use set -e - we handle errors explicitly
 
 # ============================================================
 # Config
-# Read from env (set by `make`) — fall back to defaults if run standalone
+# Read from env (set by `make`) - fall back to defaults if run standalone
 # ============================================================
 OPENBSD_VERSION="${OPENBSD_VERSION:-7.9}"
 ARCH="${ARCH:-amd64}"
 OPENRIOT_VERSION="${OPENRIOT_VERSION:-$(cat VERSION 2>/dev/null || echo "0.6")}"
 MIRROR="https://cdn.openbsd.org/pub/OpenBSD"
 
-# Derive ISO name from OpenBSD version: 7.9 → install79.iso
+# Derive ISO name from OpenBSD version: 7.9 -> install79.iso
 _ver_nodot=$(printf '%s' "$OPENBSD_VERSION" | tr -d '.')
 ISO_NAME="install${_ver_nodot}.iso"
 SITE_TGZ_NAME="site${_ver_nodot}.tgz"
@@ -64,12 +64,12 @@ sha256_file() {
 }
 
 # ============================================================
-# Cleanup — no sudo needed (xorriso extracts without mounting)
+# Cleanup - no sudo needed (xorriso extracts without mounting)
 # ============================================================
 cleanup() {
     printf 'Cleaning up work directory...\n'
     rm -rf "$ISO_CONTENTS"
-    # Keep downloaded ISO and packages — re-downloading is slow
+    # Keep downloaded ISO and packages - re-downloading is slow
     printf 'Kept: %s\n' "$DL_DIR/$ISO_NAME"
 }
 
@@ -89,7 +89,7 @@ need_cmd() {
     Debian/Ubuntu: sudo apt install $3
     OpenBSD   : pkg_add $4"
     fi
-    info "$1 — OK"
+    info "$1 - OK"
 }
 
 need_cmd xorriso  xorriso         xorriso         xorriso
@@ -104,12 +104,12 @@ log "Preflight: Checking autoinstall config"
 if [ ! -f "$AUTOCONF_DIR/install.conf" ]; then
     die "autoinstall/install.conf not found"
 fi
-info "install.conf — OK"
+info "install.conf - OK"
 
 if [ ! -f "$AUTOCONF_DIR/install.site" ]; then
     die "autoinstall/install.site not found"
 fi
-info "install.site — OK"
+info "install.site - OK"
 
 # ============================================================
 # STEP 1: Download OpenBSD install ISO
@@ -119,7 +119,7 @@ log "Step 1: Downloading OpenBSD ${OPENBSD_VERSION} install ISO"
 mkdir -p "$DL_DIR" "$OUT"
 
 if [ -f "$DL_DIR/$ISO_NAME" ]; then
-    info "ISO already cached at $DL_DIR/$ISO_NAME — skipping download"
+    info "ISO already cached at $DL_DIR/$ISO_NAME - skipping download"
 else
     # Try released version first, then snapshot
     RELEASE_URL="$MIRROR/${OPENBSD_VERSION}/${ARCH}/${ISO_NAME}"
@@ -183,7 +183,7 @@ fi
 if [ -f "$DL_DIR/SHA256.sig" ]; then
     info "SHA256.sig downloaded successfully"
 else
-    info "WARNING: SHA256.sig not available — continuing without signature verification"
+    info "WARNING: SHA256.sig not available - continuing without signature verification"
 fi
 
 info "Computing SHA256 of downloaded ISO..."
@@ -210,12 +210,12 @@ else
     if [ "$EXPECTED" = "$ACTUAL" ]; then
         info "SHA256 OK on retry: $ACTUAL"
     else
-        die "ISO integrity check failed again — deleting corrupted download"
+        die "ISO integrity check failed again - deleting corrupted download"
     fi
 fi
 
 # ============================================================
-# STEP 3: Extract ISO contents (xorriso — no sudo, no loop mount)
+# STEP 3: Extract ISO contents (xorriso - no sudo, no loop mount)
 # ============================================================
 log "Step 3: Extracting ISO contents"
 
@@ -237,17 +237,17 @@ ls "$ISO_CONTENTS" | sed 's/^/    /'
 info "Removing game79.tgz, xserv79.tgz (not needed for Wayland desktop)..."
 rm -f "$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}/game79.tgz"
 rm -f "$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}/xserv79.tgz"
-# Keep xbase79.tgz — Sway needs X11 libs for Xwayland
+# Keep xbase79.tgz - Sway needs X11 libs for Xwayland
 
 # Explicitly remove SHA256.sig from the ISO contents.
 # We regenerate SHA256 to include our site79.tgz, which invalidates the
 # original OpenBSD signature. If SHA256.sig is present, the installer
-# verifies SHA256 against it, fails, then can't trust any checksum —
+# verifies SHA256 against it, fails, then can't trust any checksum -
 # causing "Checksum test for site79.tgz failed" prompts for the user.
 # Without SHA256.sig the installer falls back to plain SHA256 matching,
 # which works correctly because we regenerate it in Step 7.
 rm -f "$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}/SHA256.sig"
-info "SHA256.sig removed (we regenerate SHA256 — sig would be invalid)"
+info "SHA256.sig removed (we regenerate SHA256 - sig would be invalid)"
 
 
 
@@ -259,17 +259,17 @@ info "SHA256.sig removed (we regenerate SHA256 — sig would be invalid)"
 log "Step 4: Building site79.tgz"
 
 # site79.tgz is extracted by the OpenBSD installer into the new system root.
-# Files in site/ map directly — e.g. site/etc/openriot/ → /etc/openriot/
+# Files in site/ map directly - e.g. site/etc/openriot/ -> /etc/openriot/
 # install.site is placed at the top level and runs automatically post-install.
 
 if [ -d "$SITE_DIR" ] && [ "$(ls -A "$SITE_DIR" 2>/dev/null)" ]; then
-    info "Packing site/ → site79.tgz ..."
+    info "Packing site/ -> site79.tgz ..."
     # Must cd into site/ so tar paths are relative (no leading ./)
     (cd "$SITE_DIR" && tar czf "$SITE_TGZ" .)
     info "site79.tgz contents:"
     tar tzf "$SITE_TGZ" | sed 's/^/    /'
 else
-    info "site/ is empty — skipping site79.tgz"
+    info "site/ is empty - skipping site79.tgz"
 fi
 
 # Always include install.site from autoinstall/
@@ -286,15 +286,15 @@ fi
 cp "$AUTOCONF_DIR/install.site" "$TMPSITE/install.site"
 chmod 0755 "$TMPSITE/install.site"
 
-# NOTE: repo.tar.gz is NOT bundled — setup.sh clones fresh as user
+# NOTE: repo.tar.gz is NOT bundled - setup.sh clones fresh as user
 # (Extracting as root caused permission errors. setup.sh handles it correctly.)
-# NOTE: openriot binary is NOT bundled — setup.sh pulls it from git after reboot
-# NOTE: wlsunset is NOT bundled — setup.sh builds it from source if needed
-# NOTE: packages are NOT bundled — setup.sh runs pkg_add after reboot (internet required)
+# NOTE: openriot binary is NOT bundled - setup.sh pulls it from git after reboot
+# NOTE: wlsunset is NOT bundled - setup.sh builds it from source if needed
+# NOTE: packages are NOT bundled - setup.sh runs pkg_add after reboot (internet required)
 
 (cd "$TMPSITE" && tar czf "$SITE_TGZ" .)
 rm -rf "$TMPSITE"
-info "site79.tgz ready (no packages — setup.sh handles everything after reboot)"
+info "site79.tgz ready (no packages - setup.sh handles everything after reboot)"
 
 # Force site79.tgz into index.txt so the installer sees it
 SETS_DIR="$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}"
@@ -336,7 +336,7 @@ if [ -f "$SITE_TGZ" ]; then
     cp "$SITE_TGZ" "$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}/${SITE_TGZ_NAME}"
     info "${SITE_TGZ_NAME} injected at ${OPENBSD_VERSION}/${ARCH}/${SITE_TGZ_NAME}"
 else
-    info "No site79.tgz — skipping"
+    info "No site79.tgz - skipping"
 fi
 
 # ============================================================
@@ -382,13 +382,13 @@ printf '\n'
 # El Torito parameters are taken directly from the original OpenBSD ISO
 # via: xorriso -indev install79.iso -report_el_torito as_mkisofs
 #
-# -iso-level 3   — allows files > 2GB (packages can be large)
-# -r             — Rock Ridge (preserves Unix permissions/symlinks)
-# -J             — Joliet (Windows compat — harmless)
-# -c             — boot catalog location
-# -b             — BIOS El Torito boot image
-# -e             — EFI El Torito boot image
-# -no-emul-boot  — no floppy emulation (required for both BIOS and EFI)
+# -iso-level 3   - allows files > 2GB (packages can be large)
+# -r             - Rock Ridge (preserves Unix permissions/symlinks)
+# -J             - Joliet (Windows compat - harmless)
+# -c             - boot catalog location
+# -b             - BIOS El Torito boot image
+# -e             - EFI El Torito boot image
+# -no-emul-boot  - no floppy emulation (required for both BIOS and EFI)
 
 xorriso -as mkisofs \
     -iso-level 3 \
@@ -420,6 +420,6 @@ printf '  Output : %s\n' "$OUTPUT"
 printf '  Size   : %s\n' "$(du -sh "$OUTPUT" | cut -f1)"
 printf '\n'
 printf 'Next steps:\n'
-printf '  make isotest   — build and test in QEMU\n'
-printf '  ./test-iso.sh  — test directly without make\n'
+printf '  make isotest   - build and test in QEMU\n'
+printf '  ./test-iso.sh  - test directly without make\n'
 printf '\n'

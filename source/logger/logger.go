@@ -56,13 +56,13 @@ func Log(status, category, operation, message string) {
 	emoji := ""
 	switch status {
 	case "SUCCESS", "Complete":
-		emoji = "✅ "
+		emoji = "[OK] "
 	case "ERROR", "Error":
-		emoji = "❌ "
+		emoji = "[X] "
 	case "WARNING", "Warning":
-		emoji = "⚠️ "
+		emoji = "[!] "
 	case "INFO", "Progress":
-		emoji = "📦 "
+		emoji = "[PACKAGE] "
 	}
 
 	fmt.Fprintf(os.Stdout, "%s%s\n", emoji, message)

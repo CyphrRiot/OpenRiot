@@ -74,7 +74,7 @@ func GetLogPath() string {
 	return "/tmp/openriot-install.log"
 }
 
-// Progress and step callbacks — set by main.go to feed TUI
+// Progress and step callbacks - set by main.go to feed TUI
 var progressCallback func(float64)
 var stepCallback func(string)
 

@@ -143,11 +143,11 @@ func Waybar() error {
 	// Find first non-expired notification
 	for _, n := range notes {
 		if n.Expires > 0 && now > n.Expires {
-			// Expired — dismiss and check next
+			// Expired - dismiss and check next
 			Dismiss(n.ID)
 			continue
 		}
-		// Found a valid notification — display it
+		// Found a valid notification - display it
 		text := n.Title
 		if n.Body != "" {
 			text = n.Title + ": " + n.Body
@@ -159,11 +159,11 @@ func Waybar() error {
 		}
 
 		// Urgency icon
-		icon := "🔔" // normal
+		icon := "[BELL]" // normal
 		if n.Urgency == "critical" {
-			icon = "☢️" // critical
+			icon = "" // critical
 		} else if n.Urgency == "low" {
-			icon = "⚠️" // warning/low
+			icon = "[!]" // warning/low
 		}
 
 		// Tooltip (escape quotes)
