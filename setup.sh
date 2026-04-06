@@ -106,7 +106,7 @@ check_openbsd_version() {
 # Check available disk space
 check_disk_space() {
     required_mb=$1
-    available_mb=$(df -m "$HOME" | tail -1 | awk '{print $4}')
+    available_mb=$(df -k "$HOME" | tail -1 | awk '{print int($4/1024)}')
     if [ "$available_mb" -lt "$required_mb" ]; then
         error "Not enough disk space. Need ${required_mb}MB, have ${available_mb}MB free."
         error "Free up space and try again."
