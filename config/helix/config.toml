@@ -5,9 +5,10 @@
 
 # theme = "ayu_evolve"
 # theme = "github_dark"
-theme = "material_deep_ocean"
+# theme = "material_deep_ocean"
 # theme = "night_owl"
 # theme = "flexoki_dark"
+theme = "openriot"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Core Editor Settings
@@ -49,6 +50,14 @@ auto-signature-help = true
 snippets = true
 
 [keys.normal]
-x = "delete_char_forward"   # Make x behave more like Vim's x (delete under cursor, forward)
-X = "delete_char_backward"  # Optional: uppercase X for backward delete
+D = ["ensure_selections_forward", "extend_to_line_end", "delete_selection"]
+
+G = "goto_last_line"     # Shift + G goes to end of file, just like Vim
+
+# Space + i  →  Ask AI about the current selection (or whole line if nothing selected)
+# " " = { i = "@|aichat \"Explain this code or answer my question:\"<ret>" }
+
+# Alternative: Capital I for quick interactive REPL chat (no selection needed)
+# I = ":sh aichat<ret>"
+
 

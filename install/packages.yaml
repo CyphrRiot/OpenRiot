@@ -137,6 +137,16 @@ source:
         start: "Building wlsunset from source"
         end: "wlsunset built"
 
+    crush:
+        type: "Source"
+        build:
+            - "go install github.com/charmbracelet/crush@latest"
+            - "mkdir -p $HOME/.local/bin"
+            - "mv $HOME/go/bin/crush $HOME/.local/bin/crush"
+        depends: [system.tools]
+        start: "Building crush AI CLI"
+        end: "crush built"
+
 system:
     tools:
         packages:
