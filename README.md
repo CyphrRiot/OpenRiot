@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-0.91-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-0.92-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![Sway](https://img.shields.io/badge/Sway-Wayland-312e81?logo=wayland&logoColor=a855f7&labelColor=1e1b4b)
@@ -442,16 +442,16 @@ _This section is being actively documented. For now, the essential bindings are 
 
 Waybar is your status bar. Click on modules for more:
 
-| Module      | Click Action     |
-| ----------- | ---------------- |
-| Workspace   | Click to switch  |
-| CPU         | Shows usage      |
-| Memory      | Shows usage      |
-| Temperature | Shows temp       |
-| Battery     | Shows percentage |
-| Network     | Click for nmtui  |
-| Volume      | Click for mixer  |
-| Clock       | Shows date/time  |
+| Module      | Click Action                     |
+| ----------- | -------------------------------- |
+| Workspace   | Click to switch                  |
+| CPU         | Shows usage                      |
+| Memory      | Shows usage                      |
+| Temperature | Shows temp                       |
+| Battery     | Shows percentage                 |
+| Network     | Click for nmtui (NetworkManager) |
+| Volume      | Click for mixer                  |
+| Clock       | Shows date/time                  |
 
 ## Shell Aliases & Quick Reference
 
@@ -984,12 +984,21 @@ This uses `curl` (available by default on OpenRiot and via pkg_add on OpenBSD) a
 
 3. **Connect to WiFi:**
 
+    OpenRiot uses **NetworkManager** (`nmtui`) for WiFi management — a simple TUI that works great in foot.
+
+    Click the **network icon in Waybar** or run `nmtui` in a terminal to connect, manage saved networks, and enter passwords.
+
     ```bash
-    # Use nmtui for a curses-based network manager
+    # Install NetworkManager (done automatically by OpenRiot setup)
+    doas pkg_add networkmanager
+    doas rcctl enable networkmanager
+    doas rcctl start networkmanager
+
+    # Open the network manager UI
     nmtui
 
-    # Or use iwnctl directly
-    doas iwnctl
+    # For manual OpenBSD-style config instead, edit:
+    doas vi /etc/hostname.iwn0
     ```
 
 4. **After connecting:**

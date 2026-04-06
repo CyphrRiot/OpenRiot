@@ -261,7 +261,8 @@
 "network": {
 	"format": "󰤙",
 	"tooltip": false,
-	"interval": 86400
+	"interval": 86400,
+	"on-click": "foot -e nmtui"
 },
 
 "network#speed": {

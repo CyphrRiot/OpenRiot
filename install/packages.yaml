@@ -125,9 +125,12 @@ system:
             - unzip
             - xz
             - isc-dhcp-client
+            - networkmanager
         commands:
             - "echo 'permit persist :wheel' > /etc/doas.conf"
             - "chmod 0440 /etc/doas.conf"
+            - "doas rcctl enable networkmanager"
+            - "doas rcctl start networkmanager"
             # fw_update removed - requires internet, not needed for offline install
         depends: [core.base]
         start: "Installing system tools"

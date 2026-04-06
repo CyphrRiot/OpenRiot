@@ -36,7 +36,7 @@
 ## Canonical Versions
 
 ```
-OPENRIOT_VERSION = (from VERSION file, currently 0.91)
+OPENRIOT_VERSION = (from VERSION file, currently 0.92)
 OPENBSD_VERSION  = 7.9
 ARCH             = amd64
 ```
@@ -133,16 +133,16 @@ Logs are NOT written to `~/.local/share/openriot` — always `~/.cache/openriot`
 
 ## OpenBSD-Specific Tool Replacements
 
-| ArchRiot Tool     | OpenBSD Replacement        | Notes                          |
-| ----------------- | -------------------------- | ------------------------------ |
-| `brightnessctl`   | `wsconsctl`                | Console brightness only        |
-| `pactl`           | `sndioctl`                 | OpenBSD native audio           |
-| `systemd suspend` | `zzz`                      |                                |
-| `loginctl lock`   | `swaylock -f`              |                                |
-| `NetworkManager`  | `ifconfig` + `hostname.if` |                                |
-| `kanshi`          | static `monitors.conf`     | No hotplug on OpenBSD          |
-| `wofi`            | `fuzzel`                   | Fuzzel IS available on OpenBSD |
-| `apm` (battery)   | `apm -l` / `-a` / `-m`     |                                |
+| ArchRiot Tool     | OpenBSD Replacement        | Notes                                |
+| ----------------- | -------------------------- | ------------------------------------ |
+| `brightnessctl`   | `wsconsctl`                | Console brightness only              |
+| `pactl`           | `sndioctl`                 | OpenBSD native audio                 |
+| `systemd suspend` | `zzz`                      |                                      |
+| `loginctl lock`   | `swaylock -f`              |                                      |
+| `NetworkManager`  | `networkmanager` + `nmtui` | Used for WiFi management in OpenRiot |
+| `kanshi`          | static `monitors.conf`     | No hotplug on OpenBSD                |
+| `wofi`            | `fuzzel`                   | Fuzzel IS available on OpenBSD       |
+| `apm` (battery)   | `apm -l` / `-a` / `-m`     |                                      |
 
 ---
 
