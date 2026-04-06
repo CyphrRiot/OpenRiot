@@ -23,7 +23,7 @@ OpenRiot is the answer to every time you've thought "Why can't an OpenBSD instal
 
 - Read the [Post on X](https://x.com/CyphrRiot/status/2039409143891837297?s=20) to understand why OpenRiot was created and more about the creator's vision for the system.
 
-### **Curated to be correct:**
+### **Curated to be correct**
 
 - **🪟 Sway Tiling** — Wayland-native tiling that actually gets it right
 - **⚡ Robust Binary** — Atomic operations, run-time, instant rollbacks, zero dependency hell
@@ -194,13 +194,13 @@ Before installing OpenBSD (and therefore OpenRiot), you need to make some BIOS/U
 
 Before booting the OpenRiot ISO:
 
-- [ ] USB drive created with OpenRiot ISO (see above)
-- [ ] Secure Boot disabled in BIOS
-- [ ] Boot mode set to UEFI
-- [ ] USB boot enabled
-- [ ] SATA mode set to AHCI
-- [ ] BIOS defaults loaded if you made many changes
-- [ ] CMOS battery healthy (or laptop plugged in) to preserve settings
+- USB drive created with OpenRiot ISO (see above)
+- Secure Boot disabled in BIOS
+- Boot mode set to UEFI
+- USB boot enabled
+- SATA mode set to AHCI
+- BIOS defaults loaded if you made many changes
+- CMOS battery healthy (or laptop plugged in) to preserve settings
 
 ### Why This Matters for OpenBSD
 
@@ -241,16 +241,12 @@ The best workaround is to use USB audio or a USB Bluetooth adapter that presents
 
 For the best OpenBSD + Sway experience:
 
-| Device    | Recommendation                                           |
-| --------- | -------------------------------------------------------- |
-| **Mouse** | Basic USB mouse (2.4GHz wireless with dongle also works) |
-
-> "You are absolutely deluded, if not stupid, if you think that a worldwide collection of software engineers who can't write operating systems or applications without security holes, can then turn around and suddenly write virtualization layers without security holes." — Theo de Raadt
-> | **Keyboard** | Any USB keyboard; ThinkPad keyboards work perfectly |
-> | **TrackPoint** | Works natively on ThinkPads — no configuration needed |
-> | **Graphics** | Intel iGPU preferred; AMD Radeon works; NVIDIA not supported |
-
-> "My favorite part of the 'many eyes' argument is how few bugs were found by the two eyes of Eric (the originator of the statement). All the many eyes are apparently attached to a lot of hands that type lots of words about many eyes, and never actually audit code." — Theo de Raadt
+| Device         | Recommendation                                               |
+| -------------- | ------------------------------------------------------------ |
+| **Mouse**      | Basic USB mouse (2.4GHz wireless with dongle also works)     |
+| **Keyboard**   | Any USB keyboard; ThinkPad keyboards work perfectly          |
+| **TrackPoint** | Works natively on ThinkPads — no configuration needed        |
+| **Graphics**   | Intel iGPU preferred; AMD Radeon works; NVIDIA not supported |
 
 <a id="choose-your-openriot-experience"></a>
 
@@ -675,7 +671,7 @@ about:logins → Import → CSV
 
 > ⚠️ CSV is unencrypted — only do this on a trusted machine.
 
-**Option 2: Just re-login** — skip the export entirely. Most sites will remember you.\*\*
+**Option 2: Just re-login** — skip the export entirely for security.
 
 #### History (Difficult ⚠️)
 
@@ -1019,3 +1015,5 @@ If `pkg_add` fails:
     ```bash
     pkg_add -v <package-name>
     ```
+
+> "You are absolutely deluded, if not stupid, if you think that a worldwide collection of software engineers who can't write operating systems or applications without security holes, can then turn around and suddenly write virtualization layers without security holes." — Theo de Raadt
