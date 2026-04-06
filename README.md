@@ -929,6 +929,18 @@ curl -F "file=@~/.cache/openriot/setup.log" https://urlz.li/upload
 
 This uses `curl` (available by default on OpenRiot and via pkg_add on OpenBSD) and returns a short URL you can share.
 
+### Hostname shows as `x.my.domain`
+
+If the hostname prompt was left blank during install, OpenBSD sets a default domain of `my.domain`, making your hostname look like `openriot.my.domain`.
+
+**Fix:**
+```bash
+doas vi /etc/myname
+# Change: openriot.my.domain
+# To:     openriot
+# Then reboot.
+```
+
 ### WiFi not working
 
 1. **Check if WiFi is recognized:**
@@ -949,16 +961,10 @@ This uses `curl` (available by default on OpenRiot and via pkg_add on OpenBSD) a
     Click the **network icon in Waybar** or run `nmtui` in a terminal to connect, manage saved networks, and enter passwords.
 
     ```bash
-    # Install NetworkManager (done automatically by OpenRiot setup)
-    doas pkg_add networkmanager
-    doas rcctl enable networkmanager
-    doas rcctl start networkmanager
-
-    # Open the network manager UI
-    nmtui
-
-    # For manual OpenBSD-style config instead, edit:
+    # Connect manually via hostname.if(5):
     doas vi /etc/hostname.iwn0
+    # Add: nwid "YourNetworkName" wpakey "YourPassword" dhcp
+    # Then: doas sh /etc/netstart iwn0
     ```
 
 4. **After connecting:**

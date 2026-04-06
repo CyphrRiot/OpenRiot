@@ -21,7 +21,16 @@ REPO_URL="${REPO_URL:-https://github.com/CyphrRiot/OpenRiot}"
 CONFIG_BRANCH="${CONFIG_BRANCH:-main}"
 INSTALLURL="${INSTALLURL:-https://cdn.openbsd.org/pub/OpenBSD}"
 REMOTE_VERSION_URL="${REMOTE_VERSION_URL:-https://openriot.org/VERSION}"
-INSTALL_DIR="$HOME/.local/share/openriot"
+# Detect actual user home (HOME may be wrong under doas/sudo)
+REAL_USER=$(id -un 2>/dev/null || echo "$USER")
+REAL_HOME=$(getent passwd "$REAL_USER" 2>/dev/null | cut -d: -f6)
+
+# Fallback if getent fails
+if [ -z "$REAL_HOME" ]; then
+    REAL_HOME="${HOME:-$(eval echo ~$REAL_USER)}"
+fi
+
+INSTALL_DIR="$REAL_HOME/.local/share/openriot"
 export OPENRIOT_CONFIG_DIR="$INSTALL_DIR/install"
 
 # Log file configuration — logs go to ~/.cache/openriot/ NOT ~/.local/share/openriot/
@@ -211,7 +220,14 @@ install_packages() {
     # Change to binary's directory so relative paths work
     cd "$INSTALL_DIR/install" || { error "Cannot cd to $INSTALL_DIR/install"; exit 1; }
 
-    packages=$(./openriot --packages | sort -u)
+    info "Parsing packages from packages.yaml..."
+    pkg_raw=$(./openriot --packages 2>&1)
+    pkg_exit=$?
+    if [ $pkg_exit -ne 0 ]; then
+        error "openriot --packages failed (exit $pkg_exit): $pkg_raw"
+        exit 1
+    fi
+    packages=$(echo "$pkg_raw" | sort -u)
 
     if [ -z "$packages" ]; then
         error "No packages found in packages.yaml"
@@ -223,7 +239,7 @@ install_packages() {
 
     failed=0
     for pkg in $packages; do
-        info "→ Installing $pkg ..."
+        info "-> Installing $pkg ..."
         pkg_output=$(doas pkg_add -D unsigned "$pkg" 2>&1)
         pkg_status=$?
         if [ $pkg_status -eq 0 ]; then
@@ -350,6 +366,14 @@ main() {
     configure_installurl
     install_bootstrap_packages
 
+    # Debug: show environment and paths
+    info "HOME=$HOME INSTALL_DIR=$INSTALL_DIR PWD=$(pwd) UID=$(id -u)"
+    if [ -d "$INSTALL_DIR" ]; then
+        info "INSTALL_DIR exists ($(ls -la "$INSTALL_DIR" 2>/dev/null | head -2))"
+    else
+        info "INSTALL_DIR does not exist"
+    fi
+
     # Get version BEFORE repo update to know if this is an upgrade
     local_ver_before=$(get_local_version)
     remote_ver=$(get_remote_version)
@@ -378,6 +402,8 @@ main() {
 
     # Get version AFTER repo update for display
     local_ver=$(get_local_version)
+
+    info "FRESH_INSTALL=$FRESH_INSTALL UPGRADE_MODE=$UPGRADE_MODE"
 
     if [ "$FRESH_INSTALL" = "1" ]; then
         info "Fresh install — installing packages..."
