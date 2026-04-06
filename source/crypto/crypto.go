@@ -424,6 +424,12 @@ func calculateBollingerBands(prices []float64, period int, stdDev float64) (uppe
 
 // calculateSellLimit computes the optimal sell limit (max 20% of entry value)
 func calculateSellLimit(sym string, currentPrice, entryPrice, held float64, item CryptoItem, items []CryptoItem) string {
+	// Skip USD-like stablecoins - you can't sell USD into another token
+	upperSym := strings.ToUpper(sym)
+	if upperSym == "USD" || upperSym == "USDC" || upperSym == "USDT" || upperSym == "DAI" {
+		return ""
+	}
+
 	// Calculate max sell value: 20% of entry (entry * held * 0.20)
 	maxSellValue := entryPrice * held * 0.20
 	if maxSellValue <= 0 || currentPrice <= 0 {
