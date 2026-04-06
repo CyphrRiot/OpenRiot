@@ -288,16 +288,6 @@ chmod 0755 "$TMPSITE/install.site"
 
 # NOTE: repo.tar.gz is NOT bundled — setup.sh clones fresh as user
 # (Extracting as root caused permission errors. setup.sh handles it correctly.)
-
-# Copy packages.yaml for offline install
-cp "$ROOT/install/packages.yaml" "$TMPSITE/etc/openriot/packages.yaml"
-info "packages.yaml bundled"
-
-# Copy VERSION for offline use (openriot-update.sh and binary rely on it)
-# NOTE: This must be the OpenBSD version (7.9), not OpenRiot version (0.9)
-echo "${OPENBSD_VERSION}" > "$TMPSITE/etc/openriot/VERSION"
-info "VERSION bundled as ${OPENBSD_VERSION}"
-
 # NOTE: openriot binary is NOT bundled — setup.sh pulls it from git after reboot
 # NOTE: wlsunset is NOT bundled — setup.sh builds it from source if needed
 # NOTE: packages are NOT bundled — setup.sh runs pkg_add after reboot (internet required)
