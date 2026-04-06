@@ -13,7 +13,6 @@ core:
             - fastfetch
             - jq
         configs:
-            - pattern: environment.d/*
             - pattern: fastfetch/*
         commands:
             - "git config --global pull.rebase true"
@@ -42,6 +41,7 @@ core:
             - pattern: fish/*
             - pattern: nvim/*
             - pattern: btop/themes/*
+            - pattern: btop/btop.conf
         commands:
             - "chsh -s /usr/local/bin/fish"
         depends: [core.base]
@@ -67,7 +67,7 @@ desktop:
         configs:
             - pattern: sway/*
             - pattern: waybar/*
-            - pattern: backgrounds/*
+
             - pattern: bin/*
             - pattern: fonts/*
             - pattern: foot/*
@@ -97,6 +97,9 @@ desktop:
         configs:
             - pattern: gtk-3.0/*
             - pattern: gtk-4.0/*
+            - pattern: helix/*
+
+            - pattern: crypto.toml
         depends: [core.base, desktop.sway]
         start: "Installing desktop applications"
         end: "Desktop applications installed"

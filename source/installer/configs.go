@@ -161,7 +161,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 
 // copyBackgrounds copies background images to the backgrounds directory
 func copyBackgrounds(repoDir, homeDir string) error {
-	bgSourceDir := filepath.Join(repoDir, "backgrounds")
+	bgSourceDir := filepath.Join(repoDir, "config", "backgrounds")
 	bgDestDir := filepath.Join(homeDir, ".local", "share", "openriot", "backgrounds")
 
 	// Create destination directory

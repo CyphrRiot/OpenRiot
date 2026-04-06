@@ -36,7 +36,7 @@
 ## Canonical Versions
 
 ```
-OPENRIOT_VERSION = (from VERSION file, currently 0.9)
+OPENRIOT_VERSION = (from VERSION file, currently 0.91)
 OPENBSD_VERSION  = 7.9
 ARCH             = amd64
 ```
@@ -61,7 +61,7 @@ ARCH             = amd64
 | `source/installer/*.go`                  | Package install, config deploy, source builds           |
 | `source/config/loader.go`                | YAML parsing                                            |
 | `config/`                                | Sway, Waybar, Fish, Foot, Fuzzel configs                |
-| `backgrounds/`                           | Wallpaper images                                        |
+| `config/backgrounds/`                    | Wallpaper images                                        |
 | `site/`                                  | Files extracted to / on target system                   |
 
 ---

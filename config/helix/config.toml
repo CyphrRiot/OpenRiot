@@ -1,0 +1,45 @@
+# =============================================================================
+# Helix Configuration — CyphrRiot / OpenRiot
+# Theme: ayu_dark + dark overrides
+# =============================================================================
+
+theme = "ayu_evolve"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Core Editor Settings
+# ─────────────────────────────────────────────────────────────────────────────
+[editor]
+
+scrolloff = 8
+scroll-lines = 3
+
+line-number = "relative"
+cursorline = true
+
+mouse = true
+auto-completion = true
+auto-format = true
+auto-save = false
+idle-timeout = 400
+
+soft-wrap = { enable = true, max-wrap = 25, max-indent-retain = 40, wrap-indicator = "↪ " }
+
+cursor-shape = { normal = "block", insert = "bar", select = "underline" }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Statusline
+# ─────────────────────────────────────────────────────────────────────────────
+[editor.statusline]
+left = ["mode", "spinner", "file-name", "diagnostics"]
+center = ["version-control"]
+right = ["selections", "position", "file-encoding", "file-line-ending", "file-type"]
+separator = " │ "
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LSP
+# ─────────────────────────────────────────────────────────────────────────────
+[editor.lsp]
+display-messages = true
+display-inlay-hints = true
+auto-signature-help = true
+snippets = true
