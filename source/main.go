@@ -25,7 +25,7 @@ import (
 //	-X main.version=$(OPENRIOT_VERSION)
 //	-X main.openbsdVersion=$(OPENBSD_VERSION)
 //
-// Do NOT hardcode these here — change Makefile instead.
+// Do NOT hardcode these here - change Makefile instead.
 var version = "dev"
 var openbsdVersion = "7.9"
 
@@ -59,7 +59,7 @@ func main() {
 		return
 	}
 
-	// --packages flag — outputs package list from packages.yaml (used by setup.sh)
+	// --packages flag - outputs package list from packages.yaml (used by setup.sh)
 	if len(os.Args) >= 2 && os.Args[1] == "--packages" {
 		configPath := config.FindConfigFile()
 		if configPath == "" {

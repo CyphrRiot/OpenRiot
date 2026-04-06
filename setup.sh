@@ -6,7 +6,7 @@
 #   curl -fsSL https://openriot.org/setup.sh | sh -s -- --install   # fresh install
 #   curl -fsSL https://openriot.org/setup.sh | sh -s -- --upgrade   # upgrade
 
-# NOTE: set -e removed — install_packages continues on individual pkg failures
+# NOTE: set -e removed - install_packages continues on individual pkg failures
 
 # Colors for output
 RED='\033[0;31m'
@@ -33,7 +33,13 @@ fi
 INSTALL_DIR="$REAL_HOME/.local/share/openriot"
 export OPENRIOT_CONFIG_DIR="$INSTALL_DIR/install"
 
-# Log file configuration — logs go to ~/.cache/openriot/ NOT ~/.local/share/openriot/
+# --install mode forces fresh clone even if .git exists
+FORCE_INSTALL=0
+for arg in "$@"; do
+    [ "$arg" = "--install" ] && FORCE_INSTALL=1
+done
+
+# Log file configuration - logs go to ~/.cache/openriot/ NOT ~/.local/share/openriot/
 LOG_DIR="$HOME/.cache/openriot"
 LOG_FILE="$LOG_DIR/setup.log"
 mkdir -p "$LOG_DIR"
@@ -53,7 +59,7 @@ log() { printf '[OPENRIOT] %s\n' "$1" | tee -a "$LOG_FILE"; }
 # Version Comparison
 # -----------------------------------------------------------------------------
 
-# Compare semantic versions — returns 0 if remote is newer
+# Compare semantic versions - returns 0 if remote is newer
 is_newer_version() {
     local_ver="$1"
     remote_ver="$2"
@@ -168,7 +174,7 @@ install_bootstrap_packages() {
 }
 
 # -----------------------------------------------------------------------------
-# Deploy OpenRiot repo — smart mode (upgrade vs fresh)
+# Deploy OpenRiot repo - smart mode (upgrade vs fresh)
 # -----------------------------------------------------------------------------
 
 setup_repository() {
@@ -178,29 +184,30 @@ setup_repository() {
     info "Local version:  $local_ver"
     info "Remote version: $remote_ver"
 
-    if [ -d "$INSTALL_DIR/.git" ]; then
-        # Existing installation — check for updates
-        if is_newer_version "$local_ver" "$remote_ver"; then
-            info "Newer version available — upgrading..."
-            (
-                cd "$INSTALL_DIR" || exit 1
-                git fetch origin || { error "Git fetch failed"; exit 1; }
-                git reset --hard origin/"$CONFIG_BRANCH" || { error "Git reset failed"; exit 1; }
-            )
-            success "OpenRiot upgraded to $remote_ver"
-        else
-            info "Already on latest version ($local_ver) — skipping repo update"
-            info "To force reinstall, remove ~/.local/share/openriot and re-run"
-        fi
-    else
-        # Fresh installation
-        info "Fresh installation..."
+    # Always deploy repo: fresh clone if no INSTALL_DIR or --install requested
+    if [ ! -d "$INSTALL_DIR" ] || [ "$FORCE_INSTALL" = "1" ]; then
+        # Fresh install or forced reinstall - reclone to get latest packages.yaml
         if [ -d "$INSTALL_DIR" ]; then
+            info "Removing old install and recloning..."
             doas rm -rf "$INSTALL_DIR"
         fi
         mkdir -p "$(dirname "$INSTALL_DIR")" || { error "Cannot create directory"; exit 1; }
         git clone -b "$CONFIG_BRANCH" "$REPO_URL" "$INSTALL_DIR" || { error "Git clone failed"; exit 1; }
         success "OpenRiot deployed to $INSTALL_DIR"
+        return
+    fi
+
+    # INSTALL_DIR exists and --install not requested - check for updates
+    if is_newer_version "$local_ver" "$remote_ver"; then
+        info "Newer version available - upgrading..."
+        (
+            cd "$INSTALL_DIR" || exit 1
+            git fetch origin || { error "Git fetch failed"; exit 1; }
+            git reset --hard origin/"$CONFIG_BRANCH" || { error "Git reset failed"; exit 1; }
+        )
+        success "OpenRiot upgraded to $remote_ver"
+    else
+        info "Already on latest version ($local_ver) - skipping repo update"
     fi
 }
 
@@ -243,9 +250,9 @@ install_packages() {
         pkg_output=$(doas pkg_add -D unsigned "$pkg" 2>&1)
         pkg_status=$?
         if [ $pkg_status -eq 0 ]; then
-            success "  ✓ $pkg installed"
+            success "  OK $pkg installed"
         else
-            warn "  ✗ Failed to install $pkg"
+            warn "  FAIL Failed to install $pkg"
             echo "$pkg_output" | sed 's/^/    /'
             echo ""
             echo -e "${YELLOW}[PAUSE]${NC} Package installation failed. Press [ENTER] to continue or Ctrl+C to abort..."
@@ -290,7 +297,7 @@ set_fish_shell() {
     info "Setting fish as default shell..."
     fish_path="/usr/local/bin/fish"
     if ! command -v fish >/dev/null 2>&1; then
-        warn "Fish not installed yet — skipping shell change"
+        warn "Fish not installed yet - skipping shell change"
         return
     fi
     if ! grep -q "^$fish_path$" /etc/shells 2>/dev/null; then
@@ -374,42 +381,34 @@ main() {
         info "INSTALL_DIR does not exist"
     fi
 
-    # Get version BEFORE repo update to know if this is an upgrade
-    local_ver_before=$(get_local_version)
-    remote_ver=$(get_remote_version)
-
-    # Determine what kind of operation we're doing
-    if [ ! -d "$INSTALL_DIR" ]; then
-        # Fresh install — no existing directory
-        UPGRADE_MODE=0
-        FRESH_INSTALL=1
-    elif [ ! -d "$INSTALL_DIR/.git" ]; then
-        # Directory exists but no git — treat as fresh
-        UPGRADE_MODE=0
-        FRESH_INSTALL=1
-    elif is_newer_version "$local_ver_before" "$remote_ver"; then
-        # Existing git install with newer version available
+    # Detect mode
+    if [ "$MODE" = "upgrade" ]; then
+        # --upgrade mode: only proceed if newer version available
+        local_ver_before=$(get_local_version)
+        remote_ver=$(get_remote_version)
+        if ! is_newer_version "$local_ver_before" "$remote_ver"; then
+            info "No upgrade needed - already on latest version ($local_ver_before)"
+            exit 0
+        fi
         info "Upgrading from $local_ver_before to $remote_ver..."
-        UPGRADE_MODE=1
-        FRESH_INSTALL=0
-    else
-        # Existing install, same version
-        UPGRADE_MODE=0
-        FRESH_INSTALL=0
+    fi
+
+    # Check if this will be a fresh clone (no INSTALL_DIR or --install)
+    DID_CLONE=0
+    if [ ! -d "$INSTALL_DIR" ] || [ "$FORCE_INSTALL" = "1" ]; then
+        DID_CLONE=1
     fi
 
     setup_repository
 
-    # Get version AFTER repo update for display
-    local_ver=$(get_local_version)
+    # Always run packages (pkg_add is idempotent - skips already-installed)
+    check_disk_space 1000
+    install_packages
 
-    info "FRESH_INSTALL=$FRESH_INSTALL UPGRADE_MODE=$UPGRADE_MODE"
-
-    if [ "$FRESH_INSTALL" = "1" ]; then
-        info "Fresh install — installing packages..."
-        check_disk_space 1000
-        install_packages
-        sb_output=$("$INSTALL_DIR/install/openriot" --source-builds 2>&1)
+    # Source builds only on fresh clone (compilation from source, not needed on upgrade)
+    if [ "$DID_CLONE" = "1" ]; then
+        info "Running source builds (compiling from source)..."
+        sb_output=$(cd "$INSTALL_DIR/install" && ./openriot --source-builds 2>&1)
         sb_status=$?
         if [ $sb_status -eq 0 ]; then
             success "Source builds complete."
@@ -420,29 +419,6 @@ main() {
             echo -e "${YELLOW}[PAUSE]${NC} Source builds failed. Press [ENTER] to continue or Ctrl+C to abort..."
             read dummy
         fi
-    elif [ "$UPGRADE_MODE" = "1" ]; then
-        info "Upgrading from $local_ver_before to $local_ver..."
-        check_disk_space 1000
-        install_packages
-        sb_output=$("$INSTALL_DIR/install/openriot" --source-builds 2>&1)
-        sb_status=$?
-        if [ $sb_status -eq 0 ]; then
-            success "Source builds complete."
-        else
-            warn "Source builds completed with errors."
-            echo "$sb_output" | sed 's/^/    /'
-            echo ""
-            echo -e "${YELLOW}[PAUSE]${NC} Source builds failed. Press [ENTER] to continue or Ctrl+C to abort..."
-            read dummy
-        fi
-    else
-        if [ "$MODE" = "upgrade" ]; then
-            info "No upgrade needed — already on latest version ($local_ver)"
-            exit 0
-        fi
-        # Same version re-run — skip packages, re-deploy configs only
-        info "Already on latest version ($local_ver) — skipping package install"
-        info "Re-deploying configs with preserve logic..."
     fi
 
     run_openriot_install

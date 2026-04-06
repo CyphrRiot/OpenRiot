@@ -651,7 +651,7 @@ func outputROW(items []CryptoItem) error {
 		}
 		parts = append(parts, line)
 	}
-	fmt.Println(strings.Join(parts, " • "))
+	fmt.Println(strings.Join(parts, " * "))
 	return nil
 }
 
@@ -682,14 +682,14 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string) error {
 	}
 
 	for _, item := range displayItems {
-		arrow := " •"
+		arrow := " *"
 		if item.Price > 0 && item.PrevPrice > 0 {
 			if item.Price > item.PrevPrice {
-				arrow = " ▲"
+				arrow = " "
 			} else if item.Price < item.PrevPrice {
-				arrow = " ▼"
+				arrow = " "
 			} else {
-				arrow = " •"
+				arrow = " *"
 			}
 		}
 

@@ -60,10 +60,10 @@ func formatPrice(price float64) string {
 
 // CalculateTradingSignal determines the trading action for a coin
 // Logic:
-// 1. If RSI <= oversold OR price below lower BB → BUY (this coin holds, others rotate to it)
-// 2. If RSI >= overbought OR price above upper BB → SELL (sell from this coin into lower RSI coin)
-// 3. If nothing in oversold/overbought range → HOLD
-// 4. If current coin overbought but NO oversold coins exist → sell into USD
+// 1. If RSI <= oversold OR price below lower BB -> BUY (this coin holds, others rotate to it)
+// 2. If RSI >= overbought OR price above upper BB -> SELL (sell from this coin into lower RSI coin)
+// 3. If nothing in oversold/overbought range -> HOLD
+// 4. If current coin overbought but NO oversold coins exist -> sell into USD
 func CalculateTradingSignal(sym string, currentPrice, entryPrice, held float64, item CryptoItem, items []CryptoItem, config TradingConfig) string {
 	// Handle USD/USDC - show best buy target
 	if sym == "USD" || sym == "USDC" {
@@ -80,9 +80,9 @@ func CalculateTradingSignal(sym string, currentPrice, entryPrice, held float64, 
 					}
 				}
 				if bestBuyPrice > 0 {
-					return fmt.Sprintf("%.0f USD → %s @%.0f", held, bestBuy, bestBuyPrice)
+					return fmt.Sprintf("%.0f USD -> %s @%.0f", held, bestBuy, bestBuyPrice)
 				}
-				return fmt.Sprintf("%.0f USD → %s", held, bestBuy)
+				return fmt.Sprintf("%.0f USD -> %s", held, bestBuy)
 			}
 		}
 		return ""
@@ -158,7 +158,7 @@ func CalculateTradingSignal(sym string, currentPrice, entryPrice, held float64, 
 		return fmt.Sprintf("%s @ $%s (Stop)", unitsStr, stopStr)
 	}
 
-	// Case 1: Current coin is oversold (RSI < oversold OR below BB lower) → HOLD
+	// Case 1: Current coin is oversold (RSI < oversold OR below BB lower) -> HOLD
 	// Others should rotate INTO this coin
 	if isBuySignal {
 		reason := "RSI oversold"
@@ -168,18 +168,18 @@ func CalculateTradingSignal(sym string, currentPrice, entryPrice, held float64, 
 		return fmt.Sprintf("%s (%s)", sellStr, reason)
 	}
 
-	// Case 2: Current coin is NOT overbought → HOLD
+	// Case 2: Current coin is NOT overbought -> HOLD
 	// No sell signal means we don't sell
 	if !isSellSignal {
-		return fmt.Sprintf("%s → USD", sellStr)
+		return fmt.Sprintf("%s -> USD", sellStr)
 	}
 
 	// Case 3: Current coin is overbought (RSI > overbought OR above BB upper)
-	// If current coin has lowest RSI → HOLD (best buy, don't sell)
+	// If current coin has lowest RSI -> HOLD (best buy, don't sell)
 	isLowestRSI := item.RSI > 0 && item.RSI <= absoluteLowestRSI
 
 	if isLowestRSI {
-		return fmt.Sprintf("%s → USD", sellStr)
+		return fmt.Sprintf("%s -> USD", sellStr)
 	}
 
 	// Determine rotation target and reason
@@ -195,7 +195,7 @@ func CalculateTradingSignal(sym string, currentPrice, entryPrice, held float64, 
 	}
 	// Otherwise rotate to USD (no better coin to rotate into)
 
-	return fmt.Sprintf("%s → %s (%s)", sellStr, rotation, reason)
+	return fmt.Sprintf("%s -> %s (%s)", sellStr, rotation, reason)
 }
 
 // GetBestBuyTarget returns the coin with the best buy opportunity (lowest RSI)
