@@ -243,30 +243,32 @@ curl -fsSL https://openriot.org/setup.sh | sh
 
 ## ✅ SESSION CHANGES (This Session)
 
-| # | Change | Files | Status |
-|---|--------|-------|--------|
-| 1 | Fixed sway autostart duplicate — check for any `exec sway` instead of marker | setup.sh | ✅ DONE |
-| 2 | Removed playerctl (not functional on OpenBSD/sndiod) | packages.yaml, waybar/Modules | ✅ DONE |
-| 3 | Removed dead /etc/openriot/VERSION + packages.yaml from site79.tgz | build-iso.sh | ✅ DONE |
-| 4 | Added lf file manager config (lfrc + preview script + chafa) | config/lf/, packages.yaml, config/foot/ | ✅ DONE |
-| 5 | Enabled sixel in foot for image previews | config/foot/cypherriot.ini | ✅ DONE |
-| 6 | Added AGENTS.md + AI files to .gitignore | .gitignore | ✅ DONE |
-| 7 | Added crush screenshot inline to README | README.md, assets/crush.png | ✅ DONE |
-| 8 | Added lf tutorial video to README | README.md | ✅ DONE |
-| 9 | Fixed README keybinding: Thunar -> lf | README.md | ✅ DONE |
-| 10 | Staged all new files (crush.png, lf/lfrc, lf/preview) | git | ✅ STAGED |
+| #   | Change                                                                           | Files                                                         | Status    |
+| --- | -------------------------------------------------------------------------------- | ------------------------------------------------------------- | --------- |
+| 1   | Fixed sway autostart duplicate — check for any `exec sway` instead of marker     | setup.sh                                                      | ✅ DONE   |
+| 2   | Removed playerctl (not functional on OpenBSD/sndiod)                             | packages.yaml, waybar/Modules                                 | ✅ DONE   |
+| 3   | Removed dead /etc/openriot/VERSION + packages.yaml from site79.tgz               | build-iso.sh                                                  | ✅ DONE   |
+| 4   | Added lf file manager config (lfrc + preview script + chafa)                     | config/lf/, packages.yaml, config/foot/                       | ✅ DONE   |
+| 5   | Enabled sixel in foot for image previews                                         | config/foot/cypherriot.ini                                    | ✅ DONE   |
+| 6   | Added AGENTS.md + AI files to .gitignore                                         | .gitignore                                                    | ✅ DONE   |
+| 7   | Added crush screenshot inline to README                                          | README.md, assets/crush.png                                   | ✅ DONE   |
+| 8   | Added lf tutorial video to README                                                | README.md                                                     | ✅ DONE   |
+| 9   | Fixed README keybinding: Thunar -> lf                                            | README.md                                                     | ✅ DONE   |
+| 10  | Staged all new files (crush.png, lf/lfrc, lf/preview)                            | git                                                           | ✅ STAGED |
+| 11  | Removed Thunar dead code from waybar configs (ModulesWorkspaces, UserWorkspaces) | config/waybar/ModulesWorkspaces, config/waybar/UserWorkspaces | ✅ DONE   |
+| 12  | Updated README lf shortcuts table to comprehensively match lfrc                  | README.md                                                     | ✅ DONE   |
 
 ---
 
 ## 🔴 REMAINING TODO (Pre-Hardware Test)
 
-| # | Item | Severity | Notes |
-|---|------|----------|-------|
-| 1 | Thunar config dead code — config/Thunar/, gtk CSS, sway window rules still reference Thunar | Medium | Need to audit and remove Thunar-specific configs |
-| 2 | README lf shortcuts table incomplete — lfrc has full bindings | Low | Update README lf table to match lfrc |
-| 3 | waybar-guard.sh polling — acknowledged acceptable for OpenBSD | Low | Not blocking |
-| 4 | openriot binary in install/openriot — Linux-built, must restore before commit | Critical | Must `git checkout HEAD -- install/openriot` before commit |
-| 5 | Hardware end-to-end test — ISO -> install -> setup.sh -> Sway -> Waybar | Critical | Awaiting hardware |
+| #   | Item                                                                          | Severity | Notes                                                      |
+| --- | ----------------------------------------------------------------------------- | -------- | ---------------------------------------------------------- |
+| 1   | ~~Thunar config dead code~~ — DONE: removed from waybar configs               | Medium   | ✅ DONE                                                    |
+| 2   | ~~README lf shortcuts table incomplete~~ — DONE: updated to match lfrc        | Low      | ✅ DONE                                                    |
+| 3   | waybar-guard.sh polling — acknowledged acceptable for OpenBSD                 | Low      | Not blocking                                               |
+| 4   | openriot binary in install/openriot — Linux-built, must restore before commit | Critical | Must `git checkout HEAD -- install/openriot` before commit |
+| 5   | Hardware end-to-end test — ISO -> install -> setup.sh -> Sway -> Waybar       | Critical | Awaiting hardware                                          |
 
 ---
 

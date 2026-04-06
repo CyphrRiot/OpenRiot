@@ -254,7 +254,7 @@ For the best OpenBSD + Sway experience:
 
 The OpenRiot ISO is the OpenBSD installer — it installs the base system AND configures Sway, Waybar, Fish, and everything else automatically. No interaction needed.
 
-1. **Download OpenRiot ISO** — Get it from [openriot.org](https://openriot.org) (or the GitHub releases page)
+1. **Download OpenRiot ISO** — Get it from the [Release Page](https://github.com/CyphrRiot/OpenRiot/releases/tag/v1.0) or download directly: [openriot.iso](https://github.com/CyphrRiot/OpenRiot/releases/download/v1.0/openriot.iso) (~757MB)
 2. **Create bootable USB** — Use `dd` or [Etcher](https://etcher.balena.io/) to write to USB
 3. **Boot from USB** — Disable Secure Boot, set UEFI boot order
 4. **Walk away** — The installer runs completely unattended
@@ -422,12 +422,37 @@ Fish comes pre-configured with useful aliases:
 
 ### lf File Manager Shortcuts
 
-| Key   | Action           |
-| ----- | ---------------- |
-| `j/k` | Navigate down/up |
-| `gh`  | Go to home       |
-| `g/`  | Go to root `/`   |
-| `q`   | Quit             |
+| Key       | Action                           |
+| --------- | -------------------------------- |
+| `j/k`     | Navigate down/up                 |
+| `h/l`     | Go back / Open file or directory |
+| `gh`      | Go to home `~`                   |
+| `g/`      | Go to root `/`                   |
+| `gg`      | Go to top of listing             |
+| `G`       | Go to bottom of listing          |
+| `a.`      | Toggle hidden files              |
+| `o`       | Open file with default handler   |
+| `<enter>` | Open file (same as `o`)          |
+| `E`       | Edit file in `$EDITOR` (Helix)   |
+| `yy`      | Copy (yank) file path            |
+| `yd`      | Copy directory path to clipboard |
+| `y.`      | Copy filename to clipboard       |
+| `dd`      | Cut / trash file                 |
+| `p`       | Paste                            |
+| `nf`      | New directory                    |
+| `n.`      | New file                         |
+| `r`       | Rename (inline edit)             |
+| `bc`      | Bulk rename selected files       |
+| `za`      | Create archive from selection    |
+| `zx`      | Extract archive                  |
+| `gs`      | Show git status                  |
+| `ai`      | Sort by size                     |
+| `at`      | Sort by size + time              |
+| `an`      | Sort by name                     |
+| `q`       | Quit                             |
+| `Q`       | Quit all lf instances            |
+
+**Note:** Press `?` in lf for full help. File previews shown inline (images via chafa, text via bat).
 
 ### Tutorial Video
 
