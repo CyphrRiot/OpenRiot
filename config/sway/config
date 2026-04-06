@@ -73,8 +73,8 @@ input * {
     xkb_rules ""
 
     pointer_accel 0
-    repeat_rate 40
-    repeat_delay 600
+    repeat_rate 60
+    repeat_delay 120
 }
 
 # Touchpad (auto-detected on boot)
