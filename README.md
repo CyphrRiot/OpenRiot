@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-0.99-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.0-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![Sway](https://img.shields.io/badge/Sway-Wayland-312e81?logo=wayland&logoColor=a855f7&labelColor=1e1b4b)
@@ -359,7 +359,7 @@ After the base OpenBSD install completes, the system will:
 After reboot:
 
 1. Log in as your user
-2. Type `fish` if bash is still default
+2. Type `fish` if ksh is still default
 3. Run `openriot --install` if configs don't deploy automatically
 4. Type `sway` to start the desktop
 
