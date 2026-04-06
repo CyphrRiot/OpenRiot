@@ -1,16 +1,14 @@
-# Define the AI language server (lsp-ai with your OpenRouter MiniMax-2.7)
-# [language-server.lsp-ai]
-# command = "lsp-ai"
+# Define language servers for Helix
 
 # === Rust ===
 [[language]]
 name = "rust"
-language-servers = ["rust-analyzer", "lsp-ai"]
+language-servers = ["rust-analyzer"]
 
 # === Python ===
 [[language]]
 name = "python"
-language-servers = ["pyright", "lsp-ai"]
+language-servers = ["pyright"]
 
 # === Go ===
 [[language]]
@@ -19,5 +17,5 @@ roots = ["go.mod", "go.work"]
 auto-format = true
 indent = { tab-width = 4, unit = "    " }
 comment-token = "//"
-language-servers = ["gopls", "lsp-ai"]
+language-servers = ["gopls"]
 formatter = { command = "goimports" }

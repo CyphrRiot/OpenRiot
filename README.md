@@ -576,62 +576,60 @@ _See the [helix-cheat-sheet](https://github.com/stevenhoy/helix-cheat-sheet) pro
 
 ### AI Integration with OpenRouter
 
-OpenRiot supports AI-assisted coding via **lsp-ai** with OpenRouter. This gives you code completions and chat directly inside Helix.
+OpenRiot supports AI-assisted coding via **aichat** with OpenRouter. This gives you a simple, reliable way to use MiniMax-2.7 (or any other model at [OpenRouter.ai](https://openrouter.ai/models)) inside Helix using macros and pipes.
 
 #### Setup
 
-**1. Install lsp-ai:**
+**1. Install aichat:**
+
+aichat is built from source during OpenRiot setup. To install manually:
 
 ```fish
-doas pkg_add rust
-cargo install lsp-ai
+git clone --depth=1 https://github.com/sigma67/aichat /tmp/aichat
+cd /tmp/aichat
+cargo build --release
+doas cp target/release/aichat /usr/local/bin/
 ```
 
-**2. Configure lsp-ai:**
+**2. Configure aichat:**
 
 ```fish
-mkdir -p ~/.config/lsp-ai
-cat > ~/.config/lsp-ai/config.toml << EOF
-[completion]
-model = "minimax/minimax-m2.7"
-api_base = "https://openrouter.ai/api/v1"
-api_key = "sk-or-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-temperature = 0.2
-max_tokens = 512
+mkdir -p ~/.config/aichat
+cat > ~/.config/aichat/config.yaml << EOF
+model: openrouter/minimax/minimax-m2.7
+openrouter:
+  api_key: "sk-or-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 EOF
 ```
 
 Replace `sk-or-XXXXXXXX...` with your actual OpenRouter API key from https://openrouter.ai/settings
 
-**3. Add lsp-ai to Helix (`~/.config/helix/languages.toml`):**
+**3. Add Helix keybinding for AI chat:**
+
+Add to `~/.config/helix/config.toml`:
 
 ```toml
-[language-server.lsp-ai]
-command = "lsp-ai"
-
-[[language]]
-name = "rust"
-language-servers = ["rust-analyzer", "lsp-ai"]
-
-[[language]]
-name = "go"
-language-servers = ["gopls", "lsp-ai"]
-
-[[language]]
-name = "python"
-language-servers = ["pyright", "lsp-ai"]
+[keys.normal]
+# Press Space + i to ask about selected text or current line
+" " = { i = "@|aichat -f - --model openrouter/minimax/minimax-m2.7<ret>" }
 ```
 
-**4. Restart Helix and test.**
+**4. Use it:**
 
----
+- Select code you want to ask about (or put cursor on a line)
+- Press `Space i`
+- Type your question
+- AI response appears below
 
-#### Tips
+For interactive chat without selection, just run `aichat` in a terminal.
 
-- Completions trigger automatically or press `Ctrl-x` to force trigger
-- Lower `max_tokens` (256–512) for faster responses
-- Lower `temperature` (0.2–0.3) for precise code, higher (0.7+) for creative tasks
-- Run `hx --health rust` to verify lsp-ai is loaded
+#### Alias
+
+Helix is aliased to `hx` for convenience:
+
+```fish
+hx ~/.config/sway/config.toml
+```
 
 <a id="browser--data-transfer"></a>
 
