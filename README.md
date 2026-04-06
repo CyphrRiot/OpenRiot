@@ -647,7 +647,7 @@ Brave and Firefox both support standard HTML bookmark export/import:
 
 ```bash
 # 1. In Brave
-Settings → Bookmarks → Export Bookmarks to HTML
+Navigate to brave://bookmarks/ → click ⋮ → Export Bookmarks
 
 # 2. In Firefox
 Bookmarks → Show All Bookmarks → Import and Backup → Import → Choose HTML file
