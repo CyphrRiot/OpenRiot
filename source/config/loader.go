@@ -10,12 +10,27 @@ import (
 
 // FindConfigFile looks for packages.yaml in common locations
 func FindConfigFile() string {
+	// Explicit config dir from environment (set by setup.sh)
+	if dir := os.Getenv("OPENRIOT_CONFIG_DIR"); dir != "" {
+		path := filepath.Join(dir, "packages.yaml")
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+	}
+	// Fallback: relative to binary location
+	execPath, err := os.Executable()
+	if err == nil {
+		dir := filepath.Dir(execPath)
+		path := filepath.Join(dir, "packages.yaml")
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+	}
 	locations := []string{
 		filepath.Join(os.Getenv("HOME"), ".local/share/openriot/install/packages.yaml"),
 		filepath.Join("install", "packages.yaml"),
 		filepath.Join("..", "install", "packages.yaml"),
 	}
-
 	for _, path := range locations {
 		if _, err := os.Stat(path); err == nil {
 			return path

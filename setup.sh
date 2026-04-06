@@ -22,6 +22,7 @@ CONFIG_BRANCH="${CONFIG_BRANCH:-main}"
 INSTALLURL="${INSTALLURL:-https://cdn.openbsd.org/pub/OpenBSD}"
 REMOTE_VERSION_URL="${REMOTE_VERSION_URL:-https://openriot.org/VERSION}"
 INSTALL_DIR="$HOME/.local/share/openriot"
+export OPENRIOT_CONFIG_DIR="$INSTALL_DIR/install"
 
 # Log file configuration — logs go to ~/.cache/openriot/ NOT ~/.local/share/openriot/
 LOG_DIR="$HOME/.cache/openriot"
@@ -106,7 +107,8 @@ check_openbsd_version() {
 # Check available disk space
 check_disk_space() {
     required_mb=$1
-    available_mb=$(df -k "$HOME" | tail -1 | awk '{print int($4/1024)}')
+    target_dir="${HOME:-/root}"
+    available_mb=$(df -k "$target_dir" | tail -1 | awk '{print int($4/1024)}')
     if [ "$available_mb" -lt "$required_mb" ]; then
         error "Not enough disk space. Need ${required_mb}MB, have ${available_mb}MB free."
         error "Free up space and try again."
@@ -206,7 +208,10 @@ install_packages() {
         exit 1
     fi
 
-    packages=$("$INSTALL_DIR/install/openriot" --packages | sort -u)
+    # Change to binary's directory so relative paths work
+    cd "$INSTALL_DIR/install" || { error "Cannot cd to $INSTALL_DIR/install"; exit 1; }
+
+    packages=$(./openriot --packages | sort -u)
 
     if [ -z "$packages" ]; then
         error "No packages found in packages.yaml"
@@ -252,9 +257,12 @@ run_openriot_install() {
         exit 1
     fi
     # Run as USER - no doas, log to ~/.cache/openriot/
+    # Change to binary's directory so relative paths work
+    cd "$INSTALL_DIR/install" || { error "Cannot cd to $INSTALL_DIR/install"; exit 1; }
+
     INSTALL_LOG="$HOME/.cache/openriot/install.log"
     mkdir -p "$(dirname "$INSTALL_LOG")"
-    "$INSTALL_DIR/install/openriot" --install 2>&1 | tee -a "$INSTALL_LOG"
+    ./openriot --install 2>&1 | tee -a "$INSTALL_LOG"
     success "openriot --install complete"
 }
 
