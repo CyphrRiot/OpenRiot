@@ -257,18 +257,20 @@ curl -fsSL https://openriot.org/setup.sh | sh
 | 10  | Staged all new files (crush.png, lf/lfrc, lf/preview)                            | git                                                           | ✅ STAGED |
 | 11  | Removed Thunar dead code from waybar configs (ModulesWorkspaces, UserWorkspaces) | config/waybar/ModulesWorkspaces, config/waybar/UserWorkspaces | ✅ DONE   |
 | 12  | Updated README lf shortcuts table to comprehensively match lfrc                  | README.md                                                     | ✅ DONE   |
+| 13  | Marked waybar-guard.sh polling as correct OpenBSD approach                       | Progress.md                                                   | ✅ DONE   |
+| 14  | Restored OpenBSD cross-compiled binary via `make build`                          | install/openriot                                              | ✅ DONE   |
 
 ---
 
 ## 🔴 REMAINING TODO (Pre-Hardware Test)
 
-| #   | Item                                                                          | Severity | Notes                                                      |
-| --- | ----------------------------------------------------------------------------- | -------- | ---------------------------------------------------------- |
-| 1   | ~~Thunar config dead code~~ — DONE: removed from waybar configs               | Medium   | ✅ DONE                                                    |
-| 2   | ~~README lf shortcuts table incomplete~~ — DONE: updated to match lfrc        | Low      | ✅ DONE                                                    |
-| 3   | waybar-guard.sh polling — acknowledged acceptable for OpenBSD                 | Low      | Not blocking                                               |
-| 4   | openriot binary in install/openriot — Linux-built, must restore before commit | Critical | Must `git checkout HEAD -- install/openriot` before commit |
-| 5   | Hardware end-to-end test — ISO -> install -> setup.sh -> Sway -> Waybar       | Critical | Awaiting hardware                                          |
+| #   | Item                                                                      | Severity | Notes             |
+| --- | ------------------------------------------------------------------------- | -------- | ----------------- |
+| 1   | ~~Thunar config dead code~~ — DONE: removed from waybar configs           | Medium   | ✅ DONE           |
+| 2   | ~~README lf shortcuts table incomplete~~ — DONE: updated to match lfrc    | Low      | ✅ DONE           |
+| 3   | ~~waybar-guard.sh polling~~ — Polling loop is correct OpenBSD approach    | Low      | ✅ DONE           |
+| 4   | ~~openriot binary in install/openriot~~ — DONE: restored via `make build` | Critical | ✅ DONE           |
+| 5   | Hardware end-to-end test — ISO -> install -> setup.sh -> Sway -> Waybar   | Critical | Awaiting hardware |
 
 ---
 
