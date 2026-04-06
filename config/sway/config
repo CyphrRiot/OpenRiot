@@ -35,7 +35,7 @@ set $openriot $HOME/.local/share/openriot/install/openriot
 # =============================================================================
 # AUTOSTART APPLICATIONS
 # =============================================================================
-exec swaybg -i "$HOME/.local/share/openriot/backgrounds/riot_01.jpg" -m fill
+exec swaybg -i "$HOME/.local/share/openriot/backgrounds/riot_00.jpg" -m fill
 
 exec $HOME/.local/share/openriot/config/bin/waybar-guard.sh
 exec wlsunset -t 3500

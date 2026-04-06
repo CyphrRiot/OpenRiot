@@ -11,7 +11,7 @@ FONT_DIR="$HOME/.local/share/fonts"
 FONT_PATH="$FONT_DIR/PaperMono-Regular.ttf"
 FONT_SOURCE_DIR="$HOME/.local/share/openriot/config/fonts"
 OUTPUT="/tmp/swaylock-bg.png"
-BG_IMAGE="$HOME/.local/share/openriot/backgrounds/riot_01.jpg"
+BG_IMAGE="$HOME/.local/share/openriot/backgrounds/riot_00.jpg"
 
 # Detect ImageMagick command (IM7=magick, IM6=convert)
 IM_CMD="convert"
