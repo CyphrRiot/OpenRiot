@@ -298,7 +298,7 @@ Most prompts are pre-answered. You only need to:
 | X Window System      | Type `no` → Enter                                       |
 | Setup a user         | Type your username → Enter, then set password           |
 | Which disk           | Type `sd1` (USB boot: sd0=USB, sd1=target)           |
-| Use (W)hole disk MBR | Press `Enter` (GPT)                                     |
+| Use (W)hole disk MBR | ⚠️ **MUST choose `G` for GPT** (MBR will NOT boot) |
 | Encrypt disk         | Type `p` for passphrase or `no` for no encryption       |
 | Partition layout     | Type `c` for custom                                     |
 | Label editor         | `z` → `a /` → size → `a swap` → `a /home` → `w` → `q`   |
