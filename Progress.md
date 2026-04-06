@@ -23,9 +23,8 @@
    - Installs curl and git
    - Clones OpenRiot repo to ~/.local/share/openriot/
    - Installs ALL packages via pkg_add
-   - Runs setup commands (git config, mkdir, etc.)
-   - Builds wlsunset from source
-   - Runs openriot --install (config deployment)
+   - Runs openriot --source-builds (builds wlsunset from packages.yaml)
+   - Runs openriot --install (configs + commands from packages.yaml)
    - Sets fish as default shell
    - Configures sway autostart in fish config
 6. REBOOT → Sway starts automatically
@@ -36,7 +35,7 @@
 ## Canonical Versions
 
 ```
-OPENRIOT_VERSION = (from VERSION file, currently 0.92)
+OPENRIOT_VERSION = (from VERSION file, currently 0.95)
 OPENBSD_VERSION  = 7.9
 ARCH             = amd64
 ```
@@ -125,9 +124,9 @@ Logs are NOT written to `~/.local/share/openriot` — always `~/.cache/openriot`
 
 ## Source-Built
 
-| Package  | Method                                    |
-| -------- | ----------------------------------------- |
-| wlsunset | Built by `setup.sh` via git clone + meson |
+| Package  | Method                                                   |
+| -------- | -------------------------------------------------------- |
+| wlsunset | Built by `openriot --source-builds` (from packages.yaml) |
 
 ---
 
@@ -205,56 +204,40 @@ curl -fsSL https://openriot.org/setup.sh | sh
 
 ---
 
-## Current Status
+## ✅ COMPLETED
 
-### ✅ COMPLETED
-
-| Component            | File(s)                                   | Notes                                                         |
-| -------------------- | ----------------------------------------- | ------------------------------------------------------------- |
-| ISO builder          | `build-iso.sh`                            | Linux-compatible, xorriso-only, BIOS+UEFI boot                |
-| install.site         | `autoinstall/install.site`                | Configures doas, enables services (NO repo extraction)        |
-| autoinstall config   | `autoinstall/install.conf`                | Unattended OpenBSD install                                    |
-| setup.sh             | `setup.sh`                                | Orchestrates all root ops, calls openriot --install as USER   |
-| openriot --install   | `source/main.go`, `source/installer/*.go` | Config-only, runs as USER                                     |
-| Package installation | `setup.sh`                                | One-by-one pkg_add with -D unsigned                           |
-| Config deployment    | `source/installer/configs.go`             | Glob patterns, permission preservation                        |
-| Source builds        | `setup.sh`                                | wlsunset via git clone + meson                                |
-| Canonical versioning | `Makefile`, `VERSION`                     | Single source of truth                                        |
-| CLI commands         | `source/main.go`                          | --lock, --suspend, --power-menu, --volume, --brightness, etc. |
-| Logging              | `setup.sh`, `source/installer/*.go`       | Logs to ~/.cache/openriot/                                    |
-| Disk space check     | `setup.sh`                                | Checks ~1GB free before installing packages                   |
-
----
-
-## Known Issues
-
-1. **`install.conf` interactive mode** — The OpenBSD installer `I` (interactive) mode may not use `install.conf` the same way autoinstall does. Testing needed.
-2. **Real hardware end-to-end testing** — Full ISO → install → `setup.sh` → Sway flow being tested.
+- [x] ISO builder (`build-iso.sh` — Linux-compatible, xorriso-only, BIOS+UEFI boot)
+- [x] install.site (`autoinstall/install.site` — configures doas, enables services)
+- [x] autoinstall config (`autoinstall/install.conf` — unattended OpenBSD install)
+- [x] setup.sh (`setup.sh` — orchestrates all root ops, --install/--upgrade modes, version check, preserve logic)
+- [x] openriot --install (`source/main.go`, `source/installer/*.go` — config-only, runs as USER)
+- [x] Package installation (`setup.sh` — one-by-one pkg_add with -D unsigned)
+- [x] Config deployment (`source/installer/configs.go` — glob patterns, preserve_if_exists, identical skip)
+- [x] Source builds (`setup.sh` — wlsunset via git clone + meson)
+- [x] Canonical versioning (`Makefile`, `VERSION` — single source of truth)
+- [x] CLI commands (`source/main.go` — --lock, --suspend, --power-menu, --volume, --brightness, etc.)
+- [x] Logging (`setup.sh`, `source/installer/*.go` — logs to ~/.cache/openriot/)
+- [x] Disk space check (`setup.sh` — checks ~1GB free before installing packages)
+- [x] Keyboard repeat rate (`config/sway/config` — rate 60, delay 120ms)
+- [x] Helix config (`config/helix/config.toml` — x remapped to delete_char_forward)
+- [x] Background management (`config/backgrounds/` — riot_XX.jpg naming, copyBackgrounds())
+- [x] Clock click to cycle backgrounds (`config/waybar/Modules` — on-click to --swaybg-next)
+- [x] NetworkManager/nmtui (`packages.yaml` — networkmanager pkg, rcctl enable/start, waybar on-click)
+- [x] Upgrade flow (`setup.sh` — git pull if newer version, skip packages if same version)
+- [x] Preserve user configs (`packages.yaml` — preserve_if_exists lists for sway, waybar, fish, helix)
+- [x] All 18 audit fixes applied
 
 ---
 
-## Audit Fixes Applied (April 2026)
+## 🔄 IN PROGRESS
 
-| #   | Issue                             | Status                                                |
-| --- | --------------------------------- | ----------------------------------------------------- |
-| 1   | configs.go glob recursion         | ✅ Fixed — uses filepath.WalkDir                      |
-| 2   | Script permissions (0644)         | ✅ Fixed — preserves source permissions               |
-| 3   | Missing packages in packages.yaml | ✅ Fixed                                              |
-| 4   | Package verification              | ✅ Fixed                                              |
-| 5   | doas persist vs nopass            | ✅ Fixed — setup.sh uses nopass                       |
-| 6   | sway/window module undefined      | ✅ Fixed                                              |
-| 7   | fw_update -a with doas            | ✅ Removed from packages.yaml                         |
-| 8   | ImageMagick 6 vs 7                | ✅ Uses `convert` not `magick`                        |
-| 9   | exec export in sway/config        | ✅ Fixed                                              |
-| 10  | Screenshot keybinding             | ✅ Fixed                                              |
-| 11  | wireguard scripts not executable  | ✅ Fixed                                              |
-| 12  | **pycache** committed             | ✅ Removed                                            |
-| 13  | Version check headless            | ✅ Fixed                                              |
-| 14  | py3-gobject3 missing              | ✅ Removed GTK welcome screen                         |
-| 15  | repo.tar.gz root permissions      | ✅ Fixed — repo.tar.gz removed from ISO               |
-| 16  | package ambiguity errors          | ✅ Fixed — python→python3, one-by-one install         |
-| 17  | no logging                        | ✅ Fixed — logs to ~/.cache/openriot/                 |
-| 18  | disk full ignored                 | ✅ Fixed — check_disk_space() before install_packages |
+### Real Hardware End-to-End Testing
+
+**Issue:** Full ISO → install → `setup.sh` → Sway flow needs validation on actual hardware.
+
+**Files impacted:** `build-iso.sh`, `autoinstall/install.conf`, `autoinstall/install.site`, `setup.sh`
+
+**Status:** Awaiting hardware test results.
 
 ---
 

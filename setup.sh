@@ -1,14 +1,10 @@
 #!/bin/sh
 # OpenRiot Setup Script
 # Bootstrap script for installing OpenRiot on fresh OpenBSD
-# Usage: curl -fsSL https://openriot.org/setup.sh | sh
-#
-# This script handles ONLY bootstrap tasks:
-#   - Configure installurl and doas
-#   - Install packages via pkg_add
-#   - Run setup commands
-#   - Build wlsunset from source
-# All config deployment is done by openriot --install (runs as USER).
+# Usage:
+#   curl -fsSL https://openriot.org/setup.sh | sh     # auto-detect
+#   curl -fsSL https://openriot.org/setup.sh | sh -s -- --install   # fresh install
+#   curl -fsSL https://openriot.org/setup.sh | sh -s -- --upgrade   # upgrade
 
 # NOTE: set -e removed — install_packages continues on individual pkg failures
 
@@ -24,6 +20,8 @@ OPENBSD_MIN_VERSION="7.9"
 REPO_URL="${REPO_URL:-https://github.com/CyphrRiot/OpenRiot}"
 CONFIG_BRANCH="${CONFIG_BRANCH:-main}"
 INSTALLURL="${INSTALLURL:-https://cdn.openbsd.org/pub/OpenBSD}"
+REMOTE_VERSION_URL="${REMOTE_VERSION_URL:-https://openriot.org/VERSION}"
+INSTALL_DIR="$HOME/.local/share/openriot"
 
 # Log file configuration — logs go to ~/.cache/openriot/ NOT ~/.local/share/openriot/
 LOG_DIR="$HOME/.cache/openriot"
@@ -40,6 +38,47 @@ warn() { echo -e "${YELLOW}[WARN]${NC} $1" | tee -a "$LOG_FILE"; }
 error() { echo -e "${RED}[ERROR]${NC} $1" | tee -a "$LOG_FILE" >&2; }
 
 log() { printf '[OPENRIOT] %s\n' "$1" | tee -a "$LOG_FILE"; }
+
+# -----------------------------------------------------------------------------
+# Version Comparison
+# -----------------------------------------------------------------------------
+
+# Compare semantic versions — returns 0 if remote is newer
+is_newer_version() {
+    local_ver="$1"
+    remote_ver="$2"
+
+    [ "$local_ver" = "unknown" ] && return 1
+    [ "$remote_ver" = "unknown" ] && return 1
+    [ "$local_ver" = "$remote_ver" ] && return 1
+
+    newer=$(printf '%s\n%s\n' "$local_ver" "$remote_ver" | awk 'BEGIN{FS="."} {
+        for (i=1; i<=3; i++) { v[NR][i] = ($i+0) }
+    } END {
+        for (i=1; i<=3; i++) {
+            if (v[2][i] > v[1][i]) { print "newer"; exit }
+            if (v[1][i] > v[2][i]) { print "older"; exit }
+        }
+        print "equal"
+    }')
+
+    [ "$newer" = "newer" ] && return 0
+    return 1
+}
+
+# Get remote version from openriot.org
+get_remote_version() {
+    timeout 10 curl -fsSL "$REMOTE_VERSION_URL" 2>/dev/null || echo "unknown"
+}
+
+# Get local version from installed repo
+get_local_version() {
+    if [ -f "$INSTALL_DIR/VERSION" ]; then
+        cat "$INSTALL_DIR/VERSION" 2>/dev/null || echo "unknown"
+    else
+        echo "unknown"
+    fi
+}
 
 # -----------------------------------------------------------------------------
 # Pre-flight Checks
@@ -64,10 +103,7 @@ check_openbsd_version() {
     success "OpenBSD $version detected"
 }
 
-# -----------------------------------------------------------------------------
 # Check available disk space
-# -----------------------------------------------------------------------------
-
 check_disk_space() {
     required_mb=$1
     available_mb=$(df -m "$HOME" | tail -1 | awk '{print $4}')
@@ -121,20 +157,40 @@ install_bootstrap_packages() {
 }
 
 # -----------------------------------------------------------------------------
-# Deploy OpenRiot repo
+# Deploy OpenRiot repo — smart mode (upgrade vs fresh)
 # -----------------------------------------------------------------------------
 
-deploy_openriot() {
-	info "Deploying OpenRiot..."
-	# Remove any root-owned directory first (install.site creates it as root)
-	# Then clone fresh as user — internet is available at this point
-	if [ -d ~/.local/share/openriot ]; then
-		doas rm -rf ~/.local/share/openriot
-	fi
-	mkdir -p ~/.local/share/openriot
-	cd ~/.local/share/openriot
-	git clone -b "$CONFIG_BRANCH" "$REPO_URL" .
-	success "OpenRiot deployed to ~/.local/share/openriot"
+setup_repository() {
+    local_ver=$(get_local_version)
+    remote_ver=$(get_remote_version)
+
+    info "Local version:  $local_ver"
+    info "Remote version: $remote_ver"
+
+    if [ -d "$INSTALL_DIR/.git" ]; then
+        # Existing installation — check for updates
+        if is_newer_version "$local_ver" "$remote_ver"; then
+            info "Newer version available — upgrading..."
+            (
+                cd "$INSTALL_DIR" || exit 1
+                git fetch origin || { error "Git fetch failed"; exit 1; }
+                git reset --hard origin/"$CONFIG_BRANCH" || { error "Git reset failed"; exit 1; }
+            )
+            success "OpenRiot upgraded to $remote_ver"
+        else
+            info "Already on latest version ($local_ver) — skipping repo update"
+            info "To force reinstall, remove ~/.local/share/openriot and re-run"
+        fi
+    else
+        # Fresh installation
+        info "Fresh installation..."
+        if [ -d "$INSTALL_DIR" ]; then
+            doas rm -rf "$INSTALL_DIR"
+        fi
+        mkdir -p "$(dirname "$INSTALL_DIR")" || { error "Cannot create directory"; exit 1; }
+        git clone -b "$CONFIG_BRANCH" "$REPO_URL" "$INSTALL_DIR" || { error "Git clone failed"; exit 1; }
+        success "OpenRiot deployed to $INSTALL_DIR"
+    fi
 }
 
 # -----------------------------------------------------------------------------
@@ -143,29 +199,14 @@ deploy_openriot() {
 
 install_packages() {
     info "Installing packages from packages.yaml (safe one-by-one mode)..."
-    pkgs_file="$HOME/.local/share/openriot/install/packages.yaml"
-    if [ ! -f "$pkgs_file" ]; then
-        error "packages.yaml not found at $pkgs_file"
+
+    # Use openriot binary to parse packages.yaml (same parser as Go binary)
+    if [ ! -x "$INSTALL_DIR/install/openriot" ]; then
+        error "openriot binary not found at $INSTALL_DIR/install/openriot"
         exit 1
     fi
 
-    # Extract package stems from packages.yaml
-    packages=$(awk '
-/^[a-z]/ { in_pkg = 0 }
-/^[[:space:]]{4}[a-z]/ { in_pkg = 0 }
-/^[[:space:]]+packages:/ { in_pkg = 1; next }
-/^[[:space:]]+[a-z]+:/ { if (in_pkg) { match($0, /^[[:space:]]+/)||1; if (RLENGTH <= 8) in_pkg = 0 }; next }
-/^[[:space:]]+-[[:space:]]/ {
-    if (in_pkg) {
-        line = $0
-        sub(/^[[:space:]]*-[[:space:]]+/, "", line)
-        sub(/#.*/, "", line)
-        gsub(/"/, "", line)
-        sub(/[[:space:]]+$/, "", line)
-        if (line != "" && line ~ /^[a-zA-Z0-9]/) print line
-    }
-}
-' "$pkgs_file" | sort -u)
+    packages=$("$INSTALL_DIR/install/openriot" --packages | sort -u)
 
     if [ -z "$packages" ]; then
         error "No packages found in packages.yaml"
@@ -195,92 +236,19 @@ install_packages() {
 }
 
 # -----------------------------------------------------------------------------
-# Run setup commands from packages.yaml
-# -----------------------------------------------------------------------------
-
-run_setup_commands() {
-    info "Running setup commands..."
-    pkgs_file="$HOME/.local/share/openriot/install/packages.yaml"
-    # Extract commands from packages.yaml
-    # Commands are under "commands:" sections
-    commands=$(awk '
-/^[a-z]/ { in_cmd = 0 }
-/^[[:space:]]+commands:/ { in_cmd = 1; next }
-/^[[:space:]]+[a-z]+:/ {
-    if (in_cmd) {
-        match($0, /^[[:space:]]+/)
-        if (RLENGTH <= 8) in_cmd = 0
-    }
-    next
-}
-/^[[:space:]]+-[[:space:]]/ {
-    if (in_cmd) {
-        line = $0
-        sub(/^[[:space:]]*-[[:space:]]+/, "", line)
-        sub(/#.*/, "", line)
-        gsub(/"/, "", line)
-        sub(/[[:space:]]+$/, "", line)
-        if (line != "") print line
-    }
-}
-' "$pkgs_file")
-
-    if [ -z "$commands" ]; then
-        info "No commands to run"
-        return
-    fi
-
-    echo "$commands" | while IFS= read -r cmd; do
-        [ -z "$cmd" ] && continue
-        # Skip commands that need root but should be done differently
-        case "$cmd" in
-            *doas*|*chsh*|*pkg_add*) ;;
-            *)
-                info "Running: $cmd"
-                eval "$cmd" || warn "Command failed: $cmd"
-                ;;
-        esac
-    done
-    success "Setup commands complete"
-}
-
-# -----------------------------------------------------------------------------
-# Build wlsunset from source
-# -----------------------------------------------------------------------------
-
-build_wlsunset() {
-    info "Building wlsunset from source..."
-    if command -v wlsunset >/dev/null 2>&1; then
-        success "wlsunset already installed"
-        return
-    fi
-    tmpdir=$(mktemp -d)
-    cleanup() { rm -rf "$tmpdir"; }
-    trap cleanup EXIT
-    cd "$tmpdir"
-    git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset
-    cd wlsunset
-    meson setup build --prefix=/usr/local --buildtype=release
-    meson compile -C build
-    doas meson install -C build
-    cd /
-    success "wlsunset built and installed"
-}
-
-# -----------------------------------------------------------------------------
 # Run openriot --install (as USER, not root)
 # -----------------------------------------------------------------------------
 
 run_openriot_install() {
     info "Running openriot --install..."
-    if [ ! -x "$HOME/.local/share/openriot/install/openriot" ]; then
-        error "openriot binary not found at $HOME/.local/share/openriot/install/openriot"
+    if [ ! -x "$INSTALL_DIR/install/openriot" ]; then
+        error "openriot binary not found at $INSTALL_DIR/install/openriot"
         exit 1
     fi
     # Run as USER - no doas, log to ~/.cache/openriot/
     INSTALL_LOG="$HOME/.cache/openriot/install.log"
     mkdir -p "$(dirname "$INSTALL_LOG")"
-    "$HOME/.local/share/openriot/install/openriot" --install 2>&1 | tee -a "$INSTALL_LOG"
+    "$INSTALL_DIR/install/openriot" --install 2>&1 | tee -a "$INSTALL_LOG"
     success "openriot --install complete"
 }
 
@@ -310,11 +278,19 @@ configure_sway_autostart() {
     info "Configuring sway autostart in fish..."
     fish_conf="$HOME/.config/fish/config.fish"
     mkdir -p "$HOME/.config/fish"
-    # Remove existing sway autostart block
+
+    # Skip if already configured correctly
+    if [ -f "$fish_conf" ] && grep -q "# openriot-sway-autostart" "$fish_conf" 2>/dev/null; then
+        success "Sway autostart already configured"
+        return
+    fi
+
+    # Remove existing sway autostart block if present
     if [ -f "$fish_conf" ]; then
         awk '!/# openriot-sway-autostart/{print} /# openriot-sway-autostart/{skip=1} skip && /end/{skip=0}' "$fish_conf" > "$fish_conf.tmp" 2>/dev/null || true
         mv "$fish_conf.tmp" "$fish_conf" 2>/dev/null || true
     fi
+
     # Append new sway autostart
     cat >> "$fish_conf" << 'SWCONF'
 
@@ -328,10 +304,33 @@ SWCONF
 }
 
 # -----------------------------------------------------------------------------
+# Usage
+# -----------------------------------------------------------------------------
+
+usage() {
+    echo "Usage: setup.sh [--install | --upgrade | --help]"
+    echo "  --install   Fresh install (default)"
+    echo "  --upgrade   Upgrade if newer version available"
+    echo "  --help      Show this message"
+    exit 0
+}
+
+# -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
 
 main() {
+    MODE="install"
+
+    # Parse arguments
+    for arg in "$@"; do
+        case "$arg" in
+            --install) MODE="install" ;;
+            --upgrade) MODE="upgrade" ;;
+            --help|-h) usage ;;
+        esac
+    done
+
     echo ""
     echo "=============================================="
     echo "  OpenRiot Setup - Bootstrap for OpenBSD"
@@ -342,11 +341,56 @@ main() {
     configure_installurl
     configure_doas
     install_bootstrap_packages
-    deploy_openriot
-    check_disk_space 1000
-    install_packages
-    run_setup_commands
-    build_wlsunset
+
+    # Get version BEFORE repo update to know if this is an upgrade
+    local_ver_before=$(get_local_version)
+    remote_ver=$(get_remote_version)
+
+    # Determine what kind of operation we're doing
+    if [ ! -d "$INSTALL_DIR" ]; then
+        # Fresh install — no existing directory
+        UPGRADE_MODE=0
+        FRESH_INSTALL=1
+    elif [ ! -d "$INSTALL_DIR/.git" ]; then
+        # Directory exists but no git — treat as fresh
+        UPGRADE_MODE=0
+        FRESH_INSTALL=1
+    elif is_newer_version "$local_ver_before" "$remote_ver"; then
+        # Existing git install with newer version available
+        info "Upgrading from $local_ver_before to $remote_ver..."
+        UPGRADE_MODE=1
+        FRESH_INSTALL=0
+    else
+        # Existing install, same version
+        UPGRADE_MODE=0
+        FRESH_INSTALL=0
+    fi
+
+    setup_repository
+
+    # Get version AFTER repo update for display
+    local_ver=$(get_local_version)
+
+    if [ "$FRESH_INSTALL" = "1" ]; then
+        info "Fresh install — installing packages..."
+        check_disk_space 1000
+        install_packages
+        "$INSTALL_DIR/install/openriot" --source-builds
+    elif [ "$UPGRADE_MODE" = "1" ]; then
+        info "Upgrading from $local_ver_before to $local_ver..."
+        check_disk_space 1000
+        install_packages
+        "$INSTALL_DIR/install/openriot" --source-builds
+    else
+        if [ "$MODE" = "upgrade" ]; then
+            info "No upgrade needed — already on latest version ($local_ver)"
+            exit 0
+        fi
+        # Same version re-run — skip packages, re-deploy configs only
+        info "Already on latest version ($local_ver) — skipping package install"
+        info "Re-deploying configs with preserve logic..."
+    fi
+
     run_openriot_install
     set_fish_shell
     configure_sway_autostart

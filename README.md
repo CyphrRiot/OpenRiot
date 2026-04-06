@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-0.92-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-0.95-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![Sway](https://img.shields.io/badge/Sway-Wayland-312e81?logo=wayland&logoColor=a855f7&labelColor=1e1b4b)
@@ -578,57 +578,36 @@ _See the [helix-cheat-sheet](https://github.com/stevenhoy/helix-cheat-sheet) pro
 
 OpenRiot supports AI-assisted coding via **lsp-ai** with OpenRouter. This gives you code completions and chat directly inside Helix.
 
-#### Why OpenRouter?
-
-- Access to many AI models (Claude, GPT-4, MiniMax-2.7, etc.)
-- Unified API — same code works with any provider
-- No vendor lock-in
-
 #### Setup
 
 **1. Install lsp-ai:**
 
 ```fish
-doas pkg_add rust cargo
-cargo install --locked lsp-ai
+doas pkg_add rust
+cargo install lsp-ai
 ```
 
-Or build from source:
+**2. Configure lsp-ai:**
 
 ```fish
-git clone https://github.com/SilasMarvin/lsp-ai.git
-cd lsp-ai
-cargo install --path .
+mkdir -p ~/.config/lsp-ai
+cat > ~/.config/lsp-ai/config.toml << EOF
+[completion]
+model = "minimax/minimax-m2.7"
+api_base = "https://openrouter.ai/api/v1"
+api_key = "sk-or-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+temperature = 0.2
+max_tokens = 512
+EOF
 ```
 
-**2. Set your OpenRouter API key:**
+Replace `sk-or-XXXXXXXX...` with your actual OpenRouter API key from https://openrouter.ai/settings
 
-Add to `~/.config/fish/config.fish`:
-
-```fish
-set -x OPENROUTER_API_KEY "sk-or-v1-your-key-here"
-```
-
-**3. Configure Helix (`~/.config/helix/languages.toml`):**
+**3. Add lsp-ai to Helix (`~/.config/helix/languages.toml`):**
 
 ```toml
 [language-server.lsp-ai]
 command = "lsp-ai"
-args = ["--stdio"]
-
-[language-server.lsp-ai.config]
-temperature = 0.7
-max_tokens = 2048
-
-[language-server.lsp-ai.config.completion]
-model = "minimax/minimax-m2.7"
-provider = "openrouter"
-
-[language-server.lsp-ai.config.models.minimax-m2.7]
-type = "openai"
-model = "minimax/minimax-m2.7"
-api_key = "env:OPENROUTER_API_KEY"
-base_url = "https://openrouter.ai/api/v1"
 
 [[language]]
 name = "rust"
@@ -647,23 +626,12 @@ language-servers = ["pyright", "lsp-ai"]
 
 ---
 
-#### Alternative: Dedicated AI Chat in Split Terminal
-
-Many users find lsp-ai's built-in chat clunky. A better approach:
-
-1. Split your screen: `Ctrl+w v` (vertical) or `Ctrl+w s` (horizontal)
-2. Run a dedicated AI chat tool in the split (Aider, aichat, Claude Code, etc.)
-3. Keep Helix on one side, AI chat on the other
-
-This gives you persistent chat history and full conversational power without fighting with LSP integration.
-
----
-
 #### Tips
 
-- Use higher `temperature` (0.8–1.0) for creative tasks, lower (0.2–0.5) for precise code generation
-- MiniMax-2.7 via OpenRouter is fast (1–3 seconds per completion)
-- For the best OpenBSD experience, use a small model like MiniMax-2.7 — larger models can be slow on lower-end ThinkPads
+- Completions trigger automatically or press `Ctrl-x` to force trigger
+- Lower `max_tokens` (256–512) for faster responses
+- Lower `temperature` (0.2–0.3) for precise code, higher (0.7+) for creative tasks
+- Run `hx --health rust` to verify lsp-ai is loaded
 
 <a id="browser--data-transfer"></a>
 
@@ -799,6 +767,41 @@ pkg_add <package-name>
 # Remove a package
 pkg_delete <package-name>
 ```
+
+### Updating OpenRiot
+
+OpenRiot upgrades are handled automatically. When a new version is released, Waybar will notify you. Click the update indicator to upgrade.
+
+#### How Upgrades Work
+
+| Scenario              | What Happens                                                       |
+| --------------------- | ------------------------------------------------------------------ |
+| **Fresh install**     | Clones repo, installs packages, builds source, deploys configs     |
+| **Version available** | Pulls latest from git, re-runs package install, re-deploys configs |
+| **Same version**      | Re-deploys configs only (preserves existing settings)              |
+
+#### Upgrade Paths
+
+**Automatic (Waybar):**
+
+1. Waybar shows update indicator when new version available
+2. Click the indicator → confirmation dialog
+3. Confirm → upgrade runs in terminal
+
+**Manual:**
+
+```bash
+# Same command works for fresh install and upgrade
+curl -fsSL https://openriot.org/setup.sh | sh
+```
+
+The script automatically detects:
+
+- No existing install → fresh install
+- Older version → upgrade (git pull + re-run)
+- Same version → config refresh only
+
+All package installation uses `pkg_add -D unsigned` — fresh packages matching the current OpenBSD release are always fetched from the CDN.
 
 <a id="advanced-usage"></a>
 

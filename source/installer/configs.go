@@ -1,6 +1,7 @@
 package installer
 
 import (
+	"bytes"
 	"fmt"
 	"io/fs"
 	"os"
@@ -10,9 +11,10 @@ import (
 	"openriot/config"
 )
 
-// CopyConfigs copies configuration files from the repo to user's home directory
-// It reads config rules from the loaded YAML configuration
-// If dryRun is true, only logs what would be copied without actually copying
+// CopyConfigs copies configuration files from the repo to user's home directory.
+// It reads config rules from the loaded YAML configuration.
+// If dryRun is true, only logs what would be copied without actually copying.
+// Files listed in preserve_if_exists are skipped if they already exist at the destination.
 func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -62,7 +64,6 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 			globDest := filepath.Join(configDir, rule.Pattern)
 
 			// Determine base directory for destination
-			// For globs like "fastfetch/*", baseDest should be "fastfetch/" (parent dir)
 			baseDest := filepath.Dir(globDest)
 			if rule.Target != "" {
 				if strings.HasPrefix(rule.Target, "~/") {
@@ -88,6 +89,12 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 				}
 				destPath := filepath.Join(baseDest, relPath)
 
+				// Check preservation
+				filename := filepath.Base(destPath)
+				if shouldPreserve(filename, rule.PreserveIfExists, destPath) {
+					return nil
+				}
+
 				// Create destination directory
 				destDir := filepath.Dir(destPath)
 				if err := os.MkdirAll(destDir, 0755); err != nil {
@@ -98,7 +105,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 				// Copy file
 				if dryRun {
 					fmt.Printf("[INFO]  [DRY-RUN] Would copy %s -> %s\n", relPath, destPath)
-				} else if err := copyFile(srcPath, destPath); err != nil {
+				} else if err := copyFilePreserve(srcPath, destPath); err != nil {
 					fmt.Printf("[WARN]  Failed to copy %s: %v\n", srcPath, err)
 					return nil
 				} else {
@@ -130,6 +137,12 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 				continue
 			}
 
+			// Check preservation
+			filename := filepath.Base(destPath)
+			if shouldPreserve(filename, rule.PreserveIfExists, destPath) {
+				continue
+			}
+
 			// Create destination directory
 			destDir := filepath.Dir(destPath)
 			if err := os.MkdirAll(destDir, 0755); err != nil {
@@ -140,7 +153,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 			// Copy file
 			if dryRun {
 				fmt.Printf("[INFO]  [DRY-RUN] Would copy %s -> %s\n", rule.Pattern, destPath)
-			} else if err := copyFile(srcPath, destPath); err != nil {
+			} else if err := copyFilePreserve(srcPath, destPath); err != nil {
 				fmt.Printf("[WARN]  Failed to copy %s: %v\n", rule.Pattern, err)
 				continue
 			} else {
@@ -157,6 +170,20 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 	}
 
 	return nil
+}
+
+// shouldPreserve checks if a file should be preserved based on the preserve list
+func shouldPreserve(filename string, preserveList []string, destPath string) bool {
+	for _, preserve := range preserveList {
+		if preserve == filename {
+			// File is in preserve list - check if it exists at destination
+			if _, err := os.Stat(destPath); err == nil {
+				fmt.Printf("[INFO]  Preserving existing file: %s\n", destPath)
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // copyBackgrounds copies background images to the backgrounds directory
@@ -193,7 +220,7 @@ func copyBackgrounds(repoDir, homeDir string) error {
 		srcPath := filepath.Join(bgSourceDir, name)
 		destPath := filepath.Join(bgDestDir, name)
 
-		if err := copyFile(srcPath, destPath); err != nil {
+		if err := copyFilePreserve(srcPath, destPath); err != nil {
 			fmt.Printf("[WARN]  Failed to copy background %s: %v\n", name, err)
 			continue
 		}
@@ -204,14 +231,22 @@ func copyBackgrounds(repoDir, homeDir string) error {
 	return nil
 }
 
-// copyFile copies a single file, preserving source file permissions
-func copyFile(source, dest string) error {
+// copyFilePreserve copies a single file, preserving source permissions and skipping identical content
+func copyFilePreserve(source, dest string) error {
 	sourceData, err := os.ReadFile(source)
 	if err != nil {
 		return fmt.Errorf("reading source file: %w", err)
 	}
 
-	// Preserve source file permissions instead of hardcoding 0644
+	// Skip write when content is identical to prevent spurious reloads
+	if existing, err := os.ReadFile(dest); err == nil {
+		if bytes.Equal(existing, sourceData) {
+			fmt.Printf("[INFO]  Skipping unchanged file: %s\n", dest)
+			return nil
+		}
+	}
+
+	// Preserve source file permissions
 	info, err := os.Stat(source)
 	if err != nil {
 		return fmt.Errorf("stat source file: %w", err)
