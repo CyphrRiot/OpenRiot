@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-0.9-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-0.91-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![Sway](https://img.shields.io/badge/Sway-Wayland-312e81?logo=wayland&logoColor=a855f7&labelColor=1e1b4b)
@@ -34,9 +34,9 @@ OpenRiot is the answer to every time you've thought "Why can't an OpenBSD instal
 
 #### Built on OpenBSD.
 
-    Because compromises belong on other operating systems.
+**Because compromises belong on other operating systems.**
 
-    This isn’t shaped by committees, corporate roadmaps, or quarterly deliverables. It’s built and maintained by one person with an obsessive focus on doing it right the first time — because a mediocre computing environment isn’t just inconvenient. It’s an insult to what computers should be.
+This isn’t shaped by committees, corporate roadmaps, or quarterly deliverables. It’s built and maintained by one person with an obsessive focus on doing it right the first time — because a mediocre computing environment isn’t just inconvenient. It’s an insult to what computers should be.
 
 > "Linux has never been about quality. There are so many parts of the system that are just these cheap little hacks, and it happens to run." -Theo de Raadt
 
