@@ -42,6 +42,8 @@ This isn’t shaped by committees, corporate roadmaps, or quarterly deliverables
 
 ---
 
+![OpenRiot Desktop](assets/screenshot.png)
+
 ## ⚠️ **NOT READY FOR PRODUCTION USE** ⚠️
 
 OpenRiot is under active development.
@@ -327,7 +329,7 @@ This is correct for most users. Adjust only if you know what you're doing.
 | Prompt             | Answer                   |
 | ------------------ | ------------------------ |
 | Network interfaces | `done` (offline)         |
-| X Window System    | **`no`**                 |
+| X Window System    | `**no**`                |
 | Sets location      | `cd0` or `sd0`           |
 | Set name(s)        | `*` (all sets + site79)  |
 | SSH                | `none` (offline install) |
@@ -373,26 +375,32 @@ _This section is being actively documented. For now, the essential bindings are 
 
 | Key                   | Action                     |
 | --------------------- | -------------------------- |
-| `Super + Return`      | Open terminal (foot)       |
+| `Super + Return`      | Open terminal              |
 | `Super + D`           | Open app launcher (fuzzel) |
 | `Super + Q`           | Close window               |
-| `Super + E`           | Open file manager          |
+| `Super + E`           | Proton Mail (web app)      |
 | `Super + L`           | Lock screen                |
 | `Super + V`           | Toggle floating            |
 | `Super + J`           | Toggle split               |
 | `Super + 1-4`         | Switch workspace           |
 | `Super + Shift + 1-4` | Move window to workspace   |
 | `Super + Shift + Q`   | Force close window         |
-| `Super + Shift + R`   | Reload Sway config         |
 | `Super + Escape`      | Open power menu            |
 | `Super + F`           | File Manager (lf)          |
-| `Super + B`           | Browser                    |
-| `Super + O`           | Open Helix editor          |
-| `Print`               | Screenshot (region)        |
-| `Super + Shift + H`   | Keybindings Help           |
-| `Super + Shift + S`   | Screenshot (region)        |
-| `Super + Shift + W`   | Screenshot (window)        |
-| `Super + Shift + F`   | Screenshot (full)          |
+| `Super + B`           | Browser                     |
+| `Super + P`           | Toggle pseudo tiling        |
+| `Super + O`           | Open Helix (Documents)      |
+| `Super + N`           | Open NeoVim                 |
+| `Super + C`           | Open Crush AI               |
+| `Super + T`           | Open system monitor (btop) |
+| `Super + G`           | Telegram                    |
+| `Super + M`           | Google Messages             |
+| `Super + X`           | X (Twitter)                 |
+| `Super + Shift + Return` | Floating terminal        |
+| `Print`               | Screenshot (region)         |
+| `Mod1 + Tab`          | Cycle windows               |
+| `Super + Shift + H`   | OpenRiot Help (website)     |
+| `Super + F`           | File Manager (lf)           |
 
 ### Waybar Modules
 
@@ -415,10 +423,9 @@ Fish comes pre-configured with useful aliases:
 
 | Alias | Command   | Description             |
 | ----- | --------- | ----------------------- |
-| `ll`  | `lsd -la` | Long listing with icons |
-| `la`  | `lsd -a`  | Show hidden files       |
-| `cat` | `bat`     | Syntax-highlighted cat  |
-| `df`  | `duf`     | Pretty disk usage       |
+| `ls`  | `lsd`      | Default listing with icons  |
+| `ll`  | `lsd -l`   | Long listing with icons     |
+| `la`  | `lsd -la`  | Show hidden files           |
 
 ### lf File Manager Shortcuts
 

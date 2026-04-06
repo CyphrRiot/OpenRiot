@@ -46,31 +46,31 @@ ARCH             = amd64
 
 ## Key Files
 
-| File                                     | Purpose                                                 |
-| ---------------------------------------- | ------------------------------------------------------- |
-| `Makefile`                               | Build targets, version info                             |
-| `build-iso.sh`                           | Builds bootable ISO                                     |
-| `autoinstall/install.conf`               | Autoinstall answers for OpenBSD installer               |
-| `autoinstall/install.site`               | Post-install script (runs from site79.tgz)              |
-| `autoinstall/autopartitionning.template` | Disk partitioning template                              |
-| `install/packages.yaml`                  | **Source of truth** for all packages, configs, commands |
-| `install/openriot`                       | Compiled Go binary                                      |
-| `setup.sh`                               | Bootstrap script — curl-pipe install                    |
-| `source/main.go`                         | Go binary entry point, all CLI flags                    |
-| `source/installer/*.go`                  | Package install, config deploy, source builds           |
-| `source/config/loader.go`                | YAML parsing                                            |
-| `config/`                                | Sway, Waybar, Fish, Foot, Fuzzel configs                |
-| `config/backgrounds/`                    | Wallpaper images                                        |
-| `site/`                                  | Files extracted to / on target system                   |
+| File                                      | Purpose                                                  |
+| ----------------------------------------- | -------------------------------------------------------- |
+| `Makefile`                                | Build targets, version info                              |
+| `build-iso.sh`                            | Builds bootable ISO                                      |
+| `autoinstall/install.conf`                | Autoinstall answers for OpenBSD installer               |
+| `autoinstall/install.site`                | Post-install script (runs from site79.tgz)               |
+| `autoinstall/autopartitioning.template`   | Disk partitioning template                                |
+| `install/packages.yaml`                    | **Source of truth** for all packages, configs, commands  |
+| `install/openriot`                        | Compiled Go binary                                       |
+| `setup.sh`                                | Bootstrap script — curl-pipe install                     |
+| `source/main.go`                          | Go binary entry point, all CLI flags                      |
+| `source/installer/*.go`                   | Package install, config deploy, source builds            |
+| `source/config/loader.go`                 | YAML parsing                                             |
+| `config/`                                 | Sway, Waybar, Fish, Foot, Fuzzel configs                |
+| `config/backgrounds/`                     | Wallpaper images                                         |
+| `site/`                                   | Files extracted to / on target system                    |
 
 ---
 
 ## Files Deleted / Deprecated
 
-| File                           | Reason                                |
-| ------------------------------ | ------------------------------------- |
-| `scripts/download-packages.sh` | Packages not bundled in ISO anymore   |
-| `scripts/generate-index.sh`    | Not needed — no offline package cache |
+| File                            | Reason                                             |
+| ------------------------------- | -------------------------------------------------- |
+| `scripts/download-packages.sh`  | Packages not bundled in ISO anymore                 |
+| `scripts/generate-index.sh`     | Not needed — no offline package cache              |
 
 ---
 
@@ -91,10 +91,10 @@ Used by both `openriot --install` and `setup.sh`.
 
 ## Log Locations
 
-| Stage                | Log File                        | Description       |
-| -------------------- | ------------------------------- | ----------------- |
-| `setup.sh`           | `~/.cache/openriot/setup.log`   | All setup output  |
-| `openriot --install` | `~/.cache/openriot/install.log` | Config deployment |
+| Stage                | Log File                        | Description        |
+| -------------------- | ------------------------------- | ------------------ |
+| `setup.sh`           | `~/.cache/openriot/setup.log`   | All setup output   |
+| `openriot --install` | `~/.cache/openriot/install.log` | Config deployment  |
 
 Logs are NOT written to `~/.local/share/openriot` — always `~/.cache/openriot`.
 
@@ -115,7 +115,7 @@ Logs are NOT written to `~/.local/share/openriot` — always `~/.cache/openriot`
 `firefox flare-messenger tdesktop helix lsd lf`
 
 **Media:**
-`playerctl transmission`
+`transmission`
 
 **System Tools:**
 `curl wget unzip xz isc-dhcp-client`
@@ -124,24 +124,24 @@ Logs are NOT written to `~/.local/share/openriot` — always `~/.cache/openriot`
 
 ## Source-Built
 
-| Package  | Method                                                   |
-| -------- | -------------------------------------------------------- |
+| Package  | Method                                              |
+| -------- | --------------------------------------------------- |
 | wlsunset | Built by `openriot --source-builds` (from packages.yaml) |
 
 ---
 
 ## OpenBSD-Specific Tool Replacements
 
-| ArchRiot Tool     | OpenBSD Replacement        | Notes                                |
-| ----------------- | -------------------------- | ------------------------------------ |
-| `brightnessctl`   | `wsconsctl`                | Console brightness only              |
-| `pactl`           | `sndioctl`                 | OpenBSD native audio                 |
-| `systemd suspend` | `zzz`                      |                                      |
-| `loginctl lock`   | `swaylock -f`              |                                      |
-| `NetworkManager`  | `networkmanager` + `nmtui` | Used for WiFi management in OpenRiot |
-| `kanshi`          | static `monitors.conf`     | No hotplug on OpenBSD                |
-| `wofi`            | `fuzzel`                   | Fuzzel IS available on OpenBSD       |
-| `apm` (battery)   | `apm -l` / `-a` / `-m`     |                                      |
+| ArchRiot Tool      | OpenBSD Replacement        | Notes                                 |
+| ------------------ | -------------------------- | ------------------------------------- |
+| `brightnessctl`    | `wsconsctl`                | Console brightness only               |
+| `pactl`            | `sndioctl`                 | OpenBSD native audio                  |
+| `systemd suspend`  | `zzz`                      |                                       |
+| `loginctl lock`    | `swaylock -f`              |                                       |
+| `NetworkManager`   | `networkmanager` + `nmtui` | Used for WiFi management in OpenRiot  |
+| `kanshi`           | static `monitors.conf`     | No hotplug on OpenBSD                 |
+| `wofi`             | `fuzzel`                   | Fuzzel IS available on OpenBSD        |
+| `apm` (battery)    | `apm -l` / `-a` / `-m`     |                                       |
 
 ---
 
@@ -189,18 +189,18 @@ curl -fsSL https://openriot.org/setup.sh | sh
 
 ## openriot CLI Commands
 
-| Command                            | Description                                       |
-| ---------------------------------- | ------------------------------------------------- | ------------------ |
-| `openriot --install`               | Deploy configs to ~/.config (no packages, no TUI) |
-| `openriot --version`               | Show version                                      |
-| `openriot --lock`                  | Lock screen (swaylock -f)                         |
-| `openriot --suspend`               | Suspend (zzz)                                     |
-| `openriot --power-menu`            | Show power menu (fuzzel dmenu)                    |
-| `openriot --volume [args]`         | Adjust volume (sndioctl)                          |
-| `openriot --brightness [args]`     | Adjust brightness (wsconsctl)                     |
-| `openriot --notify "title" "body"` | Send notification                                 |
-| `openriot --crypto [BTC            | ETH]`                                             | Show crypto prices |
-| `openriot --swaybg-next`           | Cycle wallpaper                                   |
+| Command                              | Description                                        |
+| ------------------------------------ | -------------------------------------------------- |
+| `openriot --install`                 | Deploy configs to ~/.config (no packages, no TUI)  |
+| `openriot --version`                  | Show version                                       |
+| `openriot --lock`                    | Lock screen (swaylock -f)                          |
+| `openriot --suspend`                 | Suspend (zzz)                                      |
+| `openriot --power-menu`              | Show power menu (fuzzel dmenu)                     |
+| `openriot --volume [args]`           | Adjust volume (sndioctl)                           |
+| `openriot --brightness [args]`       | Adjust brightness (wsconsctl)                      |
+| `openriot --notify "title" "body"`   | Send notification                                  |
+| `openriot --crypto [BTC|ETH]`        | Show crypto prices                                 |
+| `openriot --swaybg-next`             | Cycle wallpaper                                    |
 
 ---
 
@@ -243,34 +243,34 @@ curl -fsSL https://openriot.org/setup.sh | sh
 
 ## ✅ SESSION CHANGES (This Session)
 
-| #   | Change                                                                           | Files                                                         | Status    |
-| --- | -------------------------------------------------------------------------------- | ------------------------------------------------------------- | --------- |
-| 1   | Fixed sway autostart duplicate — check for any `exec sway` instead of marker     | setup.sh                                                      | ✅ DONE   |
-| 2   | Removed playerctl (not functional on OpenBSD/sndiod)                             | packages.yaml, waybar/Modules                                 | ✅ DONE   |
-| 3   | Removed dead /etc/openriot/VERSION + packages.yaml from site79.tgz               | build-iso.sh                                                  | ✅ DONE   |
-| 4   | Added lf file manager config (lfrc + preview script + chafa)                     | config/lf/, packages.yaml, config/foot/                       | ✅ DONE   |
+| #   | Change                                                                           | Files                                                          | Status    |
+| --- | -------------------------------------------------------------------------------- | -------------------------------------------------------------- | --------- |
+| 1   | Fixed sway autostart duplicate — check for any `exec sway` instead of marker     | setup.sh                                                       | ✅ DONE   |
+| 2   | Removed playerctl (not functional on OpenBSD/sndiod)                             | packages.yaml, waybar/Modules                                  | ✅ DONE   |
+| 3   | Removed dead /etc/openriot/VERSION + packages.yaml from site79.tgz              | build-iso.sh                                                   | ✅ DONE   |
+| 4   | Added lf file manager config (lfrc + preview script + chafa)                     | config/lf/, packages.yaml, config/foot/                        | ✅ DONE   |
 | 5   | Enabled sixel in foot for image previews                                         | config/foot/cypherriot.ini                                    | ✅ DONE   |
-| 6   | Added AGENTS.md + AI files to .gitignore                                         | .gitignore                                                    | ✅ DONE   |
-| 7   | Added crush screenshot inline to README                                          | README.md, assets/crush.png                                   | ✅ DONE   |
-| 8   | Added lf tutorial video to README                                                | README.md                                                     | ✅ DONE   |
-| 9   | Fixed README keybinding: Thunar -> lf                                            | README.md                                                     | ✅ DONE   |
-| 10  | Staged all new files (crush.png, lf/lfrc, lf/preview)                            | git                                                           | ✅ STAGED |
-| 11  | Removed Thunar dead code from waybar configs (ModulesWorkspaces, UserWorkspaces) | config/waybar/ModulesWorkspaces, config/waybar/UserWorkspaces | ✅ DONE   |
-| 12  | Updated README lf shortcuts table to comprehensively match lfrc                  | README.md                                                     | ✅ DONE   |
-| 13  | Marked waybar-guard.sh polling as correct OpenBSD approach                       | Progress.md                                                   | ✅ DONE   |
-| 14  | Restored OpenBSD cross-compiled binary via `make build`                          | install/openriot                                              | ✅ DONE   |
+| 6   | Added AGENTS.md + AI files to .gitignore                                         | .gitignore                                                     | ✅ DONE   |
+| 7   | Added crush screenshot inline to README                                           | README.md, assets/crush.png                                    | ✅ DONE   |
+| 8   | Added lf tutorial video to README                                               | README.md                                                      | ✅ DONE   |
+| 9   | Fixed README keybinding: Thunar -> lf                                            | README.md                                                      | ✅ DONE   |
+| 10  | Staged all new files (crush.png, lf/lfrc, lf/preview)                           | git                                                            | ✅ STAGED |
+| 11  | Removed Thunar dead code from waybar configs (ModulesWorkspaces, UserWorkspaces) | config/waybar/ModulesWorkspaces, config/waybar/UserWorkspaces  | ✅ DONE   |
+| 12  | Updated README lf shortcuts table to comprehensively match lfrc                  | README.md                                                      | ✅ DONE   |
+| 13  | Marked waybar-guard.sh polling as correct OpenBSD approach                       | Progress.md                                                    | ✅ DONE   |
+| 14  | Restored OpenBSD cross-compiled binary via `make build`                          | install/openriot                                               | ✅ DONE   |
 
 ---
 
 ## 🔴 REMAINING TODO (Pre-Hardware Test)
 
-| #   | Item                                                                      | Severity | Notes             |
-| --- | ------------------------------------------------------------------------- | -------- | ----------------- |
-| 1   | ~~Thunar config dead code~~ — DONE: removed from waybar configs           | Medium   | ✅ DONE           |
-| 2   | ~~README lf shortcuts table incomplete~~ — DONE: updated to match lfrc    | Low      | ✅ DONE           |
-| 3   | ~~waybar-guard.sh polling~~ — Polling loop is correct OpenBSD approach    | Low      | ✅ DONE           |
-| 4   | ~~openriot binary in install/openriot~~ — DONE: restored via `make build` | Critical | ✅ DONE           |
-| 5   | Hardware end-to-end test — ISO -> install -> setup.sh -> Sway -> Waybar   | Critical | Awaiting hardware |
+| #   | Item                                                                      | Severity | Notes              |
+| --- | ------------------------------------------------------------------------- | -------- | ------------------ |
+| 1   | ~~Thunar config dead code~~ — DONE: removed from waybar configs          | Medium   | ✅ DONE            |
+| 2   | ~~README lf shortcuts table incomplete~~ — DONE: updated to match lfrc   | Low      | ✅ DONE            |
+| 3   | ~~waybar-guard.sh polling~~ — Polling loop is correct OpenBSD approach   | Low      | ✅ DONE            |
+| 4   | ~~openriot binary in install/openriot~~ — DONE: restored via `make build` | Critical | ✅ DONE            |
+| 5   | Hardware end-to-end test — ISO -> install -> setup.sh -> Sway -> Waybar  | Critical | Awaiting hardware |
 
 ---
 

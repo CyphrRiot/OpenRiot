@@ -147,7 +147,7 @@
 		"class<dev.zed.Zed|dev.zed.Zed-Preview>": "<span font='12' color='#ffcc80aa'>☡ </span>",
 		"class<codeblocks>": "<span font='11' color='#90a4aeaa'>󰘦 </span>",
 		"class<geany>": "<span font='11' color='#ffd180aa'>󰈙 </span>",
-		"title<.*nvim.*>": "<span font='11' color='#a5d6a7aa'>󰈙 </span>",
+		"title<.*[Hh]elix.*>": "<span font='11' color='#a5d6a7aa'>󰈙 </span>",
 		"title<.*vim.*>": "<span font='11' color='#a5d6a7aa'>󰈙 </span>",
 		"class<subl>": "<span font='11' color='#ffb74daa'>󰅳 </span>",
 		"class<jetbrains-idea>": "<span font='11' color='#9fa8daaa'> </span>",
@@ -158,6 +158,7 @@
 		"title<.*Grok.*>": "<span font='11' color='#80cbc4aa'>󰚩 </span>",
 		"title<.*deepseek.*>": "<span font='11' color='#b39ddbaa'>󰚩 </span>",
 		"title<.*qwen.*>": "<span font='11' color='#ffcc80aa'>󰚩 </span>",
+		"title<.*Crush.*>": "<span font='11' color='#80cbc4aa'>󰚩 </span>",
 
 		// --- TERMINALS ---
 		"class<konsole>": "<span font='11' color='#cfd8dcaa'> </span>",

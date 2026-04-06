@@ -49,7 +49,6 @@ core:
         type: "Package"
         critical: true
         commands:
-            - "ln -sf /usr/local/bin/helix /usr/local/bin/hx"
 
 desktop:
     sway:
@@ -147,6 +146,19 @@ source:
         start: "Building crush AI CLI"
         end: "crush built"
 
+    bibata-cursor:
+        type: "Source"
+        build:
+            - "curl -fsSL https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.7/Bibata-Modern-Ice.tar.xz -o /tmp/bibata.tar.xz"
+            - "mkdir -p $HOME/.local/share/icons"
+            - "tar -xf /tmp/bibata.tar.xz -C /tmp"
+            - "mv /tmp/Bibata-Modern-Ice $HOME/.local/share/icons/"
+            - "rm -f /tmp/bibata.tar.xz"
+            - "gtk-update-icon-cache -f $HOME/.local/share/icons/Bibata-Modern-Ice 2>/dev/null || true"
+        depends: [system.tools]
+        start: "Installing Bibata-Modern-Ice cursor theme"
+        end: "Bibata cursor installed"
+
 system:
     tools:
         packages:
@@ -155,12 +167,9 @@ system:
             - unzip
             - xz
             - isc-dhcp-client
-            - networkmanager
             - go
             - chafa
         commands:
-            - "doas rcctl enable networkmanager"
-            - "doas rcctl start networkmanager"
             # fw_update removed - requires internet, not needed for offline install
         depends: [core.base]
         start: "Installing system tools"

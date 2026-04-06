@@ -6,6 +6,7 @@
         "include": [
             "$HOME/.config/waybar/Modules",
             "$HOME/.config/waybar/ModulesCustom",
+            "$HOME/.config/waybar/ModulesGroups",
             "$HOME/.config/waybar/ModulesWorkspaces",
             "$HOME/.config/waybar/UserModules",
             "$HOME/.config/waybar/UserWorkspaces"
@@ -24,6 +25,7 @@
 
         // ----- MODULES LEFT:
         "modules-left": [
+            "custom/arch",             // OpenBSD / App Launcher
             "custom/separator#blank",
             "sway/workspaces",
             "custom/separator#blank",
@@ -55,7 +57,7 @@
             "custom/separator#blank",
             "custom/openriot-update",  // OpenRiot update check
             "custom/separator#blank",
-            "group/status",
+            "custom/power",            // Power menu
             "custom/lock"              // Lockscreen
         ]
     }
