@@ -35,7 +35,7 @@
 ## Canonical Versions
 
 ```
-OPENRIOT_VERSION = (from VERSION file, currently 0.95)
+OPENRIOT_VERSION = (from VERSION file, currently 0.97)
 OPENBSD_VERSION  = 7.9
 ARCH             = amd64
 ```

@@ -137,15 +137,6 @@ source:
         start: "Building wlsunset from source"
         end: "wlsunset built"
 
-    aichat:
-        type: "Source"
-        build:
-            - "git clone --depth=1 https://github.com/sigma67/aichat /tmp/aichat"
-            - "cd /tmp/aichat && cargo build --release"
-            - "doas cp /tmp/aichat/target/release/aichat /usr/local/bin/"
-        start: "Building aichat CLI for Helix AI integration"
-        end: "aichat built"
-
 system:
     tools:
         packages:
@@ -155,6 +146,7 @@ system:
             - xz
             - isc-dhcp-client
             - networkmanager
+            - go
         commands:
             - "doas rcctl enable networkmanager"
             - "doas rcctl start networkmanager"
