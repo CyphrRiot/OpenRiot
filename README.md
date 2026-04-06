@@ -540,17 +540,20 @@ Helix starts in **Normal mode** by default. Here are the most important commands
 
 If you know Vim/Neovim, here's how the same tasks work in Helix:
 
-| Task                       | Vim/Neovim                 | Helix Equivalent            | Notes / Nuances in Helix                                                                                                                                                       |
-| -------------------------- | -------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Go to top of document      | `gg`                       | `gg`                        | Same as Vim. Also works with a count (e.g., `5gg` for line 5).                                                                                                                 |
-| Go to bottom of document   | `G`                        | `ge`                        | Different from Vim. `G` alone does nothing useful by default.                                                                                                                  |
-| Delete line                | `dd`                       | `x` then `d`                | First press `x` to select the entire current line, then `d` to delete. For multiple lines: `3x` then `d`. Helix's `d` deletes the current selection (and yanks it by default). |
-| Go to end of line          | `$`                        | `gl`                        | `gl` = goto line end. Very common.                                                                                                                                             |
-| Go to start of line        | `0` or `^`                 | `gh`                        | `gh` = goto home (start of line). Use `gs` if you want the first non-whitespace character (like Vim's `^`).                                                                    |
-| Copy line (yank line)      | `yy`                       | `x` then `y`                | `x` selects the line → `y` yanks (copies) the selection to the default register.                                                                                               |
-| Paste line                 | `p` (below) or `P` (above) | `p` (after) or `P` (before) | Works similarly, but Helix pastes after/before the current selection (or cursor position). For a full line paste, the behavior is usually what you expect.                     |
-| Copy text (yank selection) | `y` (after selecting)      | `y`                         | Same letter, but you select first (e.g., `w` for word, `gl` for to end of line, or visual movements).                                                                          |
-| Paste text                 | `p` or `P`                 | `p` or `P`                  | Same as above. Helix also supports system clipboard via `<space>p` / `<space>y` (or configure defaults).                                                                       |
+| Task                       | Vim/Neovim                 | Helix Equivalent            | Notes / Nuances in Helix                                                                                                                                   |
+| -------------------------- | -------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Go to top of document      | `gg`                       | `gg`                        | Same as Vim. Also works with a count (e.g., `5gg` for line 5).                                                                                             |
+| Go to bottom of document   | `G`                        | `ge`                        | Different from Vim. `G` alone does nothing useful by default.                                                                                              |
+| Delete character           | `x`                        | `x`                         | **OpenRiot remaps `x` to `delete_char_forward`** — now works exactly like Vim! `X` deletes backward.                                                       |
+| Delete line                | `dd`                       | `dl` or `x` then `d`        | Use `dl` (delete line under cursor). Or `x` to select, `d` to delete.                                                                                      |
+| Go to end of line          | `$`                        | `gl`                        | `gl` = goto line end. Very common.                                                                                                                         |
+| Go to start of line        | `0` or `^`                 | `gh`                        | `gh` = goto home (start of line). Use `gs` if you want the first non-whitespace character (like Vim's `^`).                                                |
+| Copy line (yank line)      | `yy`                       | `yl`                        | `yl` yanks the current line.                                                                                                                               |
+| Paste line                 | `p` (below) or `P` (above) | `p` (after) or `P` (before) | Works similarly, but Helix pastes after/before the current selection (or cursor position). For a full line paste, the behavior is usually what you expect. |
+| Copy text (yank selection) | `y` (after selecting)      | `y`                         | Same letter, but you select first (e.g., `w` for word, `gl` for to end of line, or visual movements).                                                      |
+| Paste text                 | `p` or `P`                 | `p` or `P`                  | Same as above. Helix also supports system clipboard via `<space>p` / `<space>y` (or configure defaults).                                                   |
+
+> **Note:** OpenRiot's Helix config remaps `x` to `delete_char_forward` and `X` to `delete_char_backward` — so `x` now works like Vim instead of Helix's default (select entire line).
 
 ### Helix on OpenBSD & OpenRiot
 
@@ -567,8 +570,7 @@ Helix works **beautifully** on OpenBSD:
 For the complete keymap and configuration options, visit the official documentation:  
 [https://docs.helix-editor.com/](https://docs.helix-editor.com/)
 
-![Helix Cheat Sheet](assets/helix_cheat_sheet.png)
-_Credit: [stevenhoy/helix-cheat-sheet](https://github.com/stevenhoy/helix-cheat-sheet)_
+_See the [helix-cheat-sheet](https://github.com/stevenhoy/helix-cheat-sheet) project for a visual keybinding reference._
 
 **Tutorial Video:** [Helix Editor Crash Course](https://www.youtube.com/watch?v=HcuDmSb-JBU)
 
