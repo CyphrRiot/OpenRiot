@@ -49,7 +49,7 @@ mkdir -p "$LOG_DIR"
 # -----------------------------------------------------------------------------
 
 info() { echo -e "${BLUE}[INFO]${NC} $1" | tee -a "$LOG_FILE"; }
-success() { echo -e "${GREEN}[OKAY]${NC} $1" | tee -a "$LOG_FILE"; }
+success() { echo -e "${GREEN}[DONE]${NC} $1" | tee -a "$LOG_FILE"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1" | tee -a "$LOG_FILE"; }
 error() { echo -e "${RED}[ERROR]${NC} $1" | tee -a "$LOG_FILE" >&2; }
 
@@ -246,13 +246,13 @@ install_packages() {
 
     failed=0
     for pkg in $packages; do
-        info "-> Installing $pkg ..."
+        info "Installing $pkg ..."
         pkg_output=$(doas pkg_add -D unsigned "$pkg" 2>&1)
         pkg_status=$?
         if [ $pkg_status -eq 0 ]; then
-            success "  OK $pkg installed"
+            success "$pkg installed."
         else
-            warn "  FAIL Failed to install $pkg"
+            warn "Failed to install $pkg."
             echo "$pkg_output" | sed 's/^/    /'
             echo ""
             echo -e "${YELLOW}[PAUSE]${NC} Package installation failed. Press [ENTER] to continue or Ctrl+C to abort..."
@@ -362,10 +362,11 @@ main() {
         esac
     done
 
+    # Fetch remote version for banner (may fail offline)
+    banner_ver=$(get_remote_version 2>/dev/null || echo "?.?")
+
     echo ""
-    echo "=============================================="
-    echo "  OpenRiot Setup - Bootstrap for OpenBSD"
-    echo "=============================================="
+    echo "=== OpenRiot v${banner_ver} Setup (OpenBSD ${OPENBSD_MIN_VERSION}) ==="
     echo ""
 
     check_openbsd_version
