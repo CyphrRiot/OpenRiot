@@ -48,6 +48,8 @@ core:
         end: "Shell environment configured"
         type: "Package"
         critical: true
+        commands:
+            - "ln -sf /usr/local/bin/helix /usr/local/bin/hx"
 
 desktop:
     sway:
@@ -134,6 +136,15 @@ source:
             - "doas meson install -C build"
         start: "Building wlsunset from source"
         end: "wlsunset built"
+
+    aichat:
+        type: "Source"
+        build:
+            - "git clone --depth=1 https://github.com/sigma67/aichat /tmp/aichat"
+            - "cd /tmp/aichat && cargo build --release"
+            - "doas cp /tmp/aichat/target/release/aichat /usr/local/bin/"
+        start: "Building aichat CLI for Helix AI integration"
+        end: "aichat built"
 
 system:
     tools:
