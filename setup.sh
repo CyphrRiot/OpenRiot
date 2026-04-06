@@ -279,19 +279,13 @@ configure_sway_autostart() {
     fish_conf="$HOME/.config/fish/config.fish"
     mkdir -p "$HOME/.config/fish"
 
-    # Skip if already configured correctly
-    if [ -f "$fish_conf" ] && grep -q "# openriot-sway-autostart" "$fish_conf" 2>/dev/null; then
+    # Skip if sway autostart is already configured (any exec sway block)
+    if [ -f "$fish_conf" ] && grep -q "exec sway" "$fish_conf" 2>/dev/null; then
         success "Sway autostart already configured"
         return
     fi
 
-    # Remove existing sway autostart block if present
-    if [ -f "$fish_conf" ]; then
-        awk '!/# openriot-sway-autostart/{print} /# openriot-sway-autostart/{skip=1} skip && /end/{skip=0}' "$fish_conf" > "$fish_conf.tmp" 2>/dev/null || true
-        mv "$fish_conf.tmp" "$fish_conf" 2>/dev/null || true
-    fi
-
-    # Append new sway autostart
+    # Append sway autostart
     cat >> "$fish_conf" << 'SWCONF'
 
 # openriot-sway-autostart

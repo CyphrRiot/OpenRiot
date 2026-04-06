@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-0.98-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-0.99-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![Sway](https://img.shields.io/badge/Sway-Wayland-312e81?logo=wayland&logoColor=a855f7&labelColor=1e1b4b)
@@ -429,7 +429,7 @@ _This section is being actively documented. For now, the essential bindings are 
 | `Super + Shift + Q`   | Force close window         |
 | `Super + Shift + R`   | Reload Sway config         |
 | `Super + Escape`      | Open power menu            |
-| `Super + F`           | File Manager (Thunar)      |
+| `Super + F`           | File Manager (lf)      |
 | `Super + B`           | Browser                    |
 | `Super + O`           | Open Helix editor          |
 | `Print`               | Screenshot (region)        |
@@ -472,6 +472,11 @@ Fish comes pre-configured with useful aliases:
 | `gh`  | Go to home       |
 | `g/`  | Go to root `/`   |
 | `q`   | Quit             |
+
+
+### Tutorial Video
+
+**Tutorial Video:** [How to Set Up and Configure LF (The Best Terminal File Manager)](https://www.youtube.com/watch?v=2oWqD3JCXuI) by Eric Murphy (~16 min)
 
 <a id="using-helix"></a>
 
@@ -577,6 +582,8 @@ _See the [helix-cheat-sheet](https://github.com/stevenhoy/helix-cheat-sheet) pro
 ### AI Integration with OpenRouter
 
 OpenRiot bundles **Crush** for AI-assisted coding. Crush is a modern, lightweight, Go-based terminal AI coding agent with excellent OpenBSD support. It is built automatically during setup and installed to `~/.local/bin/crush`.
+
+![Crush AI in action](assets/crush.png)
 
 #### Configure Crush
 

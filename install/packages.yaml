@@ -108,6 +108,7 @@ desktop:
             - pattern: gtk-4.0/*
             - pattern: helix/*
               preserve_if_exists: [config.toml]
+            - pattern: lf/*
             - pattern: crypto.toml
         depends: [core.base, desktop.sway]
         start: "Installing desktop applications"
@@ -117,7 +118,6 @@ desktop:
 
     media:
         packages:
-            - playerctl
             - transmission
         configs: []
         depends: [core.base, desktop.sway]
@@ -157,6 +157,7 @@ system:
             - isc-dhcp-client
             - networkmanager
             - go
+            - chafa
         commands:
             - "doas rcctl enable networkmanager"
             - "doas rcctl start networkmanager"

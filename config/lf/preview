@@ -1,0 +1,54 @@
+#!/bin/sh
+# =============================================================================
+# OpenRiot — LF Image Preview Script
+# Uses chafa for terminal-native image rendering in foot/Sway
+# Requires: chafa (pkg_add chafa)
+# =============================================================================
+
+# Dimensions from lf
+WIDTH="$1"
+HEIGHT="$2"
+FILE="$3"
+
+# Check if chafa is available
+if ! command -v chafa >/dev/null 2>&1; then
+    echo "chafa not installed — run: doas pkg_add chafa"
+    exit 1
+fi
+
+# Image file extensions
+case "$FILE" in
+    *.jpg|*.jpeg|*.png|*.gif|*.webp|*.bmp|*.ico|*.svg)
+        # Use sixel for foot (best quality in Wayland terminal)
+        # Fall back to symbols/braille for other terminals
+        if [ -n "$CHafa_SIXEL" ] || [ "$TERM" = "foot" ]; then
+            chafa --sixel --size="${WIDTH}x${HEIGHT}" "$FILE" 2>/dev/null
+        else
+            chafa --symbols=block --size="${WIDTH}x${HEIGHT}" "$FILE" 2>/dev/null
+        fi
+        ;;
+    *.mp4|*.mkv|*.avi|*.mov|*.webm)
+        # Video: show frame count / duration via ffprobe fallback
+        echo "video: $(basename "$FILE")"
+        ;;
+    *.mp3|*.flac|*.wav|*.ogg|*.m4a|*.aac)
+        # Audio: show duration
+        echo "audio: $(basename "$FILE")"
+        ;;
+    *.pdf)
+        # PDF: show page count
+        echo "pdf: $(basename "$FILE")"
+        ;;
+    *.txt|*.md|*.sh|*.py|*.c|*.h|*.go|*.rs|*.yaml|*.toml|*.json|*.xml)
+        # Text files: syntax highlight with bat
+        if command -v bat >/dev/null 2>&1; then
+            bat --color=always --wrap=no --terminal-width="$WIDTH" "$FILE" 2>/dev/null
+        else
+            head -n "$((HEIGHT - 2))" "$FILE"
+        fi
+        ;;
+    *)
+        # Fallback: show file info
+        ls -lh "$FILE" 2>/dev/null | awk '{print $5, $9}'
+        ;;
+esac

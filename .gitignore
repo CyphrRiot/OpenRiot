@@ -1,7 +1,6 @@
 # Build artifacts
 .work/
 isos/*.iso
-install/openriot
 source/openriot
 
 # Test images (created by make isotest)
@@ -17,3 +16,9 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# AI agent instruction files
+AGENTS.md
+CLAUDE.md
+MEMO.md
+RESPONSE.md

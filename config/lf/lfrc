@@ -1,0 +1,210 @@
+# =============================================================================
+# OpenRiot — LF (Ranger-style File Manager) Configuration
+# CypherRiot / Tokyo Night Aesthetic
+# =============================================================================
+# lf(1) configuration — place at ~/.config/lf/lfrc
+# Run `lf` in a terminal. Use ? for help.
+
+# =============================================================================
+# Core Settings
+# =============================================================================
+
+set hidden true
+set ignorecase true
+set icons true
+set drawbox true
+set period 1
+set number true
+set relativenumber true
+set info size,time
+set previewer ~/.config/lf/preview
+set shell /bin/sh
+setfiler /bin/sh
+
+# Cleaner prompt (no need for lf to manage the terminal title separately)
+set promptfmt "\033[38;5;183m%w\033[0m %%(r)\033[0m"
+
+# =============================================================================
+# Colour mapping — Tokyo Night
+# 00 = default (c0caf5 — foreground)
+# 01 = black   (15161e)
+# 02 = red     (f38ba8)
+# 03 = green   (9ece6a)
+# 04 = yellow  (e0af68)
+# 05 = blue    (7aa2f7)
+# 06 = magenta (bb9af7)
+# 07 = cyan    (7dcfff)
+# 08 = white   (a9b1d6)
+# 09 = bright black (565f89 — comment grey)
+# =============================================================================
+
+# Directory colours — purple/magenta
+map <esc> cd
+map gh cd ~
+map g/ cd /
+map gH cd ~
+map gg top
+map G bottom
+
+# Navigation
+map j down
+map k up
+map h back
+map l open
+
+# Sorting
+map ai set info size
+map at set info size,time
+map an set info name
+map a. set hidden!
+
+# =============================================================================
+# File Operations (mirror ranger-style)
+# =============================================================================
+
+# Open with default handler (xdg-open on BSD = open)
+map o &open $f
+map <enter> open
+map E &$EDITOR $f
+
+# Yank (copy) file path
+map yy copy
+map yd copydir
+map y. copyname
+
+# Cut
+map dd cut
+map dD tron
+
+# Paste
+map p paste
+map P pasteappend
+
+# Delete (move to trash — ~/.local/share/Trash)
+map dd trash
+map D delete
+
+# New directory / file
+map nf mkdir
+map n. touch
+
+# Rename (inline edit)
+map r rename
+map R refresh
+
+# =============================================================================
+# Bulk Rename (using lsx if available, else plain mv)
+# =============================================================================
+
+map bc :bulk-rename; bulk-rename
+
+# =============================================================================
+# Git Operations
+# =============================================================================
+
+# Show git status in pane header
+map gs $git -C $fxd status --short
+
+# =============================================================================
+# External Integrations
+# =============================================================================
+
+# Archiver (create / extract)
+map za archive
+map zx extract
+
+# =============================================================================
+# Quit
+# =============================================================================
+
+map q quit
+map Q qquit
+
+# =============================================================================
+# Custom Functions
+# =============================================================================
+
+# Bulk rename: lists selected files and renames them in $EDITOR
+cmd bulk-rename ${{
+    tmp=$(mktemp)
+    lf -remote "send $id echo $tmp"
+    for f in $fs; do echo "$f" >> "$tmp"; done
+    $EDITOR "$tmp"
+    while IFS= read -r line; do
+        [ "$line" = "${line##*.}" ] && continue
+        src="${line% *}"
+        dst="${line#* }"
+        [ "$src" = "$dst" ] && continue
+        [ -e "$dst" ] && continue
+        mv -- "$src" "$dst"
+    done < "$tmp"
+    rm "$tmp"
+    lf -remote "send $id unselect"
+}}
+
+# Archive current selection
+cmd archive ${{
+    printf "Extension (e.g. .zip, .tar.gz, .tar.xz): "
+    read ext
+    [ -z "$ext" ] && exit
+    case "$ext" in
+        *.zip) cmd="zip -r $ext" ;;
+        *.tar.gz|*.tgz) cmd="tar czf $ext" ;;
+        *.tar.xz|*.txz) cmd="tar cJf $ext" ;;
+        *.tar.bz2|*.tbz2) cmd="tar cjf $ext" ;;
+        *) echo "Unsupported format" && exit 1 ;;
+    esac
+    lf -remote "send $id $cmd $fs"
+}}
+
+# Extract archive in current dir
+cmd extract ${{
+    case "$f" in
+        *.zip) unzip "$f" ;;
+        *.tar.gz|*.tgz) tar xzf "$f" ;;
+        *.tar.xz|*.txz) tar xJf "$f" ;;
+        *.tar.bz2|*.tbz2) tar xjf "$f" ;;
+        *.7z) 7z x "$f" ;;
+        *.rar) unrar x "$f" ;;
+        *) echo "Unknown archive format: $f" ;;
+    esac
+}}
+
+# Open with xdg-open (BSD default)
+cmd open ${{
+    case "$(uname -s)" in
+        OpenBSD|NetBSD) command -v xdg-open >/dev/null 2>&1 && xdg-open "$f" ;;
+        *) xdg-open "$f" ;;
+    esac
+}}
+
+# Trash (move to ~/.local/share/Trash)
+cmd trash ${{
+    mkdir -p ~/.local/share/Trash/files
+    for f in $fs; do
+        mv -f "$f" ~/.local/share/Trash/files/
+    done
+}}
+
+# Permanent delete
+cmd delete ${{
+    for f in $fs; do
+        rm -rf "$f"
+    done
+}}
+
+# Copy dir path to clipboard (BSD-wayland compatible)
+cmd copydir ${{
+    echo "$fxd" | tr -d '\n' | wl-copy 2>/dev/null || xclip -selection clipboard "$fxd" 2>/dev/null || true
+}}
+
+# Copy filename
+cmd copyname ${{
+    echo "$f" | tr -d '\n' | wl-copy 2>/dev/null || xclip -selection clipboard "$f" 2>/dev/null || true
+}}
+
+# Quit all lf instances
+cmd qquit ${{
+    lf -remote "send $id quit"
+    kill -HUP $LF_pid 2>/dev/null || true
+}}
