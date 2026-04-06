@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-0.97-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-0.98-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![Sway](https://img.shields.io/badge/Sway-Wayland-312e81?logo=wayland&logoColor=a855f7&labelColor=1e1b4b)
@@ -576,29 +576,7 @@ _See the [helix-cheat-sheet](https://github.com/stevenhoy/helix-cheat-sheet) pro
 
 ### AI Integration with OpenRouter
 
-OpenRiot supports AI-assisted coding via **Crush** with OpenRouter. Crush is a modern, lightweight, Go-based terminal AI coding agent with excellent OpenBSD support.
-
-#### Install Go
-
-Crush requires Go. Install it on OpenBSD:
-
-```fish
-doas pkg_add go
-```
-
-#### Install Crush
-
-```fish
-go install github.com/charmbracelet/crush@latest
-```
-
-Add `~/go/bin` to your PATH in `~/.config/fish/config.fish`:
-
-```fish
-set -gx PATH "$HOME/go/bin" $PATH
-```
-
-OR simply `mv ~/go/bin/crush ~/.local/bin`
+OpenRiot bundles **Crush** for AI-assisted coding. Crush is a modern, lightweight, Go-based terminal AI coding agent with excellent OpenBSD support. It is built automatically during setup and installed to `~/.local/bin/crush`.
 
 #### Configure Crush
 
