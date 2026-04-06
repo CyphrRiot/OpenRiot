@@ -54,10 +54,5 @@ D = ["ensure_selections_forward", "extend_to_line_end", "delete_selection"]
 
 G = "goto_last_line"     # Shift + G goes to end of file, just like Vim
 
-# Space + i  →  Ask AI about the current selection (or whole line if nothing selected)
-# " " = { i = "@|aichat \"Explain this code or answer my question:\"<ret>" }
-
-# Alternative: Capital I for quick interactive REPL chat (no selection needed)
-# I = ":sh aichat<ret>"
-
-
+# Reload current file from disk (like Vim's :e!)
+R = ":reload<ret>"

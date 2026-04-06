@@ -219,10 +219,16 @@ install_packages() {
     failed=0
     for pkg in $packages; do
         info "→ Installing $pkg ..."
-        if doas pkg_add -D unsigned "$pkg"; then
+        pkg_output=$(doas pkg_add -D unsigned "$pkg" 2>&1)
+        pkg_status=$?
+        if [ $pkg_status -eq 0 ]; then
             success "  ✓ $pkg installed"
         else
-            warn "  ✗ Failed to install $pkg (continuing)"
+            warn "  ✗ Failed to install $pkg"
+            echo "$pkg_output" | sed 's/^/    /'
+            echo ""
+            echo -e "${YELLOW}[PAUSE]${NC} Package installation failed. Press [ENTER] to continue or Ctrl+C to abort..."
+            read dummy
             failed=$((failed + 1))
         fi
     done
@@ -332,8 +338,8 @@ main() {
     echo ""
 
     check_openbsd_version
-    configure_installurl
     configure_doas
+    configure_installurl
     install_bootstrap_packages
 
     # Get version BEFORE repo update to know if this is an upgrade
@@ -369,12 +375,32 @@ main() {
         info "Fresh install — installing packages..."
         check_disk_space 1000
         install_packages
-        "$INSTALL_DIR/install/openriot" --source-builds
+        sb_output=$("$INSTALL_DIR/install/openriot" --source-builds 2>&1)
+        sb_status=$?
+        if [ $sb_status -eq 0 ]; then
+            success "Source builds complete."
+        else
+            warn "Source builds completed with errors."
+            echo "$sb_output" | sed 's/^/    /'
+            echo ""
+            echo -e "${YELLOW}[PAUSE]${NC} Source builds failed. Press [ENTER] to continue or Ctrl+C to abort..."
+            read dummy
+        fi
     elif [ "$UPGRADE_MODE" = "1" ]; then
         info "Upgrading from $local_ver_before to $local_ver..."
         check_disk_space 1000
         install_packages
-        "$INSTALL_DIR/install/openriot" --source-builds
+        sb_output=$("$INSTALL_DIR/install/openriot" --source-builds 2>&1)
+        sb_status=$?
+        if [ $sb_status -eq 0 ]; then
+            success "Source builds complete."
+        else
+            warn "Source builds completed with errors."
+            echo "$sb_output" | sed 's/^/    /'
+            echo ""
+            echo -e "${YELLOW}[PAUSE]${NC} Source builds failed. Press [ENTER] to continue or Ctrl+C to abort..."
+            read dummy
+        fi
     else
         if [ "$MODE" = "upgrade" ]; then
             info "No upgrade needed — already on latest version ($local_ver)"

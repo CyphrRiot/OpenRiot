@@ -1,5 +1,5 @@
-inherits = "tokyonight"
-#inherits = "flexoki_dark"
+# inherits = "tokyonight"
+inherits = "ao"
 
 [palette]
 # Force your exact background colors
