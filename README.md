@@ -297,12 +297,12 @@ Most prompts are pre-answered. You only need to:
 | Start sshd           | Press `Enter` (yes is fine)                             |
 | X Window System      | Type `no` → Enter                                       |
 | Setup a user         | Type your username → Enter, then set password           |
-| Which disk           | Press `Enter` (usually `sd0`)                           |
+| Which disk           | Type `sd1` (USB boot: sd0=USB, sd1=target)           |
 | Use (W)hole disk MBR | Press `Enter` (GPT)                                     |
 | Encrypt disk         | Type `p` for passphrase or `no` for no encryption       |
 | Partition layout     | Type `c` for custom                                     |
 | Label editor         | `z` → `a /` → size → `a swap` → `a /home` → `w` → `q`   |
-| Location of sets     | Press `Enter` (`cd0`)                                   |
+| Location of sets     | Type `disk` (USB is auto-mounted)                       |
 | Set name(s)          | Press `Enter` to select all sets including `site79.tgz` |
 | SHA256 verification  | Type `yes` → Enter                                      |
 
@@ -330,7 +330,7 @@ This is correct for most users. Adjust only if you know what you're doing.
 | ------------------ | ------------------------ |
 | Network interfaces | `done` (offline)         |
 | X Window System    | `**no**`                |
-| Sets location      | `cd0` or `sd0`           |
+| Sets location      | `disk`           |
 | Set name(s)        | `*` (all sets + site79)  |
 | SSH                | `none` (offline install) |
 
