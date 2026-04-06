@@ -59,7 +59,7 @@ The ISO install is functional but has known limitations:
 
 ## 📚 Navigate This Guide
 
-- [🚀 Choose Your OpenRiot Experience](#choose-your-openriot-experience)
+- [🚀 Installing OpenRiot]
 - [⌨️ Master Your OpenRiot Desktop](#master-your-openriot-desktop)
 - [📝 Using Helix (Editor)](#using-helix)
 - [🔄 System Management](#system-management)
@@ -250,37 +250,9 @@ For the best OpenBSD + Sway experience:
 
 <a id="choose-your-openriot-experience"></a>
 
-## 🚀 Choose Your OpenRiot Experience
+## 🚀 Installing OpenRiot
 
-### 🔥 Method 1: Install Script
-
-**You already have OpenBSD BASE installed**
-
-If you already have a working OpenBSD system and just want the OpenRiot desktop experience:
-
-```bash
-doas pkg_add curl git
-curl -fsSL https://openriot.org/setup.sh | sh
-```
-
-This will:
-
-- Install all required packages
-- Deploy Sway, Waybar, Fish, Helix, foot, fuzzel configs
-- Set up themes, fonts, keybindings
-- Configure your desktop automatically
-
-**Perfect for:**
-
-- 🏠 Existing OpenBSD BASE installations (7.9+)
-- 🎨 Upgrading from a manual Sway setup
-- ⚡ Quick setup on a fresh OpenBSD install
-
-### ⚡ Method 2: OpenRiot ISO
-
-**You do NOT have OpenBSD installed**
-
-The OpenRiot ISO IS the OpenBSD installer — it installs the base OpenBSD system AND configures everything for you automatically. No interaction needed.
+The OpenRiot ISO is the OpenBSD installer — it installs the base system AND configures Sway, Waybar, Fish, and everything else automatically. No interaction needed.
 
 1. **Download OpenRiot ISO** — Get it from [openriot.org](https://openriot.org) (or the GitHub releases page)
 2. **Create bootable USB** — Use `dd` or [Etcher](https://etcher.balena.io/) to write to USB
@@ -302,22 +274,10 @@ curl -fsSL https://openriot.org/setup.sh | sh
 - 💀 Complete system replacement
 - 🎯 Zero configuration required
 
-### 🔧 Method 3: Interactive Install
-
-**You want control over partitioning**
-
-If you want to manually control your disk layout:
-
-1. Download OpenRiot ISO
-2. Boot from USB
-3. At the boot prompt, type `I` for interactive install (instead of `A` for autoinstall)
-4. Follow the guided prompts — most answers are pre-filled
-5. When asked about sets, just press Enter to accept defaults (site79.tgz is pre-selected)
-
 #### Boot and Install
 
 1. Boot from USB (disable Secure Boot first!)
-2. At the `boot>` prompt, type `I` and press Enter
+2. After the `boot>` prompt, type `I` and press Enter
 3. The installer will start in interactive mode
 
 #### Interactive Prompts
@@ -355,8 +315,8 @@ Partition layout: c
 This gives you:
 
 ```
-/           50G
-swap        2G
+/           50G (or more, as needed)
+swap        2G  (or more, as needed)
 /home       *   (rest of disk)
 ```
 
@@ -368,7 +328,7 @@ This is correct for most users. Adjust only if you know what you're doing.
 | ------------------ | ------------------------ |
 | Network interfaces | `done` (offline)         |
 | X Window System    | **`no`**                 |
-| Sets location      | `cd0`                    |
+| Sets location      | `cd0` or `sd0`           |
 | Set name(s)        | `*` (all sets + site79)  |
 | SSH                | `none` (offline install) |
 
