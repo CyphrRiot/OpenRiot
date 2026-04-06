@@ -185,7 +185,7 @@
 		"class<Zoom>": "<span font='11' color='#90caf9aa'>󰕧 </span>",
 
 		// --- FILES / SYSTEM ---
-		"class<thunar|nemo|org.gnome.Nautilus>": "<span font='11' color='#b2dfdbaa'>󰝰 </span>",
+		"class<nemo|org.gnome.Nautilus>": "<span font='11' color='#b2dfdbaa'>󰝰 </span>",
 		"class<Gparted>": "<span font='11' color='#c5e1a5aa'> </span>",
 		"class<org.pwmt.zathura>": "<span font='11' color='#ffcc80aa'>󰈦 </span>",
 		"class<org.gnome.Papers>": "<span font='11' color='#ffd180aa'>󰈦 </span>",
@@ -254,7 +254,6 @@
 
 		"class<org.xfce.SettingsManager>": "<span font='11' color='#ffcc80aa'>󰒓 </span>",
 		"class<org.xfce.Terminal>": "<span font='11' color='#64b5f6aa'> </span>",
-		"class<org.xfce.Thunar>": "<span font='11' color='#aed581aa'>󰝰 </span>",
 		"class<org.xfce.AppFinder>": "<span font='11' color='#ffd180aa'>󰘳 </span>",
 		"class<org.xfce.Panel>": "<span font='11' color='#ffd180aa'>󰘳 </span>",
 		"class<org.xfce.Session>": "<span font='11' color='#c5cae9aa'>󰜉 </span>",

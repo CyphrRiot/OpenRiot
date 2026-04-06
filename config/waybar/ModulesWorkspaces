@@ -44,7 +44,7 @@
       "class<foot>": "<span font='11'></span>",
 
       // --- FILE MANAGERS ---
-      "class<thunar|nautilus|nemo>": "<span font='11'>󰝰</span>",
+      "class<nautilus|nemo>": "<span font='11'>󰝰</span>",
 
       // --- MEDIA ---
       "class<mpv>": "<span font='11'>󰥠</span>",
