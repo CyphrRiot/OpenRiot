@@ -39,11 +39,10 @@ core:
             - ninja
         configs:
             - pattern: fish/*
+              preserve_if_exists: [conf.d/*.fish]
             - pattern: nvim/*
             - pattern: btop/themes/*
             - pattern: btop/btop.conf
-        commands:
-            - "chsh -s /usr/local/bin/fish"
         depends: [core.base]
         start: "Installing shell and terminal tools"
         end: "Shell environment configured"
@@ -66,7 +65,15 @@ desktop:
             - wf-recorder
         configs:
             - pattern: sway/*
+              preserve_if_exists:
+                  [
+                      monitors.conf,
+                      keybindings.conf,
+                      swayidle.conf,
+                      windowrules.conf,
+                  ]
             - pattern: waybar/*
+              preserve_if_exists: [UserWorkspaces, UserModules]
 
             - pattern: bin/*
             - pattern: fonts/*
@@ -98,7 +105,7 @@ desktop:
             - pattern: gtk-3.0/*
             - pattern: gtk-4.0/*
             - pattern: helix/*
-
+              preserve_if_exists: [config.toml]
             - pattern: crypto.toml
         depends: [core.base, desktop.sway]
         start: "Installing desktop applications"
@@ -117,6 +124,17 @@ desktop:
         type: "Package"
         critical: false
 
+source:
+    wlsunset:
+        type: "Source"
+        build:
+            - "git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset /tmp/wlsunset"
+            - "cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release"
+            - "cd /tmp/wlsunset && meson compile -C build"
+            - "doas meson install -C build"
+        start: "Building wlsunset from source"
+        end: "wlsunset built"
+
 system:
     tools:
         packages:
@@ -127,8 +145,6 @@ system:
             - isc-dhcp-client
             - networkmanager
         commands:
-            - "echo 'permit persist :wheel' > /etc/doas.conf"
-            - "chmod 0440 /etc/doas.conf"
             - "doas rcctl enable networkmanager"
             - "doas rcctl start networkmanager"
             # fw_update removed - requires internet, not needed for offline install

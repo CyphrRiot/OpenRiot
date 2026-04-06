@@ -51,3 +51,4 @@ snippets = true
 [keys.normal]
 x = "delete_char_forward"   # Make x behave more like Vim's x (delete under cursor, forward)
 X = "delete_char_backward"  # Optional: uppercase X for backward delete
+

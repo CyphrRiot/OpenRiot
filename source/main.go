@@ -53,6 +53,30 @@ func main() {
 		return
 	}
 
+	// Handle --source-builds (runs only the source builds phase, used by setup.sh)
+	if len(os.Args) >= 2 && os.Args[1] == "--source-builds" {
+		runSourceBuilds()
+		return
+	}
+
+	// --packages flag — outputs package list from packages.yaml (used by setup.sh)
+	if len(os.Args) >= 2 && os.Args[1] == "--packages" {
+		configPath := config.FindConfigFile()
+		if configPath == "" {
+			fmt.Fprintf(os.Stderr, "[ERR!]  Could not find packages.yaml\n")
+			os.Exit(1)
+		}
+		cfg, err := config.LoadConfig(configPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[ERR!]  Failed to load config: %v\n", err)
+			os.Exit(1)
+		}
+		for _, pkg := range cfg.GetPackages() {
+			fmt.Println(pkg)
+		}
+		os.Exit(0)
+	}
+
 	// All other CLI commands
 	if len(os.Args) >= 2 && os.Args[1] == "--volume" {
 		os.Exit(audio.Run(os.Args[2:]))
@@ -187,6 +211,8 @@ func main() {
 	fmt.Fprintf(os.Stderr, "Usage: openriot <command>\n")
 	fmt.Fprintf(os.Stderr, "\nCommands:\n")
 	fmt.Fprintf(os.Stderr, "  --install          Install OpenRiot (configs, not packages)\n")
+	fmt.Fprintf(os.Stderr, "  --source-builds    Build software from source\n")
+	fmt.Fprintf(os.Stderr, "  --packages         List packages from packages.yaml\n")
 	fmt.Fprintf(os.Stderr, "  --lock            Lock the screen\n")
 	fmt.Fprintf(os.Stderr, "  --suspend         Suspend the system\n")
 	fmt.Fprintf(os.Stderr, "  --power-menu       Show power menu\n")
@@ -244,18 +270,47 @@ func runInstall() {
 		fmt.Printf("[WARN]  Some commands failed: %v\n", err)
 	}
 
-	// Step 3: Source builds
-	fmt.Println("[INFO]  Building from source...")
-	if err := installer.SourceBuilds(cfg, testMode); err != nil {
-		fmt.Printf("[WARN]  Source builds: %v\n", err)
-	}
-
-	// Step 4: Copy binary to install directory
+	// Step 3: Copy binary to install directory
 	if !testMode {
 		installBinary(repoDir)
 	}
 
 	fmt.Println("[INFO]  OpenRiot installation complete!")
+}
+
+// runSourceBuilds runs only the source builds phase (used by setup.sh)
+func runSourceBuilds() {
+	fmt.Println("[INFO]  Running source builds...")
+
+	configPath := config.FindConfigFile()
+	if configPath == "" {
+		fmt.Fprintf(os.Stderr, "[ERR!]  Could not find packages.yaml\n")
+		os.Exit(1)
+	}
+
+	cfg, err := config.LoadConfig(configPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERR!]  Failed to load config: %v\n", err)
+		os.Exit(1)
+	}
+
+	var repoDir string
+	if testMode {
+		repoDir = os.Getenv("HOME") + "/Code/OpenRiot"
+	} else {
+		homeDir, _ := os.UserHomeDir()
+		repoDir = filepath.Join(homeDir, ".local", "share", "openriot")
+		if _, err := os.Stat(filepath.Join(repoDir, "install", "packages.yaml")); os.IsNotExist(err) {
+			if execPath, err := os.Executable(); err == nil {
+				repoDir = filepath.Dir(filepath.Dir(execPath))
+			}
+		}
+	}
+
+	if err := installer.SourceBuilds(cfg, testMode); err != nil {
+		fmt.Printf("[WARN]  Source builds: %v\n", err)
+	}
+	fmt.Println("[INFO]  Source builds complete!")
 }
 
 // installBinary copies the openriot binary to ~/.local/share/openriot/install/
