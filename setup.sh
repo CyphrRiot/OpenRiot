@@ -588,30 +588,42 @@ run_source_builds() {
             info "Installing wayland-protocols..."
             doas pkg_add wayland-protocols
         fi
-        rm -rf /tmp/wlsunset
-        git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset /tmp/wlsunset
-        # OpenBSD has no librt - patch meson.build to remove rt dependency
-        sed -i "s/rt = cc.find_library('rt')/# rt not available on OpenBSD/" /tmp/wlsunset/meson.build
-        sed -i 's/dependencies: \[wl_client, protocols_dep, m, rt\]/dependencies: [wl_client, protocols_dep, m]/' /tmp/wlsunset/meson.build
-        cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release 2>&1 | tee -a "$LOG_FILE"
-        meson compile -C build 2>&1 | tee -a "$LOG_FILE"
-        doas meson install -C build 2>&1 | tee -a "$LOG_FILE"
-        # Verify before cleaning up build dir
-        if [ -x "/usr/local/bin/wlsunset" ]; then
-            success "wlsunset built and installed."
-        elif [ -x "/tmp/wlsunset/build/wlsunset" ]; then
-            # meson install failed, copy manually
-            info "Copying wlsunset manually..."
-            doas cp /tmp/wlsunset/build/wlsunset /usr/local/bin/wlsunset
-            doas chmod +x /usr/local/bin/wlsunset
+        rm -rf /tmp/wlsunset /tmp/wlsunset.tar.gz
+        # Try tarball first (simpler, no git needed), fall back to git clone
+        if curl -fsSL https://git.sr.ht/~kennylevinsen/wlsunset/archive/master.tar.gz -o /tmp/wlsunset.tar.gz; then
+            mkdir -p /tmp/wlsunset
+            tar -xzf /tmp/wlsunset.tar.gz -C /tmp --strip-components=1
+            rm -f /tmp/wlsunset.tar.gz
+        elif ! git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset /tmp/wlsunset 2>&1; then
+            warn "Could not download wlsunset source. Check network."
+            rm -rf /tmp/wlsunset /tmp/wlsunset.tar.gz
+        fi
+        if [ ! -f /tmp/wlsunset/meson.build ]; then
+            warn "wlsunset source not found. Skipping build."
+        else
+            # OpenBSD has no librt - patch meson.build to remove rt dependency
+            sed -i "s/rt = cc.find_library('rt')/# rt not available on OpenBSD/" /tmp/wlsunset/meson.build
+            sed -i 's/dependencies: \[wl_client, protocols_dep, m, rt\]/dependencies: [wl_client, protocols_dep, m]/' /tmp/wlsunset/meson.build
+            cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release 2>&1 | tee -a "$LOG_FILE"
+            meson compile -C build 2>&1 | tee -a "$LOG_FILE"
+            doas meson install -C build 2>&1 | tee -a "$LOG_FILE"
+            # Verify before cleaning up build dir
             if [ -x "/usr/local/bin/wlsunset" ]; then
                 success "wlsunset built and installed."
+            elif [ -x "/tmp/wlsunset/build/wlsunset" ]; then
+                # meson install failed, copy manually
+                info "Copying wlsunset manually..."
+                doas cp /tmp/wlsunset/build/wlsunset /usr/local/bin/wlsunset
+                doas chmod +x /usr/local/bin/wlsunset
+                if [ -x "/usr/local/bin/wlsunset" ]; then
+                    success "wlsunset built and installed."
+                fi
+            else
+                warn "wlsunset build may have failed. Check log for errors."
+                warn "Try manually: doas meson install -C /tmp/wlsunset/build"
             fi
-        else
-            warn "wlsunset build may have failed. Check log for errors."
-            warn "Try manually: doas meson install -C /tmp/wlsunset/build"
+            rm -rf /tmp/wlsunset
         fi
-        rm -rf /tmp/wlsunset
     else
         info "wlsunset already installed."
     fi
