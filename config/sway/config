@@ -49,4 +49,4 @@ bindsym $mod+Shift+Up move up
 bindsym $mod+Shift+Down move down
 bindsym $mod+L exec swaylock -f
 
-focus_follows_mouse yes
+focus_follows_mouse no
