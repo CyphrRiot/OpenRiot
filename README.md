@@ -920,14 +920,17 @@ cat /etc/resolv.conf
 
 ### Upload Logs for Support
 
-If you need to share logs with someone for debugging:
+If something goes wrong, upload your log file for debugging:
 
 ```bash
-# Upload a log file and get a shareable link
-curl -F "file=@~/.cache/openriot/setup.log" https://urlz.li/upload
+# Upload setup log
+~/.local/share/openriot/setup.sh --share-log
+
+# Upload install log
+~/.local/share/openriot/install/openriot --share-log install.log
 ```
 
-This uses `curl` (available by default on OpenRiot and via pkg_add on OpenBSD) and returns a short URL you can share.
+This will upload the log to a paste service and give you a URL to share.
 
 ### Hostname shows as `x.my.domain`
 
