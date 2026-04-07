@@ -158,7 +158,6 @@ fonts:
     nerd-fonts:
         packages:
             - symbols-only-nerd-fonts-3.3.0
-            - noto-nerd-fonts-3.3.0
         commands:
             - "fc-cache"
         depends: []
