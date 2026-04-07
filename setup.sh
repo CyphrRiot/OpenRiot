@@ -55,7 +55,7 @@ error() { echo -e "${RED}[ERROR]${NC} $1" | tee -a "$LOG_FILE" >&2; }
 
 log() { printf '[OPENRIOT] %s\n' "$1" | tee -a "$LOG_FILE"; }
 
-# Upload log to dpaste.org for sharing with developers
+# Upload log to temp.sh for sharing with developers
 share_log() {
     log_file="${1:-$LOG_FILE}"
     if [ ! -f "$log_file" ]; then
@@ -63,17 +63,13 @@ share_log() {
         return 1
     fi
     echo "Uploading log..."
-    # Try dpaste.org first, fallback to displaying content
-    url=$(curl -s -X POST -F "content=<$log_file" "https://dpaste.org/api/" 2>/dev/null)
-    if echo "$url" | grep -qE "^https://dpaste.org"; then
+    url=$(curl -s -F "file=@$log_file" "https://temp.sh" 2>/dev/null)
+    if echo "$url" | grep -qE "^https://temp.sh/[a-zA-Z0-9]+"; then
         echo "Log uploaded to: $url"
         echo "$url" > "${log_file}.url"
     else
-        echo "Upload services unavailable. Log content:"
-        echo "---"
+        echo "Upload failed. Showing last 100 lines:"
         tail -100 "$log_file"
-        echo "---"
-        echo "Please share manually or try: ./setup.sh --share-log"
     fi
 }
 
