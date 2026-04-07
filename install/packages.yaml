@@ -6,7 +6,6 @@
 core:
     base:
         packages:
-            - git
             - rsync-3.4.1
             - bc-gh-7.1.0p0
             - python-3.13.12
@@ -157,7 +156,6 @@ source:
 system:
     tools:
         packages:
-            - curl
             - wget-1.25.0p0
             - unzip-6.0p18
             - xz-5.8.2
