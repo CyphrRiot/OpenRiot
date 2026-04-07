@@ -244,8 +244,10 @@ install_packages() {
     pkg_exit=$?
     if [ $pkg_exit -ne 0 ]; then
         warn "openriot --packages failed, trying fallback..."
-        # Fallback: grep packages directly from YAML (exclude commands - quoted strings)
-        pkg_raw=$(grep -E '^ +- [a-zA-Z]' "$INSTALL_DIR/install/packages.yaml" 2>/dev/null | sed 's/.*- //')
+        # Fallback: grep packages directly from YAML
+        # Only match unquoted lines (package names), exclude quoted strings (commands)
+        pkg_raw=$(grep -E '^ +- [a-zA-Z]' "$INSTALL_DIR/install/packages.yaml" 2>/dev/null | \
+            grep -v '"' | sed 's/^ *- //')
     fi
     if [ -z "$pkg_raw" ]; then
         error "No packages found in packages.yaml"
@@ -266,7 +268,7 @@ install_packages() {
     for pkg in $packages; do
         # Check if already installed (OpenBSD stores pkg info in /var/db/pkg/)
         # Use pkg_info to check - it's more reliable than glob patterns in [ ]
-        if pkg_info -m "$pkg" >/dev/null 2>&1; then
+        if pkg_info -e "$pkg" >/dev/null 2>&1; then
             info "  [SKIP] $pkg already installed"
         else
             info "Installing $pkg ..."

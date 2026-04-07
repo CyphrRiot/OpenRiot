@@ -9,7 +9,7 @@
 
 **Version:** 1.1 (latest commit: be26283)  
 **Testing:** Hardware end-to-end test in progress  
-**Git:** `https://github.com/CyphrRiot/OpenRiot.git`
+**Git:** `https://github.com/CyphrRiot/OpenRiot.git` (commit: 2429c9d)
 
 ### Quick Test Command
 ```sh
@@ -197,4 +197,4 @@ echo $SHELL  # Should show fish
 ---
 
 **Last updated:** Apr 6, 2026  
-**Git commit:** be26283
+**Git commit:** 2429c9d
