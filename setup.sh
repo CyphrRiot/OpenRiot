@@ -523,50 +523,52 @@ main() {
 # -----------------------------------------------------------------------------
 
 deploy_sway_configs() {
-    info "Deploying Sway config files..."
-    
+    info "Deploying Sway config files (clean deploy)..."
+
+    # Clean deploy: remove old configs first so removed files get purged
+    rm -rf "$REAL_HOME/.config/sway"
+    rm -rf "$REAL_HOME/.config/waybar"
+    rm -rf "$REAL_HOME/.config/foot"
+    rm -rf "$REAL_HOME/.config/fuzzel"
+
+    # Deploy sway configs
     sway_src="$INSTALL_DIR/config/sway"
     sway_dest="$REAL_HOME/.config/sway"
-    
     mkdir -p "$sway_dest"
-    
-    # Files that should NOT be preserved (always deploy fresh)
-    # Preserve list is for user customizations, not default configs
-    # Copy all sway config files
     for f in config monitors.conf windowrules.conf keybindings.conf brightness-dim.sh swayidle.conf; do
         if [ -f "$sway_src/$f" ]; then
             cp -f "$sway_src/$f" "$sway_dest/$f"
             info "  Deployed $f"
         fi
     done
-    
-    # Also deploy waybar configs
+
+    # Deploy waybar configs
     waybar_src="$INSTALL_DIR/config/waybar"
     waybar_dest="$REAL_HOME/.config/waybar"
     mkdir -p "$waybar_dest"
     if [ -d "$waybar_src" ]; then
-        cp -f "$waybar_src"/* "$waybar_dest/" 2>/dev/null || true
+        cp -rf "$waybar_src"/* "$waybar_dest/" 2>/dev/null || true
         info "  Deployed waybar configs"
     fi
-    
-    # Also deploy foot config
-    foot_src="$INSTALL_DIR/config/foot/config"
-    foot_dest="$REAL_HOME/.config/foot/config"
-    mkdir -p "$(dirname "$foot_dest")"
-    if [ -f "$foot_src" ]; then
-        cp -f "$foot_src" "$foot_dest"
-        info "  Deployed foot config"
+
+    # Deploy foot config
+    foot_src="$INSTALL_DIR/config/foot"
+    foot_dest="$REAL_HOME/.config/foot"
+    mkdir -p "$foot_dest"
+    if [ -d "$foot_src" ]; then
+        cp -rf "$foot_src"/* "$foot_dest/" 2>/dev/null || true
+        info "  Deployed foot configs"
     fi
-    
-    # Also deploy fuzzel config
-    fuzzel_src="$INSTALL_DIR/config/fuzzel/config"
-    fuzzel_dest="$REAL_HOME/.config/fuzzel/config"
-    mkdir -p "$(dirname "$fuzzel_dest")"
-    if [ -f "$fuzzel_src" ]; then
-        cp -f "$fuzzel_src" "$fuzzel_dest"
-        info "  Deployed fuzzel config"
+
+    # Deploy fuzzel config
+    fuzzel_src="$INSTALL_DIR/config/fuzzel"
+    fuzzel_dest="$REAL_HOME/.config/fuzzel"
+    mkdir -p "$fuzzel_dest"
+    if [ -d "$fuzzel_src" ]; then
+        cp -rf "$fuzzel_src"/* "$fuzzel_dest/" 2>/dev/null || true
+        info "  Deployed fuzzel configs"
     fi
-    
+
     success "Sway config files deployed."
 }
 
@@ -581,13 +583,24 @@ run_source_builds() {
     # wlsunset: Wayland screen brightness/temperature controller
     if ! command -v wlsunset >/dev/null 2>&1; then
         info "Building wlsunset..."
+        # Install wayland-protocols first (required by meson build)
+        if ! pkg_info -e wayland-protocols >/dev/null 2>&1; then
+            info "Installing wayland-protocols..."
+            doas pkg_add wayland-protocols
+        fi
         rm -rf /tmp/wlsunset
         git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset /tmp/wlsunset
         cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release
         meson compile -C build
         doas meson install -C build
         cd /tmp && rm -rf /tmp/wlsunset
-        success "wlsunset built."
+        # Verify installation
+        if command -v wlsunset >/dev/null 2>&1; then
+            success "wlsunset built and installed."
+        else
+            warn "wlsunset build completed but binary not found in PATH."
+            warn "Try manually: doas meson install -C /tmp/wlsunset/build"
+        fi
     else
         info "wlsunset already installed."
     fi
@@ -598,12 +611,19 @@ run_source_builds() {
         CRUSH_VER="0.55.1"
         CRUSH_URL="https://github.com/charmbracelet/crush/releases/download/v${CRUSH_VER}/crush_${CRUSH_VER}_Openbsd_x86_64.tar.gz"
         mkdir -p "$REAL_HOME/.local/bin"
+        rm -f /tmp/crush.tar.gz
         curl -fsSL "$CRUSH_URL" -o /tmp/crush.tar.gz
         tar -xzf /tmp/crush.tar.gz -C /tmp
-        mv /tmp/crush "$REAL_HOME/.local/bin/crush"
+        # Tarball extracts to subdirectory containing the binary
+        mv "/tmp/crush_${CRUSH_VER}_Openbsd_x86_64/crush" "$REAL_HOME/.local/bin/crush"
         chmod +x "$REAL_HOME/.local/bin/crush"
-        rm -f /tmp/crush.tar.gz
-        success "crush installed."
+        rm -rf /tmp/crush.tar.gz "/tmp/crush_${CRUSH_VER}_Openbsd_x86_64"
+        # Verify
+        if [ -x "$REAL_HOME/.local/bin/crush" ]; then
+            success "crush installed."
+        else
+            warn "crush download may have failed."
+        fi
     else
         info "crush already installed."
     fi
