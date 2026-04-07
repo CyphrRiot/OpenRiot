@@ -1,136 +1,34 @@
-# =============================================================================
-# OpenRiot - Sway Configuration
-# =============================================================================
-# Main Sway config for OpenBSD.
-# Modular pieces are sourced below.
-#
-# sourced files:
-#   ~/.config/sway/monitors.conf     -> monitor and workspace config
-#   ~/.config/sway/windowrules.conf  -> window rules (for_window blocks)
-#   ~/.config/sway/keybindings.conf  -> keybindings (bindsym)
-# =============================================================================
+# OpenRiot Sway Config — MINIMAL
+# Just keyboard and basic window management. NOTHING else auto-starts.
 
-# -----------------------------------------------------------------------------
-# Output configuration (monitor, resolution, scale, position)
-# -----------------------------------------------------------------------------
-source ~/.config/sway/monitors.conf
-
-# =============================================================================
-# DEFAULT APPLICATION VARIABLES
-# =============================================================================
-set $terminal foot
-set $fileManager foot -e lf
-set $browser firefox
 set $mod Mod4
-set $openriot $HOME/.local/share/openriot/install/openriot
+set $terminal foot
 
-set $editor hx ~/Documents
+# Bare minimum keybindings
+bindsym $mod+Return exec $terminal
+bindsym $mod+Q kill
+bindsym $mod+W floating toggle
+bindsym $mod+J split vertical
+bindsym $mod+H split horizontal
+bindsym $mod+1 workspace 1
+bindsym $mod+2 workspace 2
+bindsym $mod+3 workspace 3
+bindsym $mod+4 workspace 4
+bindsym $mod+Shift+1 move container to workspace 1
+bindsym $mod+Shift+2 move container to workspace 2
+bindsym $mod+Shift+3 move container to workspace 3
+bindsym $mod+Shift+4 move container to workspace 4
+bindsym $mod+Shift+E exec swaymsg exit
+bindsym Mod1+Tab focus right
+bindsym Mod1+Shift+Tab focus left
+bindsym $mod+Left focus left
+bindsym $mod+Right focus right
+bindsym $mod+Up focus up
+bindsym $mod+Down focus down
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Right move right
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Down move down
+bindsym $mod+L exec swaylock -f
 
-# =============================================================================
-# ENVIRONMENT VARIABLES
-# =============================================================================
-# NOTE: XDG_CURRENT_DESKTOP, XDG_SESSION_TYPE, and XDG_SEAT are set by xenodm
-# (OpenBSD display manager) or can be set in ~/.profile if needed.
-# The exec export approach does not work in sway — environment variables set in
-# a subprocess are not propagated to the parent sway process.
-
-# =============================================================================
-# AUTOSTART APPLICATIONS
-# =============================================================================
-exec swaybg -i "$HOME/.local/share/openriot/backgrounds/riot_00.jpg" -m fill
-
-exec $HOME/.local/share/openriot/config/bin/waybar-guard.sh
-exec sh -c 'command -v wlsunset && exec wlsunset -t 3500'
-exec $HOME/.local/share/openriot/config/bin/battery-monitor.sh
-
-# Welcome screen (runs once on first login)
-exec_always sh -c 'if [ ! -f "$HOME/.openriot-welcomed" ]; then foot -e "$HOME/.local/share/openriot/config/bin/openriot-welcome.sh"; fi'
-
-# =============================================================================
-# IDLE MANAGEMENT (swayidle)
-# =============================================================================
-# swayidle handles idle detection, lock screen, and DPMS.
-# OpenBSD: no systemd suspend — use zzz(8) for suspend.
-#
-# Background refresh: openriot-lock.sh runs every 30 mins to update crypto prices.
-# swaylock --clock shows live time on top of the static background.
-# =============================================================================
-exec $HOME/.local/share/openriot/config/bin/openriot-lock.sh
-exec sh -c 'while true; do $HOME/.local/share/openriot/config/bin/openriot-lock.sh; sleep 1800; done &'
-exec swayidle -w \
-    timeout 300 'swaylock -f -i /tmp/swaylock-bg.png --clock --timestr "%%I:%%M %%p"' \
-    timeout 600 'swaymsg output * dpms off' \
-    resume 'swaymsg output * dpms on' \
-    before-sleep 'swaylock -f -i /tmp/swaylock-bg.png --clock --timestr "%%I:%%M %%p"'
-
-# =============================================================================
-# INPUT CONFIGURATION
-# =============================================================================
-input * {
-    xkb_layout us
-    xkb_variant ""
-    xkb_model ""
-    xkb_options "grp:win_space_toggle"
-    xkb_rules ""
-
-    pointer_accel 0
-    repeat_rate 60
-    repeat_delay 120
-}
-
-# Touchpad (auto-detected on boot)
-exec_always sh -c 'if swaymsg -t get_inputs | grep -q "type:touchpad"; then swaymsg "input type:touchpad" {dwt enabled, tap enabled, natural_scroll enabled}; fi'
-
-# Cursor theme (Bibata Modern Ice)
-seat seat0 xcursor_theme Bibata-Modern-Ice
-
-# Focus follows mouse
 focus_follows_mouse yes
-
-# =============================================================================
-# WORKSPACE SETTINGS
-# =============================================================================
-workspace_auto_back_and_forth yes
-
-# =============================================================================
-# GENERAL APPEARANCE
-# =============================================================================
-# Gaps
-gaps inner 0
-gaps outer 2
-
-# Default monospace font
-font pango:monospace 10
-
-# Borders (thin, OpenRiot style)
-default_border pixel 1
-default_floating_border pixel 1
-hide_edge_borders --i3 both
-
-# Border colors (Tokyo Night inspired)
-client.focused          #89b4fa #89b4fa #cdd6f4
-client.focused_inactive #1a1a2e #1a1a2e #6c7086
-client.unfocused        #1a1a2e #1a1a2e #6c7086
-client.urgent           #f38ba8 #f38ba8 #cdd6f4
-client.placeholder      #1a1a2e #1a1a2e #6c7086
-
-# =============================================================================
-# LAYOUT
-# =============================================================================
-default_orientation auto
-
-# =============================================================================
-# WINDOW RULES
-# =============================================================================
-source ~/.config/sway/windowrules.conf
-
-# =============================================================================
-# KEYBINDINGS
-# =============================================================================
-source ~/.config/sway/keybindings.conf
-
-# =============================================================================
-# MISC
-# =============================================================================
-mouse_warping container
-popup_during_fullscreen smart
