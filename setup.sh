@@ -218,17 +218,26 @@ setup_repository() {
         return
     fi
 
-    # INSTALL_DIR exists and --install not requested - check for updates
-    if is_newer_version "$local_ver" "$remote_ver"; then
-        info "Newer version available - upgrading..."
+    # Always pull latest commits to pick up bug fixes and config changes
+    if [ -d "$INSTALL_DIR/.git" ]; then
+        info "Updating OpenRiot repository..."
         (
             cd "$INSTALL_DIR" || exit 1
-            git fetch origin || { error "Git fetch failed"; exit 1; }
-            git reset --hard origin/"$CONFIG_BRANCH" || { error "Git reset failed"; exit 1; }
+            git fetch origin || true
+            LOCAL_AHEAD=$(git rev-list --count HEAD..origin/"$CONFIG_BRANCH" 2>/dev/null || echo 0)
+            if [ "$LOCAL_AHEAD" -gt 0 ]; then
+                info "Pulling $LOCAL_AHEAD new commit(s)..."
+                git reset --hard origin/"$CONFIG_BRANCH" || { error "Git reset failed"; exit 1; }
+                success "OpenRiot updated."
+            else
+                info "Repository up to date."
+            fi
         )
-        success "OpenRiot upgraded to $remote_ver"
-    else
-        info "Already on latest version ($local_ver) - skipping repo update"
+    fi
+
+    # Check for new version releases
+    if is_newer_version "$local_ver" "$remote_ver"; then
+        info "New version $remote_ver available!"
     fi
 }
 
