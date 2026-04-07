@@ -245,7 +245,7 @@ install_packages() {
     if [ $pkg_exit -ne 0 ]; then
         warn "openriot --packages failed, trying fallback..."
         # Fallback: grep packages directly from YAML
-        pkg_raw=$(grep -E '^\s+-\s+[a-z]' "$INSTALL_DIR/install/packages.yaml" 2>/dev/null | sed 's/.*-\s*//' | tr -d ' ')
+        pkg_raw=$(grep "^ *- " "$INSTALL_DIR/install/packages.yaml" 2>/dev/null | sed 's/.*- //' | tr -d ' ')
     fi
     if [ -z "$pkg_raw" ]; then
         error "No packages found in packages.yaml"
