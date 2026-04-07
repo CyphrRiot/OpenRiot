@@ -249,11 +249,35 @@ install_packages() {
     fi
     if [ $pkg_exit -ne 0 ] || [ -z "$pkg_raw" ]; then
         warn "openriot --packages failed or returned empty, using fallback..."
-        # Fallback: grep packages directly from YAML
-        # Match lines starting with "- " and a letter (unquoted package names)
-        # Filter out: quoted strings (commands), YAML keys with ":", config patterns
-        pkg_raw=$(grep -E '^ +- [a-zA-Z]' "$INSTALL_DIR/install/packages.yaml" 2>/dev/null | \
-            grep -v '"' | grep -v ':' | sed 's/^ *- //')
+        # Try yq first (preferred), then Python YAML fallback
+        if command -v yq >/dev/null 2>&1; then
+            pkg_raw=$(yq eval '.. | select(has("packages")) | .packages[]' "$INSTALL_DIR/install/packages.yaml" 2>/dev/null)
+        elif command -v python3 >/dev/null 2>&1; then
+            pkg_raw=$(python3 -c "
+import re, sys
+with open('$INSTALL_DIR/install/packages.yaml') as f:
+    content = f.read()
+in_packages = False
+depth = 0
+for line in content.splitlines():
+    # Track if we enter a new top-level key (increase depth = new module)
+    if re.match(r'^[a-z]', line):
+        depth += 1
+        in_packages = False
+    # Detect packages: section
+    if re.match(r'^\s+packages:\s*$', line):
+        in_packages = True
+    elif re.match(r'^\s+(configs|commands|build):\s*$', line):
+        in_packages = False
+    # Extract package name
+    elif in_packages:
+        m = re.match(r'^\s+-\s+([A-Za-z][A-Za-z0-9.+-]*)', line)
+        if m: print(m.group(1))
+" 2>/dev/null)
+        else
+            pkg_raw=$(grep -E '^ +- [a-zA-Z]' "$INSTALL_DIR/install/packages.yaml" 2>/dev/null | \
+                sed 's/^ *- //' | grep -E '[0-9]')
+        fi
     fi
     if [ -z "$pkg_raw" ]; then
         error "No packages found in packages.yaml"
@@ -315,6 +339,22 @@ run_openriot_install() {
     mkdir -p "$(dirname "$INSTALL_LOG")"
     ./openriot --install 2>&1 | tee -a "$INSTALL_LOG"
     success "openriot --install complete"
+}
+
+# -----------------------------------------------------------------------------
+# Install JetBrainsMono Nerd Font for glyph/icon rendering in foot/lsd/fish
+# -----------------------------------------------------------------------------
+
+install_nerd_font() {
+    info "Installing JetBrainsMono Nerd Font..."
+    font_dir="$REAL_HOME/.local/share/fonts"
+    mkdir -p "$font_dir"
+    # Download as user, extract to user fonts dir, update font cache
+    curl -fsSL "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/JetBrainsMono.zip" -o /tmp/jetbrainsmono.zip
+    unzip -o /tmp/jetbrainsmono.zip -d "$font_dir"
+    rm -f /tmp/jetbrainsmono.zip
+    doas fc-cache -fv >/dev/null 2>&1
+    success "JetBrainsMono Nerd Font installed."
 }
 
 # -----------------------------------------------------------------------------
@@ -456,6 +496,7 @@ main() {
     fi
 
     run_openriot_install
+    install_nerd_font
     set_fish_shell
     configure_sway_autostart
 
