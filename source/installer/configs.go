@@ -60,10 +60,12 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 
 		if isGlob {
 			// Glob pattern: copy all files matching the pattern, recursing into subdirectories
-			globSrc := filepath.Join(configSourceDir, rule.Pattern)
+			// Get the source directory by removing the /* from the pattern
+			patternWithoutGlob := strings.TrimSuffix(rule.Pattern, "/*")
+			srcDir := filepath.Join(configSourceDir, patternWithoutGlob)
 			globDest := filepath.Join(configDir, rule.Pattern)
 
-			// Determine base directory for destination
+			// baseDest is the parent directory (e.g., ~/.config/sway for pattern "sway/*")
 			baseDest := filepath.Dir(globDest)
 			if rule.Target != "" {
 				if strings.HasPrefix(rule.Target, "~/") {
@@ -73,20 +75,28 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 				}
 			}
 
-			// WalkDir recurses into subdirectories unlike filepath.Glob
-			err := filepath.WalkDir(globSrc, func(srcPath string, info fs.DirEntry, err error) error {
+			// Check if source directory exists
+			if _, err := os.Stat(srcDir); os.IsNotExist(err) {
+				fmt.Printf("[INFO]  Skipping %s (directory not found)\n", rule.Pattern)
+				continue
+			}
+
+			// Walk the source directory recursively
+			err := filepath.WalkDir(srcDir, func(srcPath string, info fs.DirEntry, err error) error {
 				if err != nil {
 					return nil // skip inaccessible entries
 				}
 				if info.IsDir() {
-					return nil // skip directories, recurse into them automatically
+					return nil // recurse into directories
 				}
 
-				// Get relative path from source base
-				relPath, err := filepath.Rel(configSourceDir, srcPath)
+				// Get relative path from the pattern directory (not configSourceDir)
+				relPath, err := filepath.Rel(srcDir, srcPath)
 				if err != nil {
 					return nil
 				}
+
+				// Compute destination path: baseDest + relative path
 				destPath := filepath.Join(baseDest, relPath)
 
 				// Check preservation

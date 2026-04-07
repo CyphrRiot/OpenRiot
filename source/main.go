@@ -228,32 +228,19 @@ func main() {
 func runInstall() {
 	fmt.Println("[INFO]  OpenRiot installer starting...")
 
-	// Load configuration from packages.yaml
-	configPath := config.FindConfigFile()
-	if configPath == "" {
-		fmt.Fprintf(os.Stderr, "[ERR!]  Could not find packages.yaml\n")
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERR!]  Could not determine home directory: %v\n", err)
 		os.Exit(1)
 	}
+
+	repoDir := filepath.Join(homeDir, ".local", "share", "openriot")
+	configPath := filepath.Join(repoDir, "install", "packages.yaml")
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!]  Failed to load config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[ERR!]  Failed to load config from %s: %v\n", configPath, err)
 		os.Exit(1)
-	}
-
-	// Determine repo directory based on mode
-	var repoDir string
-	if testMode {
-		repoDir = os.Getenv("HOME") + "/Code/OpenRiot"
-	} else {
-		homeDir, _ := os.UserHomeDir()
-		repoDir = filepath.Join(homeDir, ".local", "share", "openriot")
-		// Fallback for running directly from a repo checkout on OpenBSD
-		if _, err := os.Stat(filepath.Join(repoDir, "install", "packages.yaml")); os.IsNotExist(err) {
-			if execPath, err := os.Executable(); err == nil {
-				repoDir = filepath.Dir(filepath.Dir(execPath))
-			}
-		}
 	}
 
 	// Step 1: Config deployment
@@ -270,23 +257,19 @@ func runInstall() {
 		fmt.Printf("[WARN]  Some commands failed: %v\n", err)
 	}
 
-	// Step 3: Copy binary to install directory
-	if !testMode {
-		installBinary(repoDir)
-	}
-
 	fmt.Println("[INFO]  OpenRiot installation complete!")
 }
 
 // runSourceBuilds runs only the source builds phase (used by setup.sh)
 func runSourceBuilds() {
-	fmt.Println("[INFO]  Running source builds...")
-
-	configPath := config.FindConfigFile()
-	if configPath == "" {
-		fmt.Fprintf(os.Stderr, "[ERR!]  Could not find packages.yaml\n")
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERR!]  Could not determine home directory: %v\n", err)
 		os.Exit(1)
 	}
+
+	repoDir := filepath.Join(homeDir, ".local", "share", "openriot")
+	configPath := filepath.Join(repoDir, "install", "packages.yaml")
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
@@ -294,64 +277,10 @@ func runSourceBuilds() {
 		os.Exit(1)
 	}
 
-	var repoDir string
-	if testMode {
-		repoDir = os.Getenv("HOME") + "/Code/OpenRiot"
-	} else {
-		homeDir, _ := os.UserHomeDir()
-		repoDir = filepath.Join(homeDir, ".local", "share", "openriot")
-		if _, err := os.Stat(filepath.Join(repoDir, "install", "packages.yaml")); os.IsNotExist(err) {
-			if execPath, err := os.Executable(); err == nil {
-				repoDir = filepath.Dir(filepath.Dir(execPath))
-			}
-		}
-	}
-
 	if err := installer.SourceBuilds(cfg, testMode); err != nil {
 		fmt.Printf("[WARN]  Source builds: %v\n", err)
 	}
 	fmt.Println("[INFO]  Source builds complete!")
-}
-
-// installBinary copies the openriot binary to ~/.local/share/openriot/install/
-func installBinary(repoDir string) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("[WARN]  Could not get home directory: %v\n", err)
-		return
-	}
-
-	installDir := filepath.Join(homeDir, ".local", "share", "openriot", "install")
-	if err := os.MkdirAll(installDir, 0755); err != nil {
-		fmt.Printf("[WARN]  Could not create install directory: %v\n", err)
-		return
-	}
-
-	// Copy the running binary to the install directory
-	execPath, err := os.Executable()
-	if err != nil {
-		fmt.Printf("[WARN]  Could not find running executable: %v\n", err)
-		return
-	}
-
-	destPath := filepath.Join(installDir, "openriot")
-	if execPath == destPath {
-		fmt.Println("[INFO]  Binary already in place")
-		return
-	}
-
-	sourceData, err := os.ReadFile(execPath)
-	if err != nil {
-		fmt.Printf("[WARN]  Could not read binary: %v\n", err)
-		return
-	}
-
-	if err := os.WriteFile(destPath, sourceData, 0755); err != nil {
-		fmt.Printf("[WARN]  Could not write binary: %v\n", err)
-		return
-	}
-
-	fmt.Printf("[INFO]  Binary installed to %s\n", destPath)
 }
 
 // writeOpenRouterToFish writes OpenRouter API key to fish config
