@@ -143,12 +143,7 @@ source:
     bibata-cursor:
         type: "Source"
         build:
-            - "curl -fsSL https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.7/Bibata-Modern-Ice.tar.xz -o /tmp/bibata.tar.xz"
-            - "mkdir -p $HOME/.local/share/icons"
-            - "cd /tmp && xz -d bibata.tar.xz && tar -xf bibata.tar"
-            - "mv /tmp/Bibata-Modern-Ice $HOME/.local/share/icons/"
-            - "rm -f /tmp/bibata.tar.xz"
-            - "gtk-update-icon-cache -f $HOME/.local/share/icons/Bibata-Modern-Ice 2>/dev/null || true"
+            - "if [ -d \"$HOME/.local/share/icons/Bibata-Modern-Ice\" ]; then echo '[SKIP] Bibata cursor already installed'; else mkdir -p $HOME/.local/share/icons && curl -fsSL https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.7/Bibata-Modern-Ice.tar.xz -o /tmp/bibata.tar.xz && cd /tmp && xz -d bibata.tar.xz && tar -xf bibata.tar && mv /tmp/Bibata-Modern-Ice $HOME/.local/share/icons/ && rm -f /tmp/bibata.tar.xz && gtk-update-icon-cache -f $HOME/.local/share/icons/Bibata-Modern-Ice 2>/dev/null || true; fi"
         depends: [system.tools]
         start: "Installing Bibata-Modern-Ice cursor theme"
         end: "Bibata cursor installed"
