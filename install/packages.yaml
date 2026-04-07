@@ -7,11 +7,11 @@ core:
     base:
         packages:
             - git
-            - rsync
-            - bc-gh
-            - python3
-            - fastfetch
-            - jq
+            - rsync-3.4.1
+            - bc-gh-7.1.0p0
+            - python3-3.11.0
+            - fastfetch-2.60.0
+            - jq-1.8.1
         configs:
             - pattern: fastfetch/*
         commands:
@@ -25,18 +25,18 @@ core:
 
     shell:
         packages:
-            - fish
-            - neovim
-            - foot
-            - fzf
-            - ripgrep
-            - htop
-            - btop
-            - tree
-            - fd
-            - gnupg
-            - meson
-            - ninja
+            - fish-4.6.0
+            - neovim-0.12.0
+            - foot-1.26.1
+            - fzf-0.70.0
+            - ripgrep-15.1.0
+            - htop-3.4.1
+            - btop-1.4.6
+            - tree-0.62
+            - fd-10.4.2
+            - gnupg-2.5.18
+            - meson-1.10.2v0
+            - ninja-1.11.1p1v1
         configs:
             - pattern: fish/*
               preserve_if_exists: [conf.d/*.fish]
@@ -53,17 +53,17 @@ core:
 desktop:
     sway:
         packages:
-            - sway
-            - waybar
-            - fuzzel
-            - swaylock
-            - swayidle
-            - swaybg
-            - grim
-            - slurp
-            - wl-clipboard
-            - ImageMagick
-            - wf-recorder
+            - sway-1.11p0
+            - waybar-0.15.0p0
+            - fuzzel-1.14.1
+            - swaylock-1.8.4
+            - swayidle-1.9.0
+            - swaybg-1.2.2
+            - grim-1.5.0
+            - slurp-1.5.0
+            - wl-clipboard-2.2.1pl20251124
+            - ImageMagick-6.9.13.43
+            - wf-recorder-0.6.0p1
         configs:
             - pattern: sway/*
               preserve_if_exists:
@@ -80,7 +80,6 @@ desktop:
             - pattern: foot/*
             - pattern: fuzzel/*
         commands:
-            - "mkdir -p ~/.local/share/openriot/backgrounds"
             - "cp $HOME/.local/share/openriot/config/applications/*.desktop ~/.local/share/applications/ 2>/dev/null || true"
         depends: [core.base]
         start: "Installing Sway desktop"
@@ -90,12 +89,12 @@ desktop:
 
     apps:
         packages:
-            - firefox
-            - flare-messenger
-            - tdesktop
-            - helix
-            - lsd
-            - lf
+            - firefox-149.0
+            - flare-messenger-0.17.5p0
+            - tdesktop-6.6.4p0
+            - helix-25.07.1
+            - lsd-1.1.5p2
+            - lf-41
         configs:
             - pattern: gtk-3.0/*
             - pattern: gtk-4.0/*
@@ -111,7 +110,7 @@ desktop:
 
     media:
         packages:
-            - transmission
+            - transmission-4.1.1
         configs: []
         depends: [core.base, desktop.sway]
         start: "Installing media controls"
@@ -157,12 +156,12 @@ system:
     tools:
         packages:
             - curl
-            - wget
-            - unzip
-            - xz
-            - isc-dhcp-client
-            - go
-            - chafa
+            - wget-1.25.0p0
+            - unzip-6.0p18
+            - xz-5.8.2
+            - isc-dhcp-client-4.4.3pl1p4
+            - go-1.26.1
+            - chafa-1.16.2
         commands:
             # fw_update removed - requires internet, not needed for offline install
         depends: [core.base]
