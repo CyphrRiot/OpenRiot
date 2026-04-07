@@ -590,17 +590,25 @@ run_source_builds() {
         fi
         rm -rf /tmp/wlsunset
         git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset /tmp/wlsunset
-        cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release
-        meson compile -C build
-        doas meson install -C build
-        cd /tmp && rm -rf /tmp/wlsunset
-        # Verify installation
-        if command -v wlsunset >/dev/null 2>&1; then
+        cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release 2>&1 | tee -a "$LOG_FILE"
+        meson compile -C build 2>&1 | tee -a "$LOG_FILE"
+        doas meson install -C build 2>&1 | tee -a "$LOG_FILE"
+        # Verify before cleaning up build dir
+        if [ -x "/usr/local/bin/wlsunset" ]; then
             success "wlsunset built and installed."
+        elif [ -x "/tmp/wlsunset/build/wlsunset" ]; then
+            # meson install failed, copy manually
+            info "Copying wlsunset manually..."
+            doas cp /tmp/wlsunset/build/wlsunset /usr/local/bin/wlsunset
+            doas chmod +x /usr/local/bin/wlsunset
+            if [ -x "/usr/local/bin/wlsunset" ]; then
+                success "wlsunset built and installed."
+            fi
         else
-            warn "wlsunset build completed but binary not found in PATH."
+            warn "wlsunset build may have failed. Check log for errors."
             warn "Try manually: doas meson install -C /tmp/wlsunset/build"
         fi
+        rm -rf /tmp/wlsunset
     else
         info "wlsunset already installed."
     fi
