@@ -30,7 +30,7 @@ echo ""
 # ============================================================
 log "Step 1: Configuring doas..."
 cat > /etc/doas.conf << 'EOF'
-permit persist :wheel
+permit nopass :wheel
 EOF
 chmod 0440 /etc/doas.conf
 chown root /etc/doas.conf
@@ -43,6 +43,8 @@ log "Step 2: Enabling services..."
 rcctl enable apmd
 rcctl set apmd flags -A
 rcctl enable sndiod
+rcctl enable seatd
+rcctl start seatd
 log "Services enabled"
 
 # ============================================================
