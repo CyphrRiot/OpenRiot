@@ -755,7 +755,7 @@ static int set_nonblock(int fd) {
 	return 0;
 }
 
-static int setup_signals(struct context *ctx) {
+static int setup_signals(void) {
 	struct sigaction signal_action = {
 		.sa_handler = signal_handler,
 		.sa_flags = 0,
@@ -801,7 +801,7 @@ static int wlrun(struct config cfg) {
 
 	wl_list_init(&ctx.outputs);
 
-	if (setup_signals(&ctx) == -1) {
+	if (setup_signals() == -1) {
 		return EXIT_FAILURE;
 	}
 
