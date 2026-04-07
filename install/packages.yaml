@@ -149,7 +149,7 @@ desktop:
     stormy:
         type: "Source"
         build:
-            - "if [ -x /usr/local/bin/stormy ]; then echo '[SKIP] stormy already installed'; else go install github.com/ashish0kumar/stormy@latest && mv \"$HOME/go/bin/stormy\" /usr/local/bin/stormy && chmod +x /usr/local/bin/stormy; fi"
+            - "if [ -x /usr/local/bin/stormy ]; then echo '[SKIP] stormy already installed'; else go install github.com/ashish0kumar/stormy@latest && doas mv \"$HOME/go/bin/stormy\" /usr/local/bin/stormy && doas chmod +x /usr/local/bin/stormy; fi"
         depends: [system.tools]
         start: "Installing stormy weather CLI"
         end: "stormy installed"
