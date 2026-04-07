@@ -36,10 +36,10 @@ set -g __fish_git_prompt_color_branch yellow
 set -g __fish_git_prompt_color_upstream_ahead purple
 set -g __fish_git_prompt_color_upstream_behind red
 set -g __fish_git_prompt_color_dirtystate ff8c00
-set -g __fish_git_prompt_char_dirtystate "●"
-set -g __fish_git_prompt_char_stagedstate "→"
-set -g __fish_git_prompt_char_untrackedfiles "☡"
-set -g __fish_git_prompt_char_stashstate "↩"
+set -g __fish_git_prompt_char_dirtystate "*"
+set -g __fish_git_prompt_char_stagedstate "+"
+set -g __fish_git_prompt_char_untrackedfiles "?"
+set -g __fish_git_prompt_char_stashstate "^"
 set -g __fish_git_prompt_char_upstream_ahead "+"
 set -g __fish_git_prompt_char_upstream_behind -
 set -g __fish_git_prompt_char_upstream_equal ""
@@ -51,7 +51,7 @@ set -g __fish_git_prompt_char_upstream_equal ""
 function fish_prompt
     set -l last_status $status
     set_color purple
-    echo -n "λ "
+    echo -n "$ "
     set_color normal
     set_color blue
     printf "%s" (string replace $HOME "~" (pwd))
@@ -63,7 +63,7 @@ function fish_prompt
         set_color normal
     end
     set_color cyan
-    printf " ➤ "
+    printf "> "
     set_color normal
 end
 

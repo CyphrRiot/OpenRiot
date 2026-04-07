@@ -172,13 +172,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 		}
 	}
 
-	// Copy backgrounds to ~/.local/share/openriot/backgrounds
-	if dryRun {
-		fmt.Println("[INFO]  [DRY-RUN] Would copy backgrounds")
-	} else if err := copyBackgrounds(repoDir, homeDir); err != nil {
-		fmt.Printf("[WARN]  Background copy failed: %v\n", err)
-	}
-
+	// NOTE: Backgrounds copying disabled - sway config uses system paths
 	return nil
 }
 

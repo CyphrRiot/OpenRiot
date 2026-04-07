@@ -244,8 +244,8 @@ install_packages() {
     pkg_exit=$?
     if [ $pkg_exit -ne 0 ]; then
         warn "openriot --packages failed, trying fallback..."
-        # Fallback: grep packages directly from YAML
-        pkg_raw=$(grep "^ *- " "$INSTALL_DIR/install/packages.yaml" 2>/dev/null | sed 's/.*- //' | tr -d ' ')
+        # Fallback: grep packages directly from YAML (exclude commands - quoted strings)
+        pkg_raw=$(grep -E '^ +- [a-zA-Z]' "$INSTALL_DIR/install/packages.yaml" 2>/dev/null | sed 's/.*- //')
     fi
     if [ -z "$pkg_raw" ]; then
         error "No packages found in packages.yaml"
@@ -402,9 +402,9 @@ main() {
     # Debug: show environment and paths
     info "HOME=$HOME INSTALL_DIR=$INSTALL_DIR PWD=$(pwd) UID=$(id -u)"
     if [ -d "$INSTALL_DIR" ]; then
-        info "INSTALL_DIR exists ($(ls -la "$INSTALL_DIR" 2>/dev/null | head -2))"
+        info "OpenRiot installation found"
     else
-        info "INSTALL_DIR does not exist"
+        info "New installation - deploying OpenRiot base"
     fi
 
     # Detect mode

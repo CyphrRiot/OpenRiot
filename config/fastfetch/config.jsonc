@@ -44,12 +44,12 @@
         },
         {
             "type": "display",
-            "key": "│ ├󱄄",
+            "key": "│ ├[D]",
             "keyColor": "green",
         },
         {
             "type": "disk",
-            "key": "│ ├󰋊",
+            "key": "│ ├[disk]",
             "keyColor": "green",
         },
         {
@@ -59,7 +59,7 @@
         },
         {
             "type": "swap",
-            "key": "└ └󰓡 ",
+            "key": "└ └[S] ",
             "keyColor": "green",
         },
         {
@@ -83,7 +83,7 @@
         },
         {
             "type": "packages",
-            "key": "│ ├󰏖",
+            "key": "│ ├[PKG]",
             "keyColor": "yellow",
         },
         {
@@ -104,12 +104,12 @@
         },
         {
             "type": "wmtheme",
-            "key": "│ ├󰉼",
+            "key": "│ ├[THEME]",
             "keyColor": "blue",
         },
         {
             "type": "icons",
-            "key": "│ ├󰀻",
+            "key": "│ ├[ICON]",
             "keyColor": "blue",
         },
         {

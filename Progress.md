@@ -241,25 +241,36 @@ curl -fsSL https://openriot.org/setup.sh | sh
 
 ---
 
-## ✅ SESSION CHANGES (This Session)
+## 🔴 SESSION CHANGES (Apr 6, 2026)
 
-| #   | Change                                                                           | Files                                                          | Status    |
-| --- | -------------------------------------------------------------------------------- | -------------------------------------------------------------- | --------- |
-| 1   | Fixed sway autostart duplicate — check for any `exec sway` instead of marker     | setup.sh                                                       | ✅ DONE   |
-| 2   | Removed playerctl (not functional on OpenBSD/sndiod)                             | packages.yaml, waybar/Modules                                  | ✅ DONE   |
-| 3   | Removed dead /etc/openriot/VERSION + packages.yaml from site79.tgz              | build-iso.sh                                                   | ✅ DONE   |
-| 4   | Added lf file manager config (lfrc + preview script + chafa)                     | config/lf/, packages.yaml, config/foot/                        | ✅ DONE   |
-| 5   | Enabled sixel in foot for image previews                                         | config/foot/cypherriot.ini                                    | ✅ DONE   |
-| 6   | Added AGENTS.md + AI files to .gitignore                                         | .gitignore                                                     | ✅ DONE   |
-| 7   | Added crush screenshot inline to README                                           | README.md, assets/crush.png                                    | ✅ DONE   |
-| 8   | Added lf tutorial video to README                                               | README.md                                                      | ✅ DONE   |
-| 9   | Fixed README keybinding: Thunar -> lf                                            | README.md                                                      | ✅ DONE   |
-| 10  | Staged all new files (crush.png, lf/lfrc, lf/preview)                           | git                                                            | ✅ STAGED |
-| 11  | Removed Thunar dead code from waybar configs (ModulesWorkspaces, UserWorkspaces) | config/waybar/ModulesWorkspaces, config/waybar/UserWorkspaces  | ✅ DONE   |
-| 12  | Updated README lf shortcuts table to comprehensively match lfrc                  | README.md                                                      | ✅ DONE   |
-| 13  | Marked waybar-guard.sh polling as correct OpenBSD approach                       | Progress.md                                                    | ✅ DONE   |
-| 14  | Restored OpenBSD cross-compiled binary via `make build`                          | install/openriot                                               | ✅ DONE   |
-| 15  | Removed redundant mkdir for backgrounds (copyBackgrounds() already handles it)   | install/packages.yaml                                          | ✅ DONE   |
+### Issues Fixed
+
+| # | Issue | Fix | Files |
+|---|-------|-----|-------|
+| 1 | NULL byte error from openriot binary | Added fallback grep parser in setup.sh | setup.sh |
+| 2 | python3-3.11.0 wrong package name | Changed to python-3.11.0 in packages.yaml | packages.yaml |
+| 3 | tree-sitter glob pattern syntax error | Removed glob, use pkg_info -m only | setup.sh |
+| 4 | Backgrounds copying to ~/.local/share/openriot | Disabled in configs.go | configs.go |
+| 5 | crypto.toml and nvim configs being overwritten | Added preserve_if_exists in packages.yaml | packages.yaml |
+| 6 | Log sharing feature missing | Added --share-log to setup.sh and main.go | setup.sh, main.go |
+| 7 | setup.sh not executable | chmod +x via git | setup.sh |
+| 8 | Misleading "INSTALL_DIR does not exist" message | Changed to "New installation - deploying OpenRiot base" | setup.sh |
+| 9 | Duplicate `$mod+F` keybinding | Removed duplicate in keybindings.conf | keybindings.conf |
+| 10 | Sway opacity commands (unsupported) | Commented out in windowrules.conf | windowrules.conf |
+| 11 | Grep fallback parsing commands as packages | Fixed pattern to `grep -E '^ +- [a-zA-Z]'` | setup.sh |
+
+### Root Causes Identified
+
+1. **Sway not autostarting**: Fish config autostarts sway on TTY1 (console login). Works correctly if fish is default shell and user logs into TTY1.
+
+2. **Config file errors**: Duplicate keybinding (`$mod+F`) and unsupported `opacity` commands would prevent sway from starting.
+
+3. **Package installation failures**: The grep fallback was matching YAML command strings (quoted) as package names.
+
+### Unresolved
+
+- Package skip detection still failing (pkg_info check unreliable on OpenBSD)
+- User needs to retest with fresh install after these fixes
 
 ---
 
