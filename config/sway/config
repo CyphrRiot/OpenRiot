@@ -4,6 +4,14 @@
 set $mod Mod4
 set $terminal foot
 
+# Input — OpenBSD
+input type:keyboard {
+    xkb_layout us
+}
+input type:pointer {
+    accel_profile flat
+}
+
 # Bare minimum keybindings
 bindsym $mod+Return exec $terminal
 bindsym $mod+Q kill
