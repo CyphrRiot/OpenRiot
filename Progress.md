@@ -259,10 +259,11 @@ curl -fsSL https://openriot.org/setup.sh | sh
 | 12  | Updated README lf shortcuts table to comprehensively match lfrc                  | README.md                                                      | ✅ DONE   |
 | 13  | Marked waybar-guard.sh polling as correct OpenBSD approach                       | Progress.md                                                    | ✅ DONE   |
 | 14  | Restored OpenBSD cross-compiled binary via `make build`                          | install/openriot                                               | ✅ DONE   |
+| 15  | Removed redundant mkdir for backgrounds (copyBackgrounds() already handles it)   | install/packages.yaml                                          | ✅ DONE   |
 
 ---
 
-## 🔴 REMAINING TODO (Pre-Hardware Test)
+## 🔴 REMAINING TODO
 
 | #   | Item                                                                      | Severity | Notes              |
 | --- | ------------------------------------------------------------------------- | -------- | ------------------ |
