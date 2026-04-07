@@ -431,7 +431,7 @@ main() {
 
     echo ""
     echo "+----------------------------------------------------------+"
-    echo "|  OpenRiot bootstrap complete!                            |"
+    echo "|  OpenRiot v${banner_ver} Installation Complete              |"
     echo "|                                                          |"
     echo "|  Reboot now, then log in. Sway will start automatically. |"
     echo "+----------------------------------------------------------+"

@@ -146,6 +146,14 @@ desktop:
         start: "Installing Bibata-Modern-Ice cursor theme"
         end: "Bibata cursor installed"
 
+    stormy:
+        type: "Source"
+        build:
+            - "if [ -x /usr/local/bin/stormy ]; then echo '[SKIP] stormy already installed'; else go install github.com/ashish0kumar/stormy@latest && mv \"$HOME/go/bin/stormy\" /usr/local/bin/stormy && chmod +x /usr/local/bin/stormy; fi"
+        depends: [system.tools]
+        start: "Installing stormy weather CLI"
+        end: "stormy installed"
+
 system:
     tools:
         packages:
