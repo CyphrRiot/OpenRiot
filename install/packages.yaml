@@ -131,7 +131,7 @@ desktop:
     crush:
         type: "Source"
         build:
-            - "if [ -x \"$HOME/.local/bin/crush\" ]; then echo '[SKIP] crush already installed'; else mkdir -p $HOME/.local/bin && curl -fsSL 'https://github.com/charmbracelet/crush/releases/download/v0.55.1/crush_0.55.1_Openbsd_x86_64.tar.gz' -o /tmp/crush.tar.gz && tar -xzf /tmp/crush.tar.gz -C /tmp && mv /tmp/crush_0.55.1_Openbsd_x86_64/crush $HOME/.local/bin/crush && chmod +x $HOME/.local/bin/crush && rm -rf /tmp/crush.tar.gz /tmp/crush_0.55.1_Openbsd_x86_64; fi"
+            - "if [ -x /usr/local/bin/crush ]; then echo '[SKIP] crush already installed'; else curl -fsSL 'https://github.com/charmbracelet/crush/releases/download/v0.55.1/crush_0.55.1_Openbsd_x86_64.tar.gz' -o /tmp/crush.tar.gz && tar -xzf /tmp/crush.tar.gz -C /tmp && doas mv /tmp/crush_0.55.1_Openbsd_x86_64/crush /usr/local/bin/crush && doas chmod +x /usr/local/bin/crush && rm -rf /tmp/crush.tar.gz /tmp/crush_0.55.1_Openbsd_x86_64; fi"
         depends: []
         start: "Installing crush AI CLI"
         end: "crush installed"
