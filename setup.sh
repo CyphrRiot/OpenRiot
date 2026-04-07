@@ -248,19 +248,20 @@ install_packages() {
 
     failed=0
     for pkg in $packages; do
-        info "Installing $pkg ..."
-        pkg_output=$(doas pkg_add -D unsigned "$pkg" 2>&1)
-        pkg_status=$?
-
-        # Check if package was already installed
-        if echo "$pkg_output" | grep -qi "already installed"; then
+        # Check if already installed (OpenBSD stores pkg info in /var/db/pkg/)
+        if [ -d "/var/db/pkg/$pkg-"* ] || pkg_info -m "$pkg" >/dev/null 2>&1; then
             info "  [SKIP] $pkg installation"
-        elif [ $pkg_status -eq 0 ]; then
-            success "$pkg installed."
         else
-            warn "Failed to install $pkg."
-            echo "$pkg_output" | sed 's/^/    /'
-            failed=$((failed + 1))
+            info "Installing $pkg ..."
+            pkg_output=$(doas pkg_add -D unsigned "$pkg" 2>&1)
+            pkg_status=$?
+            if [ $pkg_status -eq 0 ]; then
+                success "$pkg installed."
+            else
+                warn "Failed to install $pkg."
+                echo "$pkg_output" | sed 's/^/    /'
+                failed=$((failed + 1))
+            fi
         fi
     done
 
