@@ -55,7 +55,7 @@ error() { echo -e "${RED}[ERROR]${NC} $1" | tee -a "$LOG_FILE" >&2; }
 
 log() { printf '[OPENRIOT] %s\n' "$1" | tee -a "$LOG_FILE"; }
 
-# Upload log to temp.sh for sharing with developers
+# Upload log to sprunge.us for sharing with developers
 share_log() {
     log_file="${1:-$LOG_FILE}"
     if [ ! -f "$log_file" ]; then
@@ -63,12 +63,13 @@ share_log() {
         return 1
     fi
     echo "Uploading log..."
-    url=$(curl -s -F "file=@$log_file" "https://temp.sh" 2>/dev/null)
-    if echo "$url" | grep -qE "^https://temp.sh/[a-zA-Z0-9]+"; then
+    # sprunge.us - stable pastebin
+    url=$(curl -s --data-binary "@$log_file" "https://sprunge.us" 2>/dev/null)
+    if echo "$url" | grep -qE "^https?://sprunge"; then
         echo "Log uploaded to: $url"
         echo "$url" > "${log_file}.url"
     else
-        echo "Upload failed. Showing last 100 lines:"
+        echo "Upload services unavailable. Showing last 100 lines:"
         tail -100 "$log_file"
     fi
 }
