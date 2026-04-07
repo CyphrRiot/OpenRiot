@@ -28,14 +28,10 @@ cat << 'EOF'
     Documentation: https://openriot.org
     Issues:         https://github.com/CyphrRiot/OpenRiot/issues
 
-    Press Enter or wait 10s to continue...
+    Auto-closing in 10s...
 
 EOF
 
-# Use timeout to avoid hanging if keyboard not ready yet
-if command -v timeout >/dev/null 2>&1; then
-    timeout 10 read _ || true
-else
-    read _ || true
-fi
+# Wait 10 seconds then auto-dismiss (read doesn't work reliably via foot -e stdin)
+sleep 10
 touch "$HOME/.openriot-welcomed"
