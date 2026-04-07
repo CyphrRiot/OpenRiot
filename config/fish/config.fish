@@ -7,6 +7,12 @@
 set -gx LANG en_US.UTF-8
 set -gx LC_ALL en_US.UTF-8
 
+# XDG_RUNTIME_DIR — required by Wayland compositors
+set -gx XDG_RUNTIME_DIR /tmp/$USER-runtime
+if not test -d $XDG_RUNTIME_DIR
+    mkdir -p $XDG_RUNTIME_DIR
+end
+
 # Greeting with fastfetch if available
 function fish_greeting
     if command -v fastfetch >/dev/null 2>&1
@@ -68,7 +74,9 @@ function fish_prompt
     set_color normal
 end
 
-# Right-hand Prompt Function
+# NOTE: Sway autostart is handled in the Sway config itself, NOT here.
+# fish is a login shell — it should NEVER exec sway, or SSH sessions die.
+# On TTY1, xenodm launches sway directly. On SSH, you get a shell.
 function fish_right_prompt
     set_color purple
     printf "("

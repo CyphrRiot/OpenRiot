@@ -47,7 +47,7 @@ core:
         critical: true
         commands:
             - "if ! grep -q '^/usr/local/bin/fish$' /etc/shells 2>/dev/null; then echo '/usr/local/bin/fish' | doas tee -a /etc/shells >/dev/null; fi"
-            - "doas chsh -s /usr/local/bin/fish $(whoami) || true"
+            - "doas chsh -s /usr/local/bin/fish"
 
 desktop:
     sway:
@@ -73,6 +73,8 @@ desktop:
                       swayidle.conf,
                       windowrules.conf,
                   ]
+            - pattern: backgrounds/*
+              target: "~/.local/share/openriot/backgrounds"
             - pattern: waybar/*
               preserve_if_exists: [UserWorkspaces, UserModules]
             - pattern: fonts/*
@@ -80,8 +82,8 @@ desktop:
             - pattern: foot/*
             - pattern: fuzzel/*
         commands:
-            - "doas rcctl enable seatd && doas rcctl start seatd"
-            - "if [ -f $HOME/.config/fish/config.fish ] && ! grep -q 'exec sway' $HOME/.config/fish/config.fish 2>/dev/null; then printf '\\n# openriot-sway-autostart\\nif status is-interactive\\n    set -gx XDG_RUNTIME_DIR /tmp/\"$USER\"-runtime && mkdir -p $XDG_RUNTIME_DIR\\n    exec sway\\nend\\n' >> $HOME/.config/fish/config.fish; fi"
+            - "doas rcctl enable seatd && doas rcctl start seatd || true"
+            - "doas usermod -G _seatd $(whoami) 2>/dev/null || true"
             - "cp $HOME/.local/share/openriot/config/applications/*.desktop ~/.local/share/applications/ 2>/dev/null || true"
         depends: [core.base]
         start: "Installing Sway desktop"
