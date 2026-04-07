@@ -63,7 +63,7 @@ desktop:
             - wl-clipboard-2.2.1pl20251124
             - ImageMagick-6.9.13.43
             - wf-recorder-0.6.0p1
-            - seatd
+            - seatd-0.9.3
         configs:
             - pattern: sway/*
               preserve_if_exists:
@@ -81,7 +81,7 @@ desktop:
             - pattern: fuzzel/*
         commands:
             - "doas rcctl enable seatd && doas rcctl start seatd"
-            - "if [ -f $HOME/.config/fish/config.fish ] && ! grep -q 'exec sway' $HOME/.config/fish/config.fish 2>/dev/null; then printf '\\n# openriot-sway-autostart\\nif status is-interactive\\n    exec sway\\nend\\n' >> $HOME/.config/fish/config.fish; fi"
+            - "if [ -f $HOME/.config/fish/config.fish ] && ! grep -q 'exec sway' $HOME/.config/fish/config.fish 2>/dev/null; then printf '\\n# openriot-sway-autostart\\nif status is-interactive\\n    set -gx XDG_RUNTIME_DIR /tmp/\"$USER\"-runtime && mkdir -p $XDG_RUNTIME_DIR\\n    exec sway\\nend\\n' >> $HOME/.config/fish/config.fish; fi"
             - "cp $HOME/.local/share/openriot/config/applications/*.desktop ~/.local/share/applications/ 2>/dev/null || true"
         depends: [core.base]
         start: "Installing Sway desktop"
@@ -153,6 +153,19 @@ desktop:
         depends: [system.tools]
         start: "Installing stormy weather CLI"
         end: "stormy installed"
+
+fonts:
+    nerd-fonts:
+        packages:
+            - symbols-only-nerd-fonts-3.3.0
+            - noto-nerd-fonts-3.3.0
+        commands:
+            - "fc-cache"
+        depends: []
+        start: "Installing Nerd Fonts"
+        end: "Nerd Fonts installed"
+        type: "Package"
+        critical: false
 
 system:
     tools:
