@@ -55,6 +55,24 @@ error() { echo -e "${RED}[ERROR]${NC} $1" | tee -a "$LOG_FILE" >&2; }
 
 log() { printf '[OPENRIOT] %s\n' "$1" | tee -a "$LOG_FILE"; }
 
+# Upload log to ix.io for sharing with developers
+share_log() {
+    log_file="${1:-$LOG_FILE}"
+    if [ ! -f "$log_file" ]; then
+        echo "Log file not found: $log_file"
+        return 1
+    fi
+    echo "Uploading log..."
+    url=$(curl -s -F "f:1=<-" "https://ix.io" < "$log_file")
+    if [ -n "$url" ]; then
+        echo "Log uploaded to: $url"
+        echo "$url" > "${log_file}.url"
+    else
+        echo "Upload failed"
+        return 1
+    fi
+}
+
 # -----------------------------------------------------------------------------
 # Version Comparison
 # -----------------------------------------------------------------------------
@@ -220,23 +238,20 @@ setup_repository() {
 install_packages() {
     info "Installing packages from packages.yaml (safe one-by-one mode)..."
 
-    # Use openriot binary to parse packages.yaml (same parser as Go binary)
-    if [ ! -x "$INSTALL_DIR/install/openriot" ]; then
-        error "openriot binary not found at $INSTALL_DIR/install/openriot"
-        exit 1
-    fi
-
-    # Change to binary's directory so relative paths work
-    cd "$INSTALL_DIR/install" || { error "Cannot cd to $INSTALL_DIR/install"; exit 1; }
-
-    info "Parsing packages from packages.yaml..."
+    # Try openriot binary first, fallback to grep if it fails
     pkg_raw=$(./openriot --packages 2>&1)
     pkg_exit=$?
     if [ $pkg_exit -ne 0 ]; then
-        error "openriot --packages failed (exit $pkg_exit): $pkg_raw"
+        warn "openriot --packages failed, trying fallback..."
+        # Fallback: grep packages directly from YAML
+        pkg_raw=$(grep -E '^\s+-\s+[a-z]' "$INSTALL_DIR/install/packages.yaml" 2>/dev/null | sed 's/.*-\s*//' | tr -d ' ')
+    fi
+    if [ -z "$pkg_raw" ]; then
+        error "No packages found in packages.yaml"
+        error "Run 'setup.sh --share-log' to share logs for debugging"
         exit 1
     fi
-    packages=$(echo "$pkg_raw" | sort -u)
+    packages=$(echo "$pkg_raw" | sort -u | grep -v '^$')
 
     if [ -z "$packages" ]; then
         error "No packages found in packages.yaml"
@@ -249,8 +264,9 @@ install_packages() {
     failed=0
     for pkg in $packages; do
         # Check if already installed (OpenBSD stores pkg info in /var/db/pkg/)
-        if [ -d "/var/db/pkg/$pkg-"* ] || pkg_info -m "$pkg" >/dev/null 2>&1; then
-            info "  [SKIP] $pkg installation"
+        # Use pkg_info to check - it's more reliable than glob patterns in [ ]
+        if pkg_info -m "$pkg" >/dev/null 2>&1; then
+            info "  [SKIP] $pkg already installed"
         else
             info "Installing $pkg ..."
             pkg_output=$(doas pkg_add -D unsigned "$pkg" 2>&1)
@@ -342,9 +358,10 @@ SWCONF
 # -----------------------------------------------------------------------------
 
 usage() {
-    echo "Usage: setup.sh [--install | --upgrade | --help]"
+    echo "Usage: setup.sh [--install | --upgrade | --share-log | --help]"
     echo "  --install   Fresh install (default)"
     echo "  --upgrade   Upgrade if newer version available"
+    echo "  --share-log Share latest log file at ix.io"
     echo "  --help      Show this message"
     exit 0
 }
@@ -361,6 +378,10 @@ main() {
         case "$arg" in
             --install) MODE="install" ;;
             --upgrade) MODE="upgrade" ;;
+            --share-log)
+                share_log "${2:-}"
+                exit $?
+                ;;
             --help|-h) usage ;;
         esac
     done
