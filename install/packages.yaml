@@ -13,9 +13,6 @@ core:
             - jq-1.8.1
         configs:
             - pattern: fastfetch/*
-        commands:
-            - "git config --global pull.rebase true"
-            - "git config --global init.defaultBranch master"
         depends: []
         start: "Installing base tools"
         end: "Base tools installed"
