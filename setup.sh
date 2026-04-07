@@ -191,6 +191,8 @@ configure_doas() {
 install_bootstrap_packages() {
     info "Installing bootstrap packages (curl, git)..."
     doas pkg_add curl git
+    git config --global pull.rebase true
+    git config --global init.defaultBranch master
     success "Bootstrap packages installed"
 }
 
@@ -639,7 +641,7 @@ run_source_builds() {
         info "Installing Bibata cursor..."
         mkdir -p "$REAL_HOME/.local/share/icons"
         curl -fsSL https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.7/Bibata-Modern-Ice.tar.xz -o /tmp/bibata.tar.xz
-        (cd /tmp && tar -xJf /tmp/bibata.tar.xz)
+        (cd /tmp && xz -d bibata.tar.xz && tar -xf bibata.tar)
         mv /tmp/Bibata-Modern-Ice "$REAL_HOME/.local/share/icons/"
         rm -f /tmp/bibata.tar.xz
         gtk-update-icon-cache -f "$REAL_HOME/.local/share/icons/Bibata-Modern-Ice" 2>/dev/null || true
