@@ -123,7 +123,7 @@ source:
     fonts:
         packages: []
         commands:
-            - "if [ ! -d \"$HOME/.local/share/fonts/JetBrainsMono\" ]; then mkdir -p $HOME/.local/share/fonts && curl -fsSL 'https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/JetBrainsMono.zip' -o /tmp/jetbrainsmono.zip && unzip -q /tmp/jetbrainsmono.zip -d $HOME/.local/share/fonts && rm -f /tmp/jetbrainsmono.zip && fc-cache -fv; fi"
+            - "if [ ! -f \"$HOME/.local/share/fonts/JetBrainsMonoNerdFontMono-Regular.ttf\" ]; then mkdir -p $HOME/.local/share/fonts && cp $HOME/.local/share/openriot/config/fonts/JetBrainsMonoNerdFontMono-Regular.ttf $HOME/.local/share/fonts/ && fc-cache -fv; fi"
         type: "Source"
         critical: true
 
