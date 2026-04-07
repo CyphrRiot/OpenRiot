@@ -46,6 +46,8 @@ core:
         type: "Package"
         critical: true
         commands:
+            - "if ! grep -q '^/usr/local/bin/fish$' /etc/shells 2>/dev/null; then echo '/usr/local/bin/fish' | doas tee -a /etc/shells >/dev/null; fi"
+            - "doas chsh -s /usr/local/bin/fish (whoami) || true"
 
 desktop:
     sway:
@@ -77,6 +79,7 @@ desktop:
             - pattern: foot/*
             - pattern: fuzzel/*
         commands:
+            - "if [ -f $HOME/.config/fish/config.fish ] && ! grep -q 'exec sway' $HOME/.config/fish/config.fish 2>/dev/null; then printf '\\n# openriot-sway-autostart\\nif status is-interactive\\n    exec sway\\nend\\n' >> $HOME/.config/fish/config.fish; fi"
             - "cp $HOME/.local/share/openriot/config/applications/*.desktop ~/.local/share/applications/ 2>/dev/null || true"
         depends: [core.base]
         start: "Installing Sway desktop"
