@@ -13,6 +13,7 @@ project(
 
 add_project_arguments(
 	[
+		'-D_POSIX_C_SOURCE=199309L',
 		'-Wundef',
 		'-Wunused',
 		'-Wlogical-op',
@@ -47,10 +48,17 @@ cc = meson.get_compiler('c')
 m = cc.find_library('m')
 rt = cc.find_library('rt', required: false)
 
+# Force rt linking on OpenBSD for POSIX timer functions (timer_create, timer_settime)
+if rt.found()
+	rt_link = rt
+else
+	rt_link = cc.find_library('rt', required: true)
+endif
+
 executable(
 	'wlsunset',
 	['main.c', 'color.c', 'str_vec.c'],
-	dependencies: [wl_client, protocols_dep, m, rt],
+	dependencies: [wl_client, protocols_dep, m, rt_link],
 	install: true,
 )
 
