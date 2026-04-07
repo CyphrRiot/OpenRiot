@@ -8,7 +8,7 @@
 # theme = "material_deep_ocean"
 # theme = "night_owl"
 # theme = "flexoki_dark"
-theme = "openriot"
+theme = "ao"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Core Editor Settings
@@ -53,6 +53,3 @@ snippets = true
 D = ["ensure_selections_forward", "extend_to_line_end", "delete_selection"]
 
 G = "goto_last_line"     # Shift + G goes to end of file, just like Vim
-
-# Reload current file from disk (like Vim's :e!)
-R = ":reload<ret>"
