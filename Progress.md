@@ -1,6 +1,6 @@
 # OpenRiot — Project Progress
 
-**v1.3** · commit `0834543` · `https://github.com/CyphrRiot/OpenRiot.git`
+**v1.4** · commit `899d893` · `https://github.com/CyphrRiot/OpenRiot.git`
 
 **Quick test:** `rm -rf ~/.local/share/openriot && curl -fsSL https://openriot.org/setup.sh | sh`
 
