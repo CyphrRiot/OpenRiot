@@ -431,11 +431,11 @@ main() {
     run_openriot_install
 
     echo ""
-    echo "+----------------------------------------------------------+"
-    echo "|  OpenRiot v${banner_ver} Installation Complete              |"
-    echo "|                                                          |"
-    echo "|  Reboot now, then log in. Sway will start automatically. |"
-    echo "+----------------------------------------------------------+"
+    printf '+%60s+\n' '' | tr ' ' '-'
+    printf '|  OpenRiot v%s Installation Complete%*s|\n' "$banner_ver" $((22 - ${#banner_ver})) ''
+    printf '|                                                          |\n'
+    printf '|  Run "sway" from TTY1 to start the desktop.             |\n'
+    printf '+%60s+\n' '' | tr ' ' '-'
     echo ""
 }
 
