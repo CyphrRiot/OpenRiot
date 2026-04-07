@@ -251,14 +251,15 @@ install_packages() {
         info "Installing $pkg ..."
         pkg_output=$(doas pkg_add -D unsigned "$pkg" 2>&1)
         pkg_status=$?
-        if [ $pkg_status -eq 0 ]; then
+
+        # Check if package was already installed
+        if echo "$pkg_output" | grep -qi "already installed"; then
+            info "  [SKIP] $pkg installation"
+        elif [ $pkg_status -eq 0 ]; then
             success "$pkg installed."
         else
             warn "Failed to install $pkg."
             echo "$pkg_output" | sed 's/^/    /'
-            echo ""
-            echo -e "${YELLOW}[PAUSE]${NC} Package installation failed. Press [ENTER] to continue or Ctrl+C to abort..."
-            read dummy
             failed=$((failed + 1))
         fi
     done
