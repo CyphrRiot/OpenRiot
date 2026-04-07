@@ -600,8 +600,8 @@ label:focus {
     font-size: 95%; /* Slightly smaller font for window titles */
 }
 
-/* Arch logo styling */
-#custom-arch {
+/* OpenBSD logo styling */
+#custom-openbsd {
     color: @accent5; /* Same cyan color as battery and other menu items */
     font-size: 150%;
     padding: 0 5px;

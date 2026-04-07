@@ -25,7 +25,7 @@
 
         // ----- MODULES LEFT:
         "modules-left": [
-            "custom/arch",             // OpenBSD / App Launcher
+            "custom/openbsd",             // OpenBSD / App Launcher
             "custom/separator#blank",
             "sway/workspaces",
             "custom/separator#blank",
