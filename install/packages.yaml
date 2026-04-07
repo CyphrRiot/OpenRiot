@@ -9,7 +9,7 @@ core:
             - git
             - rsync-3.4.1
             - bc-gh-7.1.0p0
-            - python3-3.11.0
+            - python-3.11.0
             - fastfetch-2.60.0
             - jq-1.8.1
         configs:
@@ -41,6 +41,7 @@ core:
             - pattern: fish/*
               preserve_if_exists: [conf.d/*.fish]
             - pattern: nvim/*
+              preserve_if_exists: [init.lua]
             - pattern: btop/themes/*
             - pattern: btop/btop.conf
         depends: [core.base]
@@ -102,6 +103,7 @@ desktop:
               preserve_if_exists: [config.toml]
             - pattern: lf/*
             - pattern: crypto.toml
+              preserve_if_exists: [crypto.toml]
         depends: [core.base, desktop.sway]
         start: "Installing desktop applications"
         end: "Desktop applications installed"

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -205,6 +206,18 @@ func main() {
 		}
 		return
 	}
+	// --share-log [filename] - upload log to ix.io for sharing
+	if len(os.Args) >= 2 && os.Args[1] == "--share-log" {
+		filename := "setup.log"
+		if len(os.Args) >= 3 {
+			filename = os.Args[2]
+		}
+		if err := shareLog(filename); err != nil {
+			fmt.Fprintf(os.Stderr, "share-log error: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
 
 	// No command or unknown command
 	fmt.Fprintf(os.Stderr, "openriot %s\n", version)
@@ -220,8 +233,32 @@ func main() {
 	fmt.Fprintf(os.Stderr, "  --brightness <args> Adjust brightness\n")
 	fmt.Fprintf(os.Stderr, "  --notify \"title\" \"body\" Send notification\n")
 	fmt.Fprintf(os.Stderr, "  --crypto [BTC|ETH] Show crypto prices\n")
+	fmt.Fprintf(os.Stderr, "  --share-log [file] Upload log to ix.io for sharing\n")
 	fmt.Fprintf(os.Stderr, "  --version         Show version\n")
 	os.Exit(1)
+}
+
+// shareLog uploads a file to ix.io pastebin for easy sharing
+func shareLog(filename string) error {
+	homeDir, _ := os.UserHomeDir()
+	logPath := filepath.Join(homeDir, ".cache", "openriot", filename)
+	
+	data, err := os.ReadFile(logPath)
+	if err != nil {
+		return fmt.Errorf("reading log file: %w", err)
+	}
+
+	// Upload to ix.io
+	cmd := exec.Command("curl", "-s", "-F", "f:1=<-", "https://ix.io")
+	cmd.Stdin = bytes.NewReader(data)
+	output, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("upload failed: %w", err)
+	}
+
+	url := strings.TrimSpace(string(output))
+	fmt.Println(url)
+	return nil
 }
 
 // runInstall handles the --install command (runs as USER, no TTY/PTY needed)
