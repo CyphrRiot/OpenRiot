@@ -590,7 +590,10 @@ run_source_builds() {
         fi
         rm -rf /tmp/wlsunset
         git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset /tmp/wlsunset
-        cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release -Drtlib=disable 2>&1 | tee -a "$LOG_FILE"
+        # OpenBSD has no librt - patch meson.build to remove rt dependency
+        sed -i "s/rt = cc.find_library('rt')/# rt not available on OpenBSD/" /tmp/wlsunset/meson.build
+        sed -i 's/dependencies: \[wl_client, protocols_dep, m, rt\]/dependencies: [wl_client, protocols_dep, m]/' /tmp/wlsunset/meson.build
+        cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release 2>&1 | tee -a "$LOG_FILE"
         meson compile -C build 2>&1 | tee -a "$LOG_FILE"
         doas meson install -C build 2>&1 | tee -a "$LOG_FILE"
         # Verify before cleaning up build dir
@@ -641,11 +644,15 @@ run_source_builds() {
         info "Installing Bibata cursor..."
         mkdir -p "$REAL_HOME/.local/share/icons"
         curl -fsSL https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.7/Bibata-Modern-Ice.tar.xz -o /tmp/bibata.tar.xz
-        tar -xf /tmp/bibata.tar.xz -C /tmp
+        tar -xJf /tmp/bibata.tar.xz -C /tmp
         mv /tmp/Bibata-Modern-Ice "$REAL_HOME/.local/share/icons/"
         rm -f /tmp/bibata.tar.xz
         gtk-update-icon-cache -f "$REAL_HOME/.local/share/icons/Bibata-Modern-Ice" 2>/dev/null || true
-        success "Bibata cursor installed."
+        if [ -d "$REAL_HOME/.local/share/icons/Bibata-Modern-Ice" ]; then
+            success "Bibata cursor installed."
+        else
+            warn "Bibata cursor may have failed to install."
+        fi
     else
         info "Bibata cursor already installed."
     fi
