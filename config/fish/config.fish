@@ -55,7 +55,7 @@ set -g __fish_git_prompt_char_upstream_equal ""
 function fish_prompt
     set -l last_status $status
     set_color purple
-    echo -n '$ '
+    echo -n '🐡 '
     set_color normal
     set_color cyan
     printf "%s" (string replace $HOME "~" (pwd))
@@ -67,7 +67,7 @@ function fish_prompt
         set_color normal
     end
     set_color cyan
-    printf "> "
+    printf "❯ "
     set_color normal
 end
 
