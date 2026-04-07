@@ -590,7 +590,7 @@ run_source_builds() {
         fi
         rm -rf /tmp/wlsunset
         git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset /tmp/wlsunset
-        cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release 2>&1 | tee -a "$LOG_FILE"
+        cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release -Drtlib=disable 2>&1 | tee -a "$LOG_FILE"
         meson compile -C build 2>&1 | tee -a "$LOG_FILE"
         doas meson install -C build 2>&1 | tee -a "$LOG_FILE"
         # Verify before cleaning up build dir
