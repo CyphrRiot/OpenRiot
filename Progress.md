@@ -19,6 +19,7 @@
 | Sway + Waybar | ✅ | `config/sway/`, `config/waybar/` |
 | Fish shell autostart | ✅ | `config/fish/config.fish` |
 | Log sharing | ✅ | `--share-log` flag |
+| JetBrainsMono Nerd Font | ✅ | `setup.sh`, `config/foot/`, `config/sway/` |
 
 ---
 
@@ -40,7 +41,7 @@
 | 12 | Fish emojis garbled on console | ASCII alternatives |
 | 13 | Fastfetch Nerd Font broken | ASCII labels |
 | 14 | `pkg_info -m` always fails skip check | Changed to `pkg_info -e` |
-| 15 | Grep fallback included YAML commands | Added `grep -v '"'` filter |
+| 15 | Grep fallback included YAML commands | Replaced with yq + Python YAML parser |
 
 ---
 
@@ -78,16 +79,20 @@ tail -20 ~/.cache/openriot/setup.log
 
 ---
 
-### TODO 3 — Foot Emoji Rendering
-**What:** Foot terminal (Wayland) should render Nerd Font emojis. TTY1 console should NOT (correct behavior).
+### TODO 3 — Nerd Font Rendering in Foot/Waybar ✅ DONE
+**What:** JetBrainsMono Nerd Font v3.4.0 installed for glyph/icon rendering in foot, lsd, waybar.
+
+**Installed:** `~/.local/share/fonts/JetBrainsMono/` (downloaded from GitHub, fc-cache updated)
+
+**Configured:** `config/foot/cypherriot.ini` → `font=JetBrainsMono NF:size=11`
+
+**Configured:** `config/sway/config` → `font pango:JetBrainsMono NF 10`
 
 **Test:**
 1. Start Sway desktop
 2. Open foot terminal
-3. Run `fastfetch` — emoji icons should appear
-4. Check waybar — battery/volume icons should render
-
-**If broken:** `?` or blank boxes instead of icons.
+3. Run `fastfetch` — icons should appear
+4. Run `lsd -l` — file icons should appear
 
 ---
 
