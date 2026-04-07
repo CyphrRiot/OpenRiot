@@ -588,42 +588,25 @@ run_source_builds() {
             info "Installing wayland-protocols..."
             doas pkg_add wayland-protocols
         fi
-        rm -rf /tmp/wlsunset /tmp/wlsunset.tar.gz
-        # Try tarball first (simpler, no git needed), fall back to git clone
-        if curl -fsSL https://git.sr.ht/~kennylevinsen/wlsunset/archive/master.tar.gz -o /tmp/wlsunset.tar.gz; then
-            mkdir -p /tmp/wlsunset
-            tar -xzf /tmp/wlsunset.tar.gz -C /tmp --strip-components=1
-            rm -f /tmp/wlsunset.tar.gz
-        elif ! git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset /tmp/wlsunset 2>&1; then
-            warn "Could not download wlsunset source. Check network."
-            rm -rf /tmp/wlsunset /tmp/wlsunset.tar.gz
-        fi
-        if [ ! -f /tmp/wlsunset/meson.build ]; then
-            warn "wlsunset source not found. Skipping build."
-        else
-            # OpenBSD has no librt - patch meson.build to remove rt dependency
-            sed -i "s/rt = cc.find_library('rt')/# rt not available on OpenBSD/" /tmp/wlsunset/meson.build
-            sed -i 's/dependencies: \[wl_client, protocols_dep, m, rt\]/dependencies: [wl_client, protocols_dep, m]/' /tmp/wlsunset/meson.build
-            cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release 2>&1 | tee -a "$LOG_FILE"
-            meson compile -C build 2>&1 | tee -a "$LOG_FILE"
-            doas meson install -C build 2>&1 | tee -a "$LOG_FILE"
-            # Verify before cleaning up build dir
+        rm -rf /tmp/wlsunset
+        cp -r "$INSTALL_DIR/source/wlsunset" /tmp/wlsunset
+        cd /tmp/wlsunset
+        meson setup build --prefix=/usr/local --buildtype=release 2>&1 | tee -a "$LOG_FILE"
+        meson compile -C build 2>&1 | tee -a "$LOG_FILE"
+        doas meson install -C build 2>&1 | tee -a "$LOG_FILE"
+        if [ -x "/usr/local/bin/wlsunset" ]; then
+            success "wlsunset built and installed."
+        elif [ -x "/tmp/wlsunset/build/wlsunset" ]; then
+            info "Copying wlsunset manually..."
+            doas cp /tmp/wlsunset/build/wlsunset /usr/local/bin/wlsunset
+            doas chmod +x /usr/local/bin/wlsunset
             if [ -x "/usr/local/bin/wlsunset" ]; then
                 success "wlsunset built and installed."
-            elif [ -x "/tmp/wlsunset/build/wlsunset" ]; then
-                # meson install failed, copy manually
-                info "Copying wlsunset manually..."
-                doas cp /tmp/wlsunset/build/wlsunset /usr/local/bin/wlsunset
-                doas chmod +x /usr/local/bin/wlsunset
-                if [ -x "/usr/local/bin/wlsunset" ]; then
-                    success "wlsunset built and installed."
-                fi
-            else
-                warn "wlsunset build may have failed. Check log for errors."
-                warn "Try manually: doas meson install -C /tmp/wlsunset/build"
             fi
-            rm -rf /tmp/wlsunset
+        else
+            warn "wlsunset build may have failed. Check log for errors."
         fi
+        rm -rf /tmp/wlsunset
     else
         info "wlsunset already installed."
     fi
@@ -656,7 +639,7 @@ run_source_builds() {
         info "Installing Bibata cursor..."
         mkdir -p "$REAL_HOME/.local/share/icons"
         curl -fsSL https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.7/Bibata-Modern-Ice.tar.xz -o /tmp/bibata.tar.xz
-        tar -xJf /tmp/bibata.tar.xz -C /tmp
+        (cd /tmp && tar -xJf /tmp/bibata.tar.xz)
         mv /tmp/Bibata-Modern-Ice "$REAL_HOME/.local/share/icons/"
         rm -f /tmp/bibata.tar.xz
         gtk-update-icon-cache -f "$REAL_HOME/.local/share/icons/Bibata-Modern-Ice" 2>/dev/null || true
