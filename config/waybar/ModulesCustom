@@ -7,14 +7,6 @@
 /* NOTE: Changes will only be kept in user files: UserModules, UserWorkspaces */
 
 {
-	// "custom/arch": {
-    //     "format": "󰣇",
-    //     "on-click": "nwg-drawer -c 4 -is 48 -spacing 15 -fm \"Noto Sans\" || fuzzel",
-    //     "on-click-right": "pkill fuzzel || fuzzel",
-    //     "tooltip": true,
-    //     "tooltip-format": "Left Click: Application Grid\nRight Click: Fuzzel Launcher"
-    // },
-	// ----- OpenRiot theme specific module override (this was in `/config`)
 	"custom/openbsd": {
 		"format": "󰀻",
 		"on-click": "fuzzel",
@@ -23,8 +15,6 @@
 		"tooltip-format": "Left-click: App Launcher | Right-click: Close Launcher"
 	},
 
-    // Notification polling module — reads ~/.cache/openriot/notifications.json
-    // Click to dismiss oldest notification
     "custom/notifications": {
     	"format": "{}",
     	"return-type": "json",
@@ -43,7 +33,6 @@
     	"tooltip": true,
     },
 
-    // Battery status via apm(8) — OpenBSD native
     "custom/battery": {
     	"format": "{}",
     	"return-type": "json",
@@ -52,26 +41,12 @@
     	"on-click-right": "$HOME/.local/share/openriot/install/openriot --power-menu",
     	"tooltip": true
     },
-	// DISABLED: playerctl is Linux/PulseAudio only — not available on OpenBSD
-	// "custom/media": {
-    //     "on-click-middle": "playerctl previous",
-    //     "on-click": "playerctl play-pause",
-    //     "format": "{icon} {}",
-    //     "max-length": 40,
-    //     "on-click-right": "playerctl next",
-    //     "format-icons": {
-    //         "Playing": "󰎈",
-    //         "Paused": "󰏤"
-    //     },
-    //     "return-type": "json",
-    //     "exec": "playerctl -a metadata --format '{\"text\": \"{{artist}} - {{title}}\", \"tooltip\": \"{{playerName}} : {{artist}} - {{album}} - {{title}}\", \"alt\": \"{{status}}\", \"class\": \"{{status}}\"}' -F"
-    // },
 
     "custom/lock": {
     	"format": "󰌾",
     	"on-click": "swaylock -f",
     	"tooltip": true,
-    	"tooltip-format": "󰷛 Screen Lock",
+    	"tooltip-format": "󰷛 Screen Lock"
     },
 
     "custom/wlsunset": {
@@ -81,7 +56,7 @@
     	"on-click": "sh -c 'if pgrep -x wlsunset > /dev/null 2>&1; then pkill wlsunset; else wlsunset -t 3500; fi; kill -SIGUSR1 $(pgrep waybar)'",
     	"tooltip": true,
     	"tooltip-format": "󰆗 Warm Light (click to disable)",
-    	"tooltip-format-alt": "󰛨 Normal Screen (click to enable)",
+    	"tooltip-format-alt": "󰛨 Normal Screen (click to enable)"
     },
 
     "custom/rec-dot": {
@@ -93,17 +68,6 @@
     	"tooltip": true
     },
 
-    // DISABLED: --waybar-pomodoro and --pomodoro-click are not implemented in the openriot binary
-    // "custom/tomato-timer": {
-    // 	"format": "{}",
-    // 	"return-type": "json",
-    // 	"interval": 2,
-    // 	"exec": "$HOME/.local/share/openriot/install/openriot --waybar-pomodoro",
-    // 	"on-click": "$HOME/.local/share/openriot/install/openriot --pomodoro-click",
-    // 	"tooltip": true
-    // },
-
-    // Custom CPU meter showing aggregate usage across all cores
     "custom/cpu-aggregate": {
     	"format": "{}",
     	"return-type": "json",
@@ -120,7 +84,6 @@
     	"tooltip": false
     },
 
-    // Custom temperature module with visual bar indicators
     "custom/temp-bar": {
     	"format": "{}",
     	"return-type": "json",
@@ -131,7 +94,6 @@
     	"tooltip": true
     },
 
-    // Custom volume module with visual bar indicators
     "custom/volume-bar": {
     	"format": "{}",
     	"return-type": "json",
@@ -143,7 +105,6 @@
     	"tooltip": true
     },
 
-    // Accurate memory module (Total - Free via vmstat)
     "custom/memory-accurate": {
     	"format": "{}",
     	"return-type": "json",
@@ -153,7 +114,7 @@
     	"on-click-right": "foot -e htop",
     	"tooltip": true
     },
-    // Separators
+
     "custom/separator#dot": {
     	"format": "•",
     	"interval": "once",
@@ -243,15 +204,7 @@
     	"format": "",
     	"tooltip": false
     },
-	// This was in `/UserModules`:
-	// "custom/wireguard": {
-    //     "exec": "$HOME/.config/waybar/scripts/wireguard-status.sh",
-    //     "return-type": "json",
-    //     "interval": 5,
-    //     "on-click": "$HOME/.config/waybar/scripts/wireguard-click.sh left",
-    //     "on-click-right": "$HOME/.config/waybar/scripts/wireguard-click.sh right",
-    //     "tooltip": true
-    // },
+
     "custom/wireguard": {
     	"format": "{}",
     	"return-type": "json",
@@ -270,7 +223,6 @@
     	"tooltip": true
     },
 
-    // Custom network module - replaces built-in to prevent crashes on WiFi flaps
     "custom/network": {
     	"format": "{}",
     	"return-type": "json",
