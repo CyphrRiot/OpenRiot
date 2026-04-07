@@ -177,7 +177,7 @@ system:
 # hyprlock: replaced by swaylock
 # hypridle: replaced by swayidle
 # hyprshot: replaced by grim
-# wofi: replaced by fuzzel (fuzzel is available on OpenBSD, matches ArchRiot)
+# wofi: replaced by fuzzel (Wayland-native app launcher for OpenBSD)
 # kitty: replaced by foot (Wayland native)
 # ghostty: not in OpenBSD packages
 # paru/yay: replaced by pkg_add

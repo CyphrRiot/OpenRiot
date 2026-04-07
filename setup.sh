@@ -496,22 +496,14 @@ main() {
     check_disk_space 1
     install_packages
 
-    # Source builds only on fresh clone (compilation from source, not needed on upgrade)
-    if [ "$DID_CLONE" = "1" ]; then
-        info "Running source builds (compiling from source)..."
-        sb_output=$(cd "$INSTALL_DIR/install" && ./openriot --source-builds 2>&1)
-        sb_status=$?
-        if [ $sb_status -eq 0 ]; then
-            success "Source builds complete."
-        else
-            warn "Source builds completed with errors."
-            echo "$sb_output" | sed 's/^/    /'
-            echo ""
-            echo -e "${YELLOW}[PAUSE]${NC} Source builds failed. Press [ENTER] to continue or Ctrl+C to abort..."
-            read dummy
-        fi
-    fi
+    # Deploy sway configs directly (shell fallback - bypasses Go binary failures on OpenBSD)
+    deploy_sway_configs
 
+    # Source builds: run directly (not through openriot binary to avoid binary issues)
+    # Always run to ensure tools are available, not just on fresh clone
+    run_source_builds
+
+    # Run openriot --install as fallback (may partially succeed)
     run_openriot_install
     set_fish_shell
     configure_sway_autostart
@@ -523,6 +515,118 @@ main() {
     echo "|  Reboot now, then log in. Sway will start automatically. |"
     echo "+----------------------------------------------------------+"
     echo ""
+}
+
+# -----------------------------------------------------------------------------
+# Deploy sway config files directly (shell fallback - bypasses broken Go binary)
+# This is needed because openriot --install calls Go binary which fails on OpenBSD
+# -----------------------------------------------------------------------------
+
+deploy_sway_configs() {
+    info "Deploying Sway config files..."
+    
+    sway_src="$INSTALL_DIR/config/sway"
+    sway_dest="$REAL_HOME/.config/sway"
+    
+    mkdir -p "$sway_dest"
+    
+    # Files that should NOT be preserved (always deploy fresh)
+    # Preserve list is for user customizations, not default configs
+    # Copy all sway config files
+    for f in config monitors.conf windowrules.conf keybindings.conf brightness-dim.sh swayidle.conf; do
+        if [ -f "$sway_src/$f" ]; then
+            cp -f "$sway_src/$f" "$sway_dest/$f"
+            info "  Deployed $f"
+        fi
+    done
+    
+    # Also deploy waybar configs
+    waybar_src="$INSTALL_DIR/config/waybar"
+    waybar_dest="$REAL_HOME/.config/waybar"
+    mkdir -p "$waybar_dest"
+    if [ -d "$waybar_src" ]; then
+        cp -f "$waybar_src"/* "$waybar_dest/" 2>/dev/null || true
+        info "  Deployed waybar configs"
+    fi
+    
+    # Also deploy foot config
+    foot_src="$INSTALL_DIR/config/foot/config"
+    foot_dest="$REAL_HOME/.config/foot/config"
+    mkdir -p "$(dirname "$foot_dest")"
+    if [ -f "$foot_src" ]; then
+        cp -f "$foot_src" "$foot_dest"
+        info "  Deployed foot config"
+    fi
+    
+    # Also deploy fuzzel config
+    fuzzel_src="$INSTALL_DIR/config/fuzzel/config"
+    fuzzel_dest="$REAL_HOME/.config/fuzzel/config"
+    mkdir -p "$(dirname "$fuzzel_dest")"
+    if [ -f "$fuzzel_src" ]; then
+        cp -f "$fuzzel_src" "$fuzzel_dest"
+        info "  Deployed fuzzel config"
+    fi
+    
+    success "Sway config files deployed."
+}
+
+# -----------------------------------------------------------------------------
+# Run source builds directly (not through openriot binary)
+# -----------------------------------------------------------------------------
+
+run_source_builds() {
+    info "Running source builds..."
+    failed=0
+
+    # wlsunset: Wayland screen brightness/temperature controller
+    if ! command -v wlsunset >/dev/null 2>&1; then
+        info "Building wlsunset..."
+        rm -rf /tmp/wlsunset
+        git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset /tmp/wlsunset
+        cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release
+        meson compile -C build
+        doas meson install -C build
+        cd /tmp && rm -rf /tmp/wlsunset
+        success "wlsunset built."
+    else
+        info "wlsunset already installed."
+    fi
+
+    # crush: AI CLI (Charm) — use pre-built OpenBSD binary, no go install needed
+    if ! command -v crush >/dev/null 2>&1; then
+        info "Installing crush..."
+        CRUSH_VER="0.55.1"
+        CRUSH_URL="https://github.com/charmbracelet/crush/releases/download/v${CRUSH_VER}/crush_${CRUSH_VER}_Openbsd_x86_64.tar.gz"
+        mkdir -p "$REAL_HOME/.local/bin"
+        curl -fsSL "$CRUSH_URL" -o /tmp/crush.tar.gz
+        tar -xzf /tmp/crush.tar.gz -C /tmp
+        mv /tmp/crush "$REAL_HOME/.local/bin/crush"
+        chmod +x "$REAL_HOME/.local/bin/crush"
+        rm -f /tmp/crush.tar.gz
+        success "crush installed."
+    else
+        info "crush already installed."
+    fi
+
+    # Bibata cursor theme
+    if [ ! -d "$REAL_HOME/.local/share/icons/Bibata-Modern-Ice" ]; then
+        info "Installing Bibata cursor..."
+        mkdir -p "$REAL_HOME/.local/share/icons"
+        curl -fsSL https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.7/Bibata-Modern-Ice.tar.xz -o /tmp/bibata.tar.xz
+        tar -xf /tmp/bibata.tar.xz -C /tmp
+        mv /tmp/Bibata-Modern-Ice "$REAL_HOME/.local/share/icons/"
+        rm -f /tmp/bibata.tar.xz
+        gtk-update-icon-cache -f "$REAL_HOME/.local/share/icons/Bibata-Modern-Ice" 2>/dev/null || true
+        success "Bibata cursor installed."
+    else
+        info "Bibata cursor already installed."
+    fi
+
+    if [ $failed -gt 0 ]; then
+        warn "Some source builds failed."
+    else
+        success "Source builds complete."
+    fi
 }
 
 main "$@"

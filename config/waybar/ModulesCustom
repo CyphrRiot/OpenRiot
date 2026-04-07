@@ -15,7 +15,7 @@
     //     "tooltip-format": "Left Click: Application Grid\nRight Click: Fuzzel Launcher"
     // },
 	// ----- OpenRiot theme specific module override (this was in `/config`)
-	"custom/arch": {
+	"custom/openbsd": {
 		"format": "󰀻",
 		"on-click": "fuzzel",
 		"on-click-right": "pkill fuzzel",
