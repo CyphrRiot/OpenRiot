@@ -12,7 +12,7 @@
 #
 # OpenBSD compatible (POSIX sh, no bash-isms)
 
-set -eu
+set -e
 
 # Toggle: allow users to disable weather globally
 if [ -f "$HOME/.config/openriot/disable-weather" ]; then
@@ -60,7 +60,7 @@ if [ -z "$OUT_RAW" ]; then
 fi
 
 # Strip ANSI escapes (best-effort)
-OUT_STRIPPED="$(printf "%s\n" "$OUT_RAW" | sed -E 's/\x1B\[[0-9;]*[A-Za-z]//g')"
+OUT_STRIPPED="$(printf "%s\n" "$OUT_RAW" | sed -E 's/\x1B\[[0-9;]*[A-Za-z]//g' 2>/dev/null || echo "$OUT_RAW")"
 
 # Extract Weather and Temp lines (stormy "simple" typically prints these)
 COND="$(printf "%s\n" "$OUT_STRIPPED" | awk '/Weather/{sub(/^.*Weather[[:space:]]+/, ""); print; exit}')"

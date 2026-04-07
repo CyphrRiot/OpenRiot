@@ -15,7 +15,7 @@
 #   "tooltip": true
 # }
 
-set -eu
+set -e
 
 # Stop recording on click
 if [ "${1:-}" = "--click" ]; then

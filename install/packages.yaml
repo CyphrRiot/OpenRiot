@@ -47,7 +47,7 @@ core:
         critical: true
         commands:
             - "if ! grep -q '^/usr/local/bin/fish$' /etc/shells 2>/dev/null; then echo '/usr/local/bin/fish' | doas tee -a /etc/shells >/dev/null; fi"
-            - "doas chsh -s /usr/local/bin/fish (whoami) || true"
+            - "doas chsh -s /usr/local/bin/fish $(whoami) || true"
 
 desktop:
     sway:
@@ -157,7 +157,7 @@ desktop:
 fonts:
     nerd-fonts:
         packages:
-            - symbols-only-nerd-fonts-3.3.0
+            - symbolsonly-nerd-fonts-3.3.0
         commands:
             - "fc-cache"
         depends: []
