@@ -432,9 +432,7 @@ main() {
 
     echo ""
     printf '+%60s+\n' '' | tr ' ' '-'
-    line="  OpenRiot v${banner_ver} Installation Complete"
-    printf -v padding '%*s' $((60 - ${#line}))
-    printf '|%s%s |\n' "$line" "$padding"
+    printf '|  OpenRiot v1.4 Installation Complete                    |\n'
     printf '|                                                          |\n'
     printf '|  Run "sway" from TTY1 to start the desktop.             |\n'
     printf '+%60s+\n' '' | tr ' ' '-'
