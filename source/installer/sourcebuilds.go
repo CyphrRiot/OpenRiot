@@ -16,11 +16,11 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 			continue
 		}
 
-		fmt.Printf("[INFO]  %s...\n", module.Start)
+		fmt.Printf("%s[INFO]%s  %s...\n", Blue, Reset, module.Start)
 
 		for _, cmd := range module.Build {
 			if testMode {
-				fmt.Printf("[INFO]  [DRY-RUN] %s\n", cmd)
+				fmt.Printf("%s[INFO]%s  [DRY-RUN] %s\n", Blue, Reset, cmd)
 				continue
 			}
 
@@ -28,11 +28,11 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 			c := exec.Command("/bin/sh", "-c", cmd)
 			output, err := c.CombinedOutput()
 			if err != nil {
-				fmt.Printf("[WARN]  Build command failed:\n  command: %s\n  error: %v\n  output: %s\n", cmd, err, string(output))
+				fmt.Printf("%s[WARN]%s  Build command failed:\n  command: %s\n  error: %v\n  output: %s\n", Yellow, Reset, cmd, err, string(output))
 				// Continue on error - don't stop the whole install for one failed source build
 				continue
 			}
-			fmt.Printf("[INFO]  Built: %s\n", cmd)
+			fmt.Printf("%s[INFO]%s  Built: %s\n", Green, Reset, cmd)
 		}
 	}
 	return nil

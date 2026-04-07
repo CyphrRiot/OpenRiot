@@ -8,7 +8,7 @@ import (
 // InstallPackages installs packages using pkg_add
 func InstallPackages(packages []string) error {
 	if len(packages) == 0 {
-		fmt.Println("[INFO]  No packages to install")
+		fmt.Printf("%s[INFO]%s  No packages to install\n", Blue, Reset)
 		return nil
 	}
 
@@ -21,15 +21,15 @@ func InstallPackages(packages []string) error {
 	}
 
 	if len(toInstall) == 0 {
-		fmt.Println("[INFO]  All packages already installed")
+		fmt.Printf("%s[INFO]%s  All packages already installed\n", Blue, Reset)
 		return nil
 	}
 
-	fmt.Printf("[INFO]  Installing %d packages with pkg_add\n", len(toInstall))
+	fmt.Printf("%s[INFO]%s  Installing %d packages with pkg_add\n", Blue, Reset, len(toInstall))
 
 	// Install packages one at a time for progress tracking
 	for i, pkg := range toInstall {
-		fmt.Printf("[INFO]  Installing %s...\n", pkg)
+		fmt.Printf("%s[INFO]%s  Installing %s...\n", Blue, Reset, pkg)
 
 		cmd := exec.Command("pkg_add", pkg)
 		output, err := cmd.CombinedOutput()
@@ -39,17 +39,17 @@ func InstallPackages(packages []string) error {
 			if len(outputStr) > 300 {
 				outputStr = outputStr[:300] + "..."
 			}
-			fmt.Printf("[ERR!]  Failed to install %s: %s\n", pkg, outputStr)
+			fmt.Printf("%s[ERR!]%s  Failed to install %s: %s\n", Red, Reset, pkg, outputStr)
 			return fmt.Errorf("pkg_add failed for %s: %w", pkg, err)
 		}
 
-		fmt.Printf("[INFO]  Installed %s\n", pkg)
+		fmt.Printf("%s[INFO]%s  Installed %s\n", Green, Reset, pkg)
 
 		// Log progress
-		fmt.Printf("[INFO]  Progress: %d/%d packages installed\n", i+1, len(toInstall))
+		fmt.Printf("%s[INFO]%s  Progress: %d/%d packages installed\n", Blue, Reset, i+1, len(toInstall))
 	}
 
-	fmt.Printf("[INFO]  Installed %d packages\n", len(toInstall))
+	fmt.Printf("%s[INFO]%s  Installed %d packages\n", Green, Reset, len(toInstall))
 	return nil
 }
 
