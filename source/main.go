@@ -248,8 +248,8 @@ func shareLog(filename string) error {
 		return fmt.Errorf("reading log file: %w", err)
 	}
 
-	// Upload to ix.io
-	cmd := exec.Command("curl", "-s", "-F", "f:1=<-", "https://ix.io")
+	// Upload to catbox.moe
+	cmd := exec.Command("curl", "-s", "-F", "reqtype=fileupload", "-F", "fileToUpload=@-", "https://catbox.moe/user/api.php")
 	cmd.Stdin = bytes.NewReader(data)
 	output, err := cmd.Output()
 	if err != nil {
