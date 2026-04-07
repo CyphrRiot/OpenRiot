@@ -22,23 +22,23 @@ func ExecCommands(cfg *config.Config, dryRun bool) error {
 
 			// Log the command
 			if dryRun {
-				fmt.Printf("[INFO]  [DRY RUN] %s\n", cmd)
+				fmt.Printf("%s[INFO]%s  [DRY RUN] %s\n", Blue, Reset, cmd)
 				continue
 			}
 
 			// Execute the command
-			fmt.Printf("[INFO]  Running: %s\n", cmd)
+			fmt.Printf("%s[INFO]%s  Running: %s\n", Blue, Reset, cmd)
 
 			// Execute using shell -c for proper parsing
 			execCmd := exec.Command("/bin/sh", "-c", cmd)
 			output, err := execCmd.CombinedOutput()
 
 			if err != nil {
-				fmt.Printf("[WARN]  Command failed: %s - %v\n", cmd, err)
+				fmt.Printf("%s[WARN]%s  Command failed: %s - %v\n", Yellow, Reset, cmd, err)
 				// Continue even if a command fails - don't stop the whole install
 			} else {
 				if len(output) > 0 {
-					fmt.Printf("[DEBUG] Output: %s\n", strings.TrimSpace(string(output)))
+					fmt.Printf("%s[DEBUG]%s Output: %s\n", White, Reset, strings.TrimSpace(string(output)))
 				}
 			}
 		}

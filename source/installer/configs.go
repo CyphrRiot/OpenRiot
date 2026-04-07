@@ -24,7 +24,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 	configSourceDir := filepath.Join(repoDir, "config")
 	configDir := filepath.Join(homeDir, ".config")
 
-	fmt.Printf("[INFO]  Copying configs from: %s\n", configSourceDir)
+	fmt.Printf("%s[INFO]%s  Copying configs from: %s\n", Blue, Reset, configSourceDir)
 
 	// Create ~/.config if it doesn't exist
 	if err := os.MkdirAll(configDir, 0755); err != nil {
@@ -77,7 +77,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 
 			// Check if source directory exists
 			if _, err := os.Stat(srcDir); os.IsNotExist(err) {
-				fmt.Printf("[INFO]  Skipping %s (directory not found)\n", rule.Pattern)
+				fmt.Printf("%s[INFO]%s  Skipping %s (directory not found)\n", Yellow, Reset, rule.Pattern)
 				continue
 			}
 
@@ -108,23 +108,23 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 				// Create destination directory
 				destDir := filepath.Dir(destPath)
 				if err := os.MkdirAll(destDir, 0755); err != nil {
-					fmt.Printf("[WARN]  Failed to create directory %s: %v\n", destDir, err)
+					fmt.Printf("%s[WARN]%s  Failed to create directory %s: %v\n", Yellow, Reset, destDir, err)
 					return nil
 				}
 
 				// Copy file
 				if dryRun {
-					fmt.Printf("[INFO]  [DRY-RUN] Would copy %s -> %s\n", relPath, destPath)
+					fmt.Printf("%s[INFO]%s  [DRY-RUN] Would copy %s -> %s\n", Blue, Reset, relPath, destPath)
 				} else if err := copyFilePreserve(srcPath, destPath); err != nil {
-					fmt.Printf("[WARN]  Failed to copy %s: %v\n", srcPath, err)
+					fmt.Printf("%s[WARN]%s  Failed to copy %s: %v\n", Yellow, Reset, srcPath, err)
 					return nil
 				} else {
-					fmt.Printf("[INFO]  Copied %s -> %s\n", relPath, destPath)
+					fmt.Printf("%s[INFO]%s  Copied %s -> %s\n", Green, Reset, relPath, destPath)
 				}
 				return nil
 			})
 			if err != nil {
-				fmt.Printf("[WARN]  WalkDir failed for %s: %v\n", rule.Pattern, err)
+				fmt.Printf("%s[WARN]%s  WalkDir failed for %s: %v\n", Yellow, Reset, rule.Pattern, err)
 				continue
 			}
 		} else {
@@ -143,7 +143,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 
 			// Skip if source doesn't exist
 			if _, err := os.Stat(srcPath); os.IsNotExist(err) {
-				fmt.Printf("[INFO]  Skipping %s (not found)\n", rule.Pattern)
+				fmt.Printf("%s[INFO]%s  Skipping %s (not found)\n", Yellow, Reset, rule.Pattern)
 				continue
 			}
 
@@ -156,7 +156,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 			// Create destination directory
 			destDir := filepath.Dir(destPath)
 			if err := os.MkdirAll(destDir, 0755); err != nil {
-				fmt.Printf("[WARN]  Failed to create directory %s: %v\n", destDir, err)
+				fmt.Printf("%s[WARN]%s  Failed to create directory %s: %v\n", Yellow, Reset, destDir, err)
 				continue
 			}
 
@@ -182,7 +182,7 @@ func shouldPreserve(filename string, preserveList []string, destPath string) boo
 		if preserve == filename {
 			// File is in preserve list - check if it exists at destination
 			if _, err := os.Stat(destPath); err == nil {
-				fmt.Printf("[INFO]  Preserving existing file: %s\n", destPath)
+				fmt.Printf("%s[INFO]%s  Preserving existing file: %s\n", Yellow, Reset, destPath)
 				return true
 			}
 		}
@@ -202,7 +202,7 @@ func copyBackgrounds(repoDir, homeDir string) error {
 
 	// Check if source exists
 	if _, err := os.Stat(bgSourceDir); os.IsNotExist(err) {
-		fmt.Println("[INFO]  No backgrounds directory found")
+		fmt.Printf("%s[INFO]%s  No backgrounds directory found\n", Blue, Reset)
 		return nil
 	}
 
@@ -225,11 +225,11 @@ func copyBackgrounds(repoDir, homeDir string) error {
 		destPath := filepath.Join(bgDestDir, name)
 
 		if err := copyFilePreserve(srcPath, destPath); err != nil {
-			fmt.Printf("[WARN]  Failed to copy background %s: %v\n", name, err)
+			fmt.Printf("%s[WARN]%s  Failed to copy background %s: %v\n", Yellow, Reset, name, err)
 			continue
 		}
 
-		fmt.Printf("[INFO]  Copied background %s -> %s\n", name, destPath)
+		fmt.Printf("%s[INFO]%s  Copied background %s -> %s\n", Green, Reset, name, destPath)
 	}
 
 	return nil

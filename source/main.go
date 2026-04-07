@@ -291,26 +291,26 @@ func runInstall() {
 	}
 
 	// Step 1: Config deployment
-	fmt.Println("[INFO]  Deploying configuration files...")
+	fmt.Printf("%s[INFO]%s  Deploying configuration files...\n", installer.Blue, installer.Reset)
 	if err := installer.CopyConfigs(repoDir, cfg, testMode); err != nil {
-		fmt.Printf("[WARN]  Config deployment skipped: %v\n", err)
+		fmt.Printf("%s[WARN]%s  Config deployment skipped: %v\n", installer.Yellow, installer.Reset, err)
 	} else {
-		fmt.Println("[INFO]  Configuration files deployed!")
+		fmt.Printf("%s[INFO]%s  Configuration files deployed!\n", installer.Green, installer.Reset)
 	}
 
 	// Step 2: Command execution
-	fmt.Println("[INFO]  Running commands...")
+	fmt.Printf("%s[INFO]%s  Running commands...\n", installer.Blue, installer.Reset)
 	if err := installer.ExecCommands(cfg, testMode); err != nil {
-		fmt.Printf("[WARN]  Some commands failed: %v\n", err)
+		fmt.Printf("%s[WARN]%s  Some commands failed: %v\n", installer.Yellow, installer.Reset, err)
 	}
 
 	// Step 3: Source builds (crush, wlsunset, bibata-cursor, etc.)
-	fmt.Println("[INFO]  Running source builds...")
+	fmt.Printf("%s[INFO]%s  Running source builds...\n", installer.Blue, installer.Reset)
 	if err := installer.SourceBuilds(cfg, testMode); err != nil {
 		fmt.Printf("[WARN]  Source builds: %v\n", err)
 	}
 
-	fmt.Println("[INFO]  OpenRiot installation complete!")
+	fmt.Printf("%s[INFO]%s  OpenRiot installation complete!\n", installer.Green, installer.Reset)
 }
 
 // runSourceBuilds runs only the source builds phase (used by setup.sh)
