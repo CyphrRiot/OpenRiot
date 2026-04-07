@@ -12,7 +12,7 @@
 		"/sys/class/hwmon/hwmon1/temp1_input",
 		"/sys/class/thermal/thermal_zone0/temp"
 	],
-	//"thermal-zone": 0,
+/* "thermal-zone": 0, */
 	"critical-threshold": 80,
 	"format-critical": "{icon}\n{temperatureC}°C",
 	"format": " {icon}",
@@ -26,7 +26,7 @@
 	"interval": 2,
 	"rotate": 1,
 	"format": "{icon}",
-	//"format-icons": ["󰃞", "󰃟", "󰃠"],
+	/* "format-icons": ["󰃞", "󰃟", "󰃠"], */
 	"format-icons": [
 		"", "", "", "", "", "", "", "", "", "", "", "", "", "", ""
 	],
@@ -43,7 +43,7 @@
 "clock#vertical": {
 	"format": "\n{:%H\n%M\n%S\n\n \n%d\n%m\n%y}",
 	"interval": 1,
-	//"format": "\n{:%I\n%M\n%p\n\n \n%d\n%m\n%y}",
+	/* "format": "\n{:%I\n%M\n%p\n\n \n%d\n%m\n%y}", */
 	"tooltip": true,
 	"tooltip-format": "{calendar}",
 	"calendar": {

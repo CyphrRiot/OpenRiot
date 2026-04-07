@@ -2,74 +2,15 @@
 /* Add your own workspace customizations here (this file will be kept by the installer)*/
 
 /* Surtarso's custom workspace theme */
-// PACMAN with COLORED ICONS
-// hyprland/workspaces#pacman-rwc (rewrite windows with colors)
 
-// -------- ICON COLOR PALLET
-// Reds & Pinks
-// pastel red light      #ef9a9a
-// pastel red dark       #e57373
-// pastel coral          #ff8a65
-// pastel pink light     #f8bbd0
-// pastel pink dark      #f48fb1
-// pastel rose           #e7a1b0
 
-// Oranges & Ambers
-// pastel orange light   #ffcc80
-// pastel orange dark    #ffb74d
-// pastel amber          #ffca28
-// pastel apricot        #ffd180
-// pastel peach          #ffab91
 
-// Yellows
-// pastel yellow light   #fff59d
-// pastel yellow dark    #fff176
-// pastel gold           #ffe082
-// pastel sand           #f6e58d
 
-// Greens
-// pastel green light    #c5e1a5
-// pastel green dark     #aed581
-// pastel mint           #b9f6ca
-// pastel olive          #cddc39
-// pastel moss           #a5d6a7
 
-// Cyans & Teals
-// pastel teal light     #b2dfdb
-// pastel teal dark      #80cbc4
-// pastel aqua           #a7ffeb
-// pastel turquoise      #64d8cb
-// pastel cyan           #4dd0e1
 
-// Blues
-// pastel blue light     #bbdefb
-// pastel blue dark      #64b5f6
-// pastel sky            #81d4fa
-// pastel steel blue     #90caf9
-// pastel navy faded     #5c6bc0
 
-// Purples
-// pastel purple light   #d1c4e9
-// pastel purple dark    #b39ddb
-// pastel violet         #ce93d8
-// pastel lavender       #c5cae9
-// pastel lilac          #b388eb
 
-// Grays & Neutrals
-// pastel gray light     #cfd8dc
-// pastel gray dark      #b0bec5
-// pastel slate          #90a4ae
-// pastel charcoal       #78909c
-// pastel beige          #d7ccc8
-// pastel brown faded    #bcaaa4
 
-// Extras
-// pastel magenta        #f48fb1
-// pastel indigo         #9fa8da
-// pastel mint blue      #a5c8d4
-// pastel seafoam        #9fd3c7
-// pastel cream          #fff8e1
-// pastel ivory          #f0ede5
 
 {
 "hyprland/workspaces#pacman-rwc": {
@@ -102,7 +43,6 @@
 	"window-rewrite-default": "",
 	"ignore-workspaces": [],
 	"window-rewrite": {
-		// --- WEB & BROWSERS ---
 		"class<brave-browser|Brave-browser|Brave|brave>": "<span font='11' color='#ffb74daa'>󰊯 </span>",
 		"title<.*amazon.*>": "<span font='11' color='#ffcc80aa'> </span>",
 		"title<.*o!mpd.*>": "<span font='11' color='#80cbc4aa'> </span>",
@@ -125,7 +65,6 @@
 		"class<.*brave-github\\.app__.*>": "<span font='11' color='#b39ddbaa'> </span>",
 		"class<^brave-github\\.app__-Default$>": "<span font='11' color='#b39ddbaa'> </span>",
 
-		// --- COMMUNICATION ---
 		"class<[Tt]elegram-desktop|org.telegram.desktop|io.github.tdesktop_x64.TDesktop>": "<span font='11' color='#64b5f6aa'>󰘦 </span>",
 		"class<discord|[Ww]ebcord|Vesktop>": "<span font='11' color='#bbdefbaa'> </span>",
 		"title<.*whatsapp.*>": "<span font='11' color='#aed581aa'> </span>",
@@ -142,7 +81,6 @@
 		"class<claws-mail>": "<span font='11' color='#c5e1a5aa'>󰇮 </span>",
 		"class<org.gnome.Geary>": "<span font='11' color='#ffcc80aa'>󰊫 </span>",
 
-		// --- DEV TOOLS ---
 		"class<VSCode|code-url-handler|code-oss|codium|codium-url-handler|VSCodium>": "<span font='11' color='#80cbc4aa'>󰨞 </span>",
 		"class<dev.zed.Zed|dev.zed.Zed-Preview>": "<span font='12' color='#ffcc80aa'>☡ </span>",
 		"class<codeblocks>": "<span font='11' color='#90a4aeaa'>󰘦 </span>",
@@ -160,7 +98,6 @@
 		"title<.*qwen.*>": "<span font='11' color='#ffcc80aa'>󰚩 </span>",
 		"title<.*Crush.*>": "<span font='11' color='#80cbc4aa'>󰚩 </span>",
 
-		// --- TERMINALS ---
 		"class<konsole>": "<span font='11' color='#cfd8dcaa'> </span>",
 		"class<kitty>": "<span font='11' color='#b0bec5aa'>󰄛 </span>",
 		"class<com.mitchellh.ghostty>": "<span font='11' color='#b0bec5aa'>󰊠 </span>",
@@ -172,7 +109,6 @@
 		"class<tilix>": "<span font='11' color='#b0bec5aa'> </span>",
 		"class<xfce4-terminal>": "<span font='11' color='#b0bec5aa'> </span>",
 
-		// --- MEDIA / VIDEO / MUSIC ---
 		"class<mpv>": "<span font='11' color='#bcaaa4aa'>󰥠 </span>",
 		"class<mpd-player>": "<span font='11' color='#b2dfdbaa'>󰝚 </span>",
 		"class<celluloid>": "<span font='11' color='#ffcc80aa'>󰕼 </span>",
@@ -185,7 +121,6 @@
 		"class<obs|com.obsproject.Studio>": "<span font='11' color='#9fa8daaa'>󰑋 </span>",
 		"class<Zoom>": "<span font='11' color='#90caf9aa'>󰕧 </span>",
 
-		// --- FILES / SYSTEM ---
 		"class<nemo|org.gnome.Nautilus>": "<span font='11' color='#b2dfdbaa'>󰝰 </span>",
 		"class<Gparted>": "<span font='11' color='#c5e1a5aa'> </span>",
 		"class<org.pwmt.zathura>": "<span font='11' color='#ffcc80aa'>󰈦 </span>",
@@ -203,7 +138,6 @@
 		"class<steam>": "<span font='11' color='#78909caa'>󰓓 </span>",
 		"title<.*steam.*>": "<span font='11' color='#78909caa'>󰓓 </span>",
 
-		// --- DESIGN / CREATIVITY / 3D ---
 		"class<gimp>": "<span font='11' color='#ffca28aa'> </span>",
 		"class<krita>": "<span font='11' color='#b39ddbaa'> </span>",
 		"class<kdenlive>": "<span font='11' color='#64b5f6aa'> </span>",
@@ -212,7 +146,6 @@
 		"class<inkscape>": "<span font='11' color='#81d4faaa'> </span>",
 		"class<blender>": "<span font='11' color='#ffb74daa'>󰂫 </span>",
 
-		// --- UTILITIES / MISC ---
 		"class<feather>": "<span font='11' color='#c5cae9aa'>󱟘 </span>",
 		"class<Trezor Suite>": "<span font='11' color='#bcaaa4aa'>󰌆 </span>",
 		"class<Exodus|exodus>": "<span font='11' color='#b39ddbaa'>Ⓧ </span>",
@@ -227,7 +160,6 @@
 		"title<clock-rs>": "<span font='10' color='#b0bec5aa'> </span>",
 
 
-		// --- SYSTEM / SETTINGS / UTILITIES ---
 		"class<gnome-control-center|org.gnome.Settings>": "<span font='11' color='#ffcc80aa'>󰒓 </span>",
 		"class<org.gnome.Extensions>": "<span font='11' color='#b39ddbaa'>󰔎 </span>",
 		"class<org.gnome.Terminal.Preferences>": "<span font='11' color='#aed581aa'>󰒓 </span>",

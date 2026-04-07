@@ -24,34 +24,27 @@
     "window-rewrite-default": "<span font='11'></span>",
 
     "window-rewrite": {
-      // --- BROWSERS ---
       "class<firefox|librewolf|floorp>": "<span font='11'>󰈹</span>",
       "class<Chromium|chrome|thorium>": "<span font='11'>󰊯</span>",
       "class<brave-browser|brave>": "<span font='11'>󰊯</span>",
       "title<.*youtube.*>": "<span font='11'></span>",
       "title<.*github.*>": "<span font='11'></span>",
 
-      // --- COMMUNICATION ---
       "class<telegram-desktop|org.telegram.desktop>": "<span font='11'>󰘦</span>",
       "class<discord|webcord|vesktop>": "<span font='11'></span>",
       "class<thunderbird>": "<span font='11'>󰊫</span>",
 
-      // --- DEVELOPMENT ---
       "class<code|code-url-handler|vscode|codium|vscodium>": "<span font='11'>󰨞</span>",
       "class<neovim|nvim>": "<span font='11'>󰈙</span>",
 
-      // --- TERMINALS ---
       "class<foot>": "<span font='11'></span>",
 
-      // --- FILE MANAGERS ---
       "class<nautilus|nemo>": "<span font='11'>󰝰</span>",
 
-      // --- MEDIA ---
       "class<mpv>": "<span font='11'>󰥠</span>",
       "class<spotify>": "<span font='11'>󰽴</span>",
       "class<vlc>": "<span font='11'>󰕼</span>",
 
-      // --- SYSTEM / UTILITIES ---
       "class<btop|htop>": "<span font='11'>󰍹</span>",
       "class<gnome-disks|baobab>": "<span font='11'>󰋊</span>",
       "class<zathura>": "<span font='11'>󰈦</span>"

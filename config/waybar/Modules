@@ -24,7 +24,7 @@
 	"interval": 2,
 	"align": 0,
 	"rotate": 0,
-	//"format": "{icon} {percent}%",
+	
 	"format-icons": [
 		" ",
 		" ",
@@ -35,7 +35,7 @@
 		"󰃠 "
 	],
 	"format": "{icon}",
-	//"format-icons": ["","","","","","","","","","","","","","",""],
+	
 	"tooltip-format": "backlight {percent}%",
 	"icon-size": 10,
 	"on-click": "",
@@ -54,11 +54,11 @@
 },
 
 "battery": {
-	//"interval": 5,
+	
 	"align": 0,
 	"rotate": 0,
-	//"bat": "BAT1",
-	//"adapter": "ACAD",
+	
+	
 	"full-at": 100,
 	"design-capacity": false,
 	"states": {
@@ -69,8 +69,7 @@
 	"format": "{icon} {capacity}%",
 	"format-charging": " {capacity}%",
 	"format-plugged": "󱘖 {capacity}%",
-	// Removed format-alt settings to always show percentage
-	"format-full": "{icon} {capacity}%",
+		"format-full": "{icon} {capacity}%",
 	"format-icons": [
 		"󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"
 	],
@@ -93,8 +92,8 @@
 
 "clock": {
 	"interval": 1,
-    "format": " {:%A • %B %d • %I:%M %p}", // Sunday • July 13 • 01:49 PM format
-    //"format": " {:%H:%M:%S}",// 24H
+    "format": " {:%A • %B %d • %I:%M %p}",
+    
 	"format-alt": " {:%H:%M   %d %B, %A}",
 	"on-click": "$HOME/.local/share/openriot/install/openriot --swaybg-next",
 	"tooltip-format": "<tt><small>{calendar}</small></tt>",
@@ -122,29 +121,29 @@
 },
 
 "clock#2": {
-    "format": " {:%I:%M %p}", // AM PM format
-    //"format": "  {:%H:%M}",// 24H
+    "format": " {:%I:%M %p}",
+    
     "format-alt": "{:%A  |  %H:%M  |  %e %B}",
     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
 },
 
 "clock#3": {
-    "format": "{:%I:%M %p - %d/%b}",//for AM/PM
-    //"format": "{:%H:%M - %d/%b}",// 24H
+    "format": "{:%I:%M %p - %d/%b}",
+    
 	"tooltip": false
 },
 
 "clock#4": {
 	"interval": 60,
-    "format": "{:%B | %a %d, %Y | %I:%M %p}",// AM PM format
-    //"format": "{:%B | %a %d, %Y | %H:%M}",// 24H
+    "format": "{:%B | %a %d, %Y | %I:%M %p}",
+    
 	"format-alt": "{:%a %b %d, %G}",
 	"tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>",
 },
 
 "clock#5": {
-    "format": "{:%A, %I:%M %P}",// AM PM format
-    //"format": "{:%a %d | %H:%M}",// 24H
+    "format": "{:%A, %I:%M %P}",
+    
 	"format-alt": "{:%A, %d %B, %Y (%R)}",
 	"tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>",
 },
@@ -168,11 +167,11 @@
 
 "disk": {
 	"interval": 30,
-	//"format": "󰋊",
+	
 	"path": "/",
-	//"format-alt-click": "click",
+	
 	"format": "{percentage_used}% 󰋊",
-	//"tooltip": true,
+	
 	"tooltip-format": "{used} used out of {total} on {path} ({percentage_used}%)",
 },
 
@@ -185,7 +184,7 @@
 },
 
 "hyprland/submap": {
-	"format": "<span style=\"italic\">  {}</span>", // Icon: expand-arrows-alt
+	"format": "<span style=\"italic\">  {}</span>",
 	"tooltip": false,
 },
 
@@ -217,7 +216,7 @@
 
 "memory": {
 	"interval": 10,
-	"format": "{percentage}% 󰾆",  // Show percentage instead since it's more reliable
+	"format": "{percentage}% 󰾆",
 	"tooltip": true,
 	"tooltip-format": "Used: {used:0.1f}GB | Available: {avail:0.1f}GB | Total: {total:0.1f}GB ({percentage}%)",
 	"on-click": "foot -e btop",
@@ -251,7 +250,7 @@
 		"playing": "",
 		"stopped": "",
 	},
-	// "ignored-players": ["firefox"]
+	
 	"max-length": 40,
 },
 
