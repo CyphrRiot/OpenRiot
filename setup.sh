@@ -430,12 +430,13 @@ main() {
     # openriot --install handles configs + commands from packages.yaml
     run_openriot_install
 
+    # This is properly formatted. Need the variable for version fixed
     echo ""
-    printf '+%60s+\n' '' | tr ' ' '-'
-    printf '|  OpenRiot v1.4 Installation Complete                    |\n'
-    printf '|                                                          |\n'
-    printf '|  Run "sway" from TTY1 to start the desktop.             |\n'
-    printf '+%60s+\n' '' | tr ' ' '-'
+    echo "+------------------------------------------------------------+"
+    echo "|  OpenRiot v${banner_ver} Installation Complete                       |"
+    echo "|                                                            |"
+    echo '|  Run "sway" from TTY1 to start the desktop.                |'
+    echo "+------------------------------------------------------------+"
     echo ""
 }
 
