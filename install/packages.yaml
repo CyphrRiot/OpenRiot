@@ -9,7 +9,7 @@ core:
             - git
             - rsync-3.4.1
             - bc-gh-7.1.0p0
-            - python-3.11.0
+            - python-3.13.12
             - fastfetch-2.60.0
             - jq-1.8.1
         configs:
