@@ -23,16 +23,14 @@
         "position": "top",
         "ipc": false,
 
-        // ----- MODULES LEFT:
         "modules-left": [
-            "custom/openbsd",             // OpenBSD / App Launcher
+            "custom/openbsd",
             "custom/separator#blank",
             "sway/workspaces",
             "custom/separator#blank",
             "sway/window"
         ],
 
-        // ----- MODULES CENTER:
         "modules-center": [
             "clock",
             "custom/separator#dot",
@@ -40,25 +38,24 @@
             "custom/notifications"
         ],
 
-        // ----- MODULES RIGHT:
         "modules-right": [
             "custom/separator#blank_3",
-            "custom/rec-dot",          // Recording status (wf-recorder)
+            "custom/rec-dot",
             "tray",
             "custom/separator#blank",
-            "group/system-metrics",    // CPU, memory, temp
+            "group/system-metrics",
             "custom/separator#blank",
-            "custom/volume-bar",       // sndiod volume
+            "custom/volume-bar",
             "custom/separator#blank",
-            "custom/network",          // Network (ifconfig)
-            "custom/wireguard",        // WireGuard VPN status
+            "custom/network",
+            "custom/wireguard",
             "custom/separator#blank",
-            "custom/battery",          // Battery (apm on OpenBSD)
+            "custom/battery",
             "custom/separator#blank",
-            "custom/openriot-update",  // OpenRiot update check
+            "custom/openriot-update",
             "custom/separator#blank",
-            "custom/power",            // Power menu
-            "custom/lock"              // Lockscreen
+            "custom/power",
+            "custom/lock"
         ]
     }
 ]
