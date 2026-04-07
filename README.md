@@ -930,7 +930,7 @@ If something goes wrong, upload your log file for debugging:
 ~/.local/share/openriot/install/openriot --share-log install.log
 ```
 
-This will upload the log to a paste service and give you a URL to share.
+This will upload the log to tmpfiles.org and give you a URL to share.
 
 ### Hostname shows as `x.my.domain`
 
