@@ -54,11 +54,6 @@ static time_t get_time_sec(void) {
 			tm.tm_mon+1, tm.tm_year + 1900);
 	return now;
 }
-static void adjust_timerspec(struct itimerspec *timerspec) {
-	int diff = timerspec->it_value.tv_sec - offset;
-	timerspec->it_value.tv_sec = offset + diff / multiplier;
-	timerspec->it_value.tv_nsec = (diff % multiplier) * (1000000000 / multiplier);
-}
 #else
 static inline void init_time(void) {
 	tzset();
@@ -67,9 +62,6 @@ static inline time_t get_time_sec(void) {
 	struct timespec realtime;
 	clock_gettime(CLOCK_REALTIME, &realtime);
 	return realtime.tv_sec;
-}
-static inline void adjust_timerspec(struct itimerspec *timerspec) {
-	(void)timerspec;
 }
 #endif
 
