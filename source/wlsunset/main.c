@@ -1,4 +1,4 @@
-#define _POSIX_C_SOURCE 199309L
+#define _POSIX_C_SOURCE 200809L
 #define _DEFAULT_SOURCE
 #define _XOPEN_SOURCE 700
 #include <assert.h>
@@ -12,6 +12,7 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
 #include <wayland-client-protocol.h>
@@ -143,7 +144,7 @@ struct context {
 
 	bool new_output;
 	struct wl_list outputs;
-	timer_t timer;
+	time_t next_alarm;  /* OpenBSD: use ualarm instead of POSIX timers */
 
 	enum force_state forced_state;
 
@@ -374,7 +375,7 @@ static time_t get_deadline_transition(const struct context *ctx, time_t now) {
 	}
 }
 
-static void update_timer(const struct context *ctx, timer_t timer, time_t now) {
+static void update_timer(const struct context *ctx, time_t now) {
 	time_t deadline;
 	switch (ctx->state) {
 	case STATE_NORMAL:
@@ -392,15 +393,14 @@ static void update_timer(const struct context *ctx, timer_t timer, time_t now) {
 	}
 
 	assert(deadline > now);
-	struct itimerspec timerspec = {
-		.it_interval = {0},
-		.it_value = {
-			.tv_sec = deadline,
-			.tv_nsec = 0,
-		}
-	};
-	adjust_timerspec(&timerspec);
-	timer_settime(timer, TIMER_ABSTIME, &timerspec, NULL);
+
+	/* Use ualarm for OpenBSD (POSIX timers are stubbed out with ENOSYS) */
+	struct timeval tv_now;
+	gettimeofday(&tv_now, NULL);
+	double diff = difftime(deadline, now);
+	if (diff < 0) diff = 0;
+	useconds_t usecs = (useconds_t)(diff * 1000000.0);
+	ualarm(usecs, 0);
 }
 
 static int create_anonymous_file(off_t size) {
@@ -781,11 +781,6 @@ static int setup_signals(struct context *ctx) {
 				strerror(errno));
 		return -1;
 	}
-	if (timer_create(CLOCK_REALTIME, NULL, &ctx->timer) == -1) {
-		fprintf(stderr, "could not configure timer: %s\n",
-				strerror(errno));
-		return -1;
-	}
 	return 0;
 }
 
@@ -835,7 +830,7 @@ static int wlrun(struct config cfg) {
 
 	time_t now = get_time_sec();
 	recalc_stops(&ctx, now);
-	update_timer(&ctx, ctx.timer, now);
+	update_timer(&ctx, now);
 
 	double pos = get_position(&ctx, now);
 	set_temperature(&ctx.outputs, get_temp_from_pos(&ctx, pos), ctx.config.gamma);
@@ -878,7 +873,7 @@ static int wlrun(struct config cfg) {
 			timer_fired = false;
 			now = get_time_sec();
 			recalc_stops(&ctx, now);
-			update_timer(&ctx, ctx.timer, now);
+			update_timer(&ctx, now);
 
 			pos = get_position(&ctx, now);
 			if (pos != old_pos) {
