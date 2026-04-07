@@ -240,14 +240,20 @@ install_packages() {
     info "Installing packages from packages.yaml (safe one-by-one mode)..."
 
     # Try openriot binary first, fallback to grep if it fails
-    pkg_raw=$(./openriot --packages 2>&1)
-    pkg_exit=$?
-    if [ $pkg_exit -ne 0 ]; then
-        warn "openriot --packages failed, trying fallback..."
+    if [ -x "$INSTALL_DIR/install/openriot" ]; then
+        pkg_raw=$("$INSTALL_DIR/install/openriot" --packages 2>&1)
+        pkg_exit=$?
+    else
+        pkg_raw=""
+        pkg_exit=1
+    fi
+    if [ $pkg_exit -ne 0 ] || [ -z "$pkg_raw" ]; then
+        warn "openriot --packages failed or returned empty, using fallback..."
         # Fallback: grep packages directly from YAML
-        # Only match unquoted lines (package names), exclude quoted strings (commands)
+        # Match lines starting with "- " and a letter (unquoted package names)
+        # Filter out: quoted strings (commands), YAML keys with ":", config patterns
         pkg_raw=$(grep -E '^ +- [a-zA-Z]' "$INSTALL_DIR/install/packages.yaml" 2>/dev/null | \
-            grep -v '"' | sed 's/^ *- //')
+            grep -v '"' | grep -v ':' | sed 's/^ *- //')
     fi
     if [ -z "$pkg_raw" ]; then
         error "No packages found in packages.yaml"
