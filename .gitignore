@@ -2,7 +2,6 @@
 .work/
 isos/*.iso
 source/openriot
-install/openriot
 dev
 
 # Test images (created by make isotest)
