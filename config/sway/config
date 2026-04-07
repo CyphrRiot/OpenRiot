@@ -2,6 +2,13 @@
 
 set $mod Mod4
 
+# Monitor configuration — HDMI-A-1 at 1920x1080
+output HDMI-A-1 {
+    mode 1920x1080@60Hz
+    scale 1
+    pos 0 0
+}
+
 # Keyboard input configuration
 input type:keyboard {
     xkb_layout us
