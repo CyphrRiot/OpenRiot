@@ -28,7 +28,7 @@ check_waybar() {
         fi
     fi
     # Also check if waybar is running by process name
-    if pgrep -f "^waybar$" > /dev/null 2>&1; then
+    if pgrep -x waybar > /dev/null 2>&1; then
         return 0  # Running
     fi
     return 1  # Not running

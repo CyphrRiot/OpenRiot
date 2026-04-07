@@ -4,7 +4,7 @@
 # Uses PaperMono font for consistent aesthetic.
 # Auto-detects screen resolution.
 
-set -e
+# Note: Don't use "set -e" — this script is called from swayidle and must not exit on errors.
 
 # ---- Config ----
 FONT_DIR="$HOME/.local/share/fonts"

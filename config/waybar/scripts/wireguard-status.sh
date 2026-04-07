@@ -2,13 +2,13 @@
 # OpenBSD WireGuard status for Waybar (JSON)
 # Checks wg0 interface and rc.d wireguard status
 
-set -euo pipefail
+set -eo pipefail
 trap "exit 0" PIPE
 exec 2>/dev/null
 
 if ifconfig wg0 2>/dev/null | grep -q "inet "; then
     # WireGuard is up — get peer/endpoint
-    endpoint=$(ifconfig wg0 2>/dev/null | grep "endpoint" | awk "{print \$2}" | head -n1 || true)
+    endpoint=$(ifconfig wg0 2>/dev/null | grep "endpoint" | awk '{print $2}' | head -n1 2>/dev/null || true)
     if [ -z "$endpoint" ]; then
         endpoint="Active"
     fi
