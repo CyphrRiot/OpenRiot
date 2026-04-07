@@ -3,11 +3,15 @@
 # Ported from OpenRiot for OpenBSD
 # =============================================================================
 
+# Set UTF-8 locale for foot/wayland compatibility
+set -gx LANG en_US.UTF-8
+set -gx LC_ALL en_US.UTF-8
+
 # Greeting with fastfetch if available
 function fish_greeting
     if command -v fastfetch >/dev/null 2>&1
-        sleep 0.1
-        command fastfetch --logo-width 20 --logo openbsd
+        # Run fastfetch with timeout to prevent hanging on font/locale issues
+        timeout 5 fastfetch --logo-width 20 --logo openbsd 2>/dev/null
     end
 end
 

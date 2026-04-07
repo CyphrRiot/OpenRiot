@@ -28,9 +28,14 @@ cat << 'EOF'
     Documentation: https://openriot.org
     Issues:         https://github.com/CyphrRiot/OpenRiot/issues
 
-    Press any key to continue...
+    Press Enter or wait 10s to continue...
 
 EOF
 
-read -r key
+# Use timeout to avoid hanging if keyboard not ready yet
+if command -v timeout >/dev/null 2>&1; then
+    timeout 10 read _ || true
+else
+    read _ || true
+fi
 touch "$HOME/.openriot-welcomed"
