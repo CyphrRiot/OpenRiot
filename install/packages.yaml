@@ -145,7 +145,7 @@ source:
         build:
             - "curl -fsSL https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.7/Bibata-Modern-Ice.tar.xz -o /tmp/bibata.tar.xz"
             - "mkdir -p $HOME/.local/share/icons"
-            - "tar -xf /tmp/bibata.tar.xz -C /tmp"
+            - "cd /tmp && xz -d bibata.tar.xz && tar -xf bibata.tar"
             - "mv /tmp/Bibata-Modern-Ice $HOME/.local/share/icons/"
             - "rm -f /tmp/bibata.tar.xz"
             - "gtk-update-icon-cache -f $HOME/.local/share/icons/Bibata-Modern-Ice 2>/dev/null || true"
