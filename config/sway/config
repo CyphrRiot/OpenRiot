@@ -2,6 +2,18 @@
 
 set $mod Mod4
 
+# Keyboard input configuration
+input type:keyboard {
+    xkb_layout us
+    xkb_options ctrl:nocaps
+}
+
+# Mouse/touchpad configuration
+input type:pointer {
+    accel_profile flat
+    pointer_accel 0.5
+}
+
 # Bare minimum keybindings
 bindsym $mod+Return exec /usr/local/bin/foot
 bindsym $mod+Shift+E exec swaymsg exit
