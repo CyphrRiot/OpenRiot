@@ -55,7 +55,7 @@ error() { echo -e "${RED}[ERROR]${NC} $1" | tee -a "$LOG_FILE" >&2; }
 
 log() { printf '[OPENRIOT] %s\n' "$1" | tee -a "$LOG_FILE"; }
 
-# Upload log to ix.io for sharing with developers
+# Upload log to catbox.moe for sharing with developers
 share_log() {
     log_file="${1:-$LOG_FILE}"
     if [ ! -f "$log_file" ]; then
@@ -63,12 +63,12 @@ share_log() {
         return 1
     fi
     echo "Uploading log..."
-    url=$(curl -s -F "f:1=<-" "https://ix.io" < "$log_file")
-    if [ -n "$url" ]; then
+    url=$(curl -s -F "reqtype=fileupload" -F "fileToUpload=@$log_file" "https://catbox.moe/user/api.php")
+    if echo "$url" | grep -q "^https://files.catbox.moe"; then
         echo "Log uploaded to: $url"
         echo "$url" > "${log_file}.url"
     else
-        echo "Upload failed"
+        echo "Upload failed: $url"
         return 1
     fi
 }
