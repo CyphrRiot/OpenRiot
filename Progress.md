@@ -1,152 +1,115 @@
 # OpenRiot — Project Progress
 
-**v1.1** · commit 654f3f7 · `https://github.com/CyphrRiot/OpenRiot.git`
+**v1.1** · commit `7599086` · `https://github.com/CyphrRiot/OpenRiot.git`
 
 **Quick test:** `rm -rf ~/.local/share/openriot && curl -fsSL https://openriot.org/setup.sh | sh`
 
 ---
 
-## Completed
+## What We Know Works (from hardware test logs)
 
-| Feature | Status | Files |
-|---------|--------|-------|
-| ISO builder (BIOS+UEFI) | ✅ | `build-iso.sh` |
-| Autoinstall config | ✅ | `install/autoinstall.conf` |
-| Package installation | ✅ | `source/installer/packages.go` |
-| Source builds | ✅ | `install/packages.yaml` (source module) |
-| Config deployment | ✅ | `source/installer/configs.go` |
-| CLI commands | ✅ | `source/main.go` |
-| Sway + Waybar | ✅ | `config/sway/`, `config/waybar/` |
-| Fish shell autostart | ✅ | `config/fish/config.fish` |
-| Log sharing | ✅ | `--share-log` flag |
-| JetBrainsMono Nerd Font | ✅ | `setup.sh`, `config/foot/`, `config/sway/` |
-
----
-
-## Issues Fixed
-
-| # | Issue | Fix |
-|---|-------|-----|
-| 1 | NULL byte error from binary | Fallback grep parser in setup.sh |
-| 2 | python3-3.11.0 wrong pkg name | Updated to python-3.13.12 |
-| 3 | Tree-sitter glob `[` syntax error | `pkg_info -m` only, no glob |
-| 4 | Backgrounds to wrong location | Disabled in configs.go |
-| 5 | nvim configs overwritten | Added `preserve_if_exists` |
-| 6 | No log sharing | Added `--share-log` |
-| 7 | setup.sh not executable | chmod +x via git |
-| 8 | Misleading debug messages | "New installation..." |
-| 9 | Duplicate $mod+F keybinding | Removed duplicate |
-| 10 | Sway opacity (unsupported) | Commented out all opacity |
-| 11 | Grep parsed commands as packages | `grep -E '^ +- [a-zA-Z]'` + filter quotes |
-| 12 | Fish emojis garbled on console | ASCII alternatives |
-| 13 | Fastfetch Nerd Font broken | ASCII labels |
-| 14 | `pkg_info -m` always fails skip check | Changed to `pkg_info -e` |
-| 15 | Grep fallback included YAML commands | Replaced with yq + Python YAML parser |
+| Feature | Log Evidence | Status |
+|---------|-------------|--------|
+| Package skip detection | 32408649: all `[SKIP]` on re-run | ✅ Confirmed |
+| yq/Python YAML fallback | 32408649: 41 packages found | ✅ Confirmed |
+| curl/git removed (base sys) | 32408649: 41 packages (was 43) | ✅ Confirmed |
+| Nerd Font installs | 32408649: `JetBrainsMono Nerd Font installed.` | ✅ Confirmed |
+| Fish prompt path color | Changed to `brblue` | ✅ Fixed |
+| Nerd Font quiet unzip | Not yet tested on hardware | ❓ Untested |
+| Nerd Font skip if installed | Not yet tested on hardware | ❓ Untested |
+| Git pull on every run | Log still shows old code (pre-fix) | ❓ Untested |
+| Source builds direct in setup.sh | Written but NOT committed | ❌ Not deployed |
+| Sway autostart on TTY1 | User hasn't rebooted yet | ❓ Untested |
+| Foot Nerd Font rendering | User hasn't tested | ❓ Untested |
+| waybar icons | User hasn't tested | ❓ Untested |
+| wlsunset installed | User reports missing | ❌ BROKEN |
+| crush installed | Fails: `out of memory` on go-sqlite3-wasm | ❌ BROKEN |
+| Upgrade flow | Not tested | ❓ Untested |
 
 ---
 
-## TODO
+## Known Bugs (pending fix — NOT yet committed)
 
-### TODO 1 — Sway Autostart on Reboot
-**What:** Sway must start automatically on TTY1 after login.
+### 1. Source builds broken (openriot --source-builds fails)
+- **Symptom:** `wlsunset` and `crush` not installed
+- **Root cause:** `./openriot --source-builds` in setup.sh calls Go binary that can't parse YAML on OpenBSD (NULL bytes, fallback broken)
+- **Fix written:** Direct shell commands in setup.sh `run_source_builds()` function — **NOT committed**
 
-**Flow:** TTY1 login → fish shell → `exec sway` → Sway desktop
+### 2. Git pull skips bug fixes between version bumps
+- **Symptom:** Re-running setup.sh shows "Already on latest version (1.1)" and skips `git pull`
+- **Root cause:** `setup_repository()` only pulls when `local_ver < remote_ver`
+- **Fix written:** Check `git rev-list HEAD..origin/main` for commits ahead — **NOT committed**
 
-**Test:**
-```sh
-# After reboot, log in at TTY1 — sway should start automatically
-sway -d 2>&1 | head -100   # debug if broken
-echo $SHELL                  # should be /usr/local/bin/fish
+### 3. crush compilation fails (out of memory)
+- **Symptom:** `go install github.com/charmbracelet/crush@latest` → `fatal error: runtime: out of memory` on `ncruces/go-sqlite3-wasm`
+- **Root cause:** Go's SQLite WASM dependency needs more memory than available during compilation
+- **Fix:** Use pre-built binary from GitHub releases instead of `go install`
+- **Status:** NOT YET WRITTEN
+
+---
+
+## Commits Pushed (7599086 is latest)
+
+```
+7599086 Nerd Font: skip if installed, quiet unzip, move earlier in bootstrap
+d03f962 Always git pull on every run to pick up bug fixes
+03e676a Remove curl and git from packages.yaml (base system)
+60b8c8d Replace grep YAML parser with yq+Python, add JetBrainsMono Nerd Font
+654f3f7 Fix package skip detection and update python package name
 ```
 
-**File:** `config/fish/config.fish`
-**Symptom if broken:** Black screen or command prompt on TTY1 after login.
+---
+
+## Pending Changes (setup.sh — NOT committed)
+
+Three fixes are written but not pushed:
+
+1. **run_source_builds()** — replaces `./openriot --source-builds` with direct shell commands that check `command -v` before building each tool
+2. **setup_repository()** — always git pull by checking `git rev-list HEAD..origin/main`
+3. **Fish prompt path color** — changed `blue` → `brblue` in `config/fish/config.fish`
 
 ---
 
-### TODO 2 — Package Skip Detection
-**What:** Re-running setup.sh should skip already-installed packages fast (not re-run pkg_add on each one).
+## Next Steps
 
-**Test:**
-```sh
-# Run setup.sh twice. Second run should skip packages with "[SKIP]" not "[INFO] Installing"
-tail -20 ~/.cache/openriot/setup.log
-```
-
-**Files:** `setup.sh` (lines 248-271)
-**Root cause:** Was using `pkg_info -m` (maintainer lookup, always fails). Fixed to `pkg_info -e` (installed check).
-**Fix applied:** commit 654f3f7 — needs hardware test verification.
+1. **Fix crush compilation** — download pre-built binary from GitHub instead of `go install`
+2. **Commit and test** — push pending changes, run on hardware
+3. **Verify source builds** — wlsunset, crush, bibata all install correctly
+4. **Test font rendering** — foot, waybar, lsd all show icons
 
 ---
 
-### TODO 3 — Nerd Font Rendering in Foot/Waybar ✅ DONE
-**What:** JetBrainsMono Nerd Font v3.4.0 installed for glyph/icon rendering in foot, lsd, waybar.
-
-**Installed:** `~/.local/share/fonts/JetBrainsMono/` (downloaded from GitHub, fc-cache updated)
-
-**Configured:** `config/foot/cypherriot.ini` → `font=JetBrainsMono NF:size=11`
-
-**Configured:** `config/sway/config` → `font pango:JetBrainsMono NF 10`
-
-**Test:**
-1. Start Sway desktop
-2. Open foot terminal
-3. Run `fastfetch` — icons should appear
-4. Run `lsd -l` — file icons should appear
-
----
-
-### TODO 4 — Upgrade Flow
-**What:** Re-running setup.sh on existing install should git pull updates and rebuild.
-
-**Test:**
-```sh
-# Modify something, push to git
-# Run setup.sh again
-# Verify: binary rebuilt, configs updated, packages skipped
-```
-
-**File:** `setup.sh` (setup_repository function)
-
----
-
-### TODO 5 — Source Build Reliability
-**What:** wlsunset, crush, bibata-cursor compile without errors.
-
-**Test:**
-```sh
-which wlsunset
-which crush
-ls ~/.icons/*/cursors/   # bibata should exist
-```
-
-**Dependencies:** Require `system.tools` module (go-1.26.1, meson, ninja)
-
----
-
-### TODO 6 — Waybar Scripts
-**What:** Waybar battery/volume scripts render Nerd Font icons correctly.
-
-**Files:** `config/waybar/scripts/`
-**Test:** Check waybar on running Sway desktop.
-
----
-
-## Debug Commands
+## Debug Commands (on OpenBSD)
 
 ```sh
-# Share logs for analysis
+# Share latest log
 openriot --share-log
+
+# Check what's installed
+which wlsunset  # should exist
+ls ~/.local/share/fonts/JetBrainsMono/  # should exist
+fc-list | grep JetBrainsMono           # should show "NF" font
+
+# Check sway autostart
+grep -n "exec sway" ~/.config/fish/config.fish
 
 # Manual sway test
 sway -d 2>&1 | head -100
-
-# Check fish as default shell
-echo $SHELL   # should be fish
-
-# Check installed packages
-pkg_info -e   # no args = list all installed
 ```
+
+---
+
+## Root Causes (what we've learned)
+
+| Problem | Root Cause |
+|---------|-----------|
+| `pkg_info -m` always fails | Shows **maintainer**, not installed status |
+| `pkg_info -e` skips base packages | curl/git not in pkg DB (base system) |
+| grep parsed commands as packages | YAML commands are quoted strings, not bare names |
+| grep parsed config patterns | `pattern:` lines matched by `grep -E '^ +- [a-zA-Z]'` |
+| Source builds never run | `./openriot --source-builds` binary fails on OpenBSD |
+| Git pull skipped between versions | Only triggers when local < remote version |
+| crush fails to compile | `go-sqlite3-wasm` dependency OOMs on 8GB OpenBSD |
 
 ---
 

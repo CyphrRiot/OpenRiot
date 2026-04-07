@@ -46,14 +46,10 @@ protocols_dep = declare_dependency(link_with: lib_protocols, sources: protocols_
 cc = meson.get_compiler('c')
 m = cc.find_library('m')
 
-# On OpenBSD, POSIX timer functions (timer_create, timer_settime) are in libc.
-# Do NOT link against librt — it doesn't exist on OpenBSD.
-# _POSIX_C_SOURCE enables the timer function declarations in <time.h>.
 executable(
 	'wlsunset',
 	['main.c', 'color.c', 'str_vec.c'],
 	dependencies: [wl_client, protocols_dep, m],
-	c_args: ['-D_POSIX_C_SOURCE=199309L'],
 	install: true,
 )
 
