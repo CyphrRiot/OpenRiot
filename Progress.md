@@ -1,200 +1,148 @@
 # OpenRiot — Project Progress
 
-> **OpenRiot** transforms a fresh OpenBSD installation into a fully-configured Sway desktop — in one command.
-> It is the OpenBSD counterpart to [ArchRiot](https://archriot.org).
+**v1.1** · commit 654f3f7 · `https://github.com/CyphrRiot/OpenRiot.git`
+
+**Quick test:** `rm -rf ~/.local/share/openriot && curl -fsSL https://openriot.org/setup.sh | sh`
 
 ---
 
-## 🚨 CURRENT STATUS (Apr 6, 2026)
+## Completed
 
-**Version:** 1.1 (latest commit: be26283)  
-**Testing:** Hardware end-to-end test in progress  
-**Git:** `https://github.com/CyphrRiot/OpenRiot.git` (commit: 2429c9d)
-
-### Quick Test Command
-```sh
-rm -rf ~/.local/share/openriot && curl -fsSL https://openriot.org/setup.sh | sh
-```
-
----
-
-## Installation Flow
-
-```
-1. Boot ISO → OpenBSD installer (autoinstall, no interaction needed)
-2. install.site runs → configures doas, enables apmd/sndiod
-3. REBOOT
-4. User logs in, runs: curl -fsSL https://openriot.org/setup.sh | sh
-5. setup.sh → packages, source builds, configs, fish shell
-6. REBOOT → Sway auto-starts on TTY1
-```
+| Feature | Status | Files |
+|---------|--------|-------|
+| ISO builder (BIOS+UEFI) | ✅ | `build-iso.sh` |
+| Autoinstall config | ✅ | `install/autoinstall.conf` |
+| Package installation | ✅ | `source/installer/packages.go` |
+| Source builds | ✅ | `install/packages.yaml` (source module) |
+| Config deployment | ✅ | `source/installer/configs.go` |
+| CLI commands | ✅ | `source/main.go` |
+| Sway + Waybar | ✅ | `config/sway/`, `config/waybar/` |
+| Fish shell autostart | ✅ | `config/fish/config.fish` |
+| Log sharing | ✅ | `--share-log` flag |
 
 ---
 
-## ✅ COMPLETED FEATURES
-
-- ISO builder with BIOS+UEFI boot
-- Autoinstall configuration
-- Package installation (pkg_add)
-- Source builds (wlsunset, crush, bibata cursor)
-- Config deployment with preserve logic
-- CLI commands (--lock, --suspend, --power-menu, --volume, --brightness, etc.)
-- Sway Wayland compositor
-- Waybar status bar
-- Fish shell with auto-start
-- Background management
-
----
-
-## 🔴 ISSUES FIXED (Apr 6, 2026)
+## Issues Fixed
 
 | # | Issue | Fix |
 |---|-------|-----|
-| 1 | NULL byte error from openriot binary | Fallback grep parser in setup.sh |
-| 2 | python3-3.11.0 wrong package name | Changed to python-3.11.0 |
-| 3 | Tree-sitter glob pattern `[` syntax error | Removed glob, use pkg_info -m only |
-| 4 | Backgrounds copying to wrong location | Disabled in configs.go |
-| 5 | crypto.toml/nvim configs overwritten | Added preserve_if_exists |
-| 6 | Log sharing missing | Added --share-log |
+| 1 | NULL byte error from binary | Fallback grep parser in setup.sh |
+| 2 | python3-3.11.0 wrong pkg name | Updated to python-3.13.12 |
+| 3 | Tree-sitter glob `[` syntax error | `pkg_info -m` only, no glob |
+| 4 | Backgrounds to wrong location | Disabled in configs.go |
+| 5 | nvim configs overwritten | Added `preserve_if_exists` |
+| 6 | No log sharing | Added `--share-log` |
 | 7 | setup.sh not executable | chmod +x via git |
-| 8 | Misleading debug messages | Fixed to "New installation..." |
+| 8 | Misleading debug messages | "New installation..." |
 | 9 | Duplicate $mod+F keybinding | Removed duplicate |
-| 10 | Sway opacity commands (unsupported) | Commented out all opacity |
-| 11 | Grep fallback parsed commands as packages | Fixed to `grep -E '^ +- [a-zA-Z]'` |
-| 12 | Fish shell emojis garbled on console | Replaced with ASCII ($ instead of λ, etc) |
-| 13 | Fastfetch Nerd Font icons broken | Replaced with ASCII labels |
+| 10 | Sway opacity (unsupported) | Commented out all opacity |
+| 11 | Grep parsed commands as packages | `grep -E '^ +- [a-zA-Z]'` + filter quotes |
+| 12 | Fish emojis garbled on console | ASCII alternatives |
+| 13 | Fastfetch Nerd Font broken | ASCII labels |
+| 14 | `pkg_info -m` always fails skip check | Changed to `pkg_info -e` |
+| 15 | Grep fallback included YAML commands | Added `grep -v '"'` filter |
 
 ---
 
-## 🔴 REMAINING ISSUES / TODO
+## TODO
 
-### Critical (Blocking)
-1. **Sway autostart verification** — Need to confirm sway starts on reboot
-   - Flow: TTY1 login → fish → exec sway
-   - Requires: fish as default shell, console login (not SSH)
+### TODO 1 — Sway Autostart on Reboot
+**What:** Sway must start automatically on TTY1 after login.
 
-2. **Package skip detection unreliable**
-   - `pkg_info -m` check may not work correctly
-   - Packages reinstalled on every run unnecessarily
+**Flow:** TTY1 login → fish shell → `exec sway` → Sway desktop
 
-### High Priority
-3. **Foot terminal emoji support** — Need to verify emojis render in foot (Wayland)
-   - Console uses ASCII (correct behavior)
-   - Foot should render emojis with Nerd Font
-
-4. **Waybar scripts with emojis** — Battery/volume scripts use Nerd Font icons
-   - Should work in foot/waybar but need verification
-
-### Medium Priority
-5. **Source build reliability** — Commands sometimes parsed as packages
-   - Fixed grep pattern, needs testing
-
-6. **Upgrade flow** — Need to verify git pull works for updates
-
----
-
-## 📁 KEY FILES
-
-| File | Purpose |
-|------|---------|
-| `setup.sh` | Bootstrap: packages, builds, configs, shell setup |
-| `install/packages.yaml` | All packages, configs, commands, source builds |
-| `config/sway/config` | Main sway config (sources other configs) |
-| `config/sway/keybindings.conf` | Keybindings (was duplicate $mod+F) |
-| `config/sway/windowrules.conf` | Window rules (removed opacity commands) |
-| `config/fish/config.fish` | Fish shell (auto-starts sway on TTY1) |
-| `config/fastfetch/config.jsonc` | System info (ASCII icons for console) |
-| `source/main.go` | Go binary CLI commands |
-| `source/installer/configs.go` | Config deployment (backgrounds disabled) |
-
----
-
-## 🔧 BUILD COMMANDS
-
+**Test:**
 ```sh
-make build     # Cross-compile for OpenBSD
-make dev       # Native build (testing)
-make verify    # Smoke test
-make iso       # Build bootable ISO
-make isotest   # Test ISO in QEMU
+# After reboot, log in at TTY1 — sway should start automatically
+sway -d 2>&1 | head -100   # debug if broken
+echo $SHELL                  # should be /usr/local/bin/fish
 ```
 
+**File:** `config/fish/config.fish`
+**Symptom if broken:** Black screen or command prompt on TTY1 after login.
+
 ---
 
-## 📝 SWAY CONFIGURATION NOTES
+### TODO 2 — Package Skip Detection
+**What:** Re-running setup.sh should skip already-installed packages fast (not re-run pkg_add on each one).
 
-### What Sway DOES Support
-- Standard keybindings (bindsym)
-- Window rules (for_window)
-- Output/monitor config
-- Workspace management
-- Floating/split layouts
-
-### What Sway Does NOT Support
-- **Per-window opacity** — removed all opacity rules
-- Per-window corner radius
-- Some Hyprland-specific features
-
-### Sway Autostart Flow
-```fish
-# config/fish/config.fish
-if status is-login && test (tty) = /dev/tty1
-    exec sway
-end
+**Test:**
+```sh
+# Run setup.sh twice. Second run should skip packages with "[SKIP]" not "[INFO] Installing"
+tail -20 ~/.cache/openriot/setup.log
 ```
 
----
-
-## 📦 SOURCE BUILDS (packages.yaml)
-
-| Package | Method |
-|---------|--------|
-| wlsunset | git clone + meson build |
-| crush | go install + move to ~/.local/bin |
-| bibata-cursor | curl release + extract to icons |
-
-Dependencies: All require `system.tools` module (includes go-1.26.1)
+**Files:** `setup.sh` (lines 248-271)
+**Root cause:** Was using `pkg_info -m` (maintainer lookup, always fails). Fixed to `pkg_info -e` (installed check).
+**Fix applied:** commit 654f3f7 — needs hardware test verification.
 
 ---
 
-## 🐛 DEBUGGING
+### TODO 3 — Foot Emoji Rendering
+**What:** Foot terminal (Wayland) should render Nerd Font emojis. TTY1 console should NOT (correct behavior).
 
-### Share logs from OpenBSD:
+**Test:**
+1. Start Sway desktop
+2. Open foot terminal
+3. Run `fastfetch` — emoji icons should appear
+4. Check waybar — battery/volume icons should render
+
+**If broken:** `?` or blank boxes instead of icons.
+
+---
+
+### TODO 4 — Upgrade Flow
+**What:** Re-running setup.sh on existing install should git pull updates and rebuild.
+
+**Test:**
 ```sh
-~/.local/share/openriot/install/openriot --share-log
-# OR
+# Modify something, push to git
+# Run setup.sh again
+# Verify: binary rebuilt, configs updated, packages skipped
+```
+
+**File:** `setup.sh` (setup_repository function)
+
+---
+
+### TODO 5 — Source Build Reliability
+**What:** wlsunset, crush, bibata-cursor compile without errors.
+
+**Test:**
+```sh
+which wlsunset
+which crush
+ls ~/.icons/*/cursors/   # bibata should exist
+```
+
+**Dependencies:** Require `system.tools` module (go-1.26.1, meson, ninja)
+
+---
+
+### TODO 6 — Waybar Scripts
+**What:** Waybar battery/volume scripts render Nerd Font icons correctly.
+
+**Files:** `config/waybar/scripts/`
+**Test:** Check waybar on running Sway desktop.
+
+---
+
+## Debug Commands
+
+```sh
+# Share logs for analysis
 openriot --share-log
-```
 
-### Check sway config:
-```sh
+# Manual sway test
 sway -d 2>&1 | head -100
-```
 
-### Verify fish is default:
-```sh
-echo $SHELL  # Should show fish
+# Check fish as default shell
+echo $SHELL   # should be fish
+
+# Check installed packages
+pkg_info -e   # no args = list all installed
 ```
 
 ---
 
-## 📌 SESSION SUMMARY (Apr 6, 2026)
-
-**Working on:** Getting Sway to autostart on reboot
-
-**Root causes fixed:**
-1. Duplicate keybinding prevented sway from loading
-2. Unsupported opacity commands would cause parse errors
-3. Package parser was trying to install YAML commands as packages
-4. Console (TTY) can't render emojis — using ASCII instead
-
-**Next steps:**
-1. User tests fresh install on OpenBSD hardware
-2. Verify sway auto-starts on reboot
-3. Confirm emojis render in foot terminal
-4. Fix any remaining issues
-
----
-
-**Last updated:** Apr 6, 2026  
-**Git commit:** 2429c9d
+**Last updated:** Apr 6, 2026
