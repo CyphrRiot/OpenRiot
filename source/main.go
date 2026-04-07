@@ -111,6 +111,7 @@ func main() {
 		case "Lock":
 			exec.Command("swaylock", "-f").Run()
 		case "Suspend":
+			exec.Command("swaylock", "-f").Run()
 			exec.Command("zzz").Run()
 		case "Reboot":
 			exec.Command("shutdown", "-r", "now").Run()

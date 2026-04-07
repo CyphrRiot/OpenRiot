@@ -107,19 +107,6 @@ function dum
 end
 
 # =============================================================================
-# Sway Auto-start (on login TTY)
-# =============================================================================
-
-# Auto-start Sway on TTY1
-if status is-login && test (tty) = /dev/tty1
-    if type -q sway
-        exec sway
-    else
-        echo "Sway not found. Run 'setup.sh' or install sway."
-    end
-end
-
-# =============================================================================
 # OpenRouter LLM Configuration
 # =============================================================================
 

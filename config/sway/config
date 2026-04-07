@@ -40,7 +40,7 @@ set $editor hx ~/Documents
 exec swaybg -i "$HOME/.local/share/openriot/backgrounds/riot_00.jpg" -m fill
 
 exec $HOME/.local/share/openriot/config/bin/waybar-guard.sh
-exec wlsunset -t 3500
+exec sh -c 'command -v wlsunset && exec wlsunset -t 3500'
 exec $HOME/.local/share/openriot/config/bin/battery-monitor.sh
 
 # Welcome screen (runs once on first login)
@@ -55,10 +55,9 @@ exec_always sh -c 'if [ ! -f "$HOME/.openriot-welcomed" ]; then foot -e "$HOME/.
 # Background refresh: openriot-lock.sh runs every 30 mins to update crypto prices.
 # swaylock --clock shows live time on top of the static background.
 # =============================================================================
+exec $HOME/.local/share/openriot/config/bin/openriot-lock.sh
 exec sh -c 'while true; do $HOME/.local/share/openriot/config/bin/openriot-lock.sh; sleep 1800; done &'
 exec swayidle -w \
-    timeout 240 '$HOME/.config/sway/brightness-dim.sh dim' \
-    resume '$HOME/.config/sway/brightness-dim.sh restore' \
     timeout 300 'swaylock -f -i /tmp/swaylock-bg.png --clock --timestr "%%I:%%M %%p"' \
     timeout 600 'swaymsg output * dpms off' \
     resume 'swaymsg output * dpms on' \
@@ -81,6 +80,9 @@ input * {
 
 # Touchpad (auto-detected on boot)
 exec_always sh -c 'if swaymsg -t get_inputs | grep -q "type:touchpad"; then swaymsg "input type:touchpad" {dwt enabled, tap enabled, natural_scroll enabled}; fi'
+
+# Cursor theme (Bibata Modern Ice)
+seat seat0 xcursor_theme Bibata-Modern-Ice
 
 # Focus follows mouse
 focus_follows_mouse yes
