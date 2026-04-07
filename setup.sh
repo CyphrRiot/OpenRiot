@@ -119,17 +119,19 @@ check_openbsd_version() {
     success "OpenBSD $version detected"
 }
 
-# Check available disk space
+# Check available disk space (requires GB)
 check_disk_space() {
-    required_mb=$1
+    required_gb=$1
     target_dir="${HOME:-/root}"
-    available_mb=$(df -k "$target_dir" | tail -1 | awk '{print int($4/1024)}')
-    if [ "$available_mb" -lt "$required_mb" ]; then
-        error "Not enough disk space. Need ${required_mb}MB, have ${available_mb}MB free."
+    available_kb=$(df -k "$target_dir" | tail -1 | awk '{print $4}')
+    available_gb=$(awk "BEGIN {printf \"%.1f\", $available_kb/1048576}")
+    required_display=$(awk "BEGIN {printf \"%.1f\", $required_gb}")
+    if awk "BEGIN {exit !($available_gb < $required_gb)}"; then
+        error "Not enough disk space. Need ${required_display}GB, have ${available_gb}GB free."
         error "Free up space and try again."
         exit 1
     fi
-    info "Disk space check passed (${available_mb}MB available)"
+    info "Disk space check passed (${available_gb}GB available)"
 }
 
 # -----------------------------------------------------------------------------
@@ -280,7 +282,6 @@ run_openriot_install() {
         exit 1
     fi
     # Run as USER - no doas, log to ~/.cache/openriot/
-    # Change to binary's directory so relative paths work
     cd "$INSTALL_DIR/install" || { error "Cannot cd to $INSTALL_DIR/install"; exit 1; }
 
     INSTALL_LOG="$HOME/.cache/openriot/install.log"
@@ -403,7 +404,7 @@ main() {
     setup_repository
 
     # Always run packages (pkg_add is idempotent - skips already-installed)
-    check_disk_space 1000
+    check_disk_space 1
     install_packages
 
     # Source builds only on fresh clone (compilation from source, not needed on upgrade)
@@ -430,7 +431,7 @@ main() {
     echo "+----------------------------------------------------------+"
     echo "|  OpenRiot bootstrap complete!                            |"
     echo "|                                                          |"
-    echo "|  Reboot now, then log in. Sway will start automatically.|"
+    echo "|  Reboot now, then log in. Sway will start automatically. |"
     echo "+----------------------------------------------------------+"
     echo ""
 }
