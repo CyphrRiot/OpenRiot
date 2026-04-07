@@ -22,11 +22,9 @@ end
 # Add local bin directories to PATH
 fish_add_path --prepend $HOME/.local/share/openriot/config/bin
 fish_add_path --prepend $HOME/.local/bin
-fish_add_path --prepend $HOME/.local/bin/openriot
 
 # OpenBSD paths
 fish_add_path --prepend /usr/local/bin
-fish_add_path --prepend /usr/X11R6/bin
 
 # =============================================================================
 # Git Prompt Configuration

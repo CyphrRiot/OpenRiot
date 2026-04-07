@@ -304,6 +304,12 @@ func runInstall() {
 		fmt.Printf("[WARN]  Some commands failed: %v\n", err)
 	}
 
+	// Step 3: Source builds (crush, wlsunset, bibata-cursor, etc.)
+	fmt.Println("[INFO]  Running source builds...")
+	if err := installer.SourceBuilds(cfg, testMode); err != nil {
+		fmt.Printf("[WARN]  Source builds: %v\n", err)
+	}
+
 	fmt.Println("[INFO]  OpenRiot installation complete!")
 }
 
