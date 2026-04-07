@@ -30,7 +30,7 @@
     	"return-type": "json",
     	"interval": 300,
     	"on-click": "$HOME/.local/share/openriot/config/waybar/scripts/openriot-update.sh --click",
-    	"tooltip": true,
+    	"tooltip": true
     },
 
     "custom/battery": {

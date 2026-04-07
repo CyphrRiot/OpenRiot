@@ -229,5 +229,5 @@
 		"class<org.gnome.About>": "<span font='11' color='#c5cae9aa'>󰋖 </span>",
 		"class<org.gnome.PowerStats>": "<span font='11' color='#ffd180aa'>󰠭 </span>"
 		}
-	},
+	}
 }

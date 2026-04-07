@@ -37,7 +37,7 @@
 	"on-scroll-up": "/usr/bin/bash -lc '~/.local/share/openriot/install/openriot --brightness up'",
 	"on-scroll-down": "/usr/bin/bash -lc '~/.local/share/openriot/install/openriot --brightness down'",
 	"smooth-scrolling-threshold": 1,
-	"tooltip-format": "backlight {percent}%",
+	"tooltip-format": "backlight {percent}%"
 },
 
 "clock#vertical": {
@@ -50,7 +50,7 @@
 		"mode": "year",
 		"mode-mon-col": 3,
 		"format": {
-			"today": "<span color='#0dbc79'>{}</span>",
+			"today": "<span color='#0dbc79'>{}</span>"
 		}
 	}
 },
@@ -58,7 +58,7 @@
 "cpu#vertical": {
 	"format": "󰍛\n{usage}%",
 	"interval": 1,
-	"on-click-right": "gnome-system-monitor",
+	"on-click-right": "gnome-system-monitor"
 },
 
 "memory#vertical": {
@@ -68,7 +68,7 @@
 	"format-alt-click": "click",
 	"tooltip": true,
 	"tooltip-format": "{used:0.1f}GB/{total:0.1f}G",
-	"on-click-right": "gnome-system-monitor",
+	"on-click-right": "gnome-system-monitor"
 },
 
 "pulseaudio#vertical": {
@@ -88,7 +88,7 @@
 		"tooltip-format": "{icon} {desc} | {volume}%",
 		"ignored-sinks": [
 			"Easy Effects Sink"
-		],
+		]
 	},
 	"scroll-step": 5.0,
 	"on-click": "$HOME/.local/share/openriot/install/openriot --volume toggle",
@@ -96,7 +96,7 @@
 	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume inc",
 	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume dec",
 	"tooltip-format": "{icon} {desc} | {volume}%",
-	"smooth-scrolling-threshold": 1,
+	"smooth-scrolling-threshold": 1
 },
 
 "pulseaudio#microphone_vertical": {
@@ -109,13 +109,13 @@
 	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume mic-dec",
 	"max-volume": 100,
 	"tooltip": true,
-	"tooltip-format": "{source_desc} | {source_volume}%",
+	"tooltip-format": "{source_desc} | {source_volume}%"
 },
 
 "custom/power_vertical": {
 	"format": "⏻",
 	"on-click": "$HOME/.local/share/openriot/install/openriot --power-menu",
 	"tooltip": true,
-	"tooltip-format": "Left Click: Logout Menu",
-},
+	"tooltip-format": "Left Click: Logout Menu"
+}
 }

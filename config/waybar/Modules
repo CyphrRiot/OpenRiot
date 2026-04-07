@@ -44,7 +44,7 @@
 	"on-update": "",
 	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --brightness up",
 	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --brightness down",
-	"smooth-scrolling-threshold": 1,
+	"smooth-scrolling-threshold": 1
 },
 
 "backlight#2": {
@@ -76,7 +76,7 @@
 	"format-time": "{H}h {M}min",
 	"tooltip": true,
 	"tooltip-format": "{timeTo} {power}w",
-	"on-click-right": "$HOME/.local/share/openriot/install/openriot --power-menu",
+	"on-click-right": "$HOME/.local/share/openriot/install/openriot --power-menu"
 },
 
 "bluetooth": {
@@ -87,7 +87,7 @@
 	"tooltip-format-connected": "{device_enumerate}",
 	"tooltip-format-enumerate-connected": " {device_alias} 󰂄{device_battery_percentage}%",
 	"tooltip": true,
-	"on-click": "blueberry",
+	"on-click": "blueberry"
 },
 
 "clock": {
@@ -138,14 +138,14 @@
     "format": "{:%B | %a %d, %Y | %I:%M %p}",
     
 	"format-alt": "{:%a %b %d, %G}",
-	"tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>",
+	"tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>"
 },
 
 "clock#5": {
     "format": "{:%A, %I:%M %P}",
     
 	"format-alt": "{:%A, %d %B, %Y (%R)}",
-	"tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>",
+	"tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>"
 },
 
 "cpu": {
@@ -172,7 +172,7 @@
 	
 	"format": "{percentage_used}% 󰋊",
 	
-	"tooltip-format": "{used} used out of {total} on {path} ({percentage_used}%)",
+	"tooltip-format": "{used} used out of {total} on {path} ({percentage_used}%)"
 },
 
 "hyprland/language": {
@@ -185,7 +185,7 @@
 
 "hyprland/submap": {
 	"format": "<span style=\"italic\">  {}</span>",
-	"tooltip": false,
+	"tooltip": false
 },
 
 "hyprland/window": {
@@ -198,8 +198,8 @@
 		"(.*) — Mozilla Firefox": " $1",
 		"(.*) - fish": "> [$1]",
 		"(.*) - zsh": "> [$1]",
-		"(.*) - $term": "> [$1]",
-	},
+		"(.*) - $term": "> [$1]"
+	}
 },
 
 "idle_inhibitor": {
@@ -209,7 +209,7 @@
 	"format": "{icon}",
 	"format-icons": {
 		"activated": "♥",
-		"deactivated": "♡",
+		"deactivated": "♡"
 	}
 },
 
@@ -243,15 +243,15 @@
 		"mopidy": "",
 		"mpv": "󰐹",
 		"spotify": "",
-		"vlc": "󰕼",
+		"vlc": "󰕼"
 	},
 	"status-icons": {
 		"paused": "󰐎",
 		"playing": "",
-		"stopped": "",
+		"stopped": ""
 	},
 	
-	"max-length": 40,
+	"max-length": 40
 },
 
 "network": {
@@ -294,7 +294,7 @@
 		],
 		"ignored-sinks": [
 			"Easy Effects Sink"
-		],
+		]
 	},
 	"scroll-step": 5.0,
 	"on-click": "$HOME/.local/share/openriot/install/openriot --volume toggle",
@@ -302,7 +302,7 @@
 	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume inc",
 	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume dec",
 	"tooltip-format": "{icon} {desc} | {volume}%",
-	"smooth-scrolling-threshold": 1,
+	"smooth-scrolling-threshold": 1
 },
 
 "pulseaudio#1": {
@@ -322,7 +322,7 @@
   "on-click": "pamixer --toggle-mute",
   "on-click-right": "pavucontrol -t 3",
   "tooltip": true,
-  "tooltip-format": "{icon} {desc} | {volume}%",
+  "tooltip-format": "{icon} {desc} | {volume}%"
 },
 
 "pulseaudio#microphone": {
@@ -334,7 +334,7 @@
 	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume mic-inc",
 	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume mic-dec",
 	"tooltip-format": "{source_desc} | {source_volume}%",
-	"scroll-step": 5,
+	"scroll-step": 5
 },
 
 "tray": {
@@ -352,7 +352,7 @@
 	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume dec",
 	"format-icons": [
 		"", "", "󰕾", ""
-	],
+	]
 },
 
 "wlr/taskbar": {
@@ -376,5 +376,5 @@
 		"(.*) — Mozilla Firefox": " $1",
 		"(.*) - fish": "> [$1]"
 	}
-},
+}
 }
