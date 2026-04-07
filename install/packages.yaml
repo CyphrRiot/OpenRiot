@@ -120,17 +120,15 @@ source:
     fonts:
         packages: []
         commands:
-            - "mkdir -p $HOME/.local/share/fonts && curl -fsSL 'https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/JetBrainsMono.zip' -o /tmp/jetbrainsmono.zip && unzip -q /tmp/jetbrainsmono.zip -d $HOME/.local/share/fonts && rm -f /tmp/jetbrainsmono.zip && fc-cache -fv"
+            - "if [ ! -d \"$HOME/.local/share/fonts/JetBrainsMono\" ]; then mkdir -p $HOME/.local/share/fonts && curl -fsSL 'https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/JetBrainsMono.zip' -o /tmp/jetbrainsmono.zip && unzip -q /tmp/jetbrainsmono.zip -d $HOME/.local/share/fonts && rm -f /tmp/jetbrainsmono.zip && fc-cache -fv; fi"
         type: "Source"
         critical: true
 
     wlsunset:
         type: "Source"
         build:
-            - "git clone --depth=1 https://git.sr.ht/~kennylevinsen/wlsunset /tmp/wlsunset"
-            - "cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release"
-            - "cd /tmp/wlsunset && meson compile -C build"
-            - "doas meson install -C build"
+            - "if command -v wlsunset >/dev/null 2>&1; then echo '[SKIP] wlsunset already installed'; else rm -rf /tmp/wlsunset && cp -r $HOME/.local/share/openriot/source/wlsunset /tmp/wlsunset && cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release && meson compile -C build && doas meson install -C build; fi"
+        depends: [system.tools]
         start: "Building wlsunset from source"
         end: "wlsunset built"
 
