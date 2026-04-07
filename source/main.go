@@ -128,6 +128,16 @@ func main() {
 		detect.SuspendIfUndocked()
 		return
 	}
+	// --wlsunset - output emoji based on wlsunset state
+	if len(os.Args) >= 2 && os.Args[1] == "--wlsunset" {
+		out, _ := exec.Command("pgrep", "-x", "wlsunset").Output()
+		if len(out) > 0 {
+			fmt.Print("󰆗") // Moon - warm mode on
+		} else {
+			fmt.Print("󰛨") // Lightbulb - warm mode off
+		}
+		return
+	}
 	// --notify "title" "body" [--urgency normal|critical|low] [--expires-in seconds]
 	if len(os.Args) >= 2 && os.Args[1] == "--notify" {
 		title, body, urgency := "", "", "normal"

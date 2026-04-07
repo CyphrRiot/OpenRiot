@@ -74,6 +74,16 @@
     	"tooltip-format": "󰷛 Screen Lock",
     },
 
+    "custom/wlsunset": {
+    	"format": "{}",
+    	"exec": "$HOME/.local/share/openriot/install/openriot --wlsunset",
+    	"signal": "SIGUSR1",
+    	"on-click": "sh -c 'if pgrep -x wlsunset > /dev/null 2>&1; then pkill wlsunset; else wlsunset -t 3500; fi; kill -SIGUSR1 $(pgrep waybar)'",
+    	"tooltip": true,
+    	"tooltip-format": "󰆗 Warm Light (click to disable)",
+    	"tooltip-format-alt": "󰛨 Normal Screen (click to enable)",
+    },
+
     "custom/rec-dot": {
     	"format": "{}",
     	"return-type": "json",
