@@ -1,19 +1,10 @@
 # OpenRiot Sway Config — MINIMAL
-# Just keyboard and basic window management. NOTHING else auto-starts.
 
 set $mod Mod4
-set $terminal foot
-
-# Input — OpenBSD
-input type:keyboard {
-    xkb_layout us
-}
-input type:pointer {
-    accel_profile flat
-}
 
 # Bare minimum keybindings
-bindsym $mod+Return exec $terminal
+bindsym $mod+Return exec /usr/local/bin/foot
+bindsym $mod+Shift+E exec swaymsg exit
 bindsym $mod+Q kill
 bindsym $mod+W floating toggle
 bindsym $mod+J split vertical

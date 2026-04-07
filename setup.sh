@@ -355,10 +355,11 @@ run_openriot_install() {
 
 
 usage() {
-    echo "Usage: setup.sh [--install | --upgrade | --share-log | --help]"
+    echo "Usage: setup.sh [--install | --upgrade | --show-log | --share-log | --help]"
     echo "  --install   Fresh install (default)"
     echo "  --upgrade   Upgrade if newer version available"
-    echo "  --share-log Share latest log file at ix.io"
+    echo "  --show-log  Display the installation log"
+    echo "  --share-log Share latest log file at tmpfiles.org"
     echo "  --help      Show this message"
     exit 0
 }
@@ -369,6 +370,7 @@ usage() {
 
 main() {
     MODE="install"
+    SPECIAL_MODE=""
 
     # Parse arguments
     for arg in "$@"; do
@@ -376,12 +378,27 @@ main() {
             --install) MODE="install" ;;
             --upgrade) MODE="upgrade" ;;
             --share-log)
+                SPECIAL_MODE="share-log"
                 share_log "${2:-}"
                 exit $?
+                ;;
+            --show-log)
+                SPECIAL_MODE="show-log"
+                if [ -f "$LOG_FILE" ]; then
+                    cat "$LOG_FILE"
+                else
+                    echo "No log file found: $LOG_FILE"
+                fi
+                exit 0
                 ;;
             --help|-h) usage ;;
         esac
     done
+
+    # Clear log file on fresh install (not on special modes)
+    if [ -z "$SPECIAL_MODE" ]; then
+        : > "$LOG_FILE"
+    fi
 
     # Fetch remote version for banner (may fail offline)
     banner_ver=$(get_remote_version 2>/dev/null || echo "?.?")
