@@ -88,9 +88,10 @@ end
 # Aliases & Functions
 # =============================================================================
 
-# Vim/Vi aliases to nvim
-alias vim='nvim'
-alias vi='nvim'
+# Vim/Vi aliases to helix
+alias vim='hx'
+alias vi='hx'
+alias helix='hx'
 
 # Directory listing with lsd (better ls)
 alias ls='lsd'
