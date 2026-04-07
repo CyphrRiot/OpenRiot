@@ -355,12 +355,17 @@ run_openriot_install() {
 # -----------------------------------------------------------------------------
 
 install_nerd_font() {
+    # Check if already installed (JetBrainsMono Nerd Font uses "NF" suffix)
+    if fc-list | grep -q "JetBrainsMono.*NF" 2>/dev/null; then
+        info "JetBrainsMono Nerd Font already installed."
+        return
+    fi
     info "Installing JetBrainsMono Nerd Font..."
     font_dir="$REAL_HOME/.local/share/fonts"
     mkdir -p "$font_dir"
-    # Download as user, extract to user fonts dir, update font cache
+    # ~5MB (vs ~30MB for all weights/styles)
     curl -fsSL "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/JetBrainsMono.zip" -o /tmp/jetbrainsmono.zip
-    unzip -o /tmp/jetbrainsmono.zip -d "$font_dir"
+    unzip -q /tmp/jetbrainsmono.zip -d "$font_dir"
     rm -f /tmp/jetbrainsmono.zip
     doas fc-cache -fv >/dev/null 2>&1
     success "JetBrainsMono Nerd Font installed."
@@ -484,6 +489,9 @@ main() {
 
     setup_repository
 
+    # Nerd Font: installed early so configs can reference it
+    install_nerd_font
+
     # Always run packages (pkg_add is idempotent - skips already-installed)
     check_disk_space 1
     install_packages
@@ -505,7 +513,6 @@ main() {
     fi
 
     run_openriot_install
-    install_nerd_font
     set_fish_shell
     configure_sway_autostart
 
