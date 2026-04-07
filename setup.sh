@@ -304,6 +304,7 @@ for line in content.splitlines():
 
     count=$(echo "$packages" | wc -l | tr -d ' ')
     info "Found $count packages. Installing one by one..."
+    warn "This may take a while (Nerd Fonts are large)..."
 
     failed=0
     for pkg in $packages; do
