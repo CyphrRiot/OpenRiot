@@ -23,7 +23,6 @@ core:
         packages:
             - fish-4.6.0
             - neovim-0.12.0
-            - foot-1.26.1
             - havoc
             - fzf-0.70.0
             - ripgrep-15.1.0
@@ -80,7 +79,6 @@ desktop:
             - pattern: waybar/*
             - pattern: fonts/*
               target: "~/.local/share/fonts"
-            - pattern: foot/*
             - pattern: havoc/*
             - pattern: fuzzel/*
         commands:

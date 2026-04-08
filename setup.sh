@@ -88,11 +88,11 @@ is_newer_version() {
     [ "$local_ver" = "$remote_ver" ] && return 1
 
     newer=$(printf '%s\n%s\n' "$local_ver" "$remote_ver" | awk 'BEGIN{FS="."} {
-        for (i=1; i<=3; i++) { v[NR][i] = ($i+0) }
+        for (i=1; i<=3; i++) { v[NR*10+i] = ($i+0) }
     } END {
         for (i=1; i<=3; i++) {
-            if (v[2][i] > v[1][i]) { print "newer"; exit }
-            if (v[1][i] > v[2][i]) { print "older"; exit }
+            if (v[20+i] > v[10+i]) { print "newer"; exit }
+            if (v[10+i] > v[20+i]) { print "older"; exit }
         }
         print "equal"
     }')
