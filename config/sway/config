@@ -48,6 +48,9 @@ exec swaybg -i "$HOME/.local/share/openriot/backgrounds/riot_00.jpg" -m fill
 # Focus
 focus_follows_mouse no
 
+# Drag floating windows with mouse (hold $mod + left click)
+floating_modifier $mod normal
+
 # Include keybindings and window rules
 include ~/.config/sway/keybindings.conf
 include ~/.config/sway/windowrules.conf
