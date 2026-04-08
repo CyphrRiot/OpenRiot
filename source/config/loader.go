@@ -174,8 +174,8 @@ func (c *Config) GetPackages() []string {
 }
 
 // GetCommands returns all commands from all modules
-func (c *Config) GetCommands() []string {
-	var commands []string
+func (c *Config) GetCommands() []CommandEntry {
+	var commands []CommandEntry
 
 	allModules := c.GetAllModules()
 	for _, module := range allModules {

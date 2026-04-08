@@ -24,12 +24,15 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 	configSourceDir := filepath.Join(repoDir, "config")
 	configDir := filepath.Join(homeDir, ".config")
 
-	fmt.Printf("%s[INFO]%s  Copying configs from: %s\n", Blue, Reset, configSourceDir)
+	fmt.Printf("%s[INFO]%s  Deploying configuration files...\n", Blue, Reset)
 
 	// Create ~/.config if it doesn't exist
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return fmt.Errorf("creating config directory: %w", err)
 	}
+
+	// Track stats per category
+	categoryStats := make(map[string]int)
 
 	// Collect all config rules from all modules
 	var allRules []config.ConfigRule
@@ -77,9 +80,11 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 
 			// Check if source directory exists
 			if _, err := os.Stat(srcDir); os.IsNotExist(err) {
-				fmt.Printf("%s[INFO]%s  Skipping %s (directory not found)\n", Yellow, Reset, rule.Pattern)
 				continue
 			}
+
+			// Get category name for stats
+			category := patternWithoutGlob
 
 			// Walk the source directory recursively
 			err := filepath.WalkDir(srcDir, func(srcPath string, info fs.DirEntry, err error) error {
@@ -119,7 +124,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 					fmt.Printf("%s[WARN]%s  Failed to copy %s: %v\n", Yellow, Reset, srcPath, err)
 					return nil
 				} else {
-					fmt.Printf("%s[INFO]%s  Copied %s -> %s\n", Green, Reset, relPath, destPath)
+					categoryStats[category]++
 				}
 				return nil
 			})
@@ -143,7 +148,6 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 
 			// Skip if source doesn't exist
 			if _, err := os.Stat(srcPath); os.IsNotExist(err) {
-				fmt.Printf("%s[INFO]%s  Skipping %s (not found)\n", Yellow, Reset, rule.Pattern)
 				continue
 			}
 
@@ -162,17 +166,25 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 
 			// Copy file
 			if dryRun {
-				fmt.Printf("[INFO]  [DRY-RUN] Would copy %s -> %s\n", rule.Pattern, destPath)
+				fmt.Printf("%s[INFO]%s  [DRY-RUN] Would copy %s -> %s\n", Blue, Reset, rule.Pattern, destPath)
 			} else if err := copyFilePreserve(srcPath, destPath); err != nil {
-				fmt.Printf("[WARN]  Failed to copy %s: %v\n", rule.Pattern, err)
+				fmt.Printf("%s[WARN]%s  Failed to copy %s: %v\n", Yellow, Reset, rule.Pattern, err)
 				continue
 			} else {
-				fmt.Printf("[INFO]  Copied %s -> %s\n", rule.Pattern, destPath)
+				// Get category from pattern (e.g., "sway/config" -> "sway")
+				parts := strings.Split(rule.Pattern, "/")
+				category := parts[0]
+				categoryStats[category]++
 			}
 		}
 	}
 
-	// NOTE: Backgrounds copying disabled - sway config uses system paths
+	// Print summary
+	for category, count := range categoryStats {
+		fmt.Printf("%s[DONE]%s  %s: %d files\n", Green, Reset, category, count)
+	}
+	fmt.Printf("%s[DONE]%s  Configuration deployed\n", Green, Reset)
+
 	return nil
 }
 
@@ -182,57 +194,11 @@ func shouldPreserve(filename string, preserveList []string, destPath string) boo
 		if preserve == filename {
 			// File is in preserve list - check if it exists at destination
 			if _, err := os.Stat(destPath); err == nil {
-				fmt.Printf("%s[INFO]%s  Preserving existing file: %s\n", Yellow, Reset, destPath)
 				return true
 			}
 		}
 	}
 	return false
-}
-
-// copyBackgrounds copies background images to the backgrounds directory
-func copyBackgrounds(repoDir, homeDir string) error {
-	bgSourceDir := filepath.Join(repoDir, "config", "backgrounds")
-	bgDestDir := filepath.Join(homeDir, ".local", "share", "openriot", "backgrounds")
-
-	// Create destination directory
-	if err := os.MkdirAll(bgDestDir, 0755); err != nil {
-		return fmt.Errorf("creating backgrounds directory: %w", err)
-	}
-
-	// Check if source exists
-	if _, err := os.Stat(bgSourceDir); os.IsNotExist(err) {
-		fmt.Printf("%s[INFO]%s  No backgrounds directory found\n", Blue, Reset)
-		return nil
-	}
-
-	// Copy all jpg files
-	entries, err := os.ReadDir(bgSourceDir)
-	if err != nil {
-		return fmt.Errorf("reading backgrounds directory: %w", err)
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		name := entry.Name()
-		if !strings.HasSuffix(strings.ToLower(name), ".jpg") {
-			continue
-		}
-
-		srcPath := filepath.Join(bgSourceDir, name)
-		destPath := filepath.Join(bgDestDir, name)
-
-		if err := copyFilePreserve(srcPath, destPath); err != nil {
-			fmt.Printf("%s[WARN]%s  Failed to copy background %s: %v\n", Yellow, Reset, name, err)
-			continue
-		}
-
-		fmt.Printf("%s[INFO]%s  Copied background %s -> %s\n", Green, Reset, name, destPath)
-	}
-
-	return nil
 }
 
 // copyFilePreserve copies a single file, preserving source permissions and skipping identical content
@@ -245,7 +211,6 @@ func copyFilePreserve(source, dest string) error {
 	// Skip write when content is identical to prevent spurious reloads
 	if existing, err := os.ReadFile(dest); err == nil {
 		if bytes.Equal(existing, sourceData) {
-			fmt.Printf("[INFO]  Skipping unchanged file: %s\n", dest)
 			return nil
 		}
 	}

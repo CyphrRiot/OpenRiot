@@ -47,8 +47,10 @@ core:
         type: "Package"
         critical: true
         commands:
-            - "if ! grep -q '^/usr/local/bin/fish$' /etc/shells 2>/dev/null; then echo '/usr/local/bin/fish' | doas tee -a /etc/shells >/dev/null; fi"
-            - "doas chsh -s /usr/local/bin/fish"
+            - desc: "Adding fish to /etc/shells"
+              cmd: "if ! grep -q '^/usr/local/bin/fish$' /etc/shells 2>/dev/null; then echo '/usr/local/bin/fish' | doas tee -a /etc/shells >/dev/null; fi"
+            - desc: "Setting fish as default shell"
+              cmd: "doas chsh -s /usr/local/bin/fish"
 
 desktop:
     sway:
@@ -82,10 +84,14 @@ desktop:
             - pattern: havoc/*
             - pattern: fuzzel/*
         commands:
-            - "doas rcctl set seatd flags '-g _seatd'"
-            - "doas rcctl enable seatd && doas rcctl start seatd || true"
-            - "doas usermod -G _seatd $(whoami) 2>/dev/null || true"
-            - "cp $HOME/.local/share/openriot/config/applications/*.desktop ~/.local/share/applications/ 2>/dev/null || true"
+            - desc: "Configuring seatd"
+              cmd: "doas rcctl set seatd flags '-g _seatd'"
+            - desc: "Enabling and starting seatd"
+              cmd: "doas rcctl enable seatd && doas rcctl start seatd || true"
+            - desc: "Adding user to _seatd group"
+              cmd: "doas usermod -G _seatd $(whoami) 2>/dev/null || true"
+            - desc: "Installing desktop files"
+              cmd: "cp $HOME/.local/share/openriot/config/applications/*.desktop ~/.local/share/applications/ 2>/dev/null || true"
         depends: [core.base]
         start: "Installing Sway desktop"
         end: "Sway desktop installed"
@@ -162,7 +168,8 @@ fonts:
         packages:
             - symbolsonly-nerd-fonts-3.3.0
         commands:
-            - "fc-cache"
+            - desc: "Refreshing font cache"
+              cmd: "fc-cache"
         depends: []
         start: "Installing Nerd Fonts"
         end: "Nerd Fonts installed"
