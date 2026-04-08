@@ -361,7 +361,6 @@ run_openriot_install() {
     INSTALL_LOG="$HOME/.cache/openriot/install.log"
     mkdir -p "$(dirname "$INSTALL_LOG")"
     ./openriot --install 2>&1 | tee -a "$INSTALL_LOG"
-    success "openriot --install complete"
 }
 
 
