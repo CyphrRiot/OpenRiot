@@ -3,10 +3,13 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -60,6 +63,12 @@ func main() {
 		return
 	}
 
+	// --install-packages (installs packages from packages.yaml, used by setup.sh)
+	if len(os.Args) >= 2 && os.Args[1] == "--install-packages" {
+		runInstallPackages()
+		return
+	}
+
 	// --packages flag - outputs package list from packages.yaml (used by setup.sh)
 	if len(os.Args) >= 2 && os.Args[1] == "--packages" {
 		configPath := config.FindConfigFile()
@@ -76,6 +85,21 @@ func main() {
 			fmt.Println(pkg)
 		}
 		os.Exit(0)
+	}
+
+	// --version-check - checks if remote version is newer than local (used by setup.sh)
+	if len(os.Args) >= 2 && os.Args[1] == "--version-check" {
+		localVer := getLocalVersion()
+		remoteVer := getRemoteVersion()
+		if localVer == "unknown" || remoteVer == "unknown" {
+			os.Exit(1)
+		}
+		if compareVersions(localVer, remoteVer) < 0 {
+			fmt.Printf("Update available: %s -> %s\n", localVer, remoteVer)
+			os.Exit(0)
+		}
+		fmt.Printf("Current: %s\n", localVer)
+		os.Exit(1)
 	}
 
 	// All other CLI commands
@@ -235,6 +259,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "Usage: openriot <command>\n")
 	fmt.Fprintf(os.Stderr, "\nCommands:\n")
 	fmt.Fprintf(os.Stderr, "  --install          Install OpenRiot (configs, not packages)\n")
+	fmt.Fprintf(os.Stderr, "  --install-packages Install packages from packages.yaml\n")
 	fmt.Fprintf(os.Stderr, "  --source-builds    Build software from source\n")
 	fmt.Fprintf(os.Stderr, "  --packages         List packages from packages.yaml\n")
 	fmt.Fprintf(os.Stderr, "  --lock            Lock the screen\n")
@@ -337,6 +362,37 @@ func runSourceBuilds() {
 	fmt.Println("[INFO]  Source builds complete!")
 }
 
+// runInstallPackages installs packages from packages.yaml (used by setup.sh)
+func runInstallPackages() {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERR!]  Could not determine home directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	repoDir := filepath.Join(homeDir, ".local", "share", "openriot")
+	configPath := filepath.Join(repoDir, "install", "packages.yaml")
+
+	cfg, err := config.LoadConfig(configPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERR!]  Failed to load config: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("%s[INFO]%s  Installing packages from packages.yaml (safe one-by-one mode)...\n", installer.Blue, installer.Reset)
+
+	packages := cfg.GetPackages()
+	if len(packages) == 0 {
+		fmt.Fprintf(os.Stderr, "%s[ERR!]%s  No packages found in packages.yaml\n", installer.Red, installer.Reset)
+		os.Exit(1)
+	}
+
+	failed, _ := installer.InstallPackages(packages)
+	if failed > 0 {
+		os.Exit(1)
+	}
+}
+
 // writeOpenRouterToFish writes OpenRouter API key to fish config
 func writeOpenRouterToFish(apiKey string) {
 	if apiKey == "" {
@@ -379,4 +435,56 @@ set -gx OPENROUTER_BASE_URL "https://openrouter.ai/api/v1"
 	}
 
 	fmt.Println("[INFO]  OpenRouter API key saved to fish config")
+}
+
+// getLocalVersion reads the local VERSION file
+func getLocalVersion() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "unknown"
+	}
+	versionPath := filepath.Join(homeDir, ".local", "share", "openriot", "VERSION")
+	data, err := os.ReadFile(versionPath)
+	if err != nil {
+		return "unknown"
+	}
+	return strings.TrimSpace(string(data))
+}
+
+// getRemoteVersion fetches VERSION from openriot.org
+func getRemoteVersion() string {
+	resp, err := http.Get("https://openriot.org/VERSION")
+	if err != nil {
+		return "unknown"
+	}
+	defer resp.Body.Close()
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "unknown"
+	}
+	return strings.TrimSpace(string(data))
+}
+
+// compareVersions compares two semantic versions (a vs b)
+// Returns -1 if a < b, 0 if a == b, 1 if a > b
+func compareVersions(a, b string) int {
+	partsA := strings.Split(a, ".")
+	partsB := strings.Split(b, ".")
+
+	for i := 0; i < 3; i++ {
+		var vA, vB int
+		if i < len(partsA) {
+			vA, _ = strconv.Atoi(partsA[i])
+		}
+		if i < len(partsB) {
+			vB, _ = strconv.Atoi(partsB[i])
+		}
+		if vA < vB {
+			return -1
+		}
+		if vA > vB {
+			return 1
+		}
+	}
+	return 0
 }

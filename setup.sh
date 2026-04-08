@@ -75,47 +75,6 @@ share_log() {
 }
 
 # -----------------------------------------------------------------------------
-# Version Comparison
-# -----------------------------------------------------------------------------
-
-# Compare semantic versions - returns 0 if remote is newer
-is_newer_version() {
-    local_ver="$1"
-    remote_ver="$2"
-
-    [ "$local_ver" = "unknown" ] && return 1
-    [ "$remote_ver" = "unknown" ] && return 1
-    [ "$local_ver" = "$remote_ver" ] && return 1
-
-    newer=$(printf '%s\n%s\n' "$local_ver" "$remote_ver" | awk 'BEGIN{FS="."} {
-        for (i=1; i<=3; i++) { v[NR*10+i] = ($i+0) }
-    } END {
-        for (i=1; i<=3; i++) {
-            if (v[20+i] > v[10+i]) { print "newer"; exit }
-            if (v[10+i] > v[20+i]) { print "older"; exit }
-        }
-        print "equal"
-    }')
-
-    [ "$newer" = "newer" ] && return 0
-    return 1
-}
-
-# Get remote version from openriot.org
-get_remote_version() {
-    timeout 10 curl -fsSL "$REMOTE_VERSION_URL" 2>/dev/null || echo "unknown"
-}
-
-# Get local version from installed repo
-get_local_version() {
-    if [ -f "$INSTALL_DIR/VERSION" ]; then
-        cat "$INSTALL_DIR/VERSION" 2>/dev/null || echo "unknown"
-    else
-        echo "unknown"
-    fi
-}
-
-# -----------------------------------------------------------------------------
 # Pre-flight Checks
 # -----------------------------------------------------------------------------
 
@@ -138,50 +97,65 @@ check_openbsd_version() {
     success "OpenBSD $version detected"
 }
 
-# Check available disk space (requires GB)
-check_disk_space() {
-    required_gb=$1
-    target_dir="${HOME:-/root}"
-    available_kb=$(df -k "$target_dir" | tail -1 | awk '{print $4}')
-    available_gb=$(awk "BEGIN {printf \"%.1f\", $available_kb/1048576}")
-    required_display=$(awk "BEGIN {printf \"%.1f\", $required_gb}")
-    if awk "BEGIN {exit !($available_gb < $required_gb)}"; then
-        error "Not enough disk space. Need ${required_display}GB, have ${available_gb}GB free."
-        error "Free up space and try again."
-        exit 1
-    fi
-    info "Disk space check passed (${available_gb}GB available)"
-}
-
 # -----------------------------------------------------------------------------
-# Configure installurl (pkg_add mirror)
+# Configure doas and installurl (simple shell, no binary needed)
 # -----------------------------------------------------------------------------
 
-configure_installurl() {
-    info "Configuring installurl..."
-    echo "$INSTALLURL" | doas tee /etc/installurl >/dev/null
-    success "installurl configured"
-}
-
-# -----------------------------------------------------------------------------
-# Configure doas (nopasswd for wheel)
-# -----------------------------------------------------------------------------
-
-configure_doas() {
+configure_doas_installurl() {
+    # Configure doas
     info "Configuring doas..."
     doas_conf="/etc/doas.conf"
     doas_entry="permit nopass :wheel"
     if [ -f "$doas_conf" ]; then
         if grep -q "^permit nopass :wheel" "$doas_conf" 2>/dev/null; then
             success "doas already configured"
-            return
+        else
+            doas cp "$doas_conf" "${doas_conf}.bak" && warn "Backed up existing doas.conf"
+            echo "$doas_entry" | doas tee "$doas_conf" >/dev/null
+            doas chmod 0440 "$doas_conf"
+            success "doas configured (nopasswd)"
         fi
-        doas cp "$doas_conf" "${doas_conf}.bak"
-        warn "Backed up existing doas.conf"
+    else
+        echo "$doas_entry" | doas tee "$doas_conf" >/dev/null
+        doas chmod 0440 "$doas_conf"
+        success "doas configured (nopasswd)"
     fi
-    echo "$doas_entry" | doas tee "$doas_conf" >/dev/null
-    doas chmod 0440 "$doas_conf"
-    success "doas configured (nopasswd)"
+
+    # Configure installurl
+    info "Configuring installurl..."
+    echo "$INSTALLURL" | doas tee /etc/installurl >/dev/null
+    success "installurl configured"
+}
+
+# -----------------------------------------------------------------------------
+# Check available disk space (simple shell)
+# -----------------------------------------------------------------------------
+
+check_disk_space() {
+    required_gb=$1
+    available_kb=$(df -k "${HOME:-/root}" | tail -1 | awk '{print $4}')
+    available_gb=$(awk "BEGIN {printf \"%.1f\", $available_kb/1048576}")
+    required_display=$(awk "BEGIN {printf \"%.1f\", $required_gb}")
+    if awk "BEGIN {exit !($available_gb < $required_gb)}"; then
+        error "Not enough disk space. Need ${required_display}GB, have ${available_gb}GB free."
+        exit 1
+    fi
+    info "Disk space check passed (${available_gb}GB available)"
+}
+
+# -----------------------------------------------------------------------------
+# Get remote version (simple, for banner only)
+# -----------------------------------------------------------------------------
+
+get_remote_version() {
+    if command -v curl >/dev/null 2>&1; then
+        remote_ver=$(curl -fsSL "$REMOTE_VERSION_URL" 2>/dev/null)
+        if [ -n "$remote_ver" ]; then
+            echo "$remote_ver"
+            return 0
+        fi
+    fi
+    return 1
 }
 
 # -----------------------------------------------------------------------------
@@ -212,11 +186,7 @@ install_bootstrap_packages() {
 # -----------------------------------------------------------------------------
 
 setup_repository() {
-    local_ver=$(get_local_version)
-    remote_ver=$(get_remote_version)
-
-    info "Local version:  $local_ver"
-    info "Remote version: $remote_ver"
+    info "Setting up repository..."
 
     # Always deploy repo: fresh clone if no INSTALL_DIR or --install requested
     if [ ! -d "$INSTALL_DIR" ] || [ "$FORCE_INSTALL" = "1" ]; then
@@ -249,99 +219,8 @@ setup_repository() {
     fi
 
     # Check for new version releases
-    if is_newer_version "$local_ver" "$remote_ver"; then
-        info "New version $remote_ver available!"
-    fi
-}
-
-# -----------------------------------------------------------------------------
-# Install all packages from packages.yaml
-# -----------------------------------------------------------------------------
-
-install_packages() {
-    info "Installing packages from packages.yaml (safe one-by-one mode)..."
-
-    # Try openriot binary first, fallback to grep if it fails
-    if [ -x "$INSTALL_DIR/install/openriot" ]; then
-        pkg_raw=$("$INSTALL_DIR/install/openriot" --packages 2>&1)
-        pkg_exit=$?
-    else
-        pkg_raw=""
-        pkg_exit=1
-    fi
-    if [ $pkg_exit -ne 0 ] || [ -z "$pkg_raw" ]; then
-        warn "openriot --packages failed or returned empty, using fallback..."
-        # Try yq first (preferred), then Python YAML fallback
-        if command -v yq >/dev/null 2>&1; then
-            pkg_raw=$(yq eval '.. | select(has("packages")) | .packages[]' "$INSTALL_DIR/install/packages.yaml" 2>/dev/null)
-        elif command -v python3 >/dev/null 2>&1; then
-            pkg_raw=$(python3 -c "
-import re, sys
-with open('$INSTALL_DIR/install/packages.yaml') as f:
-    content = f.read()
-in_packages = False
-depth = 0
-for line in content.splitlines():
-    # Track if we enter a new top-level key (increase depth = new module)
-    if re.match(r'^[a-z]', line):
-        depth += 1
-        in_packages = False
-    # Detect packages: section
-    if re.match(r'^\s+packages:\s*$', line):
-        in_packages = True
-    elif re.match(r'^\s+(configs|commands|build):\s*$', line):
-        in_packages = False
-    # Extract package name
-    elif in_packages:
-        m = re.match(r'^\s+-\s+([A-Za-z][A-Za-z0-9.+-]*)', line)
-        if m: print(m.group(1))
-" 2>/dev/null)
-        else
-            pkg_raw=$(grep -E '^ +- [a-zA-Z]' "$INSTALL_DIR/install/packages.yaml" 2>/dev/null | \
-                sed 's/^ *- //' | grep -E '[0-9]')
-        fi
-    fi
-    if [ -z "$pkg_raw" ]; then
-        error "No packages found in packages.yaml"
-        error "Run 'setup.sh --share-log' to share logs for debugging"
-        exit 1
-    fi
-    packages=$(echo "$pkg_raw" | sort -u | grep -v '^$')
-
-    if [ -z "$packages" ]; then
-        error "No packages found in packages.yaml"
-        exit 1
-    fi
-
-    count=$(echo "$packages" | wc -l | tr -d ' ')
-    info "Found $count packages. Installing one by one..."
-    warn "This may take a while (Nerd Fonts are large)..."
-
-    failed=0
-    for pkg in $packages; do
-        # Check if already installed (OpenBSD stores pkg info in /var/db/pkg/)
-        # Use pkg_info to check - it's more reliable than glob patterns in [ ]
-        if pkg_info -e "$pkg" >/dev/null 2>&1; then
-            info "  [SKIP] $pkg already installed"
-        else
-            info "Installing $pkg ..."
-            pkg_output=$(doas pkg_add -D unsigned "$pkg" 2>&1)
-            pkg_status=$?
-            if [ $pkg_status -eq 0 ]; then
-                success "$pkg installed."
-            else
-                warn "Failed to install $pkg."
-                echo "$pkg_output" | sed 's/^/    /'
-                failed=$((failed + 1))
-            fi
-        fi
-    done
-
-    if [ $failed -gt 0 ]; then
-        warn "$failed packages failed to install."
-        warn "You can install remaining ones manually: doas pkg_add <package>"
-    else
-        success "All packages installed successfully!"
+    if "$INSTALL_DIR/install/openriot" --version-check >/dev/null 2>&1; then
+        info "New version available!"
     fi
 }
 
@@ -363,6 +242,19 @@ run_openriot_install() {
     ./openriot --install 2>&1 | tee -a "$INSTALL_LOG"
 }
 
+# -----------------------------------------------------------------------------
+# Run openriot --install-packages (delegates to Go binary)
+# -----------------------------------------------------------------------------
+
+run_install_packages() {
+    info "Installing packages via openriot --install-packages..."
+    if [ ! -x "$INSTALL_DIR/install/openriot" ]; then
+        error "openriot binary not found at $INSTALL_DIR/install/openriot"
+        exit 1
+    fi
+    cd "$INSTALL_DIR/install" || { error "Cannot cd to $INSTALL_DIR/install"; exit 1; }
+    ./openriot --install-packages 2>&1 | tee -a "$LOG_FILE"
+}
 
 usage() {
     echo "Usage: setup.sh [--install | --upgrade | --show-log | --share-log | --help]"
@@ -418,8 +310,7 @@ main() {
     echo ""
 
     check_openbsd_version
-    configure_doas
-    configure_installurl
+    configure_doas_installurl
     install_bootstrap_packages
 
     # Debug: show environment and paths
@@ -433,13 +324,11 @@ main() {
     # Detect mode
     if [ "$MODE" = "upgrade" ]; then
         # --upgrade mode: only proceed if newer version available
-        local_ver_before=$(get_local_version)
-        remote_ver=$(get_remote_version)
-        if ! is_newer_version "$local_ver_before" "$remote_ver"; then
-            info "No upgrade needed - already on latest version ($local_ver_before)"
+        if ! "$INSTALL_DIR/install/openriot" --version-check >/dev/null 2>&1; then
+            info "No upgrade needed - already on latest version."
             exit 0
         fi
-        info "Upgrading from $local_ver_before to $remote_ver..."
+        info "Upgrading..."
     fi
 
     # Check if this will be a fresh clone (no INSTALL_DIR or --install)
@@ -450,9 +339,9 @@ main() {
 
     setup_repository
 
-    # Install packages first so dependencies exist
+    # Check disk space and install packages
     check_disk_space 1
-    install_packages
+    run_install_packages
 
     # openriot --install handles configs + commands from packages.yaml
     run_openriot_install
