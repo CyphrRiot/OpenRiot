@@ -1,5 +1,6 @@
 /* OpenRiot Waybar Configuration */
-/* OpenBSD / Sway - Single flat config for waybar 0.15.0 compatibility */
+/* OpenBSD / Sway — Single flat config */
+/* NO includes, NO Hyprland modules, NO groups, NO separators */
 
 {
     "layer": "top",
@@ -8,1044 +9,159 @@
     "margin-right": 8,
     "margin-left": 8,
     "margin-top": 3,
-    "spacing": 10,
+    "spacing": 8,
     "passthrough": false,
     "exclusive": true,
     "ipc": false,
 
     "modules-left": [
         "custom/openbsd",
-        "custom/separator#blank",
         "sway/workspaces",
-        "custom/separator#blank",
         "sway/window"
     ],
 
     "modules-center": [
         "clock",
-        "custom/separator#dot",
         "custom/weather-emoji",
         "custom/notifications"
     ],
 
     "modules-right": [
-        "custom/separator#blank_3",
-        "custom/rec-dot",
-        "tray",
-        "custom/separator#blank",
-        "group/system-metrics",
-        "custom/separator#blank",
+        "custom/system-metrics",
         "custom/volume-bar",
-        "custom/separator#blank",
         "custom/network",
-        "custom/wireguard",
-        "custom/separator#blank",
         "custom/battery",
-        "custom/separator#blank",
         "custom/openriot-update",
-        "custom/separator#blank",
         "custom/power",
         "custom/lock"
     ],
 
-"temperature": {
-	"interval": 10,
-	"tooltip": true,
-
-	"critical-threshold": 82,
-	"format-critical": "{temperatureC}°{icon}",
-	"format": "{temperatureC}°{icon}",
-	"format-icons": [
-		"󰈸"
-	],
-	"tooltip-format": "CPU Temperature: {temperatureC}°C",
-	"on-click": "foot -e btop",
-	"on-click-right": "foot -e btop"
-},
-
-"backlight": {
-	"interval": 2,
-	"align": 0,
-	"rotate": 0,
-	
-	"format-icons": [
-		" ",
-		" ",
-		" ",
-		"󰃝 ",
-		"󰃞 ",
-		"󰃟 ",
-		"󰃠 "
-	],
-	"format": "{icon}",
-	
-	"tooltip-format": "backlight {percent}%",
-	"icon-size": 10,
-	"on-click": "",
-	"on-click-middle": "",
-	"on-click-right": "",
-	"on-update": "",
-	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --brightness up",
-	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --brightness down",
-	"smooth-scrolling-threshold": 1
-},
-
-"backlight#2": {
-  "device": "intel_backlight",
-  "format": "{icon} {percent}%",
-  "format-icons": ["", ""]
-},
-
-"battery": {
-	
-	"align": 0,
-	"rotate": 0,
-	
-	
-	"full-at": 100,
-	"design-capacity": false,
-	"states": {
-		"good": 95,
-		"warning": 30,
-		"critical": 15
-	},
-	"format": "{icon} {capacity}%",
-	"format-charging": " {capacity}%",
-	"format-plugged": "󱘖 {capacity}%",
-		"format-full": "{icon} {capacity}%",
-	"format-icons": [
-		"󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"
-	],
-	"format-time": "{H}h {M}min",
-	"tooltip": true,
-	"tooltip-format": "{timeTo} {power}w",
-	"on-click-right": "$HOME/.local/share/openriot/install/openriot --power-menu"
-},
-
-"bluetooth": {
-	"format": " ",
-	"format-disabled": "󰂳",
-	"format-connected": "󰂱 {num_connections}",
-	"tooltip-format": " {device_alias}",
-	"tooltip-format-connected": "{device_enumerate}",
-	"tooltip-format-enumerate-connected": " {device_alias} 󰂄{device_battery_percentage}%",
-	"tooltip": true,
-	"on-click": "blueberry"
-},
-
-"clock": {
-	"interval": 1,
-    "format": " {:%A • %B %d • %I:%M %p}",
-    
-	"format-alt": " {:%H:%M   %d %B, %A}",
-	"on-click": "$HOME/.local/share/openriot/install/openriot --swaybg-next",
-	"tooltip-format": "<tt><small>{calendar}</small></tt>",
-	"calendar": {
-		"mode": "year",
-		"mode-mon-col": 3,
-		"weeks-pos": "right",
-		"on-scroll": 1,
-		"format": {
-			"months": "<span color='#ffead3'><b>{}</b></span>",
-			"days": "<span color='#ecc6d9'><b>{}</b></span>",
-			"weeks": "<span color='#99ffdd'><b>W{}</b></span>",
-			"weekdays": "<span color='#ffcc66'><b>{}</b></span>",
-			"today": "<span color='#ff6699'><b><u>{}</u></b></span>"
-		}
-	}
-},
-
-"actions": {
-	"on-click-right": "mode",
-	"on-click-forward": "tz_up",
-	"on-click-backward": "tz_down",
-	"on-scroll-up": "shift_up",
-	"on-scroll-down": "shift_down"
-},
-
-"clock#2": {
-    "format": " {:%I:%M %p}",
-    
-    "format-alt": "{:%A  |  %H:%M  |  %e %B}",
-    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
-},
-
-"clock#3": {
-    "format": "{:%I:%M %p - %d/%b}",
-    
-	"tooltip": false
-},
-
-"clock#4": {
-	"interval": 60,
-    "format": "{:%B | %a %d, %Y | %I:%M %p}",
-    
-	"format-alt": "{:%a %b %d, %G}",
-	"tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>"
-},
-
-"clock#5": {
-    "format": "{:%A, %I:%M %P}",
-    
-	"format-alt": "{:%A, %d %B, %Y (%R)}",
-	"tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>"
-},
-
-"cpu": {
-	"format": "󰍛 {usage}%",
-	"interval": 1,
-	"min-length": 5,
-	"states": {
-		"warning": 70,
-		"critical": 90
-	},
-	"format-icons": [
-		"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"
-	],
-	"on-click": "foot -e btop",
-	"on-click-right": "foot -e btop",
-	"tooltip": true,
-	"tooltip-format": "CPU Usage: {usage}% | Load: {load} | Icon: {icon}"
-},
-
-"disk": {
-	"interval": 30,
-	
-	"path": "/",
-	
-	"format": "{percentage_used}% 󰋊",
-	
-	"tooltip-format": "{used} used out of {total} on {path} ({percentage_used}%)"
-},
-
-"hyprland/language": {
-	"format": "Lang: {}",
-	"format-en": "US",
-	"format-tr": "Korea",
-	"keyboard-name": "at-translated-set-2-keyboard",
-	"on-click": "hyprctl switchxkblayout $SET_KB next"
-},
-
-"hyprland/submap": {
-	"format": "<span style=\"italic\">  {}</span>",
-	"tooltip": false
-},
-
-"hyprland/window": {
-	"format": "{}",
-	"max-length": 55,
-	"separate-outputs": true,
-	"offscreen-css": true,
-	"offscreen-css-text": "(inactive)",
-	"rewrite": {
-		"(.*) — Mozilla Firefox": " $1",
-		"(.*) - fish": "> [$1]",
-		"(.*) - zsh": "> [$1]",
-		"(.*) - $term": "> [$1]"
-	}
-},
-
-"idle_inhibitor": {
-	"tooltip": true,
-	"tooltip-format-activated": "Idle_inhibitor active",
-	"tooltip-format-deactivated": "Idle_inhibitor not active",
-	"format": "{icon}",
-	"format-icons": {
-		"activated": "♥",
-		"deactivated": "♡"
-	}
-},
-
-
-"memory": {
-	"interval": 10,
-	"format": "{percentage}% 󰾆",
-	"tooltip": true,
-	"tooltip-format": "Used: {used:0.1f}GB | Available: {avail:0.1f}GB | Total: {total:0.1f}GB ({percentage}%)",
-	"on-click": "foot -e btop",
-	"on-click-right": "foot -e btop"
-},
-
-"mpris": {
-	"interval": 2,
-	"format": "{player_icon} {dynamic}",
-	"format-paused": "{status_icon} <i>{dynamic}</i>",
-	"format-stopped": "",
-	"format-disconnected": "",
-	"scroll-step": 5.0,
-	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume inc",
-	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume dec",
-	"smooth-scrolling-threshold": 1,
-	"tooltip": true,
-	"tooltip-format": "{status_icon} {dynamic} (no playerctl on OpenBSD)",
-	"player-icons": {
-		"chromium": "",
-		"default": "",
-		"firefox": "",
-		"kdeconnect": "",
-		"mopidy": "",
-		"mpv": "󰐹",
-		"spotify": "",
-		"vlc": "󰕼"
-	},
-	"status-icons": {
-		"paused": "󰐎",
-		"playing": "",
-		"stopped": ""
-	},
-	
-	"max-length": 40
-},
-
-"network": {
-	"format": "󰤙",
-	"tooltip": false,
-	"interval": 86400,
-	"on-click": "foot -e nmtui"
-},
-
-"network#speed": {
-	"format": "",
-	"interval": 86400
-},
-
-"power-profiles-daemon": {
-  "format": "{icon} ",
-  "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
-  "tooltip": true,
-  "format-icons": {
-    "default": "",
-    "performance": "",
-    "balanced": "",
-    "power-saver": ""
-  }
-},
-
-"pulseaudio": {
-	"format": "{icon} {volume}%",
-	"format-bluetooth": "{icon} 󰂰 {volume}%",
-	"format-muted": "󰖁",
-	"format-icons": {
-		"headphone": "",
-		"hands-free": "",
-		"headset": "",
-		"phone": "",
-		"portable": "",
-		"car": "",
-		"default": [
-			"󰕿", "󰖀", "󰕾", "󰕾"
-		],
-		"ignored-sinks": [
-			"Easy Effects Sink"
-		]
-	},
-	"scroll-step": 5.0,
-	"on-click": "$HOME/.local/share/openriot/install/openriot --volume toggle",
-	"on-click-right": "pavucontrol -t 3",
-	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume inc",
-	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume dec",
-	"tooltip-format": "{icon} {desc} | {volume}%",
-	"smooth-scrolling-threshold": 1
-},
-
-"pulseaudio#1": {
-  "format": "{icon} {volume}%",
-  "format-bluetooth": "{icon} {volume}%",
-  "format-bluetooth-muted": " {icon}",
-  "format-muted": "󰸈",
-  "format-icons": {
-      "headphone": "",
-      "hands-free": "",
-      "headset": "",
-      "phone": "",
-      "portable": "",
-      "car": "",
-      "default": ["", "", ""]
+    "custom/openbsd": {
+        "format": "\udb80\udc3b",
+        "on-click": "fuzzel",
+        "on-click-right": "pkill fuzzel",
+        "tooltip": true,
+        "tooltip-format": "Left-click: App Launcher"
     },
-  "on-click": "pamixer --toggle-mute",
-  "on-click-right": "pavucontrol -t 3",
-  "tooltip": true,
-  "tooltip-format": "{icon} {desc} | {volume}%"
-},
 
-"pulseaudio#microphone": {
-	"format": "{format_source}",
-	"format-source": " {volume}%",
-	"format-source-muted": "",
-	"on-click": "$HOME/.local/share/openriot/install/openriot --volume mic-toggle",
-	"on-click-right": "pavucontrol -t 4",
-	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume mic-inc",
-	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume mic-dec",
-	"tooltip-format": "{source_desc} | {source_volume}%",
-	"scroll-step": 5
-},
-
-"tray": {
-	"icon-size": 16,
-	"spacing": 5,
-	"show-passive-items": true
-},
-
-"wireplumber": {
-	"format": "{icon} {volume} %",
-	"format-muted": " Mute",
-	"on-click": "$HOME/.local/share/openriot/install/openriot --volume toggle",
-	"on-click-right": "pavucontrol -t 3",
-	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume inc",
-	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume dec",
-	"format-icons": [
-		"", "", "󰕾", ""
-	]
-},
-
-"wlr/taskbar": {
-	"format": "{icon}",
-	"icon-size": 20,
-	"all-outputs": false,
-	"tooltip-format": "{title}",
-	"on-click": "activate",
-	"on-click-middle": "close",
-	"ignore-list": [
-		"rofi",
-		"fuzzel"
-		],
-	"icon-theme": "kora"
-},
-
-"sway/window": {
-	"format": "{}",
-	"max-length": 60,
-	"rewrite": {
-		"(.*) — Mozilla Firefox": " $1",
-		"(.*) - fish": "> [$1]"
-	}
-},
-
-"custom/openbsd": {
-		"format": "󰀻",
-		"on-click": "fuzzel",
-		"on-click-right": "pkill fuzzel",
-		"tooltip": true,
-		"tooltip-format": "Left-click: App Launcher | Right-click: Close Launcher"
-	},
+    "custom/weather-emoji": {
+        "format": "{}",
+        "interval": 600,
+        "exec": "$HOME/.local/share/openriot/config/waybar/scripts/weather-emoji-plain.sh",
+        "tooltip": true
+    },
 
     "custom/notifications": {
-    	"format": "{}",
-    	"return-type": "json",
-    	"interval": 3,
-    	"exec": "$HOME/.local/share/openriot/install/openriot --notify-waybar",
-    	"on-click": "$HOME/.local/share/openriot/install/openriot --notify-dismiss",
-    	"tooltip": true
+        "format": "{}",
+        "return-type": "json",
+        "interval": 3,
+        "exec": "$HOME/.local/share/openriot/install/openriot --notify-waybar",
+        "on-click": "$HOME/.local/share/openriot/install/openriot --notify-dismiss",
+        "tooltip": true
     },
 
-
-    "custom/openriot-update": {
-    	"exec": "$HOME/.local/share/openriot/config/waybar/scripts/openriot-update.sh",
-    	"return-type": "json",
-    	"interval": 300,
-    	"on-click": "$HOME/.local/share/openriot/config/waybar/scripts/openriot-update.sh --click",
-    	"tooltip": true
-    },
-
-    "custom/battery": {
-    	"format": "{}",
-    	"return-type": "json",
-    	"interval": 30,
-    	"exec": "$HOME/.local/share/openriot/config/waybar/scripts/waybar-battery.sh",
-    	"on-click-right": "$HOME/.local/share/openriot/install/openriot --power-menu",
-    	"tooltip": true
-    },
-
-    "custom/lock": {
-    	"format": "󰌾",
-    	"on-click": "swaylock -f",
-    	"tooltip": true,
-    	"tooltip-format": "󰷛 Screen Lock"
-    },
-
-    "custom/wlsunset": {
-    	"format": "{}",
-    	"exec": "$HOME/.local/share/openriot/install/openriot --wlsunset",
-    	"signal": "SIGUSR1",
-    	"on-click": "sh -c 'if pgrep -x wlsunset > /dev/null 2>&1; then pkill wlsunset; else wlsunset -t 3500; fi; kill -SIGUSR1 $(pgrep waybar)'",
-    	"tooltip": true,
-    	"tooltip-format": "󰆗 Warm Light (click to disable)",
-    	"tooltip-format-alt": "󰛨 Normal Screen (click to enable)"
-    },
-
-    "custom/rec-dot": {
-    	"format": "{}",
-    	"return-type": "json",
-    	"interval": 2,
-    	"exec": "$HOME/.local/share/openriot/config/waybar/scripts/recording-indicator.sh",
-    	"on-click": "$HOME/.local/share/openriot/config/waybar/scripts/recording-indicator.sh --click",
-    	"tooltip": true
-    },
-
-    "custom/cpu-aggregate": {
-    	"format": "{}",
-    	"return-type": "json",
-    	"interval": 2,
-    	"exec": "$HOME/.local/share/openriot/config/waybar/scripts/waybar-cpu.sh",
-    	"on-click": "foot -e htop",
-    	"on-click-right": "foot -e htop",
-    	"tooltip": true
-    },
-
-    "custom/power": {
-    	"format": " ⏻ ",
-    	"on-click": "$HOME/.local/share/openriot/install/openriot --power-menu",
-    	"tooltip": false
-    },
-
-    "custom/temp-bar": {
-    	"format": "{}",
-    	"return-type": "json",
-    	"interval": 10,
-    	"exec": "$HOME/.local/share/openriot/config/waybar/scripts/waybar-temp.sh",
-    	"on-click": "foot -e htop",
-    	"on-click-right": "foot -e htop",
-    	"tooltip": true
+    "custom/system-metrics": {
+        "format": "{}",
+        "return-type": "json",
+        "interval": 5,
+        "exec": "$HOME/.local/share/openriot/config/waybar/scripts/system-metrics.sh",
+        "on-click": "foot -e htop",
+        "tooltip": true
     },
 
     "custom/volume-bar": {
-    	"format": "{}",
-    	"return-type": "json",
-    	"interval": 1,
-    	"exec": "$HOME/.local/share/openriot/config/waybar/scripts/waybar-volume.sh",
-    	"on-click": "$HOME/.local/share/openriot/install/openriot --volume toggle",
-    	"on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume inc",
-    	"on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume dec",
-    	"tooltip": true
-    },
-
-    "custom/memory-accurate": {
-    	"format": "{}",
-    	"return-type": "json",
-    	"interval": 5,
-    	"exec": "$HOME/.local/share/openriot/config/waybar/scripts/waybar-memory.sh",
-    	"on-click": "foot -e htop",
-    	"on-click-right": "foot -e htop",
-    	"tooltip": true
-    },
-
-    "custom/separator#dot": {
-    	"format": "•",
-    	"interval": "once",
-    	"tooltip": false
-    },
-    "custom/separator#dot-line": {
-    	"format": "",
-    	"interval": "once",
-    	"tooltip": false
-    },
-    "custom/separator#line": {
-    	"format": "|",
-    	"interval": "once",
-    	"tooltip": false
-    },
-    "custom/separator#line-tray": {
-    	"format": "|",
-    	"interval": "once",
-    	"tooltip": false
-    },
-    "custom/separator#blank": {
-    	"format": "",
-    	"interval": "once",
-    	"tooltip": false
-    },
-    "custom/separator#blank_2": {
-    	"format": "  ",
-    	"interval": "once",
-    	"tooltip": false
-    },
-    "custom/separator#blank_3": {
-    	"format": "   ",
-    	"interval": "once",
-    	"tooltip": false
-    },
-    "custom/separator#tight": {
-    	"format": " ",
-    	"interval": "once",
-    	"tooltip": false
-    },
-    "custom/arrow1": {
-    	"format": "",
-    	"tooltip": false
-    },
-
-    "custom/arrow2": {
-    	"format": "",
-    	"tooltip": false
-    },
-
-    "custom/arrow3": {
-    	"format": "",
-    	"tooltip": false
-    },
-
-    "custom/arrow4": {
-    	"format": "",
-    	"tooltip": false
-    },
-
-    "custom/arrow5": {
-    	"format": "",
-    	"tooltip": false
-    },
-
-    "custom/arrow6": {
-    	"format": "",
-    	"tooltip": false
-    },
-
-    "custom/arrow7": {
-    	"format": "",
-    	"tooltip": false
-    },
-
-    "custom/arrow8": {
-    	"format": "",
-    	"tooltip": false
-    },
-
-    "custom/arrow9": {
-    	"format": "",
-    	"tooltip": false
-    },
-
-    "custom/arrow10": {
-    	"format": "",
-    	"tooltip": false
-    },
-
-    "custom/wireguard": {
-    	"format": "{}",
-    	"return-type": "json",
-    	"interval": 300,
-        "restart-interval": 60,
-        "exec-if": "command -v wg && ifconfig >/dev/null 2>&1",
-    	"exec": "$HOME/.local/share/openriot/config/waybar/scripts/wireguard-status.sh",
-    	"on-click": "$HOME/.local/share/openriot/config/waybar/scripts/wireguard-click.sh left",
-    	"on-click-right": "$HOME/.local/share/openriot/config/waybar/scripts/wireguard-click.sh right",
-    	"tooltip": true
-    },
-    "custom/weather-emoji": {
-    	"format": "{}",
-    	"interval": 600,
-    	"exec": "$HOME/.local/share/openriot/config/waybar/scripts/weather-emoji-plain.sh",
-    	"tooltip": true
+        "format": "{}",
+        "return-type": "json",
+        "interval": 1,
+        "exec": "$HOME/.local/share/openriot/config/waybar/scripts/waybar-volume.sh",
+        "on-click": "$HOME/.local/share/openriot/install/openriot --volume toggle",
+        "on-scroll-up": "$HOME/.local/share/openriot/install/openriot --volume inc",
+        "on-scroll-down": "$HOME/.local/share/openriot/install/openriot --volume dec",
+        "tooltip": true
     },
 
     "custom/network": {
-    	"format": "{}",
-    	"return-type": "json",
-    	"interval": 300,
-    	"exec": "$HOME/.local/share/openriot/config/waybar/scripts/waybar-network",
-    	"on-click": "$HOME/.local/share/openriot/config/waybar/scripts/wifi-selector.sh",
-    	"tooltip": true
+        "format": "{}",
+        "return-type": "json",
+        "interval": 300,
+        "exec": "$HOME/.local/share/openriot/config/waybar/scripts/waybar-network",
+        "on-click": "$HOME/.local/share/openriot/config/waybar/scripts/wifi-selector.sh",
+        "tooltip": true
     },
 
-"group/mobo_drawer": {
-        "drawer": {
-            "transition-left-to-right": true,
-            "transition-duration": 500,
-            "children-class": "cpu"
-        },
-        "orientation": "inherit",
-        "modules": [
-            "temperature",
-            "cpu",
-            "power-profiles-daemon",
-            "memory",
-            "disk"
-        ]
-    },
-    "group/system-metrics": {
-        "orientation": "inherit",
-        "modules": [
-            "custom/temp-bar",
-            "custom/cpu-aggregate",
-            "custom/memory-accurate"
-        ]
-    },
-    "group/status": {
-        "orientation": "inherit",
-        "modules": [
-            "custom/power"
-        ]
-    },
-    "group/laptop": {
-        "orientation": "inherit",
-        "modules": [
-            "backlight",
-            "battery"
-        ]
-    },
-    "group/app_drawer": {
-        "drawer": {
-            "transition-left-to-right": true,
-            "transition-duration": 500,
-            "children-class": "custom/menu"
-        },
-        "orientation": "inherit",
-        "modules": [
-            "custom/menu",
-            "custom/light_dark",
-            "custom/file_manager",
-            "custom/tty",
-            "custom/browser",
-            "custom/settings"
-        ]
-    },
-    "group/app_icons": {
-        "orientation": "horizontal",
-        "modules": [
-            "custom/menu",
-            "custom/light_dark",
-            "custom/file_manager",
-            "custom/tty",
-            "custom/browser",
-            "custom/settings"
-        ]
-    },
-    "group/notify": {
-        "drawer": {
-            "transition-left-to-right": false,
-            "transition-duration": 500,
-            "children-class": "custom/notifications"
-        },
-        "orientation": "inherit",
-        "modules": [
-        ]
-    },
-    "group/motherboard": {
-        "orientation": "horizontal",
-        "modules": [
-            "cpu",
-            "power-profiles-daemon",
-            "memory",
-            "temperature",
-            "disk"
-        ]
-    },
-    "group/connections": {
-        "drawer": {
-            "transition-left-to-right": true,
-            "transition-duration": 500,
-            "children-class": "bluetooth"
-        },
-        "orientation": "inherit",
-        "modules": [
-            "network",
-            "bluetooth"
-        ]
-    },
-    "group/power#vert": {
-        "drawer": {
-            "transition-left-to-right": false,
-            "transition-duration": 300,
-            "children-class": "not-memory"
-        },
-        "orientation": "inherit",
-        "modules": [
-            "custom/lock",
-            "custom/power",
-            "custom/logout",
-            "custom/reboot"
-        ]
-    },
-    "group/audio": {
-        "drawer": {
-            "transition-left-to-right": true,
-            "transition-duration": 500,
-            "children-class": "pulseaudio"
-        },
-        "orientation": "inherit",
-        "modules": [
-            "pulseaudio",
-            "pulseaudio#microphone"
-        ]
-    },
-    "group/power": {
-        "drawer": {
-            "transition-left-to-right": false,
-            "transition-duration": 500,
-            "children-class": "drawer-child"
-        },
-        "orientation": "inherit",
-        "modules": [
-            "custom/lock",
-            "custom/power",
-            "custom/quit",
-            "custom/reboot"
-        ]
+    "custom/battery": {
+        "format": "{}",
+        "return-type": "json",
+        "interval": 30,
+        "exec": "$HOME/.local/share/openriot/config/waybar/scripts/waybar-battery.sh",
+        "on-click-right": "$HOME/.local/share/openriot/install/openriot --power-menu",
+        "tooltip": true
     },
 
-"sway/workspaces": {
-    "disable-scroll": false,
-    "all-outputs": true,
-    "sort-by-number": true,
-    "show-special": false,
-    "on-click": "swaymsg workspace back-and-forth",
-    "on-scroll-up": "swaymsg workspace next_on_output",
-    "on-scroll-down": "swaymsg workspace prev_on_output",
-
-    "format": "{icon}{windows}",
-    "format-format-separator": " ",
-    "window-rewrite-delay": 200,
-
-    "format-icons": {
-      "focused": "<span font='14'></span>",
-      "default": "<span font='14'>◉</span>",
-      "empty": "<span font='14'>○</span>"
+    "custom/openriot-update": {
+        "format": "{}",
+        "return-type": "json",
+        "interval": 300,
+        "exec": "$HOME/.local/share/openriot/config/waybar/scripts/openriot-update.sh",
+        "on-click": "$HOME/.local/share/openriot/config/waybar/scripts/openriot-update.sh --click",
+        "tooltip": true
     },
 
-    "window-rewrite-default": "<span font='11'></span>",
+    "custom/power": {
+        "format": " \u23f7 ",
+        "on-click": "$HOME/.local/share/openriot/install/openriot --power-menu",
+        "tooltip": false
+    },
 
-    "window-rewrite": {
-      "class<firefox|librewolf|floorp>": "<span font='11'>󰈹</span>",
-      "class<Chromium|chrome|thorium>": "<span font='11'>󰊯</span>",
-      "class<brave-browser|brave>": "<span font='11'>󰊯</span>",
-      "title<.*youtube.*>": "<span font='11'></span>",
-      "title<.*github.*>": "<span font='11'></span>",
+    "custom/lock": {
+        "format": "\udb84\uddbe",
+        "on-click": "swaylock -f",
+        "tooltip": true,
+        "tooltip-format": "\udb85\udf9b Screen Lock"
+    },
 
-      "class<telegram-desktop|org.telegram.desktop>": "<span font='11'>󰘦</span>",
-      "class<discord|webcord|vesktop>": "<span font='11'></span>",
-      "class<thunderbird>": "<span font='11'>󰊫</span>",
+    "sway/workspaces": {
+        "disable-scroll": false,
+        "all-outputs": true,
+        "sort-by-number": true,
+        "show-special": false,
+        "format": "{icon}",
+        "format-icons": {
+            "focused": "\uf0592",
+            "default": "\u25c9",
+            "empty": "\u25cb"
+        }
+    },
 
-      "class<code|code-url-handler|vscode|codium|vscodium>": "<span font='11'>󰨞</span>",
-      "class<neovim|nvim>": "<span font='11'>󰈙</span>",
+    "sway/window": {
+        "format": "{}",
+        "max-length": 60
+    },
 
-      "class<foot>": "<span font='11'></span>",
+    "clock": {
+        "interval": 1,
+        "format": " \udb80\udc70 {:%A \u2022 %B %d \u2022 %I:%M %p}",
+        "format-alt": " \udb80\udc70 {:%H:%M   %d %B, %A}",
+        "on-click": "$HOME/.local/share/openriot/install/openriot --swaybg-next",
+        "tooltip-format": "<tt><small>{calendar}</small></tt>",
+        "calendar": {
+            "mode": "year",
+            "mode-mon-col": 3,
+            "weeks-pos": "right",
+            "on-scroll": 1,
+            "format": {
+                "months": "<span color='#ffead3'><b>{}</b></span>",
+                "days": "<span color='#ecc6d9'><b>{}</b></span>",
+                "weeks": "<span color='#99ffdd'><b>W{}</b></span>",
+                "weekdays": "<span color='#ffcc66'><b>{}</b></span>",
+                "today": "<span color='#ff6699'><b><u>{}</u></b></span>"
+            }
+        }
+    },
 
-      "class<nautilus|nemo>": "<span font='11'>󰝰</span>",
-
-      "class<mpv>": "<span font='11'>󰥠</span>",
-      "class<spotify>": "<span font='11'>󰽴</span>",
-      "class<vlc>": "<span font='11'>󰕼</span>",
-
-      "class<btop|htop>": "<span font='11'>󰍹</span>",
-      "class<gnome-disks|baobab>": "<span font='11'>󰋊</span>",
-      "class<zathura>": "<span font='11'>󰈦</span>"
+    "tray": {
+        "icon-size": 16,
+        "spacing": 5,
+        "show-passive-items": true
     }
-  },
-
-"hyprland/workspaces#pacman-rwc": {
-	"disable-scroll": true,
-	"all-outputs": true,
-	"warp-on-scroll": false,
-	"sort-by-number": true,
-	"show-special": false,
-	"on-click": "activate ",
-	"on-scroll-up": "hyprctl dispatch workspace e+1 ",
-	"on-scroll-down": "hyprctl dispatch workspace e-1 ",
-	"persistent-workspaces": {
-		"1": [],
-		"2": [],
-		"3": [],
-		"4": []
-	},
-	"max-length": 4,
-	"active-only": false,
-	"numeric-first": false,
-	"format": "{icon}{windows}",
-	"window-rewrite-delay": 250,
-	"format-icons": {
-		"minimized": "<span font='14' color='purple'> </span> ",
-		"active": "<span font='14' color='yellow'>󰮯</span> ",
-		"default": "<span font='14'>󰊠</span> ",
-		"empty": "<span font='12' color='#80cbc4aa'>⬤</span> "
-	},
-	"format-window-separator": "",
-	"window-rewrite-default": "",
-	"ignore-workspaces": [],
-	"window-rewrite": {
-		"class<brave-browser|Brave-browser|Brave|brave>": "<span font='11' color='#ffb74daa'>󰊯 </span>",
-		"title<.*amazon.*>": "<span font='11' color='#ffcc80aa'> </span>",
-		"title<.*o!mpd.*>": "<span font='11' color='#80cbc4aa'> </span>",
-		"class<firefox|org.mozilla.firefox|librewolf|floorp|mercury-browser|[Cc]achy-browser>": "<span font='11' color='#ffb74daa'>󰈹 </span>",
-		"class<waterfox|waterfox-bin>": "<span font='11' color='#ffb74daa'>󰈹 </span>",
-		"class<microsoft-edge>": "<span font='11' color='#90caf9aa'>󰇩 </span>",
-		"class<Chromium|Thorium|[Cc]hrome>": "<span font='11' color='#bbdefbaa'>󰊯 </span>",
-		"class<brave-x.com.*>": "<span font='11' color='#b0bec5aa'>𝕏 </span>",
-		"class<twitter-x>": "<span font='11' color='#b0bec5aa'>𝕏 </span>",
-		"class<tor browser>": "<span font='11' color='#ce93d8aa'> </span>",
-		"class<epiphany|org.gnome.Epiphany>": "<span font='11' color='#ffb74daa'>󰈹 </span>",
-		"class<falkon>": "<span font='11' color='#ffb74daa'>󰈹 </span>",
-		"class<qutebrowser>": "<span font='11' color='#ffb74daa'>󰈹 </span>",
-		"title<.*youtube.*>": "<span font='11' color='#e57373aa'> </span>",
-		"title<.*reddit.*>": "<span font='11' color='#ef9a9aaa'> </span>",
-		"title<.*facebook.*>": "<span font='11' color='#81d4faaa'> </span>",
-		"title<.*bluesky.*>": "<span font='11' color='#64b5f6aa'> </span>",
-		"class<^brave-bsky\\.app__-Default$>": "<span font='11' color='#64b5f6aa'> </span>",
-		"title<.*github.*>": "<span font='11' color='#b39ddbaa'> </span>",
-		"class<.*brave-github\\.app__.*>": "<span font='11' color='#b39ddbaa'> </span>",
-		"class<^brave-github\\.app__-Default$>": "<span font='11' color='#b39ddbaa'> </span>",
-
-		"class<[Tt]elegram-desktop|org.telegram.desktop|io.github.tdesktop_x64.TDesktop>": "<span font='11' color='#64b5f6aa'>󰘦 </span>",
-		"class<discord|[Ww]ebcord|Vesktop>": "<span font='11' color='#bbdefbaa'> </span>",
-		"title<.*whatsapp.*>": "<span font='11' color='#aed581aa'> </span>",
-		"title<.*zapzap.*>": "<span font='11' color='#aed581aa'> </span>",
-		"title<.*messenger.*>": "<span font='11' color='#81d4faaa'>󰊭 </span>",
-		"class<signal>": "<span font='11' color='#64b5f6aa'>󰍡 </span>",
-		"class<slack>": "<span font='11' color='#ce93d8aa'> </span>",
-		"title<.*gmail.*>": "<span font='11' color='#ffab91aa'>󰊫 </span>",
-		"title<.*proton.*mail.*>": "<span font='11' color='#b39ddbaa'>󰊫 </span>",
-		"class<brave-mail.proton.me.*>": "<span font='11' color='#b39ddbaa'>󰊫 </span>",
-		"class<[Tt]hunderbird|[Tt]hunderbird-esr>": "<span font='11' color='#64b5f6aa'>󰊫 </span>",
-		"class<eu.betterbird.Betterbird>": "<span font='11' color='#64b5f6aa'>󰊫 </span>",
-		"class<org.gnome.Evolution>": "<span font='11' color='#ffcc80aa'>󰊫 </span>",
-		"class<claws-mail>": "<span font='11' color='#c5e1a5aa'>󰇮 </span>",
-		"class<org.gnome.Geary>": "<span font='11' color='#ffcc80aa'>󰊫 </span>",
-
-		"class<VSCode|code-url-handler|code-oss|codium|codium-url-handler|VSCodium>": "<span font='11' color='#80cbc4aa'>󰨞 </span>",
-		"class<dev.zed.Zed|dev.zed.Zed-Preview>": "<span font='12' color='#ffcc80aa'>☡ </span>",
-		"class<codeblocks>": "<span font='11' color='#90a4aeaa'>󰘦 </span>",
-		"class<geany>": "<span font='11' color='#ffd180aa'>󰈙 </span>",
-		"title<.*[Hh]elix.*>": "<span font='11' color='#a5d6a7aa'>󰈙 </span>",
-		"title<.*vim.*>": "<span font='11' color='#a5d6a7aa'>󰈙 </span>",
-		"class<subl>": "<span font='11' color='#ffb74daa'>󰅳 </span>",
-		"class<jetbrains-idea>": "<span font='11' color='#9fa8daaa'> </span>",
-		"class<android-studio>": "<span font='11' color='#a5d6a7aa'>󰀴 </span>",
-		"title<.*figma.*>": "<span font='11' color='#f48fb1aa'>󰈙 </span>",
-		"title<.*jira.*>": "<span font='11' color='#64b5f6aa'>󰈙 </span>",
-		"title<.*ChatGPT.*>": "<span font='11' color='#80cbc4aa'>󰚩 </span>",
-		"title<.*Grok.*>": "<span font='11' color='#80cbc4aa'>󰚩 </span>",
-		"title<.*deepseek.*>": "<span font='11' color='#b39ddbaa'>󰚩 </span>",
-		"title<.*qwen.*>": "<span font='11' color='#ffcc80aa'>󰚩 </span>",
-		"title<.*Crush.*>": "<span font='11' color='#80cbc4aa'>󰚩 </span>",
-
-		"class<konsole>": "<span font='11' color='#cfd8dcaa'> </span>",
-		"class<kitty>": "<span font='11' color='#b0bec5aa'>󰄛 </span>",
-		"class<com.mitchellh.ghostty>": "<span font='11' color='#b0bec5aa'>󰊠 </span>",
-		"class<com.mitchellh.ghostty-floating>": "<span font='11' color='#b0bec5aa'>󰊠 </span>",
-		"class<org.wezfurlong.wezterm>": "<span font='11' color='#cfd8dcaa'>󰞷 </span>",
-		"class<alacritty>": "<span font='11' color='#cfd8dcaa'>󰞷 </span>",
-		"class<foot>": "<span font='11' color='#cfd8dcaa'>󰆍 </span>",
-		"class<gnome-terminal>": "<span font='11' color='#b0bec5aa'> </span>",
-		"class<tilix>": "<span font='11' color='#b0bec5aa'> </span>",
-		"class<xfce4-terminal>": "<span font='11' color='#b0bec5aa'> </span>",
-
-		"class<mpv>": "<span font='11' color='#bcaaa4aa'>󰥠 </span>",
-		"class<mpd-player>": "<span font='11' color='#b2dfdbaa'>󰝚 </span>",
-		"class<celluloid>": "<span font='11' color='#ffcc80aa'>󰕼 </span>",
-		"class<vlc>": "<span font='11' color='#ffb74daa'>󰕼 </span>",
-		"class<Cider>": "<span font='11' color='#f48fb1aa'>󰎆 </span>",
-		"title<.*cmus.*>": "<span font='11' color='#aed581aa'>󰽴 </span>",
-		"class<[Ss]potify>": "<span font='11' color='#c5e1a5aa'> </span>",
-		"class<org.kde.elisa>": "<span font='11' color='#b2dfdbaa'>󰽴 </span>",
-		"class<org.gnome.Lollypop|org.gnome.Music|rhythmbox>": "<span font='11' color='#ffd180aa'> </span>",
-		"class<obs|com.obsproject.Studio>": "<span font='11' color='#9fa8daaa'>󰑋 </span>",
-		"class<Zoom>": "<span font='11' color='#90caf9aa'>󰕧 </span>",
-
-		"class<nemo|org.gnome.Nautilus>": "<span font='11' color='#b2dfdbaa'>󰝰 </span>",
-		"class<Gparted>": "<span font='11' color='#c5e1a5aa'> </span>",
-		"class<org.pwmt.zathura>": "<span font='11' color='#ffcc80aa'>󰈦 </span>",
-		"class<org.gnome.Papers>": "<span font='11' color='#ffd180aa'>󰈦 </span>",
-		"class<org.gnome.TextEditor>": "<span font='11' color='#ffd180aa'>󰷈 </span>",
-		"class<ghostwriter|org.kde.ghostwriter>": "<span font='11' color='#f8bbd0aa'>󰷈 </span>",
-		"class<org.gnome.Contacts>": "<span font='11' color='#aed581aa'>󰀉 </span>",
-		"class<polkit-gnome-authentication-agent-1>": "<span font='11' color='#ffb74daa'>󰒃 </span>",
-		"class<[Pp]avucontrol|org.pulseaudio.pavucontrol>": "<span font='11' color='#80cbc4aa'>󱡫 </span>",
-		"class<nwg-look>": "<span font='11' color='#d7ccc8aa'>󰀻 </span>",
-		"class<org.pipewire.Helvum>": "<span font='11' color='#b2dfdbaa'>󰓃 </span>",
-		"class<virt-manager|.virt-manager-wrapped>": "<span font='11' color='#ce93d8aa'>󰢹 </span>",
-		"class<virtualbox manager>": "<span font='11' color='#9fa8daaa'>󰌗 </span>",
-		"class<remmina>": "<span font='11' color='#a5c8d4aa'>󰢹 </span>",
-		"class<steam>": "<span font='11' color='#78909caa'>󰓓 </span>",
-		"title<.*steam.*>": "<span font='11' color='#78909caa'>󰓓 </span>",
-
-		"class<gimp>": "<span font='11' color='#ffca28aa'> </span>",
-		"class<krita>": "<span font='11' color='#b39ddbaa'> </span>",
-		"class<kdenlive>": "<span font='11' color='#64b5f6aa'> </span>",
-		"title<.*kdenlive.*>": "<span font='11' color='#64b5f6aa'> </span>",
-		"class<PrusaSlicer|UltiMaker-Cura|OrcaSlicer>": "<span font='11' color='#ffcc80aa'>󰹛 </span>",
-		"class<inkscape>": "<span font='11' color='#81d4faaa'> </span>",
-		"class<blender>": "<span font='11' color='#ffb74daa'>󰂫 </span>",
-
-		"class<feather>": "<span font='11' color='#c5cae9aa'>󱟘 </span>",
-		"class<Trezor Suite>": "<span font='11' color='#bcaaa4aa'>󰌆 </span>",
-		"class<Exodus|exodus>": "<span font='11' color='#b39ddbaa'>Ⓧ </span>",
-		"class<cake_wallet>": "<span font='11' color='#aed581aa'>󰿦 </span>",
-		"class<zen>": "<span font='11' color='#9fd3c7aa'>󰰷 </span>",
-		"class<com.transmissionbt.transmission.*>": "<span font='11' color='#ffcc80aa'>󰇚 </span>",
-		"class<de.haeckerfelix.Fragments>": "<span font='11' color='#ffcc80aa'>󰇚 </span>",
-		"class<mousepad>": "<span font='11' color='#ffd180aa'>󰈙 </span>",
-		"class<libreoffice-writer>": "<span font='11' color='#f48fb1aa'>󰈙 </span>",
-		"class<libreoffice-calc>": "<span font='11' color='#c5e1a5aa'>󰈙 </span>",
-		"class<libreoffice-startcenter>": "<span font='11' color='#fff59daa'>󰏆 </span>",
-		"title<clock-rs>": "<span font='10' color='#b0bec5aa'> </span>",
-
-
-		"class<gnome-control-center|org.gnome.Settings>": "<span font='11' color='#ffcc80aa'>󰒓 </span>",
-		"class<org.gnome.Extensions>": "<span font='11' color='#b39ddbaa'>󰔎 </span>",
-		"class<org.gnome.Terminal.Preferences>": "<span font='11' color='#aed581aa'>󰒓 </span>",
-		"class<org.gnome.Software>": "<span font='11' color='#ffb74daa'>󰏗 </span>",
-		"class<gnome-disks|org.gnome.DiskUtility>": "<span font='11' color='#90a4aeaa'>󰋊 </span>",
-		"class<org.gnome.SystemMonitor>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
-		"class<org.gnome.Calculator|gnome-calculator>": "<span font='11' color='#fff176aa'>󰪚 </span>",
-		"class<org.gnome.Fonts>": "<span font='11' color='#ce93d8aa'>󰛖 </span>",
-		"class<org.gnome.Maps>": "<span font='11' color='#81d4faaa'>󰟡 </span>",
-		"class<org.gnome.Weather>": "<span font='11' color='#4dd0e1aa'>󰖕 </span>",
-		"class<org.gnome.Connections>": "<span font='11' color='#80cbc4aa'>󰢹 </span>",
-		"class<org.gnome.PowerStats>": "<span font='11' color='#ffd180aa'>󰠭 </span>",
-		"class<org.gnome.Logs>": "<span font='11' color='#b0bec5aa'>󰁯 </span>",
-		"class<org.gnome.About>": "<span font='11' color='#c5cae9aa'>󰋖 </span>",
-		"class<org.gnome.Usage>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
-		"class<org.gnome.SystemMonitor>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
-
-		"class<org.kde.systemmonitor>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
-		"class<org.kde.dolphin>": "<span font='11' color='#aed581aa'>󰝰 </span>",
-		"class<org.kde.kinfocenter>": "<span font='11' color='#b39ddbaa'>󰋗 </span>",
-		"class<org.kde.konsole>": "<span font='11' color='#90caf9aa'> </span>",
-		"class<org.kde.ksysguard>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
-		"class<org.kde.spectacle>": "<span font='11' color='#ffb74daa'>󰄀 </span>",
-		"class<systemsettings|systemsettings5>": "<span font='11' color='#ffcc80aa'>󰒓 </span>",
-
-		"class<org.xfce.SettingsManager>": "<span font='11' color='#ffcc80aa'>󰒓 </span>",
-		"class<org.xfce.Terminal>": "<span font='11' color='#64b5f6aa'> </span>",
-		"class<org.xfce.AppFinder>": "<span font='11' color='#ffd180aa'>󰘳 </span>",
-		"class<org.xfce.Panel>": "<span font='11' color='#ffd180aa'>󰘳 </span>",
-		"class<org.xfce.Session>": "<span font='11' color='#c5cae9aa'>󰜉 </span>",
-
-		"class<lxappearance>": "<span font='11' color='#b39ddbaa'>󰀻 </span>",
-		"class<xfce4-settings-manager>": "<span font='11' color='#ffcc80aa'>󰒓 </span>",
-		"class<xfce4-taskmanager>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
-		"class<xfce4-power-manager-settings>": "<span font='11' color='#ffd180aa'>󰠭 </span>",
-		"class<xfce4-display-settings>": "<span font='11' color='#81d4faaa'>󰹑 </span>",
-		"class<xfce4-appfinder>": "<span font='11' color='#ffd180aa'>󰘳 </span>",
-
-		"class<nwg-displays>": "<span font='11' color='#81d4faaa'>󰹑 </span>",
-		"class<nwg-look>": "<span font='11' color='#b39ddbaa'>󰀻 </span>",
-		"class<nwg-panel>": "<span font='11' color='#ffd180aa'>󰘳 </span>",
-		"class<nwg-shell-config>": "<span font='11' color='#ffcc80aa'>󰒓 </span>",
-
-		"class<timeshift-gtk>": "<span font='11' color='#e57373aa'>󰣜 </span>",
-		"class<baobab|org.gnome.baobab>": "<span font='11' color='#90a4aeaa'>󰋊 </span>",
-		"class<htop|btop|gotop>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
-		"title<htop|btop|gotop>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
-		"class<lxtask>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
-		"class<nm-connection-editor>": "<span font='11' color='#4dd0e1aa'>󰤨 </span>",
-		"class<wicd>": "<span font='11' color='#4dd0e1aa'>󰤨 </span>",
-		"class<blueman-manager|blueman>": "<span font='11' color='#80cbc4aa'>󰂯 </span>",
-		"class<pavucontrol>": "<span font='11' color='#64d8cbaa'>󱡫 </span>",
-		"class<file-roller|org.gnome.FileRoller>": "<span font='11' color='#ffb74daa'>󰗄 </span>",
-		"class<gnome-tweaks|org.gnome.tweaks>": "<span font='11' color='#ffcc80aa'>󰒓 </span>",
-		"class<org.gnome.seahorse.Application>": "<span font='11' color='#b39ddbaa'>󰌆 </span>",
-		"class<gnome-screenshot>": "<span font='11' color='#ffcc80aa'>󰄀 </span>",
-		"class<gnome-system-monitor>": "<span font='11' color='#64b5f6aa'>󰍹 </span>",
-		"class<gufw>": "<span font='11' color='#ef9a9aaa'>󰒃 </span>",
-		"class<timeshift-gtk>": "<span font='11' color='#e57373aa'>󰣜 </span>",
-		"class<grub-customizer>": "<span font='11' color='#bcaaa4aa'>󰞷 </span>",
-		"class<synaptic>": "<span font='11' color='#ffb74daa'>󰏗 </span>",
-		"class<software-properties-gtk>": "<span font='11' color='#ffb74daa'>󰏗 </span>",
-		"class<update-manager>": "<span font='11' color='#ffb74daa'>󰏗 </span>",
-		"class<gparted>": "<span font='11' color='#90a4aeaa'> </span>",
-		"class<disks>": "<span font='11' color='#90a4aeaa'>󰋊 </span>",
-		"class<gnome-system-log>": "<span font='11' color='#b0bec5aa'>󰁯 </span>",
-		"class<org.gnome.About>": "<span font='11' color='#c5cae9aa'>󰋖 </span>",
-		"class<org.gnome.PowerStats>": "<span font='11' color='#ffd180aa'>󰠭 </span>"
-		}
-	}
 }
