@@ -1,61 +1,59 @@
 /* OpenRiot Waybar Configuration */
 /* OpenBSD / Sway — CypherRiot Aesthetic */
 
-[
-    {
-        "include": [
-            "$HOME/.config/waybar/Modules",
-            "$HOME/.config/waybar/ModulesCustom",
-            "$HOME/.config/waybar/ModulesGroups",
-            "$HOME/.config/waybar/ModulesWorkspaces",
-            "$HOME/.config/waybar/UserModules",
-            "$HOME/.config/waybar/UserWorkspaces"
-        ],
+{
+    "include": [
+        "~/.config/waybar/Modules",
+        "~/.config/waybar/ModulesCustom",
+        "~/.config/waybar/ModulesGroups",
+        "~/.config/waybar/ModulesWorkspaces",
+        "~/.config/waybar/UserModules",
+        "~/.config/waybar/UserWorkspaces"
+    ],
 
-        "fixed-center": true,
-        "layer": "top",
-        "margin-right": 8,
-        "margin-left": 8,
-        "spacing": 10,
-        "passthrough": false,
-        "exclusive": true,
-        "margin-top": 3,
-        "position": "top",
-        "ipc": false,
+    "layer": "top",
+    "position": "top",
+    "fixed-center": true,
+    "margin-right": 8,
+    "margin-left": 8,
+    "margin-top": 3,
+    "spacing": 10,
+    "passthrough": false,
+    "exclusive": true,
+    "ipc": false,
 
-        "modules-left": [
-            "custom/openbsd",
-            "custom/separator#blank",
-            "sway/workspaces",
-            "custom/separator#blank",
-            "sway/window"
-        ],
+    "modules-left": [
+        "custom/openbsd",
+        "custom/separator#blank",
+        "sway/workspaces",
+        "custom/separator#blank",
+        "sway/window"
+    ],
 
-        "modules-center": [
-            "clock",
-            "custom/separator#dot",
-            "custom/weather-emoji",
-            "custom/notifications"
-        ],
+    "modules-center": [
+        "clock",
+        "custom/separator#dot",
+        "custom/weather-emoji",
+        "custom/notifications"
+    ],
 
-        "modules-right": [
-            "custom/separator#blank_3",
-            "custom/rec-dot",
-            "tray",
-            "custom/separator#blank",
-            "group/system-metrics",
-            "custom/separator#blank",
-            "custom/volume-bar",
-            "custom/separator#blank",
-            "custom/network",
-            "custom/wireguard",
-            "custom/separator#blank",
-            "custom/battery",
-            "custom/separator#blank",
-            "custom/openriot-update",
-            "custom/separator#blank",
-            "custom/power",
-            "custom/lock"
-        ]
-    }
-]
+    "modules-right": [
+        "custom/separator#blank_3",
+        "custom/rec-dot",
+        "tray",
+        "custom/separator#blank",
+        "group/system-metrics",
+        "custom/separator#blank",
+        "custom/volume-bar",
+        "custom/separator#blank",
+        "custom/network",
+        "custom/wireguard",
+        "custom/separator#blank",
+        "custom/battery",
+        "custom/separator#blank",
+        "custom/openriot-update",
+        "custom/separator#blank",
+        "custom/power",
+        "custom/lock"
+    ]
+}
