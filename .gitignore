@@ -19,7 +19,6 @@ __pycache__/
 Thumbs.db
 
 # AI agent instruction files
-AGENTS.md
 CLAUDE.md
 MEMO.md
 RESPONSE.md
