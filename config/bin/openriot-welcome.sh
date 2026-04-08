@@ -18,7 +18,7 @@ cat << 'EOF'
 
     Quick Start:
     • Super + D          → Open fuzzel app launcher
-    • Super + Enter      → Open terminal (foot)
+    • Super + Enter      → Open terminal (havoc)
     • Super + Q          → Close focused window
     • Super + 1-9        → Switch workspaces
     • Super + Shift + Q  → Quit Sway
