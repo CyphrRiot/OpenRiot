@@ -23,7 +23,7 @@ core:
         packages:
             - fish-4.6.0
             - neovim-0.12.0
-            - havoc-0.17.5p0
+            - havoc-0.7.0
             - fzf-0.70.0
             - ripgrep-15.1.0
             - htop-3.4.1
