@@ -1,55 +1,38 @@
 #!/bin/sh
 # OpenRiot - Waybar Battery Status
-# OpenBSD: uses apm(8) for battery charge, AC status, and time remaining
+# OpenBSD: uses apm(8) for battery charge
 # Output: JSON for waybar custom module
 
 percent=$(apm -l 2>/dev/null)
-ac=$(apm -a 2>/dev/null)       # 1 = plugged in, 0 = on battery
-minutes=$(apm -m 2>/dev/null)  # 255 = unknown/calculating
+ac=$(apm -a 2>/dev/null)
 
-[ -z "$percent" ] && percent=0
-[ -z "$ac" ]      && ac=0
-[ -z "$minutes" ] && minutes=255
-
-# Choose icon by charge level (matches built-in waybar battery icon set)
-if   [ "$percent" -ge 95 ]; then icon="󰁹"
-elif [ "$percent" -ge 88 ]; then icon="󰂂"
-elif [ "$percent" -ge 75 ]; then icon="󰂁"
-elif [ "$percent" -ge 63 ]; then icon="󰂀"
-elif [ "$percent" -ge 50 ]; then icon="󰁿"
-elif [ "$percent" -ge 38 ]; then icon="󰁾"
-elif [ "$percent" -ge 25 ]; then icon="󰁽"
-elif [ "$percent" -ge 13 ]; then icon="󰁼"
-elif [ "$percent" -ge  5 ]; then icon="󰁻"
-else                              icon="󰂎"
+# No battery / apm failed
+if [ -z "$percent" ]; then
+    printf '{"text":"N/A","tooltip":"No battery detected","class":"normal"}\n'
+    exit 0
 fi
 
-# Build display text — override icon for AC/charging states
-if [ "$ac" = "1" ] && [ "$percent" -ge 100 ]; then
-    text="󱘖 ${percent}%"
-elif [ "$ac" = "1" ]; then
-    text=" ${percent}%"
+if [ "$ac" = "1" ]; then
+    text="${percent}%+"
+    tip="Plugged in"
 else
-    text="${icon} ${percent}%"
+    text="${percent}%"
+    minutes=$(apm -m 2>/dev/null)
+    if [ -n "$minutes" ] && [ "$minutes" -ne 255 ] && [ "$minutes" -gt 0 ]; then
+        hours=$((minutes / 60))
+        mins=$((minutes % 60))
+        tip="${hours}h ${mins}m remaining"
+    else
+        tip="On battery"
+    fi
 fi
 
-# Build time remaining string
-if [ "$ac" = "0" ] && [ "$minutes" -ne 255 ] && [ "$minutes" -gt 0 ]; then
-    hours=$((minutes / 60))
-    mins=$((minutes % 60))
-    time_str="${hours}h ${mins}min remaining"
-elif [ "$ac" = "1" ]; then
-    time_str="Plugged in"
+if [ "$percent" -le 15 ]; then
+    class="critical"
+elif [ "$percent" -le 30 ]; then
+    class="warning"
 else
-    time_str="Calculating..."
+    class="normal"
 fi
 
-# CSS class for waybar styling
-if   [ "$percent" -le 15 ]; then class="critical"
-elif [ "$percent" -le 30 ]; then class="warning"
-elif [ "$percent" -ge 95 ]; then class="good"
-else                              class="normal"
-fi
-
-printf '{"text":"%s","tooltip":"Battery: %d%%\n%s","class":"%s"}\n' \
-    "$text" "$percent" "$time_str" "$class"
+printf '{"text":"%s","tooltip":"%s","class":"%s"}\n' "$text" "$tip" "$class"

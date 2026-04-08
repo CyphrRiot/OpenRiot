@@ -59,11 +59,9 @@ function fish_prompt
     set -l last_status $status
     set_color purple
     echo -n '🐡 '
-    set_color normal
     set_color cyan
     printf "%s" (string replace $HOME "~" (pwd))
     set_color normal
-    printf "%s" (__fish_git_prompt)
     if test $last_status -ne 0
         set_color red
         printf " [%d]" $last_status
