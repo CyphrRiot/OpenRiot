@@ -11,17 +11,23 @@ type Config struct {
 	Source  map[string]Module `yaml:"source"`
 }
 
+// CommandEntry represents a single command with a description
+type CommandEntry struct {
+	Desc string `yaml:"desc"`
+	Cmd  string `yaml:"cmd"`
+}
+
 // Module represents a single installation module
 type Module struct {
-	Packages []string     `yaml:"packages"`
-	Configs  []ConfigRule `yaml:"configs"`
-	Commands []string     `yaml:"commands,omitempty"`
-	Depends  []string     `yaml:"depends,omitempty"`
-	Start    string       `yaml:"start"`
-	End      string       `yaml:"end"`
-	Type     string       `yaml:"type"`
-	Critical bool         `yaml:"critical,omitempty"`
-	Build    []string     `yaml:"build,omitempty"`
+	Packages []string        `yaml:"packages"`
+	Configs  []ConfigRule   `yaml:"configs"`
+	Commands []CommandEntry `yaml:"commands,omitempty"`
+	Depends  []string      `yaml:"depends,omitempty"`
+	Start    string        `yaml:"start"`
+	End      string        `yaml:"end"`
+	Type     string        `yaml:"type"`
+	Critical bool          `yaml:"critical,omitempty"`
+	Build    []string      `yaml:"build,omitempty"`
 }
 
 // ConfigRule represents a configuration copying rule

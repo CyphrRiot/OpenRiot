@@ -3,6 +3,7 @@ package installer
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 
 	"openriot/config"
 )
@@ -16,9 +17,29 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 			continue
 		}
 
-		fmt.Printf("%s[INFO]%s  %s...\n", Blue, Reset, module.Start)
+		for _, cmdEntry := range module.Build {
+			// Parse the build entry (either simple string or desc/cmd)
+			var cmd string
+			var desc string
+			if strings.Contains(cmdEntry, "\n") || strings.HasPrefix(cmdEntry, "desc:") {
+				// It's a structured entry (desc/cmd format)
+				parts := strings.SplitN(cmdEntry, "\n", 2)
+				for _, part := range parts {
+					if strings.HasPrefix(part, "cmd:") {
+						cmd = strings.TrimPrefix(strings.TrimSpace(part), "cmd:")
+					}
+					if strings.HasPrefix(part, "desc:") {
+						desc = strings.TrimPrefix(strings.TrimSpace(part), "desc:")
+					}
+				}
+				if cmd == "" {
+					cmd = cmdEntry
+				}
+			} else {
+				cmd = cmdEntry
+				desc = module.Start
+			}
 
-		for _, cmd := range module.Build {
 			if testMode {
 				fmt.Printf("%s[INFO]%s  [DRY-RUN] %s\n", Blue, Reset, cmd)
 				continue
@@ -28,11 +49,17 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 			c := exec.Command("/bin/sh", "-c", cmd)
 			output, err := c.CombinedOutput()
 			if err != nil {
-				fmt.Printf("%s[WARN]%s  Build command failed:\n  command: %s\n  error: %v\n  output: %s\n", Yellow, Reset, cmd, err, string(output))
+				fmt.Printf("%s[WARN]%s  %s failed: %v\n", Yellow, Reset, desc, err)
 				// Continue on error - don't stop the whole install for one failed source build
 				continue
 			}
-			fmt.Printf("%s[DONE]%s  %s\n", Green, Reset, module.End)
+
+			// Only show DONE if not already installed (skip output contains [SKIP])
+			outputStr := string(output)
+			if strings.Contains(outputStr, "[SKIP]") {
+				continue
+			}
+			fmt.Printf("%s[DONE]%s  %s\n", Green, Reset, desc)
 		}
 	}
 	return nil
