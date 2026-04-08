@@ -1,6 +1,8 @@
 # OpenRiot Sway Config — OpenBSD
 
-set $mod Mod4
+# Modifier key — Mod4=Super (Windows key), Mod1=Alt
+# On OpenBSD, use Mod1 if Windows key isn't detected as Mod4
+set $mod Mod1
 
 # Variables
 set $terminal alacritty
