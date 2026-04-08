@@ -317,21 +317,18 @@ func runInstall() {
 	}
 
 	// Step 1: Config deployment
-	fmt.Printf("%s[INFO]%s  Deploying configuration files...\n", installer.Blue, installer.Reset)
 	if err := installer.CopyConfigs(repoDir, cfg, testMode); err != nil {
 		fmt.Printf("%s[WARN]%s  Config deployment skipped: %v\n", installer.Yellow, installer.Reset, err)
-	} else {
-		fmt.Printf("%s[INFO]%s  Configuration files deployed!\n", installer.Green, installer.Reset)
 	}
 
 	// Step 2: Command execution
-	fmt.Printf("%s[INFO]%s  Running commands...\n", installer.Blue, installer.Reset)
+	fmt.Printf("%s[INFO]%s Running post-install commands...\n", installer.Blue, installer.Reset)
 	if err := installer.ExecCommands(cfg, testMode); err != nil {
-		fmt.Printf("%s[WARN]%s  Some commands failed: %v\n", installer.Yellow, installer.Reset, err)
+		fmt.Printf("%s[WARN]%s Some commands failed: %v\n", installer.Yellow, installer.Reset, err)
 	}
 
 	// Step 3: Source builds (crush, wlsunset, bibata-cursor, etc.)
-	fmt.Printf("%s[INFO]%s  Running source builds...\n", installer.Blue, installer.Reset)
+	fmt.Printf("%s[INFO]%s Running source builds...\n", installer.Blue, installer.Reset)
 	if err := installer.SourceBuilds(cfg, testMode); err != nil {
 		fmt.Printf("[WARN]  Source builds: %v\n", err)
 	}
