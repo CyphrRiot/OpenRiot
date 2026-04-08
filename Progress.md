@@ -8,6 +8,28 @@
 
 ## Recent Changes (April 7, 2026)
 
+### Sway Config Improvements ✓
+- Added `smart_gaps on` and `smart_borders on` (cleaner single-window view)
+- Added `workspace_auto_back_and_forth yes` (bounce between workspaces)
+- Fixed Tab keybindings: now uses `focus next/prev` instead of `focus left/right`
+- Added swayidle auto-lock at 5min, display off at 10min
+- Added `exec_always autotiling` (via pip install)
+- Added `floating_modifier $mod normal` (mouse drag floating windows)
+
+### Sway Keybindings Cleanup ✓
+- Removed duplicate `$mod+W kill`
+- Changed `$mod+J split toggle` → `$mod+H split horizontal`, `$mod+V split vertical`
+- Changed `$mod+V floating toggle` → `$mod+Z floating toggle`
+- Added `$mod+Shift+C reload` and `$mod+Shift+E exit`
+- Removed duplicate `$mod+slash` terminal launcher
+- Removed duplicate `$mod+space` menu launcher
+- Changed `$mod+P layout toggle split` → `layout toggle stacked tabbed split`
+
+### Lock Screen Fixed ✓
+- Now uses `openriot-lock.sh` to generate `/tmp/swaylock-bg.png`
+- Displays: time, date, crypto prices, user@host, uptime
+- Applied to both `$mod+L` and swayidle timeout
+
 ### Install Output Now Clean ✓
 ```
 === OpenRiot v0.5 Setup (OpenBSD 7.9) ===
@@ -50,42 +72,48 @@
 
 ### 1. SUPER+CMD Keybindings (CRITICAL — UNRESOLVED)
 
-**Status:** UNRESOLVED — this is the #1 blocking issue.
+**Status:** PARTIALLY RESOLVED — `alt:Super` xkb option added
 
-**Symptoms:**
-- Sway starts, waybar shows, mouse works
-- SUPER+ENTER, SUPER+D, SUPER+Q, Alt+Tab — NONE work
-- No SWAYSOCK exists
+**Changes made:**
+- Added `alt:Super` to xkb_options: `ctrl:nocaps,alt:Super`
+- Alt key now acts as Super modifier
+- Keybindings use `$mod` which is Mod1 (Alt)
 
-**Need to investigate:**
-- What modifier key does Super actually send on OpenBSD?
-- Does `sway -C` (config validation) show errors?
-- Could the `include` directive with `~` path be failing silently?
+**Still need to verify:**
+- Does `sway -C` (config validation) pass?
+- Do keybindings work after reboot?
+- Is SWAYSOCK created?
 
 ---
 
-### 2. Lock Screen Is White (LOW)
+### 2. Lock Screen Is White (FIXED ✓)
 
-**Status:** Not addressed
-
-Title: Swaylock shows white screen without clock or background
+**Status:** FIXED — now uses openriot-lock.sh with crypto, time, date, user@host, uptime
 
 ---
 
 ## Fixed Issues ✓
 
-| Issue | Fix |
-|-------|-----|
-| Install output verbose | Clean output: category summaries, silent commands, no [SKIP] spam |
-| Package reinstalling | Use full versions (havoc-0.7.0 not havoc) |
-| Duplicate log lines | Removed duplicate "Deploying..." header |
-| Inconsistent spacing | 1-space for all log levels |
-| Fastfetch blowfish logo | Changed to openbsd_small |
-| Terminal (was foot/alacritty) | Switched to havoc |
-| Unused waybar scripts | Removed 6 scripts |
-| Screenshot too large | PNG 1.2MB → JPEG 298KB |
-| Seatd socket permissions | Fixed via rcctl flags |
-| Fish prompt hanging | Removed __fish_git_prompt |
+| Issue | Fix | Status |
+|-------|-----|--------|
+| Install output verbose | Clean output: category summaries, silent commands, no [SKIP] spam | ✓ |
+| Package reinstalling | Use full versions (havoc-0.7.0 not havoc) | ✓ |
+| Duplicate log lines | Removed duplicate "Deploying..." header | ✓ |
+| Inconsistent spacing | 1-space for all log levels | ✓ |
+| Fastfetch blowfish logo | Changed to openbsd_small | ✓ |
+| Terminal (was foot/alacritty) | Switched to havoc | ✓ |
+| Unused waybar scripts | Removed 6 scripts | ✓ |
+| Screenshot too large | PNG 1.2MB → JPEG 298KB | ✓ |
+| Seatd socket permissions | Fixed via rcctl flags | ✓ |
+| Fish prompt hanging | Removed __fish_git_prompt | ✓ |
+| Lock screen white | Uses openriot-lock.sh with data overlay | ✓ |
+| SUPER keybindings | Added alt:Super xkb option | ✓ |
+| smart_gaps/smart_borders | Added to sway config | ✓ |
+| swayidle auto-lock | 5min lock, 10min display off | ✓ |
+| Tab focus cycling | Fixed to focus next/prev | ✓ |
+| Keybinding duplicates | Removed W kill, H/V splits, Z floating | ✓ |
+| clipboard history | Skipped (cliphist not in OpenBSD) | — |
+| media player controls | Skipped (playerctl not in OpenBSD) | — |
 
 ---
 
@@ -183,4 +211,4 @@ fc-list | grep -i "nerd\|paper"
 
 ---
 
-**Last updated:** Apr 7, 2026 — v0.5, install output cleaned up
+**Last updated:** Apr 7, 2026 — v0.5, sway/waybar cleanup complete

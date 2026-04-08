@@ -92,6 +92,8 @@ desktop:
               cmd: "doas usermod -G _seatd $(whoami) 2>/dev/null || true"
             - desc: "Installing desktop files"
               cmd: "cp $HOME/.local/share/openriot/config/applications/*.desktop ~/.local/share/applications/ 2>/dev/null || true"
+            - desc: "Installing autotiling"
+              cmd: "pip install autotiling --break-system-packages 2>/dev/null || pip install autotiling 2>/dev/null || true"
         depends: [core.base]
         start: "Installing Sway desktop"
         end: "Sway desktop installed"
