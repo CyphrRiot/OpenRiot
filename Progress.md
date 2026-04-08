@@ -1,116 +1,139 @@
 # OpenRiot — Project Progress
 
-**v1.4** · commit `899d893` · `https://github.com/CyphrRiot/OpenRiot.git`
+**v1.4** · `https://github.com/CyphrRiot/OpenRiot.git`
 
 **Quick test:** `rm -rf ~/.local/share/openriot && curl -fsSL https://openriot.org/setup.sh | sh`
 
 ---
 
-## What We Know Works (from hardware test logs)
+## Session Context (Apr 7, 2026 — resumed mid-task)
 
-| Feature | Log Evidence | Status |
-|---------|-------------|--------|
-| Package skip detection | 32408649: all `[SKIP]` on re-run | ✅ Confirmed |
-| yq/Python YAML fallback | 32408649: 41 packages found | ✅ Confirmed |
-| curl/git removed (base sys) | 32408649: 41 packages (was 43) | ✅ Confirmed |
-| Nerd Font installs | 32408649: `JetBrainsMono Nerd Font installed.` | ✅ Confirmed |
-| Fish prompt path color | Changed to `brblue` | ✅ Fixed |
-| Nerd Font quiet unzip | Not yet tested on hardware | ❓ Untested |
-| Nerd Font skip if installed | Not yet tested on hardware | ❓ Untested |
-| Git pull on every run | Log still shows old code (pre-fix) | ❓ Untested |
-| Source builds direct in setup.sh | Written but NOT committed | ❌ Not deployed |
-| Sway autostart on TTY1 | User hasn't rebooted yet | ❓ Untested |
-| Foot Nerd Font rendering | User hasn't tested | ❓ Untested |
-| waybar icons | User hasn't tested | ❓ Untested |
-| wlsunset installed | User reports missing | ❌ BROKEN |
-| crush installed | Fails: `out of memory` on go-sqlite3-wasm | ❌ BROKEN |
-| Upgrade flow | Not tested | ❓ Untested |
+Sway keyboard input and Super+Enter terminal launch broken on OpenBSD. User has been debugging 10+ hours.
 
----
+### ROOT CAUSE (from sway.log 32531881)
 
-## Known Bugs (pending fix — NOT yet committed)
-
-### 1. Source builds broken (openriot --source-builds fails)
-- **Symptom:** `wlsunset` and `crush` not installed
-- **Root cause:** `./openriot --source-builds` in setup.sh calls Go binary that can't parse YAML on OpenBSD (NULL bytes, fallback broken)
-- **Fix written:** Direct shell commands in setup.sh `run_source_builds()` function — **NOT committed**
-
-### 2. Git pull skips bug fixes between version bumps
-- **Symptom:** Re-running setup.sh shows "Already on latest version (1.1)" and skips `git pull`
-- **Root cause:** `setup_repository()` only pulls when `local_ver < remote_ver`
-- **Fix written:** Check `git rev-list HEAD..origin/main` for commits ahead — **NOT committed**
-
-### 3. crush compilation fails (out of memory)
-- **Symptom:** `go install github.com/charmbracelet/crush@latest` → `fatal error: runtime: out of memory` on `ncruces/go-sqlite3-wasm`
-- **Root cause:** Go's SQLite WASM dependency needs more memory than available during compilation
-- **Fix:** Use pre-built binary from GitHub releases instead of `go install`
-- **Status:** NOT YET WRITTEN
-
----
-
-## Commits Pushed (7599086 is latest)
+**seatd socket permissions are STILL BROKEN.** The sway log shows:
 
 ```
-7599086 Nerd Font: skip if installed, quiet unzip, move earlier in bootstrap
-d03f962 Always git pull on every run to pick up bug fixes
-03e676a Remove curl and git from packages.yaml (base system)
-60b8c8d Replace grep YAML parser with yq+Python, add JetBrainsMono Nerd Font
-654f3f7 Fix package skip detection and update python package name
+[ERROR] [libseat] Could not connect to socket /var/run/seatd.sock: Permission denied
+[INFO] [libseat] Backend 'seatd' failed, skipping
+[INFO] [libseat] Seat opened with backend 'noop'
 ```
 
+The `noop` backend means sway CANNOT properly manage input devices. PS/2 devices (wskbd0, wskbd1, wsmouse0) show up because OpenBSD kernel provides them, but there's no proper input event processing.
+
+**The user previously fixed this manually** (`doas chgrp _seatd /var/run/seatd.sock && doas chmod 770 /var/run/seatd.sock`) but it was reset (likely seatd service restart recreates the socket).
+
+### This explains EVERYTHING:
+- Mouse cursor appears (PS/2 device visible) but real input events don't process
+- Super+Enter doesn't open terminal (keyboard events not processed)
+- `focus_follows_mouse` fix in repo is irrelevant — input doesn't work at all with noop backend
+- The sway log shows `focus_follows_mouse yes` (OLD config still deployed), but even with `no` it wouldn't help
+
+### The Fix Needed on OpenBSD
+
+```bash
+# Check seatd is running
+ps aux | grep seatd
+
+# Fix socket permissions (must persist across reboots)
+doas chgrp _seatd /var/run/seatd.sock
+doas chmod 770 /var/run/seatd.sock
+
+# Or: ensure grendel is in _seatd group
+doas usermod -G _seatd grendel
+# Then log out and back in
+
+# Verify
+ls -la /var/run/seatd.sock
+# Should show: root:_seatd 770
+```
+
+**The proper fix is to ensure seatd creates the socket with the right group.** Check `/etc/rc.d/seatd` or `/etc/rc.conf.local` for seatd configuration.
+
+### Waybar Config Issue (FIXED in repo)
+
+The waybar config was `[{...}]` (array wrapper). waybar 0.15.0 expects `{...}` (plain object).
+Also changed `$HOME` to `~` in include paths (waybar doesn't expand $HOME in JSON).
+
+**Fixed:** Changed `config/waybar/config` from array to object, `$HOME` to `~` in includes.
+
+### Other Issues from Sway Log
+
+- **swaybg**: `Could not find config for output HDMI-A-1` — needs `output * bg ...` or specific swaybg config
+- **Many "Permission denied" on /dev/wskbd*, /dev/wsmouse*** — all due to noop backend
+
 ---
 
-## Pending Changes (setup.sh — NOT committed)
+## Files Modified (keyboard focus / sway / waybar fixes)
 
-Three fixes are written but not pushed:
-
-1. **run_source_builds()** — replaces `./openriot --source-builds` with direct shell commands that check `command -v` before building each tool
-2. **setup_repository()** — always git pull by checking `git rev-list HEAD..origin/main`
-3. **Fish prompt path color** — changed `blue` → `brblue` in `config/fish/config.fish`
-
----
-
-## Next Steps
-
-1. **Fix crush compilation** — download pre-built binary from GitHub instead of `go install`
-2. **Commit and test** — push pending changes, run on hardware
-3. **Verify source builds** — wlsunset, crush, bibata all install correctly
-4. **Test font rendering** — foot, waybar, lsd all show icons
+| File | Changes | Commit |
+|------|---------|--------|
+| `config/waybar/config` | Removed `//` comments | 34c68be |
+| `config/waybar/Modules` | Removed trailing commas | 351bcf1 |
+| `config/waybar/ModulesCustom` | Removed trailing commas | 351bcf1 |
+| `config/waybar/ModulesVertical` | Removed trailing commas, converted `//` to `/* */` | 351bcf1 |
+| `config/waybar/ModulesWorkspaces` | Removed `//` section headers | 34c68be |
+| `config/waybar/UserModules` | Replaced `//` commented blocks with empty object | 34c68be |
+| `config/waybar/UserWorkspaces` | Removed `//` section headers, fixed trailing comma | 34c68be, 351bcf1 |
+| `config/waybar/config` | Array→Object, `$HOME`→`~` in includes | NOT COMMITTED |
+| `config/sway/config` | Added 1920x1080 output, keyboard/pointer input, `focus_follows_mouse no` | 2b47d29, 351bcf1, 3bf12d4 |
 
 ---
 
-## Debug Commands (on OpenBSD)
+## Git Commits (latest sway/waybar fixes)
 
-```sh
-# Share latest log
-openriot --share-log
-
-# Check what's installed
-which wlsunset  # should exist
-ls ~/.local/share/fonts/JetBrainsMono/  # should exist
-fc-list | grep JetBrainsMono           # should show "NF" font
-
-# Check sway autostart
-grep -n "exec sway" ~/.config/fish/config.fish
-
-# Manual sway test
-sway -d 2>&1 | head -100
+```
+3bf12d4 Fix keyboard focus: disable focus_follows_mouse
+351bcf1 Add 1920x1080 output config, fix waybar trailing commas
+2b47d29 Add keyboard and pointer input configuration for OpenBSD
+34c68be Remove // style comments from waybar JSON configs
 ```
 
 ---
 
-## Root Causes (what we've learned)
+## Current Todo List
 
-| Problem | Root Cause |
-|---------|-----------|
-| `pkg_info -m` always fails | Shows **maintainer**, not installed status |
-| `pkg_info -e` skips base packages | curl/git not in pkg DB (base system) |
-| grep parsed commands as packages | YAML commands are quoted strings, not bare names |
-| grep parsed config patterns | `pattern:` lines matched by `grep -E '^ +- [a-zA-Z]'` |
-| Source builds never run | `./openriot --source-builds` binary fails on OpenBSD |
-| Git pull skipped between versions | Only triggers when local < remote version |
-| crush fails to compile | `go-sqlite3-wasm` dependency OOMs on 8GB OpenBSD |
+- [completed] Fix waybar JSON: remove invalid `//` comments
+- [completed] Fix waybar JSON: remove trailing commas
+- [completed] Fix waybar config: change array [{...}] to object {...}
+- [completed] Fix waybar includes: $HOME → ~
+- [completed] Add sway output config for 1920x1080
+- [completed] Add sway keyboard/pointer input configuration
+- [completed] Fix focus_follows_mouse (changed to no)
+- [pending] COMMIT waybar config fix (user permission needed)
+- [in_progress] Fix seatd socket permissions on OpenBSD (the REAL root cause)
+- [pending] Install quirks package — fixes shutdown crash
+- [pending] Fix swaybg config for HDMI-A-1
 
 ---
 
-**Last updated:** Apr 6, 2026
+## Remaining Issues
+
+1. **seatd socket permissions** — THE ROOT CAUSE. Socket must be `root:_seatd` 770. Currently `root:wheel`. This breaks ALL input on sway.
+
+2. **Waybar config** — Fixed in repo (array→object, $HOME→~). Needs commit + deploy.
+
+3. **swaybg** — `Could not find config for output HDMI-A-1`. Needs background config.
+
+4. **Shutdown crash** — `quirks_context_unref` undefined symbol. Needs `doas pkg_add quirks`.
+
+---
+
+## Platform Info
+
+- **Platform:** OpenBSD 7.9 on mini.openriot.org (AMD64, Intel ADL-N GPU)
+- **Sway version:** 1.11 with wlroots 0.19.2
+- **Terminal:** foot (Wayland native)
+- **Session manager:** seatd (BROKEN — noop fallback)
+- **Waybar:** 0.15.0p0
+
+---
+
+## Critical Rule
+
+**NEVER commit or push without explicit user permission.** Always show diffs first.
+
+---
+
+**Last updated:** Apr 7, 2026
