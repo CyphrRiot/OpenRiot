@@ -1,0 +1,33 @@
+# OpenRiot Alacritty Config — CypherRiot Aesthetic
+
+[window]
+padding = { x = 8, y = 8 }
+dynamic_padding = true
+decorations = "none"
+opacity = 0.98
+
+[scrolling]
+history = 10000
+multiplier = 3
+
+[font]
+normal = { family = "JetBrainsMono NF", style = "Regular" }
+bold = { family = "JetBrainsMono NF", style = "Bold" }
+italic = { family = "JetBrainsMono NF", style = "Italic" }
+bold_italic = { family = "JetBrainsMono NF", style = "Bold Italic" }
+size = 12.0
+
+[colors]
+primary = { background = "#0A0B10", foreground = "#C0CAF5" }
+cursor = { text = "#0A0B10", cursor = "#7AA2F7" }
+normal = { black = "#01060E", red = "#EA6C73", green = "#9ECE6A", yellow = "#E0AF68", blue = "#7AA2F7", magenta = "#BB9AF7", cyan = "#0DB9D7", white = "#C0CAF5" }
+bright = { black = "#565F89", red = "#F7768E", green = "#9ECE6A", yellow = "#E0AF68", blue = "#89B4FA", magenta = "#BB9AF7", cyan = "#0DB9D7", white = "#D8DEE9" }
+selection = { text = "#0A0B10", background = "#7AA2F7" }
+
+[keyboard]
+bindings = [
+  { key = "Return", mods = "Control|Shift", action = "SpawnNewInstance" },
+]
+
+[mouse]
+hide_when_typing = true
