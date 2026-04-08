@@ -189,8 +189,19 @@ configure_doas() {
 # -----------------------------------------------------------------------------
 
 install_bootstrap_packages() {
-    info "Installing bootstrap packages (curl, git)..."
-    doas pkg_add curl git
+    # curl is guaranteed — user ran `curl ... | sh` to get here
+    if ! command -v curl >/dev/null 2>&1; then
+        error "curl is required. Install it with: doas pkg_add curl"
+        exit 1
+    fi
+
+    # Only install git if missing
+    if command -v git >/dev/null 2>&1; then
+        info "git already installed"
+    else
+        info "Installing git..."
+        doas pkg_add git
+    fi
     git config --global pull.rebase true
     git config --global init.defaultBranch master
     success "Bootstrap packages installed"
