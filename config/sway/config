@@ -16,6 +16,14 @@ font pango:JetBrainsMono NF 11
 default_border pixel 1
 default_floating_border pixel 1
 hide_edge_borders smart
+smart_gaps on
+smart_borders on
+
+# Border colors (blue theme)
+client.focused           #4c7899 #285577 #ffffff
+client.focused_inactive  #333333 #333333 #ffffff
+client.unfocused         #333333 #333333 #888888
+client.urgent            #d12121 #880000 #ffffff
 
 # Input — keyboard
 input type:keyboard {
@@ -44,9 +52,12 @@ output HDMI-A-1 {
 # Autostart
 exec waybar
 exec swaybg -i "$HOME/.local/share/openriot/backgrounds/riot_00.jpg" -m fill
+exec swayidle -w timeout 300 'bash $HOME/.local/share/openriot/config/bin/openriot-lock.sh && swaylock -i /tmp/swaylock-bg.png -f' timeout 600 'swaymsg "output * power off"' resume 'swaymsg "output * power on"'
+exec_always autotiling
 
 # Focus
 focus_follows_mouse no
+workspace_auto_back_and_forth yes
 
 # Drag floating windows with mouse (hold $mod + left click)
 floating_modifier $mod normal

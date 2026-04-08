@@ -21,6 +21,13 @@ Continue? [Y/n]
 ALWAYS run `make build` (or `make`) BEFORE committing any Go source changes.
 The binary at `install/openriot` must match the source. No exceptions.
 
+### PACKAGE VERIFICATION (MANDATORY)
+
+Before adding ANY package to `install/packages.yaml`, ALWAYS verify it exists in OpenBSD:
+- Search: https://openbsd.app/?search={package_name}&current=on
+- Do NOT assume a package exists
+- Report the search URL in your proposal
+
 ### WAYBAR SCRIPTS (CURRENT)
 
 ```
