@@ -1,52 +1,50 @@
-# OpenRiot Sway Config — MINIMAL
+# OpenRiot Sway Config — OpenBSD
 
 set $mod Mod4
 
-# Monitor configuration — HDMI-A-1 at 1920x1080
+# Variables
+set $terminal foot
+set $fileManager foot -e lf
+set $browser firefox
+set $editor hx
+set $menu fuzzel
+
+# Appearance
+font pango:JetBrainsMono NF 11
+default_border pixel 1
+default_floating_border pixel 1
+hide_edge_borders smart
+
+# Input — keyboard
+input type:keyboard {
+    xkb_layout us
+    xkb_options ctrl:nocaps
+    repeat_delay 180
+    repeat_rate 55
+}
+
+# Input — mouse
+input type:pointer {
+    accel_profile flat
+    pointer_accel 0.0
+}
+
+# Cursor
+seat seat0 xcursor_theme Bibata-Modern-Ice 28
+
+# Monitor — HDMI-A-1 at 1920x1080
 output HDMI-A-1 {
     mode 1920x1080@60Hz
     scale 1
     pos 0 0
 }
 
-# Keyboard input configuration
-input type:keyboard {
-    xkb_layout us
-    xkb_options ctrl:nocaps
-}
+# Autostart
+exec waybar
+exec swaybg -i "$HOME/.local/share/openriot/backgrounds/riot_00.jpg" -m fill
 
-# Mouse/touchpad configuration
-input type:pointer {
-    accel_profile flat
-    pointer_accel 0.5
-}
-
-# Bare minimum keybindings
-bindsym $mod+Return exec /usr/local/bin/foot
-bindsym $mod+Shift+E exec swaymsg exit
-bindsym $mod+Q kill
-bindsym $mod+W floating toggle
-bindsym $mod+J split vertical
-bindsym $mod+H split horizontal
-bindsym $mod+1 workspace 1
-bindsym $mod+2 workspace 2
-bindsym $mod+3 workspace 3
-bindsym $mod+4 workspace 4
-bindsym $mod+Shift+1 move container to workspace 1
-bindsym $mod+Shift+2 move container to workspace 2
-bindsym $mod+Shift+3 move container to workspace 3
-bindsym $mod+Shift+4 move container to workspace 4
-bindsym $mod+Shift+E exec swaymsg exit
-bindsym Mod1+Tab focus right
-bindsym Mod1+Shift+Tab focus left
-bindsym $mod+Left focus left
-bindsym $mod+Right focus right
-bindsym $mod+Up focus up
-bindsym $mod+Down focus down
-bindsym $mod+Shift+Left move left
-bindsym $mod+Shift+Right move right
-bindsym $mod+Shift+Up move up
-bindsym $mod+Shift+Down move down
-bindsym $mod+L exec swaylock -f
-
+# Focus
 focus_follows_mouse no
+
+# Include keybindings and window rules
+include ~/.config/sway/keybindings.conf
