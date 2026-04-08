@@ -48,6 +48,20 @@
             "keyColor": "green",
         },
         {
+            "type": "disk",
+            "key": " DSK",
+            "keyColor": "cyan",
+            "showName": true,
+            "showUsed": true,
+            "showPercent": true,
+            "showTotal": true,
+        },
+        {
+            "type": "localip",
+            "key": " LIP",
+            "keyColor": "cyan",
+        },
+        {
             "type": "custom",
             "format": "\u001b[90m└──────────────────────────────────────────────────┘",
         },

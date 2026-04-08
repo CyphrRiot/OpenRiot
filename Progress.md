@@ -1,6 +1,6 @@
 # OpenRiot — Project Progress
 
-**v1.5** · `https://github.com/CyphrRiot/OpenRiot.git`
+**v0.5** · `https://github.com/CyphrRiot/OpenRiot.git`
 
 **Quick test:** `rm -rf ~/.local/share/openriot ~/.config ~/.cache/openriot && curl -fsSL https://openriot.org/setup.sh | sh`
 
