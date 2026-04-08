@@ -42,7 +42,7 @@ This isn’t shaped by committees, corporate roadmaps, or quarterly deliverables
 
 ---
 
-![OpenRiot Desktop](assets/screenshot.png)
+![OpenRiot Desktop](assets/screenshot.jpg)
 
 ## ⚠️ **NOT READY FOR PRODUCTION USE** ⚠️
 
