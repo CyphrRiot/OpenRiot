@@ -203,24 +203,14 @@ setup_repository() {
 
     # Always pull latest commits to pick up bug fixes and config changes
     if [ -d "$INSTALL_DIR/.git" ]; then
-        info "Updating OpenRiot repository..."
         (
             cd "$INSTALL_DIR" || exit 1
             git fetch --depth 1 origin || true
             LOCAL_AHEAD=$(git rev-list --count HEAD..origin/"$CONFIG_BRANCH" 2>/dev/null || echo 0)
             if [ "$LOCAL_AHEAD" -gt 0 ]; then
-                info "Pulling $LOCAL_AHEAD new commit(s)..."
                 git reset --hard origin/"$CONFIG_BRANCH" || { error "Git reset failed"; exit 1; }
-                success "OpenRiot updated."
-            else
-                info "Repository up to date."
             fi
         )
-    fi
-
-    # Check for new version releases
-    if "$INSTALL_DIR/install/openriot" --version-check >/dev/null 2>&1; then
-        info "New version available!"
     fi
 }
 
@@ -229,7 +219,6 @@ setup_repository() {
 # -----------------------------------------------------------------------------
 
 run_openriot_install() {
-    info "Running openriot --install..."
     if [ ! -x "$INSTALL_DIR/install/openriot" ]; then
         error "openriot binary not found at $INSTALL_DIR/install/openriot"
         exit 1
@@ -247,7 +236,6 @@ run_openriot_install() {
 # -----------------------------------------------------------------------------
 
 run_install_packages() {
-    info "Installing packages via openriot --install-packages..."
     if [ ! -x "$INSTALL_DIR/install/openriot" ]; then
         error "openriot binary not found at $INSTALL_DIR/install/openriot"
         exit 1
@@ -312,38 +300,9 @@ main() {
     check_openbsd_version
     configure_doas_installurl
     install_bootstrap_packages
-
-    # Debug: show environment and paths
-    info "HOME=$HOME INSTALL_DIR=$INSTALL_DIR PWD=$(pwd) UID=$(id -u)"
-    if [ -d "$INSTALL_DIR" ]; then
-        info "OpenRiot installation found"
-    else
-        info "New installation - deploying OpenRiot base"
-    fi
-
-    # Detect mode
-    if [ "$MODE" = "upgrade" ]; then
-        # --upgrade mode: only proceed if newer version available
-        if ! "$INSTALL_DIR/install/openriot" --version-check >/dev/null 2>&1; then
-            info "No upgrade needed - already on latest version."
-            exit 0
-        fi
-        info "Upgrading..."
-    fi
-
-    # Check if this will be a fresh clone (no INSTALL_DIR or --install)
-    DID_CLONE=0
-    if [ ! -d "$INSTALL_DIR" ] || [ "$FORCE_INSTALL" = "1" ]; then
-        DID_CLONE=1
-    fi
-
     setup_repository
-
-    # Check disk space and install packages
     check_disk_space 1
     run_install_packages
-
-    # openriot --install handles configs + commands from packages.yaml
     run_openriot_install
 
     # This is properly formatted. Need the variable for version fixed

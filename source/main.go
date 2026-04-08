@@ -73,12 +73,12 @@ func main() {
 	if len(os.Args) >= 2 && os.Args[1] == "--packages" {
 		configPath := config.FindConfigFile()
 		if configPath == "" {
-			fmt.Fprintf(os.Stderr, "[ERR!]  Could not find packages.yaml\n")
+			fmt.Fprintf(os.Stderr, "[ERR!] Could not find packages.yaml\n")
 			os.Exit(1)
 		}
 		cfg, err := config.LoadConfig(configPath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "[ERR!]  Failed to load config: %v\n", err)
+			fmt.Fprintf(os.Stderr, "[ERR!] Failed to load config: %v\n", err)
 			os.Exit(1)
 		}
 		for _, pkg := range cfg.GetPackages() {
@@ -299,11 +299,11 @@ func shareLog(filename string) error {
 
 // runInstall handles the --install command (runs as USER, no TTY/PTY needed)
 func runInstall() {
-	fmt.Println("[INFO]  OpenRiot installer starting...")
+	fmt.Println("[INFO] OpenRiot installer starting...")
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!]  Could not determine home directory: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[ERR!] Could not determine home directory: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -312,7 +312,7 @@ func runInstall() {
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!]  Failed to load config from %s: %v\n", configPath, err)
+		fmt.Fprintf(os.Stderr, "[ERR!] Failed to load config from %s: %v\n", configPath, err)
 		os.Exit(1)
 	}
 
@@ -330,7 +330,7 @@ func runInstall() {
 	// Step 3: Source builds (crush, wlsunset, bibata-cursor, etc.)
 	fmt.Printf("%s[INFO]%s Running source builds...\n", installer.Blue, installer.Reset)
 	if err := installer.SourceBuilds(cfg, testMode); err != nil {
-		fmt.Printf("[WARN]  Source builds: %v\n", err)
+		fmt.Printf("[WARN] Source builds: %v\n", err)
 	}
 
 	// Source builds handled above, setup.sh shows completion box
@@ -340,7 +340,7 @@ func runInstall() {
 func runSourceBuilds() {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!]  Could not determine home directory: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[ERR!] Could not determine home directory: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -349,21 +349,21 @@ func runSourceBuilds() {
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!]  Failed to load config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[ERR!] Failed to load config: %v\n", err)
 		os.Exit(1)
 	}
 
 	if err := installer.SourceBuilds(cfg, testMode); err != nil {
-		fmt.Printf("[WARN]  Source builds: %v\n", err)
+		fmt.Printf("[WARN] Source builds: %v\n", err)
 	}
-	fmt.Println("[INFO]  Source builds complete!")
+	fmt.Println("[INFO] Source builds complete!")
 }
 
 // runInstallPackages installs packages from packages.yaml (used by setup.sh)
 func runInstallPackages() {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!]  Could not determine home directory: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[ERR!] Could not determine home directory: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -372,15 +372,15 @@ func runInstallPackages() {
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!]  Failed to load config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[ERR!] Failed to load config: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("%s[INFO]%s  Installing packages from packages.yaml (safe one-by-one mode)...\n", installer.Blue, installer.Reset)
+	fmt.Printf("%s[INFO]%s Installing packages from packages.yaml (safe one-by-one mode)...\n", installer.Blue, installer.Reset)
 
 	packages := cfg.GetPackages()
 	if len(packages) == 0 {
-		fmt.Fprintf(os.Stderr, "%s[ERR!]%s  No packages found in packages.yaml\n", installer.Red, installer.Reset)
+		fmt.Fprintf(os.Stderr, "%s[ERR!]%s No packages found in packages.yaml\n", installer.Red, installer.Reset)
 		os.Exit(1)
 	}
 
@@ -398,7 +398,7 @@ func writeOpenRouterToFish(apiKey string) {
 
 	usr, err := user.Current()
 	if err != nil {
-		fmt.Printf("[ERR!]  Failed to get current user: %v\n", err)
+		fmt.Printf("[ERR!] Failed to get current user: %v\n", err)
 		return
 	}
 
@@ -406,12 +406,12 @@ func writeOpenRouterToFish(apiKey string) {
 
 	content, err := os.ReadFile(fishConfigPath)
 	if err != nil {
-		fmt.Printf("[ERR!]  Failed to read fish config: %v\n", err)
+		fmt.Printf("[ERR!] Failed to read fish config: %v\n", err)
 		return
 	}
 
 	if strings.Contains(string(content), "OPENROUTER_API_KEY") {
-		fmt.Println("[INFO]  OpenRouter already configured in fish config")
+		fmt.Println("[INFO] OpenRouter already configured in fish config")
 		return
 	}
 
@@ -427,11 +427,11 @@ set -gx OPENROUTER_BASE_URL "https://openrouter.ai/api/v1"
 
 	err = os.WriteFile(fishConfigPath, []byte(newContent), 0644)
 	if err != nil {
-		fmt.Printf("[ERR!]  Failed to write fish config: %v\n", err)
+		fmt.Printf("[ERR!] Failed to write fish config: %v\n", err)
 		return
 	}
 
-	fmt.Println("[INFO]  OpenRouter API key saved to fish config")
+	fmt.Println("[INFO] OpenRouter API key saved to fish config")
 }
 
 // getLocalVersion reads the local VERSION file
