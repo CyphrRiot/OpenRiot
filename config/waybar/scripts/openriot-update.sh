@@ -3,6 +3,13 @@
 # OpenBSD compatible (POSIX sh)
 
 STATE_FILE="$HOME/.cache/openriot/update-state"
+
+# Handle click - run installer
+if [ "${1:-}" = "--click" ]; then
+    printf '%s\n' "Running installer..."
+    exec curl -fsSL https://openriot.org/setup.sh | sh
+fi
+
 mkdir -p "$(dirname "$STATE_FILE")"
 
 local_version=$(cat ~/.local/share/openriot/VERSION 2>/dev/null || echo "unknown")
