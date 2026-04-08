@@ -311,7 +311,7 @@ func runInstall() {
 		fmt.Printf("[WARN]  Source builds: %v\n", err)
 	}
 
-	fmt.Printf("%s[INFO]%s  OpenRiot installation complete!\n", installer.Green, installer.Reset)
+	// Source builds handled above, setup.sh shows completion box
 }
 
 // runSourceBuilds runs only the source builds phase (used by setup.sh)

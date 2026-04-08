@@ -32,7 +32,7 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 				// Continue on error - don't stop the whole install for one failed source build
 				continue
 			}
-			fmt.Printf("%s[INFO]%s  Built: %s\n", Green, Reset, cmd)
+			fmt.Printf("%s[DONE]%s  %s\n", Green, Reset, module.End)
 		}
 	}
 	return nil
