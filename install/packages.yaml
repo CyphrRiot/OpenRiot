@@ -80,6 +80,7 @@ desktop:
             - pattern: fonts/*
               target: "~/.local/share/fonts"
             - pattern: foot/*
+            - pattern: alacritty/*
             - pattern: fuzzel/*
         commands:
             - "doas rcctl set seatd flags '-g _seatd'"

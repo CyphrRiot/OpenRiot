@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Helix
+GenericName=Text Editor
+Comment=Post-modern modal text editor
+Icon=helix
+Exec=alacritty -e hx
+Terminal=false
+Type=Application
+Categories=Development;TextEditor;
+Keywords=editor;helix;hx;code;
