@@ -55,6 +55,6 @@ func InstallPackages(packages []string) error {
 
 // isPackageInstalled checks if a package is already installed
 func isPackageInstalled(pkg string) bool {
-	cmd := exec.Command("pkg_info", "-e", pkg)
+	cmd := exec.Command("pkg_info", "-e", pkg+"*")
 	return cmd.Run() == nil
 }
