@@ -76,7 +76,6 @@ desktop:
             - pattern: backgrounds/*
               target: "~/.local/share/openriot/backgrounds"
             - pattern: waybar/*
-              preserve_if_exists: [UserWorkspaces, UserModules]
             - pattern: fonts/*
               target: "~/.local/share/fonts"
             - pattern: foot/*
