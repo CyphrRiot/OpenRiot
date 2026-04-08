@@ -79,7 +79,7 @@ class WelcomeWindow:
             '<span size="16000" weight="bold" color="#cba6f7">Quick Start</span>\n\n'
             '<span size="12000" color="#cdd6f4">'
             "• Super + D       → Open fuzzel app launcher\n"
-            "• Super + Enter   → Open terminal (foot)\n"
+            "• Super + Enter   → Open terminal (havoc)\n"
             "• Super + Q       → Close focused window\n"
             "• Super + 1-9     → Switch workspaces\n"
             "• Super + Shift + Q → Quit Sway\n"

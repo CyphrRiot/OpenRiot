@@ -5,8 +5,8 @@
 set $mod Mod1
 
 # Variables
-set $terminal alacritty
-set $fileManager alacritty -e lf
+set $terminal havoc
+set $fileManager havoc lf
 set $browser firefox
 set $editor hx
 set $menu fuzzel

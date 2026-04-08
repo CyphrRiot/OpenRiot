@@ -24,7 +24,7 @@ core:
             - fish-4.6.0
             - neovim-0.12.0
             - foot-1.26.1
-            - alacritty-0.16.1
+            - havoc
             - fzf-0.70.0
             - ripgrep-15.1.0
             - htop-3.4.1
@@ -41,6 +41,7 @@ core:
               preserve_if_exists: [init.lua]
             - pattern: btop/themes/*
             - pattern: btop/btop.conf
+            - pattern: havoc/*
         depends: [core.base]
         start: "Installing shell and terminal tools"
         end: "Shell environment configured"
@@ -80,7 +81,7 @@ desktop:
             - pattern: fonts/*
               target: "~/.local/share/fonts"
             - pattern: foot/*
-            - pattern: alacritty/*
+            - pattern: havoc/*
             - pattern: fuzzel/*
         commands:
             - "doas rcctl set seatd flags '-g _seatd'"
