@@ -37,7 +37,7 @@
     ],
 
     "custom/openbsd": {
-        "format": "BSD",
+        "format": "\udb80\udc3b",
         "on-click": "fuzzel",
         "on-click-right": "pkill fuzzel",
         "tooltip": true,
@@ -65,7 +65,7 @@
         "return-type": "json",
         "interval": 5,
         "exec": "$HOME/.local/share/openriot/config/waybar/scripts/system-metrics.sh",
-        "on-click": "foot -e htop",
+        "on-click": "alacritty -e htop",
         "tooltip": true
     },
 
@@ -143,7 +143,7 @@
         "interval": 1,
         "format": "{:%A, %B %d - %I:%M %p}",
         "format-alt": "{:%H:%M %d %B %A}",
-        "on-click-right": "$HOME/.local/share/openriot/install/openriot --swaybg-next",
+        "on-click": "$HOME/.local/share/openriot/install/openriot --swaybg-next",
         "tooltip-format": "<tt><small>{calendar}</small></tt>",
         "calendar": {
             "mode": "year",

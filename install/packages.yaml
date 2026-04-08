@@ -24,6 +24,7 @@ core:
             - fish-4.6.0
             - neovim-0.12.0
             - foot-1.26.1
+            - alacritty
             - fzf-0.70.0
             - ripgrep-15.1.0
             - htop-3.4.1
