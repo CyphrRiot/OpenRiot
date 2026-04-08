@@ -37,7 +37,7 @@
     ],
 
     "custom/openbsd": {
-        "format": "\udb80\udc3b",
+        "format": "BSD",
         "on-click": "fuzzel",
         "on-click-right": "pkill fuzzel",
         "tooltip": true,
@@ -108,16 +108,16 @@
     },
 
     "custom/power": {
-        "format": " \u23f7 ",
+        "format": "⏻",
         "on-click": "$HOME/.local/share/openriot/install/openriot --power-menu",
         "tooltip": false
     },
 
     "custom/lock": {
-        "format": "\udb84\uddbe",
+        "format": "🔒",
         "on-click": "swaylock -f",
         "tooltip": true,
-        "tooltip-format": "\udb85\udf9b Screen Lock"
+        "tooltip-format": "Screen Lock"
     },
 
     "sway/workspaces": {
@@ -127,9 +127,10 @@
         "show-special": false,
         "format": "{icon}",
         "format-icons": {
-            "focused": "\uf0592",
-            "default": "\u25c9",
-            "empty": "\u25cb"
+            "focused": "●",
+            "default": "○",
+            "urgent": "●",
+            "empty": "○"
         }
     },
 
@@ -140,9 +141,9 @@
 
     "clock": {
         "interval": 1,
-        "format": " \udb80\udc70 {:%A \u2022 %B %d \u2022 %I:%M %p}",
-        "format-alt": " \udb80\udc70 {:%H:%M   %d %B, %A}",
-        "on-click": "$HOME/.local/share/openriot/install/openriot --swaybg-next",
+        "format": "{:%A, %B %d - %I:%M %p}",
+        "format-alt": "{:%H:%M %d %B %A}",
+        "on-click-right": "$HOME/.local/share/openriot/install/openriot --swaybg-next",
         "tooltip-format": "<tt><small>{calendar}</small></tt>",
         "calendar": {
             "mode": "year",
