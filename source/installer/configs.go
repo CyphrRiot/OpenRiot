@@ -24,7 +24,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 	configSourceDir := filepath.Join(repoDir, "config")
 	configDir := filepath.Join(homeDir, ".config")
 
-	fmt.Printf("%s[INFO]%s  Deploying configuration files...\n", Blue, Reset)
+	fmt.Printf("%s[INFO]%s Deploying configuration files...\n", Blue, Reset)
 
 	// Create ~/.config if it doesn't exist
 	if err := os.MkdirAll(configDir, 0755); err != nil {
@@ -113,15 +113,15 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 				// Create destination directory
 				destDir := filepath.Dir(destPath)
 				if err := os.MkdirAll(destDir, 0755); err != nil {
-					fmt.Printf("%s[WARN]%s  Failed to create directory %s: %v\n", Yellow, Reset, destDir, err)
+					fmt.Printf("%s[WARN]%s Failed to create directory %s: %v\n", Yellow, Reset, destDir, err)
 					return nil
 				}
 
 				// Copy file
 				if dryRun {
-					fmt.Printf("%s[INFO]%s  [DRY-RUN] Would copy %s -> %s\n", Blue, Reset, relPath, destPath)
+					fmt.Printf("%s[INFO]%s [DRY-RUN] Would copy %s -> %s\n", Blue, Reset, relPath, destPath)
 				} else if err := copyFilePreserve(srcPath, destPath); err != nil {
-					fmt.Printf("%s[WARN]%s  Failed to copy %s: %v\n", Yellow, Reset, srcPath, err)
+					fmt.Printf("%s[WARN]%s Failed to copy %s: %v\n", Yellow, Reset, srcPath, err)
 					return nil
 				} else {
 					categoryStats[category]++
@@ -129,7 +129,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 				return nil
 			})
 			if err != nil {
-				fmt.Printf("%s[WARN]%s  WalkDir failed for %s: %v\n", Yellow, Reset, rule.Pattern, err)
+				fmt.Printf("%s[WARN]%s WalkDir failed for %s: %v\n", Yellow, Reset, rule.Pattern, err)
 				continue
 			}
 		} else {
@@ -160,15 +160,15 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 			// Create destination directory
 			destDir := filepath.Dir(destPath)
 			if err := os.MkdirAll(destDir, 0755); err != nil {
-				fmt.Printf("%s[WARN]%s  Failed to create directory %s: %v\n", Yellow, Reset, destDir, err)
+				fmt.Printf("%s[WARN]%s Failed to create directory %s: %v\n", Yellow, Reset, destDir, err)
 				continue
 			}
 
 			// Copy file
 			if dryRun {
-				fmt.Printf("%s[INFO]%s  [DRY-RUN] Would copy %s -> %s\n", Blue, Reset, rule.Pattern, destPath)
+				fmt.Printf("%s[INFO]%s [DRY-RUN] Would copy %s -> %s\n", Blue, Reset, rule.Pattern, destPath)
 			} else if err := copyFilePreserve(srcPath, destPath); err != nil {
-				fmt.Printf("%s[WARN]%s  Failed to copy %s: %v\n", Yellow, Reset, rule.Pattern, err)
+				fmt.Printf("%s[WARN]%s Failed to copy %s: %v\n", Yellow, Reset, rule.Pattern, err)
 				continue
 			} else {
 				// Get category from pattern (e.g., "sway/config" -> "sway")
@@ -181,9 +181,9 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 
 	// Print summary
 	for category, count := range categoryStats {
-		fmt.Printf("%s[DONE]%s  %s: %d files\n", Green, Reset, category, count)
+		fmt.Printf("%s[DONE]%s %s: %d files\n", Green, Reset, category, count)
 	}
-	fmt.Printf("%s[DONE]%s  Configuration deployed\n", Green, Reset)
+	fmt.Printf("%s[DONE]%s Configuration deployed\n", Green, Reset)
 
 	return nil
 }

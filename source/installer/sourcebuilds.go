@@ -41,7 +41,7 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 			}
 
 			if testMode {
-				fmt.Printf("%s[INFO]%s  [DRY-RUN] %s\n", Blue, Reset, cmd)
+				fmt.Printf("%s[INFO]%s [DRY-RUN] %s\n", Blue, Reset, cmd)
 				continue
 			}
 
@@ -49,7 +49,7 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 			c := exec.Command("/bin/sh", "-c", cmd)
 			output, err := c.CombinedOutput()
 			if err != nil {
-				fmt.Printf("%s[WARN]%s  %s failed: %v\n", Yellow, Reset, desc, err)
+				fmt.Printf("%s[WARN]%s %s failed: %v\n", Yellow, Reset, desc, err)
 				// Continue on error - don't stop the whole install for one failed source build
 				continue
 			}
@@ -59,7 +59,7 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 			if strings.Contains(outputStr, "[SKIP]") {
 				continue
 			}
-			fmt.Printf("%s[DONE]%s  %s\n", Green, Reset, desc)
+			fmt.Printf("%s[DONE]%s %s\n", Green, Reset, desc)
 		}
 	}
 	return nil

@@ -24,14 +24,14 @@ func InstallPackages(packages []string) (int, error) {
 		return 0, nil
 	}
 
-	fmt.Printf("%s[INFO]%s  Installing packages (%d new, %d already installed)...\n", Blue, Reset, len(toInstall), len(packages)-len(toInstall))
+	fmt.Printf("%s[INFO]%s Installing packages (%d new, %d already installed)...\n", Blue, Reset, len(toInstall), len(packages)-len(toInstall))
 	if len(toInstall) > 0 {
-		fmt.Printf("%s[WARN]%s  This may take a while (Nerd Fonts are large)...\n", Yellow, Reset)
+		fmt.Printf("%s[WARN]%s This may take a while (Nerd Fonts are large)...\n", Yellow, Reset)
 	}
 
 	failed := 0
 	for _, pkg := range toInstall {
-		fmt.Printf("%s[INFO]%s  Installing %s...\n", Blue, Reset, pkg)
+		fmt.Printf("%s[INFO]%s Installing %s...\n", Blue, Reset, pkg)
 
 		// Use doas for root privileges, -D unsigned to allow unsigned packages
 		cmd := exec.Command("doas", "pkg_add", "-D", "unsigned", pkg)
@@ -42,18 +42,18 @@ func InstallPackages(packages []string) (int, error) {
 			if len(outputStr) > 300 {
 				outputStr = outputStr[:300] + "..."
 			}
-			fmt.Printf("%s[WARN]%s  Failed to install %s:\n    %s\n", Yellow, Reset, pkg, outputStr)
+			fmt.Printf("%s[WARN]%s Failed to install %s:\n    %s\n", Yellow, Reset, pkg, outputStr)
 			failed++
 		} else {
-			fmt.Printf("%s[DONE]%s  %s installed\n", Green, Reset, pkg)
+			fmt.Printf("%s[DONE]%s %s installed\n", Green, Reset, pkg)
 		}
 	}
 
 	if failed > 0 {
-		fmt.Printf("%s[WARN]%s  %d packages failed to install.\n", Yellow, Reset, failed)
-		fmt.Printf("%s[WARN]%s  You can install remaining ones manually: doas pkg_add <package>\n", Yellow, Reset)
+		fmt.Printf("%s[WARN]%s %d packages failed to install.\n", Yellow, Reset, failed)
+		fmt.Printf("%s[WARN]%s You can install remaining ones manually: doas pkg_add <package>\n", Yellow, Reset)
 	} else {
-		fmt.Printf("%s[DONE]%s  All packages installed\n", Green, Reset)
+		fmt.Printf("%s[DONE]%s All packages installed\n", Green, Reset)
 	}
 
 	return failed, nil
