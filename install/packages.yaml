@@ -84,6 +84,8 @@ desktop:
         commands:
             - "doas rcctl enable seatd && doas rcctl start seatd || true"
             - "doas usermod -G _seatd $(whoami) 2>/dev/null || true"
+            - "doas chgrp _seatd /var/run/seatd.sock 2>/dev/null || true"
+            - "doas chmod 770 /var/run/seatd.sock 2>/dev/null || true"
             - "cp $HOME/.local/share/openriot/config/applications/*.desktop ~/.local/share/applications/ 2>/dev/null || true"
         depends: [core.base]
         start: "Installing Sway desktop"
