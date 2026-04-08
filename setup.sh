@@ -226,7 +226,7 @@ setup_repository() {
             doas rm -rf "$INSTALL_DIR"
         fi
         mkdir -p "$(dirname "$INSTALL_DIR")" || { error "Cannot create directory"; exit 1; }
-        git clone -b "$CONFIG_BRANCH" "$REPO_URL" "$INSTALL_DIR" || { error "Git clone failed"; exit 1; }
+        git clone --depth 1 -b "$CONFIG_BRANCH" "$REPO_URL" "$INSTALL_DIR" || { error "Git clone failed"; exit 1; }
         success "OpenRiot deployed to $INSTALL_DIR"
         return
     fi
@@ -236,7 +236,7 @@ setup_repository() {
         info "Updating OpenRiot repository..."
         (
             cd "$INSTALL_DIR" || exit 1
-            git fetch origin || true
+            git fetch --depth 1 origin || true
             LOCAL_AHEAD=$(git rev-list --count HEAD..origin/"$CONFIG_BRANCH" 2>/dev/null || echo 0)
             if [ "$LOCAL_AHEAD" -gt 0 ]; then
                 info "Pulling $LOCAL_AHEAD new commit(s)..."
