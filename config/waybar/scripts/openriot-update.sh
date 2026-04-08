@@ -10,11 +10,11 @@ remote_version=$(timeout 10 curl -s https://openriot.org/VERSION 2>/dev/null || 
 
 is_newer() {
     printf '%s\n%s\n' "$1" "$2" | awk 'BEGIN{FS="."} {
-        for (i=1; i<=3; i++) { v[NR][i] = ($i+0) }
+        for (i=1; i<=3; i++) { v[NR*10+i] = ($i+0) }
     } END {
         for (i=1; i<=3; i++) {
-            if (v[2][i] > v[1][i]) { print "yes"; exit }
-            if (v[1][i] > v[2][i]) { print "no"; exit }
+            if (v[20+i] > v[10+i]) { print "yes"; exit }
+            if (v[10+i] > v[20+i]) { print "no"; exit }
         }
         print "no"
     }'
