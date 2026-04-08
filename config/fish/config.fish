@@ -17,7 +17,7 @@ end
 function fish_greeting
     if command -v fastfetch >/dev/null 2>&1
         # Run fastfetch with timeout to prevent hanging on font/locale issues
-        timeout 5 fastfetch --logo-width 20 --logo openbsd 2>/dev/null
+        timeout 5 fastfetch --logo-width 20 --logo openbsd_small 2>/dev/null
     end
 end
 
@@ -102,7 +102,7 @@ alias ll='lsd -l'
 alias la='lsd -la'
 
 # Fastfetch with correct logo width
-alias fastfetch='command fastfetch --logo-width 20'
+alias fastfetch='command fastfetch --logo-width 20 --logo openbsd_small'
 
 # OpenBSD-specific aliases
 alias doas='doas'
