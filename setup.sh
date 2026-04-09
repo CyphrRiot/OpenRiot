@@ -19,7 +19,7 @@ NC='\033[0m' # No Color
 OPENBSD_MIN_VERSION="7.9"
 REPO_URL="${REPO_URL:-https://github.com/CyphrRiot/OpenRiot}"
 CONFIG_BRANCH="${CONFIG_BRANCH:-main}"
-INSTALLURL="${INSTALLURL:-https://cdn.openbsd.org/pub/OpenBSD}"
+INSTALLURL="${INSTALLURL:-https://cloudflare.cdn.openbsd.org/pub/OpenBSD}"
 REMOTE_VERSION_URL="${REMOTE_VERSION_URL:-https://openriot.org/VERSION}"
 # Detect actual user home (HOME may be wrong under doas/sudo)
 REAL_USER=$(id -un 2>/dev/null || echo "$USER")

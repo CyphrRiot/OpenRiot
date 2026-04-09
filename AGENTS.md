@@ -16,10 +16,13 @@ Reason: {show reason / evidence}
 
 Continue? [Y/n]
 
-### BUILD BEFORE COMMIT (MANDATORY)
+### BUILD AND COMMIT RULES (MANDATORY)
 
-ALWAYS run `make build` (or `make`) BEFORE committing any Go source changes.
-The binary at `install/openriot` must match the source. No exceptions.
+1. **NEVER commit without explicit user permission** — show diff first, wait for "yes"
+2. **NEVER bump VERSION without explicit user permission**
+3. **ALWAYS run `make` before a commit** (even config-only changes — to verify)
+4. **Commit binary with source changes** — use `git add -A` or `git commit -am`
+5. **The binary (`install/openriot`) IS the product** — if source changes, binary MUST be committed
 
 ### PACKAGE VERIFICATION (MANDATORY)
 
@@ -45,7 +48,7 @@ waybar/scripts/
 
 ---
 
-## Current Project Status (April 2026 - v0.5)
+## Current Project Status (April 2026 - v0.6)
 
 ### Install Output Clean (April 2026)
 
