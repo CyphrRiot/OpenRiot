@@ -52,7 +52,7 @@ seat seat0 xcursor_theme Bibata-Modern-Ice 28
 # Autostart
 exec waybar
 exec swaybg -i "$HOME/.local/share/openriot/backgrounds/riot_00.jpg" -m fill
-exec swayidle -w timeout 300 '$HOME/.local/share/openriot/config/bin/swaylock-wrapper.sh' timeout 600 'swaymsg "output * power off"' resume 'swaymsg "output * power on"'
+exec swayidle -w timeout 300 'bash $HOME/.local/share/openriot/config/bin/openriot-lock.sh && swaylock -i /tmp/swaylock-bg.png -f' timeout 600 'swaymsg "output * power off"' resume 'swaymsg "output * power on"'
 exec_always autotiling
 
 # Focus
