@@ -254,7 +254,7 @@ For the best OpenBSD + Sway experience:
 
 ## 🚀 Installing OpenRiot
 
-The OpenRiot ISO is the OpenBSD installer — it installs the base system AND configures Sway, Waybar, Fish, and everything else automatically. The installer is interactive but most prompts are pre-answered.
+The OpenRiot ISO is the OpenBSD installer — it installs the base system AND configures Sway, Waybar, Fish, and everything else automatically. The installer is interactive.
 
 1. **Download OpenRiot ISO** — Get it from the [Release Page](https://github.com/CyphrRiot/OpenRiot/releases/tag/v1.0) or download directly: [openriot.iso](https://github.com/CyphrRiot/OpenRiot/releases/download/v1.0/openriot.iso) (~757MB)
 2. **Create bootable USB** — Replace `/dev/sdX` with your USB device:
@@ -262,32 +262,17 @@ The OpenRiot ISO is the OpenBSD installer — it installs the base system AND co
    dd if=openriot.iso of=/dev/sdX bs=4M status=progress
    ```
 3. **Boot from USB** — Disable Secure Boot, set UEFI boot order
-4. **Run the installer** — The installer is interactive. See [Interactive Prompts](#interactive-prompts) below for details.
-
-After the install finishes and the system reboots:
-
-```bash
-doas pkg_add curl git
-curl -fsSL https://openriot.org/setup.sh | sh
-# Reboot — Sway starts automatically
-```
+4. **Run the installer** — At the `boot>` prompt, type `I` and press Enter. See [Interactive Prompts](#interactive-prompts) below.
 
 **Perfect for:**
 
 - 🖥️ Fresh hardware / new builds
 - 🚀 Instant desktop in minutes
 - 💀 Complete system replacement
-- 🎯 Zero configuration required
-
-#### Boot and Install
-
-1. Boot from USB (disable Secure Boot first!)
-2. After the `boot>` prompt, type `I` and press Enter
-3. The installer will start in interactive mode
 
 #### Interactive Prompts
 
-Most prompts are pre-answered. You only need to:
+The table below shows every prompt you'll see. Most require typing a value and pressing Enter.
 
 | Prompt               | Action                                                  |
 | -------------------- | ------------------------------------------------------- |
@@ -305,7 +290,7 @@ Most prompts are pre-answered. You only need to:
 | Encrypt disk         | Type `p` for passphrase or `no` for no encryption       |
 | Partition layout     | Type `c` for custom                                     |
 | Label editor         | `z` → `a /` → size → `a swap` → `a /home` → `w` → `q`   |
-| Location of sets     | Type `disk` (USB is auto-mounted)                       |
+| Location of sets     | Type `disk` (USB is auto-mounted)                      |
 | Set name(s)          | Press `Enter` to select all sets including `site79.tgz` |
 | SHA256 verification  | Type `yes` → Enter                                      |
 
