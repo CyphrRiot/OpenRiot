@@ -78,6 +78,9 @@ desktop:
             - pattern: backgrounds/*
               target: "~/.local/share/openriot/backgrounds"
             - pattern: waybar/*
+            - pattern: bin/*
+              target: "~/.local/share/openriot/config/bin"
+              preserve_if_exists: [openriot-lock.sh]
             - pattern: fonts/*
               target: "~/.local/share/fonts"
             - pattern: havoc/*

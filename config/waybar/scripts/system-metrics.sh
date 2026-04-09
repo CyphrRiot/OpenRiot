@@ -2,18 +2,8 @@
 # OpenRiot - Waybar System Metrics (CPU + RAM combined)
 # Output: JSON for waybar custom module
 
-# CPU usage (from waybar-cpu.sh pattern)
-cpu=$(top -b -n 1 2>/dev/null \
-    | awk '/^CPU states:/ {
-        for (i = 1; i <= NF; i++) {
-            if ($i ~ /idle/) {
-                idle = $(i - 1)
-                gsub(/%,?/, "", idle)
-                printf "%d", 100 - idle
-                exit
-            }
-        }
-    }')
+# CPU usage — OpenBSD: use vmstat, last field is idle%
+cpu=$(vmstat 1 1 2>/dev/null | awk 'NR==2 { print 100 - $NF }')
 [ -z "$cpu" ] && cpu=0
 
 # RAM usage (from waybar-memory.sh pattern)

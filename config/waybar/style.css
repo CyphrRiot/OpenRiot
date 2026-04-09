@@ -161,41 +161,7 @@ tooltip {
     padding-left: 3px;
     padding-right: 3px;
 }
-#custom-menu,
-#custom-file_manager,
-#custom-tty,
-#custom-browser,
-#custom-settings {
-    margin-left: 3px;
-    margin-right: 3px;
-    padding: 1px 3px;
-    background: transparent;
-    border-radius: 6px;
-}
-
-#custom-reboot,
-#custom-settings,
-#custom-spotify,
-#custom-tty,
-#custom-updater,
-#custom-weather,
-#custom-weather.clearNight,
-#custom-weather.cloudyFoggyDay,
-#custom-weather.cloudyFoggyNight,
-#custom-weather.default,
-#custom-weather.rainyDay,
-#custom-weather.rainyNight,
-#custom-weather.severe,
-#custom-weather.showyIcyDay,
-#custom-weather.snowyIcyNight,
-#custom-weather.sunnyDay {
-    padding-top: 4px;
-    padding-bottom: 4px;
-    padding-right: 6px;
-    padding-left: 6px;
-}
-
-/* Minimal spacing between workspaces for tight layout */
+#custom-menu {
 #workspaces {
     margin: 0 2px;
 }
@@ -482,21 +448,6 @@ label:focus {
     background-color: transparent;
     box-shadow: none;
 }
-
-/* Simple tray styling that definitely works */
-#tray > * {
-    padding: 0 4px;
-}
-
-/* Tray parentheses styling */
-#custom-tray-open,
-#custom-tray-close {
-    color: #4a6b8a;
-    font-weight: bold;
-    padding: 0 3px;
-}
-
-#custom-hypridle,
 #idle_inhibitor {
     color: #ffffff;
     font-size: 16px;

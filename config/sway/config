@@ -1,7 +1,6 @@
 # OpenRiot Sway Config — OpenBSD
 
-# Modifier key — Mod4=Super (Windows key), Mod1=Alt
-# On OpenBSD, use Mod1 if Windows key isn't detected as Mod4
+# Modifier key — Mod1=Alt (Mod4=Super may not work on all keyboards)
 set $mod Mod1
 
 # Variables
@@ -28,7 +27,7 @@ client.urgent            #d12121 #880000 #ffffff
 # Input — keyboard
 input type:keyboard {
     xkb_layout us
-    xkb_options ctrl:nocaps,alt:Super
+    xkb_options ctrl:nocaps
     repeat_delay 180
     repeat_rate 55
 }
@@ -42,17 +41,18 @@ input type:pointer {
 # Cursor
 seat seat0 xcursor_theme Bibata-Modern-Ice 28
 
-# Monitor — HDMI-A-1 at 1920x1080
-output HDMI-A-1 {
-    mode 1920x1080@60Hz
-    scale 1
-    pos 0 0
-}
+# Monitor — comment out to allow auto-detection via swaymsg
+# Run `swaymsg -t get_outputs` to find your monitor name
+# output HDMI-A-1 {
+#     mode 1920x1080@60Hz
+#     scale 1
+#     pos 0 0
+# }
 
 # Autostart
 exec waybar
 exec swaybg -i "$HOME/.local/share/openriot/backgrounds/riot_00.jpg" -m fill
-exec swayidle -w timeout 300 'bash $HOME/.local/share/openriot/config/bin/openriot-lock.sh && swaylock -i /tmp/swaylock-bg.png -f' timeout 600 'swaymsg "output * power off"' resume 'swaymsg "output * power on"'
+exec swayidle -w timeout 300 '$HOME/.local/share/openriot/config/bin/swaylock-wrapper.sh' timeout 600 'swaymsg "output * power off"' resume 'swaymsg "output * power on"'
 exec_always autotiling
 
 # Focus

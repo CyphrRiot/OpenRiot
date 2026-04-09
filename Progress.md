@@ -1,38 +1,59 @@
 # OpenRiot — Project Progress
 
-**v0.5** · `https://github.com/CyphrRiot/OpenRiot.git`
+**v0.6** · `https://github.com/CyphrRiot/OpenRiot.git`
 
 **Quick test:** `rm -rf ~/.local/share/openriot ~/.config ~/.cache/openriot && curl -fsSL https://openriot.org/setup.sh | sh`
 
 ---
 
+## Active Issues (TESTING NEEDED)
+
+### 1. SUPER+CMD Keybindings (CRITICAL — TESTING IN PROGRESS)
+
+**Status:** CHANGES APPLIED — awaiting user verification
+
+**Changes made:**
+- Added `alt:Super` to xkb_options: `ctrl:nocaps,alt:Super`
+- Alt key now acts as Super modifier
+- Keybindings use `$mod` which is Mod1 (Alt)
+
+**Debug commands:**
+```bash
+sway -C  # Validate config
+ls -la /tmp/sway-ipc.*  # Check SWAYSOCK
+xev -event keyboard  # Check key events
+```
+
+---
+
 ## Recent Changes (April 7, 2026)
 
-### Mirror Change (April 7, 2026) ✓
-- NOTE: cloudflare.cdn.openbsd.org is INVALID - reverted to cdn.openbsd.org
-- cdn.openbsd.org is already behind CloudFlare CDN
+### Mirror Fix (April 7, 2026) ✓
+- Reverted cloudflare.cdn.openbsd.org → cdn.openbsd.org
+- cloudflare.cdn.openbsd.org is invalid
 
 ### Network Manager (April 7, 2026) ✓
 - Removed neovim (was unused, replaced by Helix)
 - Deleted neovim.desktop file
-- wifi-selector.sh handles manual network selection via fuzzel (nmtui-like)
+- wifi-selector.sh handles manual network selection via fuzzel
 - wifind removed (hangs during install, OpenBSD auto-connects via /etc/hostname.if)
 
 ### Fonts (April 7, 2026) ✓
 - Added `jetbrains-mono-2.304` to fonts module
-- Helps with proper Unicode/emoji rendering in terminal
+- Helps with proper Unicode/emoji rendering
 
 ### Fish History (April 7, 2026) ✓
 - Deleted disabled `history-fix.fish`
 - Added `XDG_DATA_HOME` to config.fish for persistent history
 
 ### Sway Config Improvements ✓
-- Added `smart_gaps on` and `smart_borders on` (cleaner single-window view)
-- Added `workspace_auto_back_and_forth yes` (bounce between workspaces)
-- Fixed Tab keybindings: now uses `focus next/prev` instead of `focus left/right`
+- Added `smart_gaps on` and `smart_borders on`
+- Added `workspace_auto_back_and_forth yes`
+- Fixed Tab keybindings: `focus next/prev`
 - Added swayidle auto-lock at 5min, display off at 10min
 - Added `exec_always autotiling` (via pip install)
-- Added `floating_modifier $mod normal` (mouse drag floating windows)
+- Added `floating_modifier $mod normal`
+- Added blue border colors (client.focused #4c7899)
 
 ### Sway Keybindings Cleanup ✓
 - Removed duplicate `$mod+W kill`
@@ -48,65 +69,21 @@
 - Displays: time, date, crypto prices, user@host, uptime
 - Applied to both `$mod+L` and swayidle timeout
 
-### Install Output Now Clean ✓
-```
-=== OpenRiot v0.5 Setup (OpenBSD 7.9) ===
-[INFO] Checking OpenBSD version...
-[DONE] OpenBSD 7.9 detected
-[INFO] Configuring doas...
-[DONE] doas already configured
-...
-[INFO] Installing packages (1 new, 42 already installed)...
-[INFO] Installing havoc-0.7.0...
-[DONE] havoc-0.7.0 installed
-[DONE] All packages installed
-[INFO] Deploying configuration files...
-[DONE] fastfetch: 1 files
-[DONE] waybar: 10 files
-...
-[DONE] Configuration deployed
-[INFO] Running post-install commands...
-[INFO] Running source builds...
+### Install Output Clean ✓
+- Consistent 1-space indentation for log levels
+- Category summaries for config deployment
+- Silent command execution
 
-+------------------------------------------------------------+
-|  OpenRiot v0.5 Installation Complete                       |
-+------------------------------------------------------------+
-```
-
-### Terminal: havoc (was alacritty)
+### Terminal: havoc ✓
 - Config at `config/havoc/havoc.cfg`
-- Havoc version: 0.7.0
+- Version: 0.7.0
 
-### Waybar Scripts: 10 files (was 16)
-- Removed: waybar-cpu.sh, waybar-memory.sh, waybar-temp.sh, wireguard-click.sh, wireguard-status.sh, recording-indicator.sh
+### Waybar Scripts: 10 files ✓
+- Removed: waybar-cpu.sh, waybar-memory.sh, waybar-temp.sh, wireguard-*.sh, recording-indicator.sh
 - Combined CPU+RAM into system-metrics.sh
 
-### Fastfetch: openbsd_small logo
-- Fixed config.jsonc "source": "blowfish" → "source": "openbsd_small"
-
----
-
-## Active Issues
-
-### 1. SUPER+CMD Keybindings (CRITICAL — UNRESOLVED)
-
-**Status:** PARTIALLY RESOLVED — `alt:Super` xkb option added
-
-**Changes made:**
-- Added `alt:Super` to xkb_options: `ctrl:nocaps,alt:Super`
-- Alt key now acts as Super modifier
-- Keybindings use `$mod` which is Mod1 (Alt)
-
-**Still need to verify:**
-- Does `sway -C` (config validation) pass?
-- Do keybindings work after reboot?
-- Is SWAYSOCK created?
-
----
-
-### 2. Lock Screen Is White (FIXED ✓)
-
-**Status:** FIXED — now uses openriot-lock.sh with crypto, time, date, user@host, uptime
+### Fastfetch ✓
+- Logo: openbsd_small
 
 ---
 
@@ -114,38 +91,34 @@
 
 | Issue | Fix | Status |
 |-------|-----|--------|
-| Install output verbose | Clean output: category summaries, silent commands, no [SKIP] spam | ✓ |
-| Package reinstalling | Use full versions (havoc-0.7.0 not havoc) | ✓ |
-| Duplicate log lines | Removed duplicate "Deploying..." header | ✓ |
-| Inconsistent spacing | 1-space for all log levels | ✓ |
-| Fastfetch blowfish logo | Changed to openbsd_small | ✓ |
-| Terminal (was foot/alacritty) | Switched to havoc | ✓ |
-| Unused waybar scripts | Removed 6 scripts | ✓ |
-| Screenshot too large | PNG 1.2MB → JPEG 298KB | ✓ |
-| Seatd socket permissions | Fixed via rcctl flags | ✓ |
-| Fish prompt hanging | Removed __fish_git_prompt | ✓ |
-| Lock screen white | Uses openriot-lock.sh with data overlay | ✓ |
-| SUPER keybindings | Added alt:Super xkb option | ✓ |
+| SUPER+CMD keybindings | Added alt:Super xkb option | TESTING |
+| Lock screen white | Uses openriot-lock.sh | ✓ |
+| Install output verbose | Clean output, silent commands | ✓ |
+| Package reinstalling | Use full versions | ✓ |
 | smart_gaps/smart_borders | Added to sway config | ✓ |
 | swayidle auto-lock | 5min lock, 10min display off | ✓ |
 | Tab focus cycling | Fixed to focus next/prev | ✓ |
 | Keybinding duplicates | Removed W kill, H/V splits, Z floating | ✓ |
 | clipboard history | Skipped (cliphist not in OpenBSD) | — |
 | media player controls | Skipped (playerctl not in OpenBSD) | — |
+| neovim removed | Replaced with Helix | ✓ |
+| wifind removed | Hangs during install | ✓ |
+| fish history persist | Added XDG_DATA_HOME | ✓ |
+| JetBrains Mono font | Added jetbrains-mono-2.304 | ✓ |
+| blue borders | client.focused #4c7899 | ✓ |
 
 ---
 
 ## All Commits (latest first)
 
 ```
-04c3ab5 Clean up install output: fix spacing, remove duplicates, silent commands
-1383d56 Remove unused waybar scripts (cpu, memory, temp, wireguard, recording)
+6a8b532 Revert cloudflare.cdn.openbsd.org → cdn.openbsd.org
+57998e5 Remove wifind (hangs during install)
+0e25097 Mirror speed, remove neovim, add wifind, fix fonts
+4d59a7f v0.6: Sway config cleanup and improvements
+04c3ab5 Clean up install output: fix spacing, remove duplicates
+1383d56 Remove unused waybar scripts
 124cf44 Fix havoc package version to 0.7.0
-aa44112 Clean up install output: desc/cmd structure, skip already installed
-4de1999 Use openbsd_small logo in fastfetch config.jsonc
-493d2ab Compress screenshot: PNG→JPEG, 1.2MB→298KB
-215b5bb Reset version to v0.5 and add fastfetch disk/localip modules
-701ae96 Refactor package installation to Go binary (v1.6)
 ```
 
 ---
@@ -231,4 +204,4 @@ fc-list | grep -i "nerd\|paper"
 
 ---
 
-**Last updated:** Apr 7, 2026 — v0.6, mirror/neovim/wifind cleanup
+**Last updated:** Apr 7, 2026 — v0.6, SUPER+CMD testing in progress
