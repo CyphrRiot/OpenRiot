@@ -23,12 +23,11 @@ core:
         packages:
             - fish-4.6.0
 
-            - havoc-0.7.0
+            - foot-1.23.1
             - fzf-0.70.0
             - ripgrep-15.1.0
             - htop-3.4.1
             - btop-1.4.6
-            - tree-0.62
             - fd-10.4.2
             - gnupg-2.5.18
             - meson-1.10.2v0
@@ -39,7 +38,6 @@ core:
 
             - pattern: btop/themes/*
             - pattern: btop/btop.conf
-            - pattern: havoc/*
         depends: [core.base]
         start: "Installing shell and terminal tools"
         end: "Shell environment configured"
@@ -85,7 +83,6 @@ desktop:
               preserve_if_exists: [openriot-lock.sh]
             - pattern: fonts/*
               target: "~/.local/share/fonts"
-            - pattern: havoc/*
             - pattern: fuzzel/*
         commands:
             - desc: "Configuring seatd"
@@ -128,6 +125,7 @@ desktop:
 
     media:
         packages:
+            - mpv-0.41.0p0
             - transmission-4.1.1
         configs: []
         depends: [core.base, desktop.sway]
@@ -189,7 +187,6 @@ system:
             - wget-1.25.0p0
             - unzip-6.0p18
             - xz-5.8.2
-            - isc-dhcp-client-4.4.3pl1p4
             - go-1.26.1
             - chafa-1.16.2
         commands:

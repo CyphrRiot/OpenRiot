@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 OpenRiot Version Check - Handles update notifications and upgrade flow
-OpenBSD compatible - uses swaymsg for dispatch, havoc terminal
+OpenBSD compatible - uses swaymsg for dispatch, foot terminal
 """
 
 import json
@@ -129,11 +129,11 @@ def cleanup_lock_file():
 
 
 def launch_upgrade_terminal():
-    """Launch upgrade in havoc terminal via swaymsg"""
+    """Launch upgrade in foot terminal via swaymsg"""
     update_command = "curl -fsSL https://openriot.org/setup.sh | sh"
 
-    # Build terminal command (havoc runs program directly, so pass bash -c)
-    terminal_cmd = f'havoc bash -c \'cd $HOME; echo "Starting OpenRiot update..."; {update_command}; echo "Update complete. Press Enter to close."; read\''
+    # Build terminal command (foot runs program directly, so pass bash -c)
+    terminal_cmd = f'foot bash -c \'cd $HOME; echo "Starting OpenRiot update..."; {update_command}; echo "Update complete. Press Enter to close."; read\''
 
     try:
         # Use swaymsg to exec the terminal like Super+Enter
@@ -151,13 +151,13 @@ def launch_upgrade_terminal():
             log_msg(f"swaymsg dispatch failed: {result.stderr}", "ERROR")
             # Fallback: try direct execution
             subprocess.Popen(
-                ["havoc", "bash", "-c", f"cd $HOME && {update_command} && read"]
+                ["foot", "bash", "-c", f"cd $HOME && {update_command} && read"]
             )
             return True
     except FileNotFoundError:
         log_msg("swaymsg not found, trying direct terminal launch", "WARNING")
         subprocess.Popen(
-            ["havoc", "bash", "-c", f"cd $HOME && {update_command} && read"]
+            ["foot", "bash", "-c", f"cd $HOME && {update_command} && read"]
         )
         return True
     except Exception as e:

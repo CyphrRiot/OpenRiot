@@ -178,6 +178,18 @@ cmd open ${{
     esac
 }}
 
+# Open media files with mpv (pure Wayland)
+cmd open-media ${{
+    case "$f" in
+        *.mp4|*.mkv|*.avi|*.mov|*.webm|*.m4v|*.flv|*.wmv|*.mp3|*.flac|*.wav|*.ogg|*.m4a|*.aac|*.opus)
+            mpv --vo=gpu --gpu-context=wayland --hwdec=auto-safe "$f" ;;
+        *)
+            echo "Not a media file: $f"
+            exit 1 ;;
+    esac
+}}
+map m @open-media
+
 # Trash (move to ~/.local/share/Trash)
 cmd trash ${{
     mkdir -p ~/.local/share/Trash/files

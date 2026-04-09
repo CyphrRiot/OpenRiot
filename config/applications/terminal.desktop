@@ -1,10 +1,10 @@
 [Desktop Entry]
 Version=1.0
-Name=Terminal (Havoc)
+Name=🫱 Terminal
 GenericName=Terminal Emulator
 Comment=Open a terminal window
 Icon=utilities-terminal
-Exec=havoc
+Exec=foot
 Terminal=false
 Type=Application
 Categories=System;TerminalEmulator;

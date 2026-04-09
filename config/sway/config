@@ -5,12 +5,12 @@ set $XDG_CONFIG_HOME $HOME/.config
 set $XDG_DATA_HOME $HOME/.local/share
 set $XDG_CACHE_HOME $HOME/.cache
 
-# Modifier key — Mod1=Alt (Mod4=Super may not work on all keyboards)
-set $mod Mod1
+# Modifier key
+set $mod Mod4
 
 # Variables
-set $terminal havoc
-set $fileManager havoc lf
+set $terminal foot
+set $fileManager lf
 set $browser firefox
 set $editor hx
 set $menu fuzzel
@@ -32,6 +32,8 @@ client.urgent            #d12121 #880000 #ffffff
 # Input — keyboard
 input type:keyboard {
     xkb_layout us
+    repeat_delay 300
+    repeat_rate 50
 }
 
 # Input — mouse
@@ -56,7 +58,7 @@ exec sleep 1 && waybar
 exec swaybg -i "$HOME/.local/share/openriot/backgrounds/riot_00.jpg" -m fill
 exec swayidle -w timeout 300 'bash $HOME/.local/share/openriot/config/bin/openriot-lock.sh && swaylock -i /tmp/swaylock-bg.png -f' timeout 600 'swaymsg "output * power off"' resume 'swaymsg "output * power on"'
 exec_always autotiling
-exec_always havoc bash -c '$HOME/.local/share/openriot/config/bin/openriot-welcome.sh'
+
 
 # Focus
 focus_follows_mouse no

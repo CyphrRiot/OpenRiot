@@ -65,7 +65,7 @@
         "return-type": "json",
         "interval": 5,
         "exec": "$HOME/.local/share/openriot/config/waybar/scripts/system-metrics.sh",
-        "on-click": "havoc htop",
+        "on-click": "foot htop",
         "tooltip": true
     },
 
