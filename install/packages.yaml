@@ -92,8 +92,6 @@ desktop:
               cmd: "doas rcctl enable seatd && doas rcctl start seatd || true"
             - desc: "Adding user to _seatd group"
               cmd: "doas usermod -G _seatd $(whoami) 2>/dev/null || true"
-            - desc: "Installing desktop files"
-              cmd: "cp $HOME/.local/share/openriot/config/applications/*.desktop ~/.local/share/applications/ 2>/dev/null || true"
             - desc: "Installing autotiling"
               cmd: "pip install autotiling --break-system-packages 2>/dev/null || pip install autotiling 2>/dev/null || true"
         depends: [core.base]
@@ -118,6 +116,8 @@ desktop:
             - pattern: lf/*
             - pattern: crypto.toml
               preserve_if_exists: [crypto.toml]
+            - pattern: applications/*
+              target: "~/.local/share/applications/"
         depends: [core.base, desktop.sway]
         start: "Installing desktop applications"
         end: "Desktop applications installed"
