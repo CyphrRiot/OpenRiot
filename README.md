@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-0.6-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-0.7-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![Sway](https://img.shields.io/badge/Sway-Wayland-312e81?logo=wayland&logoColor=a855f7&labelColor=1e1b4b)
@@ -254,104 +254,86 @@ For the best OpenBSD + Sway experience:
 
 ## 🚀 Installing OpenRiot
 
-The OpenRiot ISO is the OpenBSD installer — it installs the base system AND configures Sway, Waybar, Fish, and everything else automatically. The installer is interactive.
+The OpenRiot ISO installs OpenBSD + Sway desktop automatically. It's the OpenBSD installer with pre-configured settings.
 
-1. **Download OpenRiot ISO** — Get it from the [Release Page](https://github.com/CyphrRiot/OpenRiot/releases/tag/v1.0) or download directly: [openriot.iso](https://github.com/CyphrRiot/OpenRiot/releases/download/v1.0/openriot.iso) (~757MB)
-2. **Create bootable USB** — Replace `/dev/sdX` with your USB device:
-   ```bash
-   dd if=openriot.iso of=/dev/sdX bs=4M status=progress
-   ```
-3. **Boot from USB** — Disable Secure Boot, set UEFI boot order
-4. **Run the installer** — At the `boot>` prompt, type `I` and press Enter. See [Interactive Prompts](#interactive-prompts) below.
+### 1. Download
 
-**Perfect for:**
+Get the ISO from the [Release Page](https://github.com/CyphrRiot/OpenRiot/releases/tag/v1.0) (~757MB)
 
-- 🖥️ Fresh hardware / new builds
-- 🚀 Instant desktop in minutes
-- 💀 Complete system replacement
+### 2. Create bootable USB
 
-#### Interactive Prompts
-
-The table below shows every prompt you'll see. Most require typing a value and pressing Enter.
-
-| Prompt               | Action                                                  |
-| -------------------- | ------------------------------------------------------- |
-| Keyboard layout      | Press `Enter` (use default)                             |
-| System hostname      | Type `openriot` (or your preferred hostname) → Enter    |
-| Network interface    | Type `done` → Enter                                     |
-| IPv4 autoconf        | Press `Enter` (accept default)                          |
-| IPv6                 | Type `none` → Enter                                     |
-| Root password        | Type and confirm strong password                        |
-| Start sshd           | Press `Enter` (yes is fine)                             |
-| X Window System      | Type `no` → Enter                                       |
-| Setup a user         | Type your username → Enter, then set password           |
-| Which disk           | Type `sd1` (USB boot: sd0=USB, sd1=target)           |
-| Use (W)hole disk MBR | ⚠️ **MUST choose `G` for GPT** (MBR will NOT boot) |
-| Encrypt disk         | Type `p` for passphrase or `no` for no encryption       |
-| Partition layout     | Type `c` for custom                                     |
-| Label editor         | `z` → `a /` → size → `a swap` → `a /home` → `w` → `q`   |
-| Location of sets     | Type `disk` (USB is auto-mounted)                      |
-| Set name(s)          | Press `Enter` to select all sets including `site79.tgz` |
-| SHA256 verification  | Type `yes` → Enter                                      |
-
-#### Partition Layout (choose `c`)
-
-When asked for partition layout, choose `c` for custom:
-
-```
-Partition layout: c
+Replace `/dev/sdX` with your USB device (check with `dmesg`):
+```bash
+dd if=openriot.iso of=/dev/sdX bs=4M status=progress
 ```
 
-This gives you:
+### 3. Boot and install OpenBSD
 
+1. Disable Secure Boot, set USB first in boot order
+2. At `boot>` prompt, type `I` and press Enter
+3. Follow the interactive prompts below:
+
+| Prompt               | Action                                                |
+| -------------------- | ----------------------------------------------------- |
+| Keyboard layout      | Press `Enter`                                         |
+| System hostname      | Type `openriot` → Enter                               |
+| Network interface    | Type `done` → Enter                                   |
+| IPv4 autoconf        | Press `Enter`                                         |
+| IPv6                 | Type `none` → Enter                                   |
+| Root password        | Type and confirm password                             |
+| Start sshd           | Press `Enter`                                         |
+| X Window System      | Type `no` → Enter                                     |
+| Setup a user         | Type username → Enter, then set password              |
+| Which disk           | Type `sd1` (USB boot: sd0=USB, sd1=target)         |
+| Use (W)hole disk MBR | ⚠️ **Choose `G` for GPT** (MBR won't boot)        |
+| Encrypt disk         | Type `p` or `no`                                      |
+| Partition layout     | Type `c` for custom                                   |
+| Label editor         | `z` → `a /` → size → `a swap` → `a /home` → `w` → `q` |
+| Location of sets     | Type `disk`                                           |
+| Set name(s)          | Press `Enter` (all sets + site79.tgz)                 |
+| SHA256 verification | Type `yes` → Enter                                   |
+
+**Partition layout (choose `c`):**
 ```
-/           50G (or more, as needed)
-swap        2G  (or more, as needed)
-/home       *   (rest of disk)
+/       50G (or more)
+/home   * (rest of disk)
+swap    2G (or more)
 ```
 
-This is correct for most users. Adjust only if you know what you're doing.
+### 4. After install — run setup
 
-### Quick-Start Install Reference
+When OpenBSD boots for the first time:
 
-| Prompt             | Answer                   |
-| ------------------ | ------------------------ |
-| Network interfaces | `done` (offline)         |
-| X Window System    | `**no**`                |
-| Sets location      | `disk`           |
-| Set name(s)        | `*` (all sets + site79)  |
-| SSH                | `none` (offline install) |
+1. Log in as your user
+2. Type the following commands:
+```bash
+doas pkg_add curl
+curl -fsSL https://openriot.org/setup.sh | sh
+```
 
-### Log Locations
+### 5. Reboot
 
-If something goes wrong, check these logs:
+```bash
+reboot
+```
 
-| Stage                | Log File                        | Description       |
-| -------------------- | ------------------------------- | ----------------- |
-| `setup.sh`           | `~/.cache/openriot/setup.log`   | All setup output  |
-| `openriot --install` | `~/.cache/openriot/install.log` | Config deployment |
+After reboot, log in and type `sway` to start the desktop.
 
-To view logs:
+---
+
+#### Log Locations
+
+If something goes wrong:
+
+| Stage                | Log File                        |
+| -------------------- | ------------------------------- |
+| `setup.sh`           | `~/.cache/openriot/setup.log`   |
+| `openriot --install`  | `~/.cache/openriot/install.log` |
 
 ```bash
 cat ~/.cache/openriot/setup.log
 cat ~/.cache/openriot/install.log
 ```
-
-#### After Install
-
-After the base OpenBSD install completes, the system will:
-
-1. Extract `site79.tgz` (contains all OpenRiot packages and configs)
-2. Run `install.site` to configure everything
-3. Reboot
-
-After reboot:
-
-1. Log in as your user
-2. Type `fish` if ksh is still default
-3. Run `openriot --install` if configs don't deploy automatically
-4. Type `sway` to start the desktop
 
 <a id="master-your-openriot-desktop"></a>
 

@@ -42,7 +42,6 @@ tooltip {
     border-color: @border_inactive;
 }
 
-#taskbar button,
 #workspaces button {
     background-color: transparent;
     color: @workspace_inactive;
@@ -58,7 +57,6 @@ tooltip {
     transition: all 0.5s cubic-bezier(0.55, -0.68, 0.48, 1.682);
 }
 
-#taskbar button.active,
 #workspaces button.active {
     background-color: transparent;
     color: @workspace_active;
@@ -73,7 +71,6 @@ tooltip {
     transition: all 0.3s cubic-bezier(0.55, -0.68, 0.48, 1.682);
 }
 
-#taskbar button:hover,
 #workspaces button:hover {
     background: rgba(0, 0, 0, 0.2);
     color: @workspace_hover;
@@ -115,53 +112,27 @@ tooltip {
 #backlight-slider,
 #battery,
 #bluetooth,
-#clock,
 #cpu,
 #disk,
 #idle_inhibitor,
-#keyboard-state,
 #memory,
-#mode,
-#mpris,
-#custom-media,
 #network,
-#power-profiles-daemon,
 #pulseaudio,
 #pulseaudio-slider,
-#taskbar,
 #temperature,
 #custom-temp-bar,
 #custom-volume-bar,
-#tray,
 #window,
-#wireplumber,
-#workspaces,
-#custom-backlight,
-#custom-browser,
-#custom-cava_mviz,
-#custom-cycle_wall,
-#custom-dot_update,
-#custom-file_manager,
-#custom-keybinds,
-#custom-keyboard,
-#custom-light_dark,
-#custom-lock,
-#custom-hint,
 #custom-openriot-update,
 #custom-openriot-update.update-new,
 #custom-openriot-update.update-seen,
 #custom-openriot-update.update-none,
-#custom-hypridle,
-#custom-menu,
-#custom-playerctl,
-#custom-power_vertical,
-#custom-power,
-#custom-quit {
+#custom-power {
     color: @power_color;
     padding-left: 3px;
     padding-right: 3px;
 }
-#custom-menu {
+
 #workspaces {
     margin: 0 2px;
 }
@@ -179,17 +150,8 @@ tooltip {
 }
 
 #clock,
-#custom-weather-emoji,
-#custom-separator.dot {
-    color: @accent5;
-}
-
 #custom-weather-emoji {
     color: @accent5;
-}
-
-#custom-updater {
-    color: #7287fd;
 }
 
 /* Notification module — invisible when no notifications (empty text) */
@@ -226,11 +188,6 @@ tooltip {
     color: @accent5;
 }
 
-/* #battery.charging {
-    color: #ffffff;
-    background-color: #26A65B;
-} */
-
 @keyframes blink {
     to {
         background-color: #ffffff;
@@ -251,84 +208,6 @@ label:focus {
     background-color: #000000;
 }
 
-#custom-menu {
-    color: #ffffff;
-    /*padding: 3px;*/
-}
-
-#custom-keyboard,
-#cpu,
-#custom-cpu-max,
-#custom-cpu-aggregate {
-    color: @cpu_color;
-    padding-left: 1px;
-    padding-right: 1px;
-    min-width: 45px; /* Reduced minimum width */
-}
-
-#custom-cpu-max.warning,
-#custom-cpu-aggregate.warning {
-    color: #e0af68; /* Softer yellow-orange for warnings */
-}
-
-#custom-cpu-max.critical,
-#custom-cpu-aggregate.critical {
-    color: #ff9e64; /* Orange instead of red - less alarming */
-    /* Removed the annoying flashing animation */
-}
-
-@keyframes blink {
-    to {
-        background-color: @error_color;
-        color: @background_tertiary;
-    }
-}
-
-/* Tomato Timer Styling */
-#custom-tomato-timer {
-    color: @cpu_color; /* 6a7de8 - blueish-purple for idle */
-}
-
-#custom-tomato-timer.idle {
-    color: @cpu_color; /* 6a7de8 - blueish-purple when idle/waiting */
-}
-
-#custom-tomato-timer.running {
-    color: @accent4; /* bb9af7 - purple when running work session */
-}
-
-#custom-tomato-timer.paused {
-    color: @accent5; /* 7da6ff - blue when paused */
-}
-
-#custom-tomato-timer.finished {
-    color: @error_color;
-    animation: blink 1s linear infinite alternate;
-}
-
-#custom-tomato-timer.transition {
-    color: #ffa500; /* Orange for transition period */
-}
-
-#custom-tomato-timer.break-active {
-    color: #cc5500; /* Burnt orange for break countdown */
-    font-weight: bold;
-}
-
-#custom-tomato-timer.break-finished {
-    color: #006400; /* Dark green when break is complete */
-}
-
-#memory {
-    color: @memory_color;
-}
-
-#custom-memory-accurate {
-    color: @memory_color;
-    padding-left: 1px;
-    padding-right: 1px;
-}
-
 #custom-volume-bar {
     color: @cpu_color;
     padding-left: 1px;
@@ -347,14 +226,6 @@ label:focus {
     color: #ff9e64; /* Orange for dangerous volume levels */
 }
 
-#custom-memory-accurate.warning {
-    color: #e0af68; /* Softer yellow-orange for warnings */
-}
-
-#custom-memory-accurate.critical {
-    color: #ff9e64; /* Orange for critical memory usage */
-}
-
 #backlight {
     color: #cdd6f4;
 }
@@ -363,19 +234,12 @@ label:focus {
     color: #1e66f5;
 }
 
-#network {
-    color: @accent5; /* Changed from accent3 (orange) to accent5 (blue) */
-    padding-left: 3px; /* Reduced padding */
-    padding-right: 2px; /* Reduced padding on right side */
-    min-width: 20px; /* Ensure minimum width */
-}
-
-#network.disconnected {
-    color: @error_color;
-}
-
 #custom-network {
     color: @accent5; /* blue */
+}
+
+#custom-network.disconnected {
+    color: @error_color;
 }
 
 #pulseaudio {
@@ -385,6 +249,7 @@ label:focus {
 #pulseaudio-muted {
     color: @accent2;
 }
+
 #wireplumber {
     color: @memory_color;
 }
@@ -393,24 +258,12 @@ label:focus {
     color: @accent2;
 }
 
-#pluseaudio-source-muted {
-    color: #a0a0a0;
-}
-
 #custom-power {
     color: @power_color;
 }
 
 #disk {
     color: @accent5;
-}
-#custom-power_profile {
-    color: @accent3;
-}
-#custom-media {
-    background-color: #66cc99;
-    color: #2a5c45;
-    min-width: 100px;
 }
 
 #custom-weather {
@@ -421,13 +274,11 @@ label:focus {
     color: @lock_color;
 }
 
-#keyboard-state,
 #temperature,
 #custom-temp-bar {
     color: @temp_color;
     padding-left: 1px;
     padding-right: 1px;
-    /* background-color: #f0932b; */
 }
 
 #temperature.critical,
@@ -443,50 +294,20 @@ label:focus {
     color: #ff5370; /* Bright red for 80-90°C */
 }
 
-#tray {
-    border: none;
-    background-color: transparent;
-    box-shadow: none;
-}
 #idle_inhibitor {
     color: #ffffff;
     font-size: 16px;
 }
 
 /*-----Indicators----*/
-#custom-hypridle.notactive,
 #idle_inhibitor.activated {
     color: #50ff50;
     font-weight: bold;
 }
 
-#mpd {
-    color: #2a5c45;
-}
-
-#mpd.disconnected {
-    background-color: #f53c3c;
-}
-
-#mpd.stopped {
-    background-color: #90b1b1;
-}
-
-#mpd.paused {
-    background-color: #51a37a;
-}
-
 #custom-language {
     color: @accent5;
     min-width: 16px;
-}
-
-#custom-separator {
-    color: #606060;
-}
-
-#custom-separator.line-tray {
-    color: #4a6b8a; /* Same color as tray parentheses */
 }
 
 #backlight-slider slider,
@@ -508,41 +329,6 @@ label:focus {
 #backlight-slider highlight,
 #pulseaudio-slider highlight {
     min-height: 10px;
-}
-
-/* Media player module */
-#mpris {
-    margin-left: 0px;
-    margin-right: 0px;
-    padding-left: 10px;
-    padding-right: 10px;
-    border-radius: 8px;
-    background-color: transparent; /* Made transparent to fix colored block issue */
-    color: rgb(160, 190, 240);
-    font-weight: bold;
-    font-style: normal; /* Explicitly disable italics */
-}
-
-/* Custom playerctl module */
-#custom-playerctl {
-    font-style: normal; /* Explicitly disable italics */
-}
-
-/* Mullvad VPN module */
-#custom-wireguard {
-    padding-left: 0px; /* Tightened spacing */
-    padding-right: 6px;
-    border-radius: 6px;
-    font-size: 98%; /* Match the global waybar font size */
-    transition: all 0.3s ease;
-}
-
-#custom-wireguard.wg-connected {
-    color: @memory_color; /* Same as FREE RAM */
-}
-
-#custom-wireguard.wg-disconnected {
-    color: @memory_color; /* Same as FREE RAM */
 }
 
 /* Window title styling */

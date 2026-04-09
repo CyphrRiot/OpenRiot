@@ -146,9 +146,4 @@
         "tooltip-format": "{:%Y-%m-%d %H:%M:%S}"
     },
 
-    "tray": {
-        "icon-size": 16,
-        "spacing": 5,
-        "show-passive-items": true
-    }
 }

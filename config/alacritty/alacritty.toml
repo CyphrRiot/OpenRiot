@@ -11,10 +11,10 @@ history = 10000
 multiplier = 3
 
 [font]
-normal = { family = "JetBrainsMono NF", style = "Regular" }
-bold = { family = "JetBrainsMono NF", style = "Bold" }
-italic = { family = "JetBrainsMono NF", style = "Italic" }
-bold_italic = { family = "JetBrainsMono NF", style = "Bold Italic" }
+normal = { family = "Paper Mono", style = "Regular" }
+bold = { family = "Paper Mono", style = "Bold" }
+italic = { family = "Paper Mono", style = "Italic" }
+bold_italic = { family = "Paper Mono", style = "Bold Italic" }
 size = 12.0
 
 [colors]
