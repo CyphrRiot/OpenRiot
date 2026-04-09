@@ -254,12 +254,15 @@ For the best OpenBSD + Sway experience:
 
 ## 🚀 Installing OpenRiot
 
-The OpenRiot ISO is the OpenBSD installer — it installs the base system AND configures Sway, Waybar, Fish, and everything else automatically. No interaction needed.
+The OpenRiot ISO is the OpenBSD installer — it installs the base system AND configures Sway, Waybar, Fish, and everything else automatically. The installer is interactive but most prompts are pre-answered.
 
 1. **Download OpenRiot ISO** — Get it from the [Release Page](https://github.com/CyphrRiot/OpenRiot/releases/tag/v1.0) or download directly: [openriot.iso](https://github.com/CyphrRiot/OpenRiot/releases/download/v1.0/openriot.iso) (~757MB)
-2. **Create bootable USB** — Use `dd` or [Etcher](https://etcher.balena.io/) to write to USB
+2. **Create bootable USB** — Replace `/dev/sdX` with your USB device:
+   ```bash
+   dd if=openriot.iso of=/dev/sdX bs=4M status=progress
+   ```
 3. **Boot from USB** — Disable Secure Boot, set UEFI boot order
-4. **Walk away** — The installer runs completely unattended
+4. **Run the installer** — The installer is interactive. See [Interactive Prompts](#interactive-prompts) below for details.
 
 After the install finishes and the system reboots:
 
