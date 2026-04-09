@@ -13,10 +13,10 @@
 - Applied to: setup.sh, build-iso.sh, README.md
 
 ### Network Manager (April 7, 2026) ✓
-- Added `wifind-0.7p0` package (TUI wifi manager)
 - Removed neovim (was unused, replaced by Helix)
 - Deleted neovim.desktop file
-- Changed `Mod+N` → `wifind` (was `havoc nvim`)
+- wifi-selector.sh handles manual network selection via fuzzel (nmtui-like)
+- wifind removed (hangs during install, OpenBSD auto-connects via /etc/hostname.if)
 
 ### Fonts (April 7, 2026) ✓
 - Added `jetbrains-mono-2.304` to fonts module
