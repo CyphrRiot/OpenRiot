@@ -1005,13 +1005,13 @@ If `pkg_add` fails:
 
     ```bash
     cat /etc/installurl
-    # Should show: https://cloudflare.cdn.openbsd.org/pub/OpenBSD
+    # Should show: https://cdn.openbsd.org/pub/OpenBSD
     ```
 
 2. **Set it if missing:**
 
     ```bash
-    echo "https://cloudflare.cdn.openbsd.org/pub/OpenBSD" | doas tee /etc/installurl
+    echo "https://cdn.openbsd.org/pub/OpenBSD" | doas tee /etc/installurl
     ```
 
 3. **Try again:**
