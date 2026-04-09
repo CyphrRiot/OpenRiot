@@ -1,7 +1,6 @@
 # Build artifacts
 .work/
 isos/*.iso
-install/openriot
 dev
 
 # Test images (created by make isotest)
