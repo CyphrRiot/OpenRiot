@@ -85,7 +85,7 @@ openriot binary (handles install, AFTER repo exists)
 | openriot | ~/.local/share/openriot/install/openriot | Pre-built, shipped with repo |
 | wlsunset | /usr/local/bin/wlsunset | Built from source via meson |
 | crush | /usr/local/bin/crush | Downloaded pre-built from GitHub |
-| waybar, sway, havoc, etc. | /usr/local/bin/ | OpenBSD packages via pkg_add |
+| waybar, sway, foot, etc. | /usr/local/bin/ | OpenBSD packages via pkg_add |
 
 ### No ~/.local/bin
 Nothing goes to ~/.local/bin. All binaries install to /usr/local/bin (system-wide) or stay in ~/.local/share/openriot.
@@ -187,7 +187,7 @@ curl -fsSL https://openriot.org/setup.sh | sh
 
 2. **Configuration (`install/packages.yaml`)**
    - YAML-based module definitions
-   - Package lists per module (with full versions!)
+   - Package lists per module (bare names — `pkg_add` auto-resolves versions)
    - Config file patterns and deployment rules
    - Command execution for post-install setup (desc/cmd format)
 
@@ -218,7 +218,7 @@ Color constants defined in `source/installer/colors.go`.
 
 ```yaml
 module_name:
-    packages: ["full-version-package-1.0.0"]  # pkg_add packages (use FULL versions!)
+    packages: ["package-name"]  # Bare names only — pkg_add resolves versions
     configs:  # File deployment patterns
         - pattern: "source_pattern/*"
           target: "optional_target"
@@ -236,7 +236,7 @@ module_name:
 
 **Module categories:** core, desktop, system, media, fonts, themes, source
 
-**IMPORTANT:** Always use FULL package versions (e.g., `havoc-0.7.0` not `havoc`) to avoid reinstalling.
+**Package versions:** OpenBSD's `pkg_add` automatically resolves the latest version, so use bare package names (e.g., `foot` not `foot-1.26.1`). Full versions were used historically but are no longer needed.
 
 ---
 
@@ -274,17 +274,17 @@ if len(os.Args) >= 2 && os.Args[1] == "--your-flag" {
 ### Git config timing
 - `git config --global pull.rebase true` must run **before** any git operations
 
-### Keychron K2 Pro Super Key Issue
-- Super key does not work on OpenBSD with sway (works on Hyprland/Linux with same keyboard)
-- Using `Mod1` (Alt) as workaround
-- Documented as OpenBSD/libinput issue — not yet resolved
-- Keep `set $mod Mod1` in sway config
+### Keychron K2 Pro Super Key Fix
+- Keychron K2 Pro in Mac mode sends Super keycodes recognized as Mod4
+- Changed `set $mod Mod4` in sway config (was Mod1/Alt)
+- Verify with `wev` — press Super key, should show MOD4 mod
 - Unused parameters/functions cause build failures
 - Use `(void)param;` for unused parameters
 
 ### Package Versions
-- OpenBSD packages have specific versions (e.g., `havoc-0.7.0`, not `havoc`)
-- Always check with `pkg_info -Q <package>` for correct version
+- OpenBSD's `pkg_add` auto-resolves latest versions — use bare package names (`foot` not `foot-1.26.1`)
+- Full versions were historically used but are no longer needed
+- `pkg_info -Q <package>` shows what's installed
 
 ---
 

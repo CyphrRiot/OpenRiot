@@ -23,7 +23,7 @@ core:
         packages:
             - fish-4.6.0
 
-            - foot-1.23.1
+            - foot
             - fzf-0.70.0
             - ripgrep-15.1.0
             - htop-3.4.1
@@ -125,7 +125,7 @@ desktop:
 
     media:
         packages:
-            - mpv-0.41.0p0
+            - mpv
             - transmission-4.1.1
         configs: []
         depends: [core.base, desktop.sway]
