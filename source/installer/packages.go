@@ -12,7 +12,7 @@ func InstallPackages(packages []string) (int, error) {
 		return 0, nil
 	}
 
-	// Filter out already-installed packages
+	// Filter out already-installed packages using pkg_info
 	var toInstall []string
 	for _, pkg := range packages {
 		if !isPackageInstalled(pkg) {
@@ -21,13 +21,11 @@ func InstallPackages(packages []string) (int, error) {
 	}
 
 	if len(toInstall) == 0 {
+		fmt.Printf("%s[DONE]%s All packages already installed\n", Green, Reset)
 		return 0, nil
 	}
 
-	fmt.Printf("%s[INFO]%s Installing packages (%d new, %d already installed)...\n", Blue, Reset, len(toInstall), len(packages)-len(toInstall))
-	if len(toInstall) > 0 {
-		fmt.Printf("%s[WARN]%s This may take a while (Nerd Fonts are large)...\n", Yellow, Reset)
-	}
+	fmt.Printf("%s[INFO]%s Installing %d packages (%d new, %d already installed)...\n", Blue, Reset, len(packages), len(toInstall), len(packages)-len(toInstall))
 
 	failed := 0
 	for _, pkg := range toInstall {
@@ -61,6 +59,6 @@ func InstallPackages(packages []string) (int, error) {
 
 // isPackageInstalled checks if a package is already installed
 func isPackageInstalled(pkg string) bool {
-	cmd := exec.Command("pkg_delete", "-n", pkg)
+	cmd := exec.Command("sh", "-c", "pkg_info | grep -q \"^$pkg-\"")
 	return cmd.Run() == nil
 }
