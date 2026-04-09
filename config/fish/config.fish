@@ -107,8 +107,8 @@ alias ls='lsd'
 alias ll='lsd -l'
 alias la='lsd -la'
 
-# Fastfetch with correct logo width
-alias fastfetch='command fastfetch --logo-width 20 --logo openbsd_small'
+# mpv with Wayland GPU output
+alias mpv='mpv --vo=gpu --gpu-context=wayland --hwdec=auto-safe'
 
 # OpenBSD-specific aliases
 alias doas='doas'

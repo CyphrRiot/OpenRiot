@@ -274,7 +274,11 @@ if len(os.Args) >= 2 && os.Args[1] == "--your-flag" {
 ### Git config timing
 - `git config --global pull.rebase true` must run **before** any git operations
 
-### OpenBSD clang -Werror
+### Keychron K2 Pro Super Key Issue
+- Super key does not work on OpenBSD with sway (works on Hyprland/Linux with same keyboard)
+- Using `Mod1` (Alt) as workaround
+- Documented as OpenBSD/libinput issue — not yet resolved
+- Keep `set $mod Mod1` in sway config
 - Unused parameters/functions cause build failures
 - Use `(void)param;` for unused parameters
 
