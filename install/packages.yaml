@@ -171,7 +171,6 @@ fonts:
     nerd-fonts:
         packages:
             - symbolsonly-nerd-fonts-3.3.0
-            - jetbrains-mono-2.304
         commands:
             - desc: "Refreshing font cache"
               cmd: "fc-cache"
