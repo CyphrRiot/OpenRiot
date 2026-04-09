@@ -27,9 +27,6 @@ client.urgent            #d12121 #880000 #ffffff
 # Input — keyboard
 input type:keyboard {
     xkb_layout us
-    xkb_options ctrl:nocaps
-    repeat_delay 180
-    repeat_rate 55
 }
 
 # Input — mouse
