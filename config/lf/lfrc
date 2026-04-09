@@ -19,7 +19,6 @@ set relativenumber true
 set info size,time
 set previewer ~/.config/lf/preview
 set shell /bin/sh
-setfiler /bin/sh
 
 # Cleaner prompt (no need for lf to manage the terminal title separately)
 set promptfmt "\033[38;5;183m%w\033[0m %%(r)\033[0m"
