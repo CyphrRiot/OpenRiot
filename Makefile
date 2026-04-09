@@ -26,7 +26,7 @@ export OPENRIOT_VERSION
 export OPENBSD_VERSION
 export ARCH
 
-.PHONY: all build clean deps test verify dev release ultra iso isotest help
+.PHONY: all build clean deps test verify dev release ultra iso isotest binary-push help
 
 # ============================================================
 # Default
@@ -133,6 +133,29 @@ distclean: clean
 	@echo "=== distclean complete ==="
 
 # ============================================================
+# Binary safety — prevent history bloat
+# ============================================================
+
+# Build + strip binary history + commit + force-push.
+# Use this instead of manual git add/commit/push for binary changes.
+# Ensures binary blob history never accumulates.
+binary-push: build
+	@BINARY_BLOBS=$$(git log --oneline --all -- install/openriot 2>/dev/null | wc -l); \
+	if [ "$$BINARY_BLOBS" -gt 1 ]; then \
+		echo "WARNING: Binary has $$BINARY_BLOBS commits in history. Stripping..."; \
+		git filter-repo --force --path install/openriot --invert-paths 2>/dev/null; \
+		git remote add origin git@github.com:CyphrRiot/OpenRiot.git 2>/dev/null || true; \
+		make build; \
+	fi
+	@echo "=== Committing binary ==="
+	@git add install/openriot .gitignore
+	@git commit -am "v$(OPENRIOT_VERSION): update openriot binary"
+	@echo "=== Force-pushing ==="
+	@git push --force --all
+	@git push --tags 2>/dev/null || true
+	@echo "=== Binary push complete ==="
+
+# ============================================================
 # Help
 # ============================================================
 help:
@@ -153,9 +176,11 @@ help:
 	@echo "  verify             Build and smoke-test the binary"
 	@echo "  clean              Remove build artifacts"
 	@echo "  distclean          clean + remove .work/iso_contents"
+	@echo "  binary-push         Build + strip history + commit + force-push binary"
 	@echo "  help               Show this message"
 	@echo ""
 	@echo "Typical workflow:"
 	@echo "  make iso                 # builds binary + repacks ISO"
 	@echo "  make verify              # smoke-test the binary"
 	@echo "  make isotest             # build and test in QEMU"
+	@echo "  make binary-push         # update + strip history + push binary"
