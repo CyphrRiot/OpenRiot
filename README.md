@@ -61,7 +61,7 @@ The ISO install is functional but has known limitations:
 
 ## 📚 Navigate This Guide
 
-- [🚀 Installing OpenRiot]
+- [🚀 Installing OpenRiot](#-installing-openriot)
 - [⌨️ Master Your OpenRiot Desktop](#master-your-openriot-desktop)
 - [📝 Using Helix (Editor)](#using-helix)
 - [🔄 System Management](#system-management)
