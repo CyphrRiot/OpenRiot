@@ -1,11 +1,11 @@
 # =============================================================================
-# Custom Commands Loader
+# Custom Commands
 # =============================================================================
-# This file automatically loads custom commands from ~/.config/fish/custom_commands.fish
-# if it exists. This follows Fish shell best practices for modular configuration.
-
-# Load custom commands if the file exists
-set -l custom_commands_file "$HOME/.config/fish/custom_commands.fish"
-if test -f "$custom_commands_file"
-    source "$custom_commands_file"
-end
+# Add your custom aliases and functions below.
+# These will be loaded automatically when fish starts.
+#
+# Example:
+# alias myalias='command --args'
+# function myfunction
+#     # your code here
+# end

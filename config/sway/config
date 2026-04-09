@@ -1,5 +1,10 @@
 # OpenRiot Sway Config — OpenBSD
 
+# XDG environment
+set $XDG_CONFIG_HOME $HOME/.config
+set $XDG_DATA_HOME $HOME/.local/share
+set $XDG_CACHE_HOME $HOME/.cache
+
 # Modifier key — Mod1=Alt (Mod4=Super may not work on all keyboards)
 set $mod Mod1
 
