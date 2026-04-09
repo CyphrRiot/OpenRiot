@@ -16,7 +16,7 @@ set $editor hx
 set $menu fuzzel
 
 # Appearance
-font pango:JetBrainsMono NF 11
+font pango:Paper Mono 11
 default_border pixel 1
 default_floating_border pixel 1
 hide_edge_borders smart
@@ -56,6 +56,7 @@ exec waybar
 exec swaybg -i "$HOME/.local/share/openriot/backgrounds/riot_00.jpg" -m fill
 exec swayidle -w timeout 300 'bash $HOME/.local/share/openriot/config/bin/openriot-lock.sh && swaylock -i /tmp/swaylock-bg.png -f' timeout 600 'swaymsg "output * power off"' resume 'swaymsg "output * power on"'
 exec_always autotiling
+exec_always havoc bash -c '$HOME/.local/share/openriot/config/bin/openriot-welcome.sh'
 
 # Focus
 focus_follows_mouse no
