@@ -144,5 +144,11 @@
         "format": "{:%A, %B %d - %I:%M %p}",
         "on-click": "$HOME/.local/share/openriot/install/openriot --swaybg-next",
         "tooltip-format": "{:%Y-%m-%d %H:%M:%S}"
+    },
+
+    "tray": {
+        "icon-size": 16,
+        "spacing": 5,
+        "show-passive-items": true
     }
 }
