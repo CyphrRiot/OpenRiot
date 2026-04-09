@@ -20,7 +20,7 @@
 OPENBSD_VERSION="${OPENBSD_VERSION:-7.9}"
 ARCH="${ARCH:-amd64}"
 OPENRIOT_VERSION="${OPENRIOT_VERSION:-$(cat VERSION 2>/dev/null || echo "0.6")}"
-MIRROR="https://cloudflare.cdn.openbsd.org/pub/OpenBSD"
+MIRROR="https://cdn.openbsd.org/pub/OpenBSD"
 
 # Derive ISO name from OpenBSD version: 7.9 -> install79.iso
 _ver_nodot=$(printf '%s' "$OPENBSD_VERSION" | tr -d '.')

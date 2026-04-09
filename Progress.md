@@ -9,8 +9,8 @@
 ## Recent Changes (April 7, 2026)
 
 ### Mirror Change (April 7, 2026) ✓
-- Changed cdn.openbsd.org → cloudflare.cdn.openbsd.org
-- Applied to: setup.sh, build-iso.sh, README.md
+- NOTE: cloudflare.cdn.openbsd.org is INVALID - reverted to cdn.openbsd.org
+- cdn.openbsd.org is already behind CloudFlare CDN
 
 ### Network Manager (April 7, 2026) ✓
 - Removed neovim (was unused, replaced by Helix)
