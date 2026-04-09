@@ -22,7 +22,7 @@ core:
     shell:
         packages:
             - fish-4.6.0
-            - neovim-0.12.0
+
             - havoc-0.7.0
             - fzf-0.70.0
             - ripgrep-15.1.0
@@ -36,8 +36,7 @@ core:
         configs:
             - pattern: fish/*
               preserve_if_exists: [conf.d/*.fish]
-            - pattern: nvim/*
-              preserve_if_exists: [init.lua]
+
             - pattern: btop/themes/*
             - pattern: btop/btop.conf
             - pattern: havoc/*
@@ -67,6 +66,7 @@ desktop:
             - ImageMagick-6.9.13.43
             - wf-recorder-0.6.0p1
             - seatd-0.9.3
+            - wifind-0.7p0
         configs:
             - pattern: sway/*
               preserve_if_exists:
@@ -169,6 +169,7 @@ fonts:
     nerd-fonts:
         packages:
             - symbolsonly-nerd-fonts-3.3.0
+            - jetbrains-mono-2.304
         commands:
             - desc: "Refreshing font cache"
               cmd: "fc-cache"

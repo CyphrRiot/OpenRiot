@@ -8,6 +8,24 @@
 
 ## Recent Changes (April 7, 2026)
 
+### Mirror Change (April 7, 2026) ✓
+- Changed cdn.openbsd.org → cloudflare.cdn.openbsd.org
+- Applied to: setup.sh, build-iso.sh, README.md
+
+### Network Manager (April 7, 2026) ✓
+- Added `wifind-0.7p0` package (TUI wifi manager)
+- Removed neovim (was unused, replaced by Helix)
+- Deleted neovim.desktop file
+- Changed `Mod+N` → `wifind` (was `havoc nvim`)
+
+### Fonts (April 7, 2026) ✓
+- Added `jetbrains-mono-2.304` to fonts module
+- Helps with proper Unicode/emoji rendering in terminal
+
+### Fish History (April 7, 2026) ✓
+- Deleted disabled `history-fix.fish`
+- Added `XDG_DATA_HOME` to config.fish for persistent history
+
 ### Sway Config Improvements ✓
 - Added `smart_gaps on` and `smart_borders on` (cleaner single-window view)
 - Added `workspace_auto_back_and_forth yes` (bounce between workspaces)
@@ -174,13 +192,15 @@ no pulseaudio, no wireplumber, no backlight. Only modules that work on OpenBSD.
 ## Rules (MUST FOLLOW)
 
 1. **NEVER commit or push without explicit user permission. Show diff first.**
-2. **Run `make build` before committing Go source changes.**
-3. **Use proposal format: Title / Description / Files / Reason → Continue? [Y/n]**
-4. **One issue at a time.**
-5. **Waybar layout is APPROVED — do not change without asking.**
-6. **Package versions must be full (e.g., havoc-0.7.0 not havoc).**
-7. **Keep the pufferfish emoji (🐡) in the fish prompt.**
-8. **No Nerd Font icons in waybar custom modules — they break JSON parsing on OpenBSD.**
+2. **NEVER bump VERSION without explicit user permission.**
+3. **ALWAYS run `make` before a commit (even config-only changes).**
+4. **Use proposal format: Title / Description / Files / Reason → Continue? [Y/n]**
+5. **One issue at a time.**
+6. **Waybar layout is APPROVED — do not change without asking.**
+7. **Package versions must be full (e.g., havoc-0.7.0 not havoc).**
+8. **Keep the pufferfish emoji (🐡) in the fish prompt.**
+9. **No Nerd Font icons in waybar custom modules — they break JSON parsing on OpenBSD.**
+10. **Verify packages exist at openbsd.app before adding to packages.yaml.**
 
 ---
 
@@ -211,4 +231,4 @@ fc-list | grep -i "nerd\|paper"
 
 ---
 
-**Last updated:** Apr 7, 2026 — v0.5, sway/waybar cleanup complete
+**Last updated:** Apr 7, 2026 — v0.6, mirror/neovim/wifind cleanup

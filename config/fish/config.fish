@@ -7,6 +7,12 @@
 set -gx LANG en_US.UTF-8
 set -gx LC_ALL en_US.UTF-8
 
+# XDG directories — ensure history persists
+set -gx XDG_DATA_HOME $HOME/.local/share
+if not test -d $XDG_DATA_HOME/fish
+    mkdir -p $XDG_DATA_HOME/fish
+end
+
 # XDG_RUNTIME_DIR — required by Wayland compositors
 set -gx XDG_RUNTIME_DIR /tmp/$USER-runtime
 if not test -d $XDG_RUNTIME_DIR
