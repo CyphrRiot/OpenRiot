@@ -48,7 +48,7 @@ waybar/scripts/
 
 ---
 
-## Current Project Status (April 2026 - v0.6)
+## Current Project Status (April 2026 - v0.7)
 
 ### Install Output Clean (April 2026)
 
@@ -98,25 +98,72 @@ Nothing goes to ~/.local/bin. All binaries install to /usr/local/bin (system-wid
 - `make dev` — Native build on Linux for testing
 - `make verify` — Build + smoke test (`--version`)
 - `make iso` — Full ISO build
+- `make binary-push` — Build + strip binary history + commit + force-push
 - `make download-packages` — Download packages into `~/.pkgcache/`
 - `make clean` — Clean build artifacts
 - `make test` — Run Go tests
 
-### Commit & Push Workflow
+### Binary Commit Workflow (CRITICAL)
+
+The binary (`install/openriot`) is tracked in git WITHOUT history to keep repo small.
+
+**Workflow summary:**
+
+| Scenario | Command |
+|----------|---------|
+| Config/code only (no binary change) | `git add -A && git commit -am "msg" && git push` |
+| Binary + other changes | `git add -A && git commit -am "msg"` then `make binary-push` |
+| Binary-only change | `make binary-push` |
+
+**Step-by-step:**
+
+1. **Code/configs only** (no `make build`):
+   ```bash
+   git add -A
+   git commit -am "update sway config"
+   git push
+   ```
+
+2. **Code changes requiring new binary**:
+   ```bash
+   # a) Normal commit for configs/code
+   git add -A
+   git commit -am "add new installer module"
+
+   # b) Then rebuild and push binary (auto-strips history, force-pushes all)
+   make binary-push
+   ```
+
+**`make binary-push` does:**
+- Builds new binary
+- Checks if binary has >1 commit in git history
+- If yes: strips history with `git filter-repo`, restores origin, rebuilds
+- Commits binary + force-pushes everything
+
+**Warning:** `make binary-push` does `git push --force --all`. Collaborators must `git pull --rebase`.
+
+**NEVER do:**
+- `git add -A && git commit -am` then `make binary-push` (double-commit)
+- Add binary commits manually (use `make binary-push`)
+- Add `install/openriot` back to `.gitignore`
+
+---
+
+### Commit & Push Workflow (Legacy)
 
 1. Make code/config changes
 2. Run `make build` — cross-compile OpenBSD binary into `install/openriot`
-3. **ALWAYS stage ALL changed files**: `git add -A` or `git commit -am "message"` — do NOT commit source changes without the binary
+3. **ALWAYS stage ALL changed files**: `git add -A` or `git commit -am "message"`
 4. Show diff to user for approval
 5. Only commit/push after explicit "yes" or "go ahead"
 
-**CRITICAL**: The binary (`install/openriot`) IS the product. If source changes, the binary MUST be committed. Use `git commit -am` to avoid forgetting files.
+**CRITICAL**: The binary (`install/openriot`) IS the product. If source changes, the binary MUST be committed. Use `make binary-push` for binary-containing commits.
 
 ---
 
 ## Version Handling
 
-- Current version: v0.5 (see `VERSION` file)
+- Current version: v0.7 (see `VERSION` file)
 - Never hard-code version numbers
 - Read version from `Makefile` variable `OPENRIOT_VERSION`
 
@@ -250,7 +297,7 @@ if len(os.Args) >= 2 && os.Args[1] == "--your-flag" {
 
 ---
 
-## Recent Completed Work (v0.5)
+## Recent Completed Work (v0.7)
 
 ### Install Output Cleanup (April 2026)
 - Consistent 1-space indentation for all log levels
@@ -298,7 +345,7 @@ if len(os.Args) >= 2 && os.Args[1] == "--your-flag" {
 | File | Purpose |
 |------|---------|
 | `Progress.md` | Project-level tracking, known bugs |
-| `VERSION` | Current version (v0.5) |
+| `VERSION` | Current version (v0.7) |
 | `Makefile` | Build commands |
 | `install/packages.yaml` | Single source of truth for install |
 | `source/installer/` | Go installer modules |
