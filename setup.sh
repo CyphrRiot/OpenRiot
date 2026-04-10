@@ -313,8 +313,9 @@ main() {
         # TODO: Change to version-based path when 7.9 releases (e.g. 7.9/amd64/)
         AMD64_PATH="https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64"
         cd /tmp
+        VER_NUM=$(uname -r | sed 's/\.//' | sed 's/-.*//')
         for set in xbase xfont xserv xshare; do
-            curl -fsSL "${AMD64_PATH}/${set}.tgz" -o "${set}.tgz"
+            curl -fsSL "${AMD64_PATH}/${set}${VER_NUM}.tgz" -o "${set}.tgz"
             doas tar -xzf "${set}.tgz" -C /
             rm -f "${set}.tgz"
         done
