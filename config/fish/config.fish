@@ -119,5 +119,7 @@ end
 # OpenRouter API key for Neovim plugins (Avante, CodeCompanion)
 # Get your free key from https://openrouter.ai/settings
 # NOTE: Replace "YOUR_OPENROUTER_API_KEY" with your actual key after install
-set -gx OPENROUTER_API_KEY "YOUR_OPENROUTER_API_KEY"
+if not set -q OPENROUTER_API_KEY
+    set -gx OPENROUTER_API_KEY "YOUR_OPENROUTER_API_KEY"
+end
 set -gx OPENROUTER_BASE_URL "https://openrouter.ai/api/v1"

@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-0.7-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-0.8-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -50,12 +50,10 @@ OpenRiot is under active development.
 
 The ISO install is functional but has known limitations:
 
-- You have to answer "yes" to fix many configuration issues
-- Package installation on first boot will require manual intervention
 - Some features are still being developed and tested
 - **DO NOT use on production systems**
 
-**Current status:** ISO installs and boots, some packages install via install.site, but many are missing (like `curl`) and there are serious bugs in the installer.
+**Current status:** ISO installs and boots, packages install via installer, i3 desktop configured and functional.
 
 ---
 
@@ -342,33 +340,36 @@ _This section is being actively documented. For now, the essential bindings are 
 
 ### Essential Keybindings
 
-| Key                   | Action                     |
-| --------------------- | -------------------------- |
-| `Super + Return`      | Open terminal              |
-| `Super + D`           | Open app launcher (rofi) |
-| `Super + Q`           | Close window               |
-| `Super + E`           | Proton Mail (web app)      |
-| `Super + L`           | Lock screen                |
-| `Super + V`           | Toggle floating            |
-| `Super + J`           | Toggle split               |
-| `Super + 1-4`         | Switch workspace           |
-| `Super + Shift + 1-4` | Move window to workspace   |
-| `Super + Shift + Q`   | Force close window         |
-| `Super + Escape`      | Open power menu            |
-| `Super + F`           | File Manager (lf)          |
-| `Super + B`           | Browser                     |
-| `Super + P`           | Toggle pseudo tiling        |
-| `Super + O`           | Open Helix (Documents)      |
-| `Super + N`           | Open NeoVim                 |
-| `Super + C`           | Open Crush AI               |
-| `Super + T`           | Open system monitor (btop) |
-| `Super + G`           | Telegram                    |
-| `Super + M`           | Google Messages             |
-| `Super + X`           | X (Twitter)                 |
-| `Super + Shift + Return` | Floating terminal        |
-| `Print`               | Screenshot (region)         |
-| `Mod1 + Tab`          | Cycle windows               |
-| `Super + Shift + H`   | OpenRiot Help (website)     |
+|| Key                   | Action                     |
+|| --------------------- | -------------------------- |
+|| `Super + Return`      | Open terminal              |
+|| `Super + Shift + Return` | Floating terminal        |
+|| `Super + D`           | Open app launcher (rofi) |
+|| `Super + Q`           | Close window               |
+|| `Super + E`           | Proton Mail (web app)      |
+|| `Super + L`           | Lock screen                |
+|| `Super + Z`           | Toggle floating            |
+|| `Super + H`           | Split horizontal           |
+|| `Super + V`           | Split vertical             |
+|| `Super + P`           | Toggle layout              |
+|| `Super + 1-4`         | Switch workspace           |
+|| `Super + Shift + 1-4` | Move window to workspace   |
+|| `Super + Shift + E`   | Exit i3                    |
+|| `Super + F`           | File Manager (Thunar)      |
+|| `Super + B`           | Browser                    |
+|| `Super + O`           | Open Helix (editor)        |
+|| `Super + C`           | Open Crush AI              |
+|| `Super + T`           | Open system monitor (btop) |
+|| `Super + G`           | Telegram                   |
+|| `Super + M`           | Google Messages            |
+|| `Super + X`           | X (Twitter)               |
+|| `Super + K`           | Google Keep                |
+|| `Super + Shift + S`   | Screenshot (region)        |
+|| `Alt + Tab`           | Cycle windows              |
+|| `Alt + Shift + Tab`   | Cycle windows (reverse)    |
+|| `Super + Shift + H`   | OpenRiot Help (website)    |
+
+
 | `Super + F`           | File Manager (lf)           |
 
 ![OpenRiot Foot Terminal](assets/terminal.png)
@@ -377,16 +378,17 @@ _This section is being actively documented. For now, the essential bindings are 
 
 Polybar is your status bar. Click on modules for more:
 
-| Module      | Click Action                     |
-| ----------- | -------------------------------- |
-| Workspace   | Click to switch                  |
-| CPU         | Shows usage                      |
-| Memory      | Shows usage                      |
-| Temperature | Shows temp                       |
-| Battery     | Shows percentage                 |
-| Network     | Click for ifconfig WiFi setup |
-| Volume      | Click for mixer                  |
-| Clock       | Shows date/time                  |
+| Module          | Click Action                        |
+| --------------- | ---------------------------------- |
+| Workspace       | Click ●/○ to switch                |
+| Date            | Shows day, date, time             |
+| System Metrics  | Shows CPU + RAM usage              |
+| Volume          | Click to toggle, scroll to adjust |
+| Network         | Shows connection status            |
+| Battery         | Shows charge percentage           |
+| OpenRiot Update | Click to check for updates        |
+| Power           | Click for power menu               |
+| Lock            | Click to lock screen               |
 
 ## Shell Aliases & Quick Reference
 
