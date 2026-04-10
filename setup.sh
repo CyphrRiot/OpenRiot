@@ -310,8 +310,8 @@ main() {
             return
         fi
         info "Installing X11 file sets..."
-        OPENBSD_VERSION=$(uname -r | sed 's/\./_/')
-        AMD64_PATH="https://cdn.openbsd.org/pub/OpenBSD/${OPENBSD_VERSION}/amd64"
+        # TODO: Change to version-based path when 7.9 releases (e.g. 7.9/amd64/)
+        AMD64_PATH="https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64"
         cd /tmp
         for set in xbase xfont xserv xshare; do
             curl -fsSL "${AMD64_PATH}/${set}.tgz" -o "${set}.tgz"
