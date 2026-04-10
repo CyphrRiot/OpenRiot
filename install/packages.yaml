@@ -56,9 +56,6 @@ core:
 desktop:
     i3:
         packages:
-            - xorg-server-21.1.13v0
-            - xinit-1.4.2
-            - xterm-393
             - i3-4.25.1
             - i3lock-2.15
             - i3status-2.15p0

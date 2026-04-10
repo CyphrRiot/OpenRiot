@@ -302,6 +302,26 @@ main() {
     install_bootstrap_packages
     setup_repository
     check_disk_space 1
+
+    # Install X11 file sets if missing (MUST be before packages)
+    install_x11_sets() {
+        if [ -x /usr/X11R6/bin/Xorg ]; then
+            info "X11 already installed"
+            return
+        fi
+        info "Installing X11 file sets..."
+        OPENBSD_VERSION=$(uname -r | sed 's/\./_/')
+        AMD64_PATH="https://cdn.openbsd.org/pub/OpenBSD/${OPENBSD_VERSION}/amd64"
+        cd /tmp
+        for set in xbase xfont xserv xshare; do
+            curl -fsSL "${AMD64_PATH}/${set}.tgz" -o "${set}.tgz"
+            doas tar -xzf "${set}.tgz" -C /
+            rm -f "${set}.tgz"
+        done
+        success "X11 file sets installed"
+    }
+    install_x11_sets
+
     run_install_packages
     run_openriot_install
 
