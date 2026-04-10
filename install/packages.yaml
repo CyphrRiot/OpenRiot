@@ -97,6 +97,8 @@ desktop:
             - pattern: xsession/openriot-xsession
               target: "~/.xsession"
         commands:
+            - desc: "Make all scripts executable"
+              cmd: "find ~/.local/share/openriot/config -name \"*.sh\" -exec chmod +x {} \\; 2>/dev/null || true"
             - desc: "Installing autotiling for i3"
               cmd: "if command -v autotiling >/dev/null 2>&1; then echo '[SKIP] autotiling already installed'; elif pip3 install autotiling 2>&1 | grep -q 'Requirement already satisfied'; then echo '[SKIP] autotiling already installed'; elif pip3 install autotiling --break-system-packages 2>/dev/null || pip3 install autotiling 2>/dev/null; then echo '[SKIP] autotiling installed'; else echo '[WARN] autotiling install failed, tiling will be manual'; fi"
         depends: [core.base, fonts.fira-code]
