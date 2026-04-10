@@ -315,7 +315,9 @@ main() {
         cd /tmp
         VER_NUM=$(uname -r | sed 's/\.//' | sed 's/-.*//')
         for set in xbase xfont xserv xshare; do
+            info "Downloading ${set}${VER_NUM}.tgz..."
             curl -fsSL "${AMD64_PATH}/${set}${VER_NUM}.tgz" -o "${set}.tgz"
+            info "Extracting ${set}..."
             doas tar -xzf "${set}.tgz" -C /
             rm -f "${set}.tgz"
         done
