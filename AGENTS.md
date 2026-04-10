@@ -77,6 +77,16 @@ The binary (`install/openriot`) is tracked in git **without history** to keep re
 2. If yes: runs `git filter-repo --force --path install/openriot --invert-paths`, restores origin, rebuilds
 3. Commits binary + force-pushes everything (`git push --force --all`)
 
+**Prerequisites:**
+- `git-filter-repo` must be installed. If missing on OpenBSD:
+  ```bash
+  # OpenBSD doesn't have pip, download directly:
+  fetch -o /tmp/git-filter-repo https://raw.githubusercontent.com/newren/git-filter-repo/main/git-filter-repo
+  chmod +x /tmp/git-filter-repo
+  PATH="/tmp:$PATH" make binary-push
+  ```
+- SSH access to GitHub configured (for `git@github.com:` URLs)
+
 **NEVER do:**
 - `git add -A && git commit -am` then `make binary-push` (double-commit)
 - Add `install/openriot` back to `.gitignore`
