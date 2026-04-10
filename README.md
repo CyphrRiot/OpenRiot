@@ -370,7 +370,26 @@ _This section is being actively documented. For now, the essential bindings are 
 || `Super + Shift + H`   | OpenRiot Help (website)    |
 
 
-| `Super + F`           | File Manager (lf)           |
+### App Launcher (Rofi)
+
+Press `Super + D` to open the app launcher. Only curated apps are shown — no system clutter.
+
+| App              | Icon | Description              |
+| ---------------- | ---- | ------------------------ |
+| Terminal         | 󰽒   | Foot terminal emulator   |
+| Firefox          | 󰈹   | Web browser              |
+| Telegram         | 󰘦   | Messaging app            |
+| Flare            | 󰇢   | Matrix messenger         |
+| Helix            | 󰛞   | Text editor              |
+| File Manager     | 󰝰   | Thunar file browser      |
+| System Monitor   | 󰍹   | btop resource monitor    |
+| Htop             | 󰍹   | Process viewer           |
+| Crush            | 󰚩   | AI CLI assistant         |
+| Media Player     | 󰕼   | mpv video player         |
+| Word Processor   | 󰈙   | Abiword document editor  |
+| Settings         | 󰒓   | XFCE settings manager    |
+| Transmission     | 󰇚   | BitTorrent client        |
+| Proton Mail      | 󰊫   | Email (web app)          |
 
 ![OpenRiot Foot Terminal](assets/terminal.png)
 
@@ -393,7 +412,7 @@ Polybar is your status bar. Click on modules for more:
 **Workspace Bar:** Shows all 4 workspaces with indicators and app icons. Example:
 
 ```
-● 󰊠 󰈹   ○   ◉ 󰝰   ○
+● 󰽒 󰈹   ○   ◉ 󰝰   ○
 ```
 - `●` focused workspace
 - `◉` unfocused with windows

@@ -134,7 +134,6 @@ desktop:
             - xfce4-settings-4.20.1p0
             - lf-41
             - abiword-3.0.5p2v0
-            - alacritty-0.12.3
         configs:
             - pattern: gtk-3.0/*
             - pattern: gtk-4.0/*

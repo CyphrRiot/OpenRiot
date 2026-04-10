@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Name=Proton Mail
+GenericName=Email
+Comment=Proton Mail web app
+Icon=proton-mail
+Exec=firefox https://mail.protonmail.com
+Terminal=false
+Type=Application
+Categories=Network;Email;
+Keywords=email;mail;proton;webmail;
+StartupWMClass=firefox

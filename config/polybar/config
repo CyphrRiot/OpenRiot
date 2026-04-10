@@ -18,9 +18,16 @@ padding-right = 2
 font-0 = FiraCode Nerd Font:size=11
 font-1 = unifont:size=6;-3
 
-modules-left = workspace1 workspace2 workspace3 workspace4
+modules-left = launcher workspace1 workspace2 workspace3 workspace4
 modules-center = date
 modules-right = system-metrics volume network battery openriot-update power lock
+
+[module/launcher]
+type = custom/text
+content = 󰀻
+content-foreground = #888888
+click-left = $HOME/.local/share/openriot/config/rofi/launcher.sh
+tooltip = App Launcher
 
 [module/i3]
 type = internal/i3

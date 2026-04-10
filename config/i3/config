@@ -5,7 +5,7 @@ set $terminal foot
 set $fileManager thunar
 set $browser firefox
 set $editor hx
-set $menu rofi -show drun
+set $menu $HOME/.local/share/openriot/config/rofi/launcher.sh
 
 font pango:FiraCode Nerd Font 11
 default_border pixel 1

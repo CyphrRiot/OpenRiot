@@ -43,10 +43,10 @@ set -g __fish_git_prompt_color_branch yellow
 set -g __fish_git_prompt_color_upstream_ahead purple
 set -g __fish_git_prompt_color_upstream_behind red
 set -g __fish_git_prompt_color_dirtystate ff8c00
-set -g __fish_git_prompt_char_dirtystate "*"
-set -g __fish_git_prompt_char_stagedstate "+"
-set -g __fish_git_prompt_char_untrackedfiles "?"
-set -g __fish_git_prompt_char_stashstate "^"
+set -g __fish_git_prompt_char_dirtystate "●"
+set -g __fish_git_prompt_char_stagedstate "→"
+set -g __fish_git_prompt_char_untrackedfiles "☡"
+set -g __fish_git_prompt_char_stashstate "↩"
 set -g __fish_git_prompt_char_upstream_ahead "+"
 set -g __fish_git_prompt_char_upstream_behind -
 set -g __fish_git_prompt_char_upstream_equal ""
@@ -61,14 +61,19 @@ function fish_prompt
     echo -n '🐡 '
     set_color cyan
     printf "%s" (string replace $HOME "~" (pwd))
+    if command git rev-parse --git-dir >/dev/null 2>&1
+        set_color yellow
+        printf " (%s)" (git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    end
     set_color normal
+    printf "%s" (__fish_git_prompt)
     if test $last_status -ne 0
         set_color red
         printf " [%d]" $last_status
         set_color normal
     end
     set_color cyan
-    printf "❯ "
+    printf " ❯ "
     set_color normal
 end
 

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Settings
+GenericName=Settings
+Comment=XFCE Settings Manager
+Icon=org.xfce.settings-manager
+Exec=xfce4-settings-manager
+Terminal=false
+Type=Application
+Categories=Settings;X-XFCE-Settings;
+Keywords=settings;preferences;xfce;system;config;

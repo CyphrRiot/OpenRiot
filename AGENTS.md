@@ -7,9 +7,9 @@ You are a cautious, obedient coding assistant for an OpenBSD Go project with ext
 ## CRITICAL PLATFORM RULES
 
 1. **YOU ARE ON OPENBSD** — `uname -a` confirms `OpenBSD mini.openriot.org 7.9`
-2. **Current branch:** `i3` — i3/X11 migration work ONLY until 100% working
+2. **Current branch:** `main` — i3/X11 migration COMPLETE
 3. **Validate before acting** — Always verify packages with `pkg_info -Q <pkg>` on this OpenBSD system. Search https://openbsd.app/?search={pkg} for package availability.
-4. **Keep i3 branch focused** — No mixing sway/wayland work on this branch
+4. **Keep main branch focused** — No mixing sway/wayland work
 
 ---
 
@@ -185,22 +185,45 @@ The installer checks for `[SKIP]` in output to suppress the `[DONE]` message.
 
 ---
 
-## Polybar Scripts
+## Desktop Applications
 
-Located at `config/polybar/scripts/`:
+14 curated apps in Rofi launcher (`config/rofi/apps.txt`):
 
-```
-polybar/scripts/
-├── openriot-update.sh      # polybar module
-├── system-metrics.sh       # CPU+RAM combined
-├── battery.sh              # battery status
-├── network.sh              # network status
-├── volume.sh               # volume control
-├── weather-emoji-plain.sh  # weather display
-└── wifi-selector.sh       # network picker via rofi
-```
+| App | Desktop File | Polybar Icon |
+|-----|--------------|---------------|
+| Firefox | firefox.desktop | 󰈹 |
+| Flare | flare.desktop | 󰇢 |
+| Telegram | tdesktop.desktop | 󰘦 |
+| Terminal | terminal.desktop | 󰽒 |
+| Helix | helix.desktop | 󰛞 |
+| Thunar | thunar.desktop | 󰝰 |
+| System Monitor | btop.desktop | 󰍹 |
+| Crush | crush.desktop | 󰚩 |
+| MPV | mpv.desktop | 󰕼 |
+| AbiWord | abiword.desktop | 󰈙 |
+| Settings | xfce4-settings.desktop | 󰒓 |
+| Transmission | transmission-start.desktop | 󰇚 |
+| Proton Mail | protonmail.desktop | 󰊫 |
 
-**RULE:** Use Nerd Font icons in polybar custom modules — they work fine on X11.
+## Polybar Workspace Icons
+
+Format: `󰀻  ● 󰽒 󰈹   ○   ◉ 󰝰   ○`
+
+| Icon | Meaning |
+|------|---------|
+| 󰀻 | App launcher (opens rofi) |
+| ● | Focused workspace |
+| ◉ | Unfocused with windows |
+| ○ | Empty workspace |
+
+**How it works:**
+1. `workspaces.sh` queries i3 tree every 2 seconds → extracts window classes
+2. `window-icon.sh` maps window class → Nerd Font icon (e.g., "firefox" → 󰈹)
+3. Polybar displays the result
+
+**Key distinction:**
+- Rofi uses system icon theme (Adwaita) — `Icon=firefox` from .desktop
+- Polybar uses Nerd Font — window class mapped via `window-icon.sh`
 
 ---
 
@@ -208,7 +231,7 @@ polybar/scripts/
 
 - **Current primary:** foot terminal (X11-native)
 - **Config:** `config/foot/foot.ini`
-- **Backup available:** alacritty (config in `config/alacritty/`)
+- **Removed:** alacritty (not needed on OpenBSD)
 
 ---
 

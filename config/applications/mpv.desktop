@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Media Player
+GenericName=Media Player
+Comment=Video and audio player
+Icon=
+Exec=mpv
+Terminal=false
+Type=Application
+Categories=AudioVideo;Player;Video;
+Keywords=video;audio;media;player;mpv;
