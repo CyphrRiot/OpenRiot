@@ -157,6 +157,14 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 				continue
 			}
 
+			// Check if destination exists and is a directory - remove it so file can be written
+			if destInfo, err := os.Stat(destPath); err == nil && destInfo.IsDir() {
+				if err := os.RemoveAll(destPath); err != nil {
+					fmt.Printf("%s[WARN]%s Failed to remove directory %s: %v\n", Yellow, Reset, destPath, err)
+					continue
+				}
+			}
+
 			// Create destination directory
 			destDir := filepath.Dir(destPath)
 			if err := os.MkdirAll(destDir, 0755); err != nil {
