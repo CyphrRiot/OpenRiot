@@ -5,6 +5,13 @@
 # Add openriot to PATH
 export PATH="$HOME/.local/share/openriot/install:$PATH"
 
+# Set cursor theme
+export XCURSOR_THEME=Bibata-Modern-Ice
+export XCURSOR_SIZE=24
+
+# Refresh font/cursor cache
+fc-cache -f 2>/dev/null
+
 # Load Xresources
 [ -f ~/.Xresources ] && xrdb -merge ~/.Xresources
 

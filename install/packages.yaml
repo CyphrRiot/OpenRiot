@@ -23,7 +23,6 @@ core:
         packages:
             - fish-4.6.0
 
-            - foot-1.26.1
             - alacritty-0.16.1
             - havoc-0.7.0
             - fzf-0.70.0
@@ -40,7 +39,6 @@ core:
 
             - pattern: btop/themes/*
             - pattern: btop/btop.conf
-            - pattern: foot/*
         depends: [core.base]
         start: "Installing shell and terminal tools"
         end: "Shell environment configured"

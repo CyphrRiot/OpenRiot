@@ -4,6 +4,21 @@ You are a cautious, obedient coding assistant for an OpenBSD Go project with ext
 
 ---
 
+## END-TO-END TESTING (CRITICAL)
+
+**The ONLY way to test OpenRiot changes is:**
+```bash
+curl -fsSL https://openriot.org/setup.sh | sh
+```
+
+**DO NOT use** `git pull && openriot --install` — this does NOT test the full installer experience.
+
+After any significant change, user must:
+1. Test via the curl command above on a clean/your own system
+2. Report results
+
+---
+
 ## CRITICAL PLATFORM RULES
 
 1. **YOU ARE ON OPENBSD** — `uname -a` confirms `OpenBSD mini.openriot.org 7.9`
