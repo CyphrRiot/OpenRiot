@@ -305,12 +305,21 @@ main() {
     run_install_packages
     run_openriot_install
 
+    # Enable xenodm for automatic X11 login on boot
+    info "Enabling xenodm (X11 display manager)..."
+    if doas rcctl enable xenodm 2>/dev/null; then
+        success "xenodm enabled"
+    else
+        warn "xenodm already enabled or rcctl unavailable"
+    fi
+
     # This is properly formatted. Need the variable for version fixed
     echo ""
     echo "+------------------------------------------------------------+"
     echo "|  OpenRiot v${banner_ver} Installation Complete                       |"
     echo "|                                                            |"
     echo '|  Run "startx" from TTY1 to start the desktop.              |'
+    echo "|  xenodm will start X11 automatically on next boot.          |"
     echo "+------------------------------------------------------------+"
     echo ""
 }
