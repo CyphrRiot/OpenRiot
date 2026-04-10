@@ -92,9 +92,9 @@ desktop:
               target: "~/.local/share/fonts"
             - pattern: Xresources
               target: "~/.Xresources"
-            - pattern: xinitrc/*
+            - pattern: xinitrc/openriot-x11
               target: "~/.xinitrc"
-            - pattern: xsession/*
+            - pattern: xsession/openriot-xsession
               target: "~/.xsession"
         commands:
             - desc: "Installing autotiling for i3"
