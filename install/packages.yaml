@@ -97,8 +97,8 @@ desktop:
             - pattern: xsession/*
               target: "~/.xsession"
         commands:
-            - desc: "Installing autotiling"
-              cmd: "pip install autotiling --break-system-packages 2>/dev/null || pip install autotiling 2>/dev/null || true"
+            - desc: "Installing autotiling for i3"
+              cmd: "if command -v autotiling >/dev/null 2>&1; then echo '[SKIP] autotiling already installed'; elif pip3 install autotiling 2>&1 | grep -q 'Requirement already satisfied'; then echo '[SKIP] autotiling already installed'; elif pip3 install autotiling --break-system-packages 2>/dev/null || pip3 install autotiling 2>/dev/null; then echo '[SKIP] autotiling installed'; else echo '[WARN] autotiling install failed, tiling will be manual'; fi"
         depends: [core.base, fonts.fira-code]
         start: "Installing i3 desktop"
         end: "i3 desktop installed"
@@ -108,7 +108,7 @@ desktop:
     i3-auto-layout:
         type: "Source"
         build:
-            - "if [ -x /usr/local/bin/i3-auto-layout ]; then echo '[SKIP] i3-auto-layout already installed'; else curl -fsSL https://github.com/chmln/i3-auto-layout/releases/download/v0.1.0/i3-auto-layout -o /tmp/i3-auto-layout && doas mv /tmp/i3-auto-layout /usr/local/bin/i3-auto-layout && doas chmod +x /usr/local/bin/i3-auto-layout; fi"
+            - "if [ -x /usr/local/bin/i3-auto-layout ]; then echo '[SKIP] i3-auto-layout already installed'; else curl -fsSL https://github.com/chmln/i3-auto-layout/releases/download/v0.2/i3-auto-layout -o /tmp/i3-auto-layout && doas mv /tmp/i3-auto-layout /usr/local/bin/i3-auto-layout && doas chmod +x /usr/local/bin/i3-auto-layout; fi"
         depends: [desktop.i3]
         start: "Installing i3-auto-layout"
         end: "i3-auto-layout installed"
