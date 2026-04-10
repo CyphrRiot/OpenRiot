@@ -9,7 +9,7 @@
 ![Version](https://img.shields.io/badge/version-0.7-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
-![Sway](https://img.shields.io/badge/Sway-Wayland-312e81?logo=wayland&logoColor=a855f7&labelColor=1e1b4b)
+![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
 
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=5b21b6&labelColor=4c1d95)
 ![Code Size](https://img.shields.io/github/languages/code-size/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
@@ -25,7 +25,7 @@ OpenRiot is the answer to every time you've thought "Why can't an OpenBSD instal
 
 ### **Curated to be correct**
 
-- **🪟 Sway Tiling** — Wayland-native tiling that actually gets it right
+- **🪟 i3 Tiling** — X11-native tiling that actually gets it right
 - **⚡ Robust Binary** — Atomic operations, run-time, instant rollbacks, zero dependency hell
 - **🛡️ Privacy** — Zero telemetry, tracking, zero data harvesting, zero ID requirements
 - **🎨 Aesthetics** — Carefully crafted dark themes that work at any hour
@@ -68,7 +68,7 @@ The ISO install is functional but has known limitations:
 - [🧰 Advanced Usage](#advanced-usage)
     - [🔄 Environment Variables](#environment-variables)
     - [⌨️ Keybindings Customization](#keybindings-customization)
-    - [📊 Waybar Modules](#waybar-modules)
+    - [📊 Polybar Modules](#polybar-modules)
     - [🔐 Crypto Config](#crypto-config)
     - [🔒 Mullvad VPN](#mullvad-vpn-on-openbsd)
 - [🔧 Troubleshooting](#troubleshooting)
@@ -112,8 +112,7 @@ You can buy a T14s Gen 1 for ~$300 USD at experience [Amazon](https://www.amazon
 
 - **WiFi**: Use Intel `iwm` or USB Atheros adapters only. See the full supported list below.
 - **CPU**: Intel and AMD Ryzen are both well-supported. ARM support is experimental.
-- **GPU**: Intel integrated graphics are best-supported. AMD Radeon works but with varying feature support. NVIDIA is
-  not supported on Wayland/Sway.
+- **GPU**: Intel integrated graphics are best-supported. AMD Radeon works but with varying feature support. NVIDIA is not supported on OpenBSD.
 - **Trackpoint**: All ThinkPad trackpoints work. Some USB trackpoints may require additional configuration.
 
 ## ✅ Supported Network Hardware
@@ -184,7 +183,7 @@ Before installing OpenBSD (and therefore OpenRiot), you need to make some BIOS/U
 5. **Set boot order to prioritize your USB/ISO device**
     - Navigate to `Boot` → `Boot Order` → Place your USB drive first
 
-6. **Disable Intel VTD** (if you encounter Sway/wlroots issues)
+6. **Disable Intel VTD** (if you encounter i3/X11 issues)
     - Navigate to `Security` → `Intel VT-d` or `AMD-Vi` → **Disabled**
     - Note: This is only needed in rare cases. Try with it enabled first.
 
@@ -241,7 +240,7 @@ The best workaround is to use USB audio or a USB Bluetooth adapter that presents
 
 ### Recommended Input Setup
 
-For the best OpenBSD + Sway experience:
+For the best OpenBSD + i3 experience:
 
 | Device         | Recommendation                                               |
 | -------------- | ------------------------------------------------------------ |
@@ -254,7 +253,7 @@ For the best OpenBSD + Sway experience:
 
 ## 🚀 Installing OpenRiot
 
-The OpenRiot ISO installs OpenBSD + Sway desktop automatically. It's the OpenBSD installer with pre-configured settings.
+The OpenRiot ISO installs OpenBSD + i3 desktop automatically. It's the OpenBSD installer with pre-configured settings.
 
 ### 1. Download
 
@@ -317,7 +316,7 @@ curl -fsSL https://openriot.org/setup.sh | sh
 reboot
 ```
 
-After reboot, log in and type `sway` to start the desktop.
+After reboot, log in and type `startx` to start the desktop.
 
 ---
 
@@ -339,14 +338,14 @@ cat ~/.cache/openriot/install.log
 
 ## ⌨️ Master Your OpenRiot Desktop
 
-_This section is being actively documented. For now, the essential bindings are documented in [📝 Using Helix](#using-helix). A full Sway keybinding reference is coming._
+_This section is being actively documented. For now, the essential bindings are documented in [📝 Using Helix](#using-helix). A full OpenRiot keybindings reference is coming._
 
 ### Essential Keybindings
 
 | Key                   | Action                     |
 | --------------------- | -------------------------- |
 | `Super + Return`      | Open terminal              |
-| `Super + D`           | Open app launcher (fuzzel) |
+| `Super + D`           | Open app launcher (rofi) |
 | `Super + Q`           | Close window               |
 | `Super + E`           | Proton Mail (web app)      |
 | `Super + L`           | Lock screen                |
@@ -374,9 +373,9 @@ _This section is being actively documented. For now, the essential bindings are 
 
 ![OpenRiot Foot Terminal](assets/terminal.png)
 
-### Waybar Modules
+### Polybar Modules
 
-Waybar is your status bar. Click on modules for more:
+Polybar is your status bar. Click on modules for more:
 
 | Module      | Click Action                     |
 | ----------- | -------------------------------- |
@@ -385,7 +384,7 @@ Waybar is your status bar. Click on modules for more:
 | Memory      | Shows usage                      |
 | Temperature | Shows temp                       |
 | Battery     | Shows percentage                 |
-| Network     | Click for nmtui (NetworkManager) |
+| Network     | Click for ifconfig WiFi setup |
 | Volume      | Click for mixer                  |
 | Clock       | Shows date/time                  |
 
@@ -527,7 +526,7 @@ Helix works **beautifully** on OpenBSD:
 - Native OpenBSD packaging (`pkg_add helix`)
 - Full Tree-sitter and LSP support for Go, Rust, Python, Lua, YAML, TOML, and many other languages
 - No plugin manager headaches — everything just works
-- Plays perfectly with Sway, foot terminal, and fish shell
+- Plays perfectly with i3, foot terminal, and fish shell
 
 **Pro tip:** Helix has one of the best default dark themes available. It looks right at home with OpenRiot's dark aesthetic.
 
@@ -699,7 +698,7 @@ pkg_delete <package-name>
 
 ### Updating OpenRiot
 
-OpenRiot upgrades are handled automatically. When a new version is released, Waybar will notify you. Click the update indicator to upgrade.
+OpenRiot upgrades are handled automatically. When a new version is released, Polybar will notify you. Click the update indicator to upgrade.
 
 #### How Upgrades Work
 
@@ -711,9 +710,9 @@ OpenRiot upgrades are handled automatically. When a new version is released, Way
 
 #### Upgrade Paths
 
-**Automatic (Waybar):**
+**Automatic (Polybar):**
 
-1. Waybar shows update indicator when new version available
+1. Polybar shows update indicator when new version available
 2. Click the indicator → confirmation dialog
 3. Confirm → upgrade runs in terminal
 
@@ -741,8 +740,8 @@ All package installation uses `pkg_add -D unsigned` — fresh packages matching 
 OpenRiot sets sensible defaults. Key environment variables:
 
 ```bash
-# Wayland display (usually set automatically)
-echo $WAYLAND_DISPLAY
+# OpenRiot session
+echo "OpenRiot $OPENRIOT_VERSION"
 
 # XDG directories (usually correct by default)
 echo $XDG_CONFIG_HOME
@@ -754,19 +753,19 @@ echo $SHELL  # Should show /usr/local/bin/fish
 
 ### Keybindings Customization
 
-Keybindings are in `~/.config/sway/keybindings.conf`.
+Keybindings are in `~/.config/i3/keybindings.conf`.
 
-Edit this file to customize. After saving, press `Super + Shift + R` to reload Sway.
+Edit this file to customize. After saving, press `Super + Shift + R` to reload i3.
 
-### Waybar Modules
+### Polybar Modules
 
-Waybar modules are in `~/.config/waybar/config`.
+Polybar modules are in `~/.config/polybar/config`.
 
 Each module has its own config section. Common modules:
 
 | Module      | Config Section    |
 | ----------- | ----------------- |
-| Workspaces  | `sway/workspaces` |
+| Workspaces  | `i3/workspaces` |
 | CPU         | `cpu`             |
 | Memory      | `memory`          |
 | Temperature | `temperature`     |
@@ -777,19 +776,19 @@ Each module has its own config section. Common modules:
 
 ### 🔐 Crypto Config
 
-**Weather (Waybar)**
+**Weather (Polybar)**
 
 - Requires: `stormy` package (auto-installed)
 - Disable: `touch ~/.config/openriot/disable-weather`
 - Enable: `rm ~/.config/openriot/disable-weather`
 - Location config (optional):
-    - `~/.config/waybar/weather.conf` or `~/.config/openriot/weather.conf`
+    - `~/.config/polybar/scripts/weather-emoji-plain.sh` or `~/.config/openriot/weather.conf`
     - Format: `LOCATION="City, CC"`
 
 **Crypto on Lock Screen**
 
 - Config file: `~/.config/crypto.toml` (copied on first install)
-- Shows prices and optional P/L on swaylock background
+- Shows prices and optional P/L on i3lock background
 
 #### Configuration
 
@@ -931,9 +930,9 @@ doas vi /etc/myname
 
 3. **Connect to WiFi:**
 
-    OpenRiot uses **NetworkManager** (`nmtui`) for WiFi management — a simple TUI that works great in foot.
+    OpenRiot uses **ifconfig** for WiFi management on OpenBSD.
 
-    Click the **network icon in Waybar** or run `nmtui` in a terminal to connect, manage saved networks, and enter passwords.
+    Click the **network icon in Polybar** or run `ifconfig iwn0 up` + `fw_update` to set up WiFi.
 
     ```bash
     # Connect manually via hostname.if(5):
@@ -949,18 +948,17 @@ doas vi /etc/myname
     ping -c 3 openbsd.org
     ```
 
-### Sway won't start
+### i3 won't start
 
 1. **Check for errors:**
 
     ```bash
-    sway 2>&1 | head -50
+    i3 2>&1 | head -50
     ```
 
 2. **Common fixes:**
-    - Missing seatd: `doas rcctl enable seatd && doas rcctl start seatd`
-    - Graphics driver issue: Try `WLR_BACKENDS=headless sway` to test
-    - XWayland missing: `pkg_add xwayland`
+    - Graphics driver issue: Check X11 logs in `~/.local/share/xorg/`
+    - Verify DISPLAY is set: `echo $DISPLAY`
 
 3. **Check dmesg for hardware issues:**
     ```bash

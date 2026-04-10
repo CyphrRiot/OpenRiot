@@ -1,0 +1,110 @@
+# OpenRiot Polybar Config — OpenBSD X11
+
+[global/wm]
+margin-top = 0
+margin-bottom = 0
+
+[bar/main]
+monitor = ${env:MONITOR:}
+width = 100%
+height = 24
+fixed-center = true
+background = #1e1e1e
+foreground = #ffffff
+line-size = 3
+padding-left = 2
+padding-right = 2
+
+font-0 = FiraCode Nerd Font:size=11
+font-1 = unifont:size=6;-3
+
+modules-left = i3
+modules-center = date
+modules-right = system-metrics volume network battery openriot-update power lock
+
+[module/i3]
+type = internal/i3
+format = <label-state> <label-mode>
+index-sort = true
+wrapping-scroll = false
+label-focused = ●
+label-unfocused = ○
+label-urgent = ●
+label-urgent-foreground = #d12121
+label-mode-foreground = #ffffff
+
+[module/date]
+type = internal/date
+interval = 1
+date = %A, %B %d - %I:%M %p
+format = <label>
+format-foreground = #ffffff
+label = %date%
+
+[module/system-metrics]
+type = custom/script
+exec = openriot --polybar-metrics
+interval = 5
+tail = true
+format = <label>
+format-foreground = #888888
+label = %output%
+tooltip = CPU and RAM usage
+
+[module/volume]
+type = custom/script
+exec = openriot --polybar-volume
+interval = 1
+tail = false
+format = <label>
+format-foreground = #888888
+label = %output%
+tooltip = Volume
+click-left = $HOME/.local/share/openriot/install/openriot --volume toggle
+scroll-up = $HOME/.local/share/openriot/install/openriot --volume inc
+scroll-down = $HOME/.local/share/openriot/install/openriot --volume dec
+
+[module/network]
+type = custom/script
+exec = $HOME/.local/share/openriot/config/polybar/scripts/network.sh
+interval = 300
+tail = false
+format = <label>
+format-foreground = #888888
+label = %output%
+tooltip = Network status
+
+[module/battery]
+type = custom/script
+exec = $HOME/.local/share/openriot/config/polybar/scripts/battery.sh
+interval = 30
+tail = false
+format = <label>
+format-foreground = #888888
+label = %output%
+tooltip = Battery status
+
+[module/openriot-update]
+type = custom/script
+exec = $HOME/.local/share/openriot/config/polybar/scripts/openriot-update.sh
+interval = 300
+tail = false
+format = <label>
+format-foreground = #888888
+label = %output%
+tooltip = Click to update OpenRiot
+click-left = $HOME/.local/share/openriot/config/polybar/scripts/openriot-update.sh --click
+
+[module/power]
+type = custom/text
+content = ⏻
+content-foreground = #888888
+click-left = $HOME/.local/share/openriot/install/openriot --power-menu
+tooltip = Power menu
+
+[module/lock]
+type = custom/text
+content = 🔒
+content-foreground = #888888
+click-left = i3lock
+tooltip = Lock screen

@@ -177,11 +177,11 @@ cmd open ${{
     esac
 }}
 
-# Open media files with mpv (pure Wayland)
+# Open media files with mpv
 cmd open-media ${{
     case "$f" in
         *.mp4|*.mkv|*.avi|*.mov|*.webm|*.m4v|*.flv|*.wmv|*.mp3|*.flac|*.wav|*.ogg|*.m4a|*.aac|*.opus)
-            mpv --vo=gpu --gpu-context=wayland --hwdec=auto-safe "$f" ;;
+            mpv --vo=gpu --gpu-context=x11 --hwdec=auto-safe "$f" ;;
         *)
             echo "Not a media file: $f"
             exit 1 ;;
@@ -204,14 +204,14 @@ cmd delete ${{
     done
 }}
 
-# Copy dir path to clipboard (BSD-wayland compatible)
+# Copy dir path to clipboard (X11 primary, wayland fallback)
 cmd copydir ${{
-    echo "$fxd" | tr -d '\n' | wl-copy 2>/dev/null || xclip -selection clipboard "$fxd" 2>/dev/null || true
+    echo "$fxd" | tr -d '\n' | xclip -selection clipboard 2>/dev/null || wl-copy 2>/dev/null || true
 }}
 
 # Copy filename
 cmd copyname ${{
-    echo "$f" | tr -d '\n' | wl-copy 2>/dev/null || xclip -selection clipboard "$f" 2>/dev/null || true
+    echo "$f" | tr -d '\n' | xclip -selection clipboard 2>/dev/null || wl-copy 2>/dev/null || true
 }}
 
 # Quit all lf instances

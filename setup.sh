@@ -310,7 +310,7 @@ main() {
     echo "+------------------------------------------------------------+"
     echo "|  OpenRiot v${banner_ver} Installation Complete                       |"
     echo "|                                                            |"
-    echo '|  Run "sway" from TTY1 to start the desktop.                |'
+    echo '|  Run "startx" from TTY1 to start the desktop.              |'
     echo "+------------------------------------------------------------+"
     echo ""
 }

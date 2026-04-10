@@ -39,6 +39,7 @@ core:
 
             - pattern: btop/themes/*
             - pattern: btop/btop.conf
+            - pattern: foot/*
         depends: [core.base]
         start: "Installing shell and terminal tools"
         end: "Shell environment configured"
@@ -53,52 +54,72 @@ core:
               cmd: "doas tee /etc/motd < $HOME/.local/share/openriot/install/motd"
 
 desktop:
-    sway:
+    i3:
         packages:
-            - sway-1.11p0
-            - waybar-0.15.0p0
-            - fuzzel-1.14.1
-            - swaylock-1.8.4
-            - swayidle-1.9.0
-            - swaybg-1.2.2
-            - grim-1.5.0
-            - slurp-1.5.0
-            - wl-clipboard-2.2.1pl20251124
+            - i3-4.25.1
+            - i3lock-2.15
+            - i3status-2.15p0
+            - polybar-3.7.2
+            - rofi-1.7.9.1
+            - scrot-1.12.1
+            - feh-3.10.3
+            - picom-11.2p0
+            - xclip-0.13p1
             - ImageMagick-6.9.13.43
-            - wf-recorder-0.6.0p1
-            - seatd-0.9.3
+            - dunst-1.13.1
+            - clipmenu-6.2.0
+            - clipnotify-1.0.2
+            - dmenu-5.7
+            - libqalculate-5.8.0p1
+            - redshift-1.12p11
         configs:
-            - pattern: sway/*
+            - pattern: i3/*
               preserve_if_exists:
                   [
-                      monitors.conf,
                       keybindings.conf,
-                      swayidle.conf,
+                      monitors.conf,
                       windowrules.conf,
                   ]
             - pattern: backgrounds/*
               target: "~/.local/share/openriot/backgrounds"
-            - pattern: waybar/*
+            - pattern: polybar/*
+            - pattern: rofi/*
+            - pattern: dunst/*
             - pattern: bin/*
               target: "~/.local/share/openriot/config/bin"
               preserve_if_exists: [openriot-lock.sh]
             - pattern: fonts/*
               target: "~/.local/share/fonts"
-            - pattern: fuzzel/*
+            - pattern: Xresources
+              target: "~/.Xresources"
+            - pattern: xinitrc/*
+              target: "~/.xinitrc"
+            - pattern: xsession/*
+              target: "~/.xsession"
         commands:
-            - desc: "Configuring seatd"
-              cmd: "doas rcctl set seatd flags '-g _seatd'"
-            - desc: "Enabling and starting seatd"
-              cmd: "doas rcctl enable seatd && doas rcctl start seatd || true"
-            - desc: "Adding user to _seatd group"
-              cmd: "doas usermod -G _seatd $(whoami) 2>/dev/null || true"
             - desc: "Installing autotiling"
               cmd: "pip install autotiling --break-system-packages 2>/dev/null || pip install autotiling 2>/dev/null || true"
-        depends: [core.base]
-        start: "Installing Sway desktop"
-        end: "Sway desktop installed"
+        depends: [core.base, fonts.fira-code]
+        start: "Installing i3 desktop"
+        end: "i3 desktop installed"
         type: "Package"
         critical: true
+
+    i3-auto-layout:
+        type: "Source"
+        build:
+            - "if [ -x /usr/local/bin/i3-auto-layout ]; then echo '[SKIP] i3-auto-layout already installed'; else curl -fsSL https://github.com/chmln/i3-auto-layout/releases/download/v0.1.0/i3-auto-layout -o /tmp/i3-auto-layout && doas mv /tmp/i3-auto-layout /usr/local/bin/i3-auto-layout && doas chmod +x /usr/local/bin/i3-auto-layout; fi"
+        depends: [desktop.i3]
+        start: "Installing i3-auto-layout"
+        end: "i3-auto-layout installed"
+
+    rofi-calc:
+        type: "Source"
+        build:
+            - "if [ -x /usr/local/lib/rofi/librofi-calc.so ]; then echo '[SKIP] rofi-calc already installed'; else rm -rf /tmp/rofi-calc && git clone https://github.com/svenstaro/rofi-calc.git /tmp/rofi-calc && cd /tmp/rofi-calc && meson setup build --prefix=/usr/local && meson compile -C build && doas meson install -C build; fi"
+        depends: [desktop.i3]
+        start: "Building rofi-calc from source"
+        end: "rofi-calc installed"
 
     apps:
         packages:
@@ -107,18 +128,25 @@ desktop:
             - tdesktop-6.6.4p0
             - helix-25.07.1
             - lsd-1.1.5p2
+            - thunar-4.20.8p0
+            - thunar-archive-0.6.0
+            - thunar-vcs-0.4.0
+            - xfce4-settings-4.20.1p0
             - lf-41
+            - abiword-3.0.5p2v0
+            - alacritty-0.12.3
         configs:
             - pattern: gtk-3.0/*
             - pattern: gtk-4.0/*
+            - pattern: Thunar/*
+              target: "~/.config/Thunar/"
             - pattern: helix/*
               preserve_if_exists: [config.toml]
-            - pattern: lf/*
             - pattern: crypto.toml
               preserve_if_exists: [crypto.toml]
             - pattern: applications/*
               target: "~/.local/share/applications/"
-        depends: [core.base, desktop.sway]
+        depends: [core.base, desktop.i3]
         start: "Installing desktop applications"
         end: "Desktop applications installed"
         type: "Package"
@@ -129,20 +157,12 @@ desktop:
             - mpv-0.41.0p0
             - transmission-4.1.1
         configs: []
-        depends: [core.base, desktop.sway]
+        depends: [core.base, desktop.i3]
         start: "Installing media controls"
         end: "Media controls installed"
         type: "Package"
         critical: false
 
-
-    wlsunset:
-        type: "Source"
-        build:
-            - "if [ -x /usr/local/bin/wlsunset ]; then echo '[SKIP] wlsunset already installed'; else rm -rf /tmp/wlsunset && cp -r $HOME/.local/share/openriot/source/wlsunset /tmp/wlsunset && cd /tmp/wlsunset && meson setup build --prefix=/usr/local --buildtype=release && meson compile -C build && doas meson install -C build; fi"
-        depends: [system.tools]
-        start: "Building wlsunset from source"
-        end: "wlsunset built"
 
     crush:
         type: "Source"
@@ -169,17 +189,13 @@ desktop:
         end: "stormy installed"
 
 fonts:
-    nerd-fonts:
-        packages:
-            - symbolsonly-nerd-fonts-3.3.0
-        commands:
-            - desc: "Refreshing font cache"
-              cmd: "fc-cache"
+    fira-code:
+        type: "Source"
+        build:
+            - "if [ -d \"$HOME/.local/share/fonts/FiraCode\" ]; then echo '[SKIP] FiraCode already installed'; else mkdir -p $HOME/.local/share/fonts && curl -fsSL https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip -o /tmp/firacode.zip && unzip -o /tmp/firacode.zip -d $HOME/.local/share/fonts/FiraCode && rm -f /tmp/firacode.zip && fc-cache -f; fi"
         depends: []
-        start: "Installing Nerd Fonts"
-        end: "Nerd Fonts installed"
-        type: "Package"
-        critical: false
+        start: "Installing FiraCode Nerd Font"
+        end: "FiraCode Nerd Font installed"
 
 system:
     tools:
@@ -189,6 +205,7 @@ system:
             - xz-5.8.2
             - go-1.26.1
             - chafa-1.16.2
+            - age-1.3.1
         commands:
             # fw_update removed - requires internet, not needed for offline install
         depends: [core.base]
@@ -200,11 +217,11 @@ system:
 # These OpenRiot packages have no OpenBSD equivalent:
 #
 # secure-boot: OpenBSD has its own boot security
-# hyprland: replaced by sway
-# hyprlock: replaced by swaylock
-# hypridle: replaced by swayidle
-# hyprshot: replaced by grim
-# wofi: replaced by fuzzel (Wayland-native app launcher for OpenBSD)
+# hyprland: replaced by i3
+# hyprlock: replaced by i3lock
+# hypridle: not needed on X11
+# hyprshot: replaced by scrot
+# wofi: replaced by rofi (X11 app launcher)
 # kitty: replaced by foot (Wayland native)
 # ghostty: not in OpenBSD packages
 # paru/yay: replaced by pkg_add
@@ -218,12 +235,9 @@ system:
 # signal-desktop: not in OpenBSD packages
 # telegram-desktop: not in OpenBSD packages
 # kanshi: not in OpenBSD packages (display config done differently)
-# wl-clipboard: not in OpenBSD packages
-# xdg-desktop-portal-wlr: not in OpenBSD packages
-# thunar-volman: not in OpenBSD packages
-# wl-clipboard: not in OpenBSD packages
+
 # iwx-firmware: firmware is in OpenBSD base system
 # urtwn-firmware: firmware is in OpenBSD base system
 # doas: part of OpenBSD base system
 # less: part of OpenBSD base system
-# waybar: exists in OpenBSD packages under wayland/ subdirectory
+# waybar: replaced by polybar (X11 status bar)

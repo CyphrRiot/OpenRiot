@@ -233,11 +233,11 @@ info "ISO contents extracted to $ISO_CONTENTS"
 info "Top-level files:"
 ls "$ISO_CONTENTS" | sed 's/^/    /'
 
-# Remove unnecessary sets (not needed for desktop Wayland install)
-info "Removing game79.tgz, xserv79.tgz (not needed for Wayland desktop)..."
+# Remove unnecessary sets (not needed for X11 desktop install)
+info "Removing game79.tgz, xserv79.tgz (not needed for X11 desktop)..."
 rm -f "$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}/game79.tgz"
 rm -f "$ISO_CONTENTS/${OPENBSD_VERSION}/${ARCH}/xserv79.tgz"
-# Keep xbase79.tgz - Sway needs X11 libs for Xwayland
+# Keep xbase79.tgz - i3 needs X11 libs
 
 # Explicitly remove SHA256.sig from the ISO contents.
 # We regenerate SHA256 to include our site79.tgz, which invalidates the

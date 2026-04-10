@@ -11,10 +11,10 @@ history = 10000
 multiplier = 3
 
 [font]
-normal = { family = "Paper Mono", style = "Regular" }
-bold = { family = "Paper Mono", style = "Bold" }
-italic = { family = "Paper Mono", style = "Italic" }
-bold_italic = { family = "Paper Mono", style = "Bold Italic" }
+normal = { family = "FiraCode Nerd Font", style = "Regular" }
+bold = { family = "FiraCode Nerd Font", style = "Bold" }
+italic = { family = "FiraCode Nerd Font", style = "Italic" }
+bold_italic = { family = "FiraCode Nerd Font", style = "Bold Italic" }
 size = 12.0
 
 [colors]

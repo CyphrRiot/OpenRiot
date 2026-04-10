@@ -1,12 +1,5 @@
 # OpenRiot Makefile
 # Single source of truth for all version numbers.
-# Scripts should read OPENRIOT_VERSION and OPENBSD_VERSION from here.
-
-# ============================================================
-# Canonical Versions — single source of truth: VERSION file
-# ============================================================
-OPENRIOT_VERSION = $(shell cat VERSION 2>/dev/null || echo "0.8")
-OPENBSD_VERSION  = 7.9
 
 # ============================================================
 # Build Config
@@ -15,153 +8,123 @@ BINARY_NAME = openriot
 SOURCE_DIR  = source
 INSTALL_DIR = install
 ARCH        = amd64
+OPENBSD_VERSION = 7.9
 
-# Inject versions into the Go binary at link time — no hardcoding in .go files
-LDFLAGS = -s -w \
-	-X main.version=$(OPENRIOT_VERSION) \
-	-X main.openbsdVersion=$(OPENBSD_VERSION)
-
-# Export so child processes (scripts) can read them
-export OPENRIOT_VERSION
-export OPENBSD_VERSION
-export ARCH
-
+# ============================================================
+# Targets
+# ============================================================
 .PHONY: all build clean deps test verify dev release ultra iso isotest binary-push help
 
-# ============================================================
-# Default
-# ============================================================
 all: build
 
-# ============================================================
-# Build targets
-# ============================================================
-
-# Standard build — optimized, cross-compiled for OpenBSD
+# Standard build — cross-compiled for OpenBSD
 build:
-	@echo "=== Building OpenRiot v$(OPENRIOT_VERSION) for OpenBSD $(OPENBSD_VERSION) ==="
-	@cd $(SOURCE_DIR) && \
-		CGO_ENABLED=0 GOOS=openbsd GOARCH=$(ARCH) \
-		go build \
-		-ldflags="$(LDFLAGS)" \
-		-trimpath \
-		-o ../$(INSTALL_DIR)/$(BINARY_NAME) .
-	@chmod 0755 $(INSTALL_DIR)/$(BINARY_NAME)
-	@echo "=== Build complete: $(INSTALL_DIR)/$(BINARY_NAME) ==="
+	@OPENRIOT_VERSION=`cat VERSION` && \
+	echo "=== Building OpenRIOT v$$OPENRIOT_VERSION for OpenBSD $(OPENBSD_VERSION) ===" && \
+	cd $(SOURCE_DIR) && \
+	CGO_ENABLED=0 GOOS=openbsd GOARCH=$(ARCH) \
+	go build \
+	-ldflags="-s -w -X main.version=$$OPENRIOT_VERSION -X main.openbsdVersion=$(OPENBSD_VERSION)" \
+	-trimpath \
+	-o ../$(INSTALL_DIR)/$(BINARY_NAME) . && \
+	chmod 0755 ../$(INSTALL_DIR)/$(BINARY_NAME) && \
+	echo "=== Build complete: $(INSTALL_DIR)/$(BINARY_NAME) ==="
 
-# Development build — native arch, no cross-compile, faster iteration
+# Development build — native arch, faster iteration
 dev:
-	@echo "=== Development build (native) ==="
-	@cd $(SOURCE_DIR) && \
-		go build \
-		-ldflags="-X main.version=$(OPENRIOT_VERSION) -X main.openbsdVersion=$(OPENBSD_VERSION)" \
-		-o ../$(INSTALL_DIR)/$(BINARY_NAME) .
-	@chmod 0755 $(INSTALL_DIR)/$(BINARY_NAME)
-	@echo "=== Dev build complete: $(INSTALL_DIR)/$(BINARY_NAME) ==="
+	@OPENRIOT_VERSION=`cat VERSION` && \
+	echo "=== Development build (native) ===" && \
+	cd $(SOURCE_DIR) && \
+	go build \
+	-ldflags="-X main.version=$$OPENRIOT_VERSION -X main.openbsdVersion=$(OPENBSD_VERSION)" \
+	-trimpath \
+	-o ../$(INSTALL_DIR)/$(BINARY_NAME) . && \
+	chmod 0755 ../$(INSTALL_DIR)/$(BINARY_NAME) && \
+	echo "=== Dev build complete: $(INSTALL_DIR)/$(BINARY_NAME) ==="
 
-# Release build — same as build, explicit target
+# Release build
 release: build
-	@echo "=== Release v$(OPENRIOT_VERSION) ready ==="
+	@OPENRIOT_VERSION=`cat VERSION` && \
+	echo "=== Release v$$OPENRIOT_VERSION ready ==="
 
-# Ultra build — maximum size reduction, optional UPX compression
+# Ultra build — static + optional UPX
 ultra:
-	@echo "=== Ultra-optimized build ==="
-	@cd $(SOURCE_DIR) && \
-		CGO_ENABLED=0 GOOS=openbsd GOARCH=$(ARCH) \
-		go build \
-		-ldflags="$(LDFLAGS) -extldflags '-static'" \
-		-trimpath \
-		-o ../$(INSTALL_DIR)/$(BINARY_NAME) .
-	@chmod 0755 $(INSTALL_DIR)/$(BINARY_NAME)
-	@if command -v upx > /dev/null 2>&1; then \
+	@OPENRIOT_VERSION=`cat VERSION` && \
+	echo "=== Ultra-optimized build ===" && \
+	cd $(SOURCE_DIR) && \
+	CGO_ENABLED=0 GOOS=openbsd GOARCH=$(ARCH) \
+	go build \
+	-ldflags="-s -w -X main.version=$$OPENRIOT_VERSION -X main.openbsdVersion=$(OPENBSD_VERSION) -extldflags=-static" \
+	-trimpath \
+	-o ../$(INSTALL_DIR)/$(BINARY_NAME) . && \
+	chmod 0755 ../$(INSTALL_DIR)/$(BINARY_NAME) && \
+	if command -v upx > /dev/null 2>&1; then \
 		echo "Compressing with UPX..."; \
-		upx --best --lzma $(INSTALL_DIR)/$(BINARY_NAME); \
+		upx --best --lzma ../$(INSTALL_DIR)/$(BINARY_NAME); \
 	else \
 		echo "UPX not found — skipping compression"; \
-	fi
-	@echo "=== Ultra build complete ==="
+	fi && \
+	echo "=== Ultra build complete ==="
 
-# ============================================================
-# ISO targets
-# ============================================================
-
-# Build the full bootable ISO
-iso: build
-	@echo "=== Building OpenRiot $(OPENRIOT_VERSION) ISO ==="
-	@./build-iso.sh
-	@echo ""
-	@echo "ISO built: isos/openriot.iso"
-	@echo "Next steps:"
-	@echo "  make isotest   -- build and test in QEMU"
-	@echo "  ./test-iso.sh  -- test directly without make"
-
-# Build ISO and run QEMU test
-isotest: iso
-	@echo "=== Running QEMU test ==="
-	@./test-iso.sh
-# Utility targets
-# ============================================================
-
-# Tidy Go module dependencies
+# Dependency management
 deps:
 	@echo "=== Updating Go dependencies ==="
 	@cd $(SOURCE_DIR) && go mod tidy
 	@echo "=== Dependencies updated ==="
 
-# Run Go tests
+# Testing
 test:
 	@echo "=== Running tests ==="
 	@cd $(SOURCE_DIR) && go test ./...
 
-# Build then smoke-test the binary (uses Linux build for local testing)
+# Verify build
 verify: dev
-	@echo "=== Verifying build ==="
 	@$(INSTALL_DIR)/$(BINARY_NAME) --version
 	@echo "=== Binary OK ==="
 
-# Remove build artifacts (keep downloaded ISO and package cache)
+# Clean
 clean:
 	@echo "=== Cleaning build artifacts ==="
 	@rm -f $(INSTALL_DIR)/$(BINARY_NAME)
 	@rm -f $(SOURCE_DIR)/$(BINARY_NAME)
 	@echo "=== Clean complete ==="
 
-# Remove everything including work directory
-distclean: clean
-	@echo "=== Removing work directory ==="
-	@rm -rf .work/iso_contents
-	@echo "=== distclean complete ==="
+# ISO build
+iso: build
+	@OPENRIOT_VERSION=`cat VERSION` && \
+	echo "=== Building OpenRIOT v$$OPENRIOT_VERSION ISO ==="
+	@./build-iso.sh
+	@echo ""
+	@echo "ISO built: isos/openriot.iso"
 
-# ============================================================
-# Binary safety — prevent history bloat
-# ============================================================
+isotest: iso
+	@echo "=== Running QEMU test ==="
+	@./test-iso.sh
 
-# Build + strip binary history + commit + force-push.
-# Use this instead of manual git add/commit/push for binary changes.
-# Ensures binary blob history never accumulates.
+# Binary push
 binary-push: build
-	@BINARY_BLOBS=$$(git log --oneline --all -- install/openriot 2>/dev/null | wc -l); \
+	@BINARY_BLOBS=`git log --oneline --all -- install/openriot 2>/dev/null | wc -l`; \
 	if [ "$$BINARY_BLOBS" -gt 1 ]; then \
 		echo "WARNING: Binary has $$BINARY_BLOBS commits in history. Stripping..."; \
 		git filter-repo --force --path install/openriot --invert-paths 2>/dev/null; \
 		git remote add origin git@github.com:CyphrRiot/OpenRiot.git 2>/dev/null || true; \
-		make build; \
+		$(MAKE) build; \
 	fi
-	@echo "=== Committing binary ==="
-	@git add install/openriot .gitignore
-	@git commit -am "v$(OPENRIOT_VERSION): update openriot binary"
-	@echo "=== Force-pushing ==="
-	@git push --force --all
-	@git push --tags 2>/dev/null || true
-	@echo "=== Binary push complete ==="
+	@OPENRIOT_VERSION=`cat VERSION` && \
+	echo "=== Committing binary ===" && \
+	git add install/openriot .gitignore && \
+	git commit -am "v$$OPENRIOT_VERSION: update openriot binary" && \
+	echo "=== Force-pushing ===" && \
+	git push --force --all && \
+	git push --tags 2>/dev/null || true && \
+	echo "=== Binary push complete ==="
 
-# ============================================================
 # Help
-# ============================================================
 help:
-	@echo "OpenRiot Build System"
-	@echo "====================="
-	@echo "Version : $(OPENRIOT_VERSION)"
+	@echo "OpenRiot Makefile (BSD make compatible)"
+	@echo ""
+	@OPENRIOT_VERSION=`cat VERSION` && \
+	echo "Version : $$OPENRIOT_VERSION"
 	@echo "OpenBSD : $(OPENBSD_VERSION)"
 	@echo ""
 	@echo "Targets:"
@@ -175,12 +138,5 @@ help:
 	@echo "  test               Run Go tests"
 	@echo "  verify             Build and smoke-test the binary"
 	@echo "  clean              Remove build artifacts"
-	@echo "  distclean          clean + remove .work/iso_contents"
-	@echo "  binary-push         Build + strip history + commit + force-push binary"
+	@echo "  binary-push        Build + strip history + commit + force-push binary"
 	@echo "  help               Show this message"
-	@echo ""
-	@echo "Typical workflow:"
-	@echo "  make iso                 # builds binary + repacks ISO"
-	@echo "  make verify              # smoke-test the binary"
-	@echo "  make isotest             # build and test in QEMU"
-	@echo "  make binary-push         # update + strip history + push binary"

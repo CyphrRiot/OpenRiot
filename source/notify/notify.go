@@ -126,9 +126,9 @@ func List() ([]Notification, error) {
 	return s.Notifications, nil
 }
 
-// Waybar outputs JSON for waybar custom module
+// Status outputs JSON for polybar custom module
 // Skips and auto-dismisses any expired notifications
-func Waybar() error {
+func Status() error {
 	notes, err := List()
 	if err != nil {
 		return err

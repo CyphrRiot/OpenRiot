@@ -16,7 +16,7 @@ func Run(args []string) int {
 	}
 
 	notify := func(msg string) {
-		// Dismiss any existing notifications, show new one via waybar (auto-expires in 3s)
+		// Dismiss any existing notifications, show new one via dunst (auto-expires in 3s)
 		exec.Command("openriot", "--notify-dismiss").Run()
 		exec.Command("openriot", "--notify", "Volume", msg, "--expires-in", "3").Start()
 	}
