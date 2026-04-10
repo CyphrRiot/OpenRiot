@@ -38,11 +38,9 @@ padding-top = 3
 module-margin = 0
 spacing = 1
 
-; Fonts - Nerd Font for icons, sans for text
-font-0 = "Noto Sans:style=Bold:Antialias=true:size=9;2"
-font-1 = "Noto Sans Nerd Font:style=Bold:Antialias=true:size=10;2"
-font-2 = "Font Awesome 6 Free:style=Solid:Antialias=true:pixelsize=10;2"
-font-3 = "Font Awesome 6 Brands:Antialias=true:pixelsize=10;2"
+; Fonts
+font-0 = "FiraCode Nerd Font:size=14"
+font-1 = "Font Awesome 7 Free:style=Solid:pixelsize=14"
 
 ; Separator style
 separator = ""
@@ -108,14 +106,14 @@ label-separator-padding = 0
 
 [module/arrow-left]
 type = custom/text
-content = " %{T6}%{T-}"
+content = " %{T1}%{T-}"
 content-font = 2
 content-foreground = ${colors.dark-purple}
 content-background = ${colors.bg}
 
 [module/arrow-right]
 type = custom/text
-content = "%{T6} %{T-} "
+content = "%{T1} %{T-} "
 content-font = 2
 content-foreground = ${colors.dark-purple}
 content-background = ${colors.bg}
