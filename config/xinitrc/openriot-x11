@@ -2,6 +2,9 @@
 # OpenRiot X11 startup
 # Run with: xinit ~/.xinitrc
 
+# Add openriot to PATH
+export PATH="$HOME/.local/share/openriot/install:$PATH"
+
 # Load Xresources
 [ -f ~/.Xresources ] && xrdb -merge ~/.Xresources
 

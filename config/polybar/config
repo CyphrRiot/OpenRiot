@@ -1,116 +1,144 @@
-# OpenRiot Polybar Config — OpenBSD X11
+; OpenRiot Polybar Config — Tokyo Night Theme for OpenBSD X11
+
+[colors]
+bg = #1a1b26
+bg2 = #16161e
+fg = #c0caf5
+fg2 = #a9b1d6
+fg3 = #7aa2f7
+red = #f7768e
+orange = #ff9e64
+yellow = #e0af68
+green = #9ece6a
+cyan = #7dcfff
+blue = #7aa2f7
+purple = #bb9af7
+light-purple = #9d7cd8
+dark-purple = #7c3aed
+darker-purple = #6c2bd9
+violet = #bb9af7
+disabled = #414868
+separator = #414868
 
 [global/wm]
-margin-top = 0
-margin-bottom = 0
+margin-bottom = 5
 
 [bar/main]
-monitor = ${env:MONITOR:}
-width = 100%
-height = 24
+type = xcb
+enable-ipc = true
 fixed-center = true
-background = #1e1e1e
-foreground = #ffffff
-line-size = 3
-padding-left = 2
-padding-right = 2
+width = 100%
+height = 28
+radius = 0
+underline-size = 2
+line-size = 2
+padding-right = 0
+padding-left = 0
+padding-top = 3
+module-margin = 0
+spacing = 1
 
-font-0 = FiraCode Nerd Font:size=11
-font-1 = unifont:size=6;-3
+; Fonts - Nerd Font for icons, sans for text
+font-0 = "Noto Sans:style=Bold:Antialias=true:size=9;2"
+font-1 = "Noto Sans Nerd Font:style=Bold:Antialias=true:size=10;2"
+font-2 = "Font Awesome 6 Free:style=Solid:Antialias=true:pixelsize=10;2"
+font-3 = "Font Awesome 6 Brands:Antialias=true:pixelsize=10;2"
 
-modules-left = launcher workspace1 workspace2 workspace3 workspace4
-modules-center = date
-modules-right = system-metrics volume network battery openriot-update power lock
+; Separator style
+separator = ""
+separator-padding = 0
 
-[module/launcher]
-type = custom/text
-content = 󰀻
-content-foreground = #888888
-click-left = $HOME/.local/share/openriot/config/rofi/launcher.sh
-tooltip = App Launcher
+; Modules layout: i3 workspaces | arrow | date | arrow | volume | network | battery | arrow | power
+modules-left = launcher i3
+modules-right = volume network battery openriot-update power
+
+; Colors
+background = ${colors.bg}
+foreground = ${colors.fg}
+line-color = ${colors.fg}
+
+; ========================
+; MODULES
+; ========================
 
 [module/i3]
 type = internal/i3
-format = <label-state> <label-mode>
+pin-workspaces = true
+strip-wsnumbers = true
 index-sort = true
-wrapping-scroll = false
-label-focused = ●
-label-unfocused = ○
-label-urgent = ●
-label-urgent-foreground = #d12121
-label-mode-foreground = #ffffff
+fuzzy-match = true
 
-[module/workspace1]
-type = custom/script
-exec = $HOME/.local/share/openriot/config/polybar/scripts/workspaces.sh 1
-interval = 2
-tail = true
-format = <label>
-format-foreground = #ffffff
-label = %output%
-click-left = i3-msg workspace 1
-tooltip = Workspace 1
+format = <label-state> <label-mode>
+format-background = ${colors.dark-purple}
 
-[module/workspace2]
-type = custom/script
-exec = $HOME/.local/share/openriot/config/polybar/scripts/workspaces.sh 2
-interval = 2
-tail = true
-format = <label>
-format-foreground = #888888
-label = %output%
-click-left = i3-msg workspace 2
-tooltip = Workspace 2
+[module/launcher]
+type = custom/text
+content = " %{T1}󰀻%{T-} "
+content-foreground = ${colors.fg}
+content-background = ${colors.dark-purple}
+click-left = $HOME/.local/share/openriot/config/rofi/launcher.sh
+tooltip = App Launcher
 
-[module/workspace3]
-type = custom/script
-exec = $HOME/.local/share/openriot/config/polybar/scripts/workspaces.sh 3
-interval = 2
-tail = true
-format = <label>
-format-foreground = #888888
-label = %output%
-click-left = i3-msg workspace 3
-tooltip = Workspace 3
+label-mode = %mode%
+label-mode-foreground = ${colors.fg}
+label-mode-background = ${colors.dark-purple}
 
-[module/workspace4]
-type = custom/script
-exec = $HOME/.local/share/openriot/config/polybar/scripts/workspaces.sh 4
-interval = 2
-tail = true
-format = <label>
-format-foreground = #888888
-label = %output%
-click-left = i3-msg workspace 4
-tooltip = Workspace 4
+label-focused = 󰟠
+label-focused-foreground = ${colors.fg}
+label-focused-background = ${colors.dark-purple}
+label-focused-padding = 3
+
+label-unfocused = 󰊉
+label-unfocused-foreground = ${colors.fg2}
+label-unfocused-background = ${colors.dark-purple}
+label-unfocused-padding = 3
+
+label-visible = 󰊉
+label-visible-foreground = ${colors.fg2}
+label-visible-background = ${colors.dark-purple}
+label-visible-padding = 3
+
+label-urgent = 󰨏
+label-urgent-foreground = ${colors.bg}
+label-urgent-background = ${colors.red}
+label-urgent-padding = 3
+
+label-separator = ""
+label-separator-padding = 0
+
+[module/arrow-left]
+type = custom/text
+content = " %{T6}%{T-}"
+content-font = 2
+content-foreground = ${colors.dark-purple}
+content-background = ${colors.bg}
+
+[module/arrow-right]
+type = custom/text
+content = "%{T6} %{T-} "
+content-font = 2
+content-foreground = ${colors.dark-purple}
+content-background = ${colors.bg}
 
 [module/date]
 type = internal/date
 interval = 1
-date = %A, %B %d - %I:%M %p
 format = <label>
-format-foreground = #ffffff
-label = %date%
-
-[module/system-metrics]
-type = custom/script
-exec = openriot --polybar-metrics
-interval = 5
-tail = true
-format = <label>
-format-foreground = #888888
-label = %output%
-tooltip = CPU and RAM usage
+format-foreground = ${colors.fg}
+format-background = ${colors.dark-purple}
+format-padding = 3
+date = " %{T1}󰥔%{T-} %d %a  %H:%M "
 
 [module/volume]
 type = custom/script
-exec = openriot --polybar-volume
+exec = $HOME/.local/share/openriot/install/openriot --polybar-volume
 interval = 1
-tail = false
+tail = true
 format = <label>
-format-foreground = #888888
+format-foreground = ${colors.fg}
+format-background = ${colors.dark-purple}
+format-padding = 2
 label = %output%
-tooltip = Volume
 click-left = $HOME/.local/share/openriot/install/openriot --volume toggle
 scroll-up = $HOME/.local/share/openriot/install/openriot --volume inc
 scroll-down = $HOME/.local/share/openriot/install/openriot --volume dec
@@ -118,10 +146,12 @@ scroll-down = $HOME/.local/share/openriot/install/openriot --volume dec
 [module/network]
 type = custom/script
 exec = $HOME/.local/share/openriot/config/polybar/scripts/network.sh
-interval = 300
+interval = 30
 tail = false
 format = <label>
-format-foreground = #888888
+format-foreground = ${colors.fg}
+format-background = ${colors.dark-purple}
+format-padding = 2
 label = %output%
 tooltip = Network status
 
@@ -131,7 +161,9 @@ exec = $HOME/.local/share/openriot/config/polybar/scripts/battery.sh
 interval = 30
 tail = false
 format = <label>
-format-foreground = #888888
+format-foreground = ${colors.fg}
+format-background = ${colors.dark-purple}
+format-padding = 2
 label = %output%
 tooltip = Battery status
 
@@ -141,21 +173,17 @@ exec = $HOME/.local/share/openriot/config/polybar/scripts/openriot-update.sh
 interval = 300
 tail = false
 format = <label>
-format-foreground = #888888
+format-foreground = ${colors.fg}
+format-background = ${colors.dark-purple}
+format-padding = 2
 label = %output%
-tooltip = Click to update OpenRiot
+tooltip = OpenRiot update available
 click-left = $HOME/.local/share/openriot/config/polybar/scripts/openriot-update.sh --click
 
 [module/power]
 type = custom/text
-content = ⏻
-content-foreground = #888888
+content = " %{T1}⏻%{T-} "
+content-foreground = ${colors.fg}
+content-background = ${colors.dark-purple}
 click-left = $HOME/.local/share/openriot/install/openriot --power-menu
 tooltip = Power menu
-
-[module/lock]
-type = custom/text
-content = 🔒
-content-foreground = #888888
-click-left = i3lock
-tooltip = Lock screen

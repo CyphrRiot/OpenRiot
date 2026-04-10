@@ -24,6 +24,7 @@ core:
             - fish-4.6.0
 
             - foot-1.26.1
+            - alacritty-0.16.1
             - havoc-0.7.0
             - fzf-0.70.0
             - ripgrep-15.1.0

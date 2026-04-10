@@ -16,6 +16,7 @@ if [ ! -f "$APPS_FILE" ]; then
 fi
 
 # Build rofi input: Name | Icon | Description
+# Filter out comments/empty lines first, then build list
 ROFI_INPUT=""
 while IFS='|' read -r name cmd icon; do
     # Skip comments and empty lines
@@ -32,14 +33,14 @@ done < "$APPS_FILE"
 SELECTED="$(printf '%b' "$ROFI_INPUT" | rofi -dmenu -i -p "Apps" -format i)"
 
 if [ -n "$SELECTED" ]; then
-    # Get the command for selected index
-    LINE_NUM=$((SELECTED + 1))
-    CMD="$(sed -n "${LINE_NUM}p" "$APPS_FILE" | cut -d'|' -f2 | xargs)"
+    # Get the command for selected index - need to skip comments/empty lines
+    # Use awk to get the Nth non-comment line
+    CMD="$(awk -F'|' 'NF>0 && $1 !~ /^#/ {print $2}' "$APPS_FILE" | sed -n "$((SELECTED + 1))p" | xargs)"
     
     # Execute the command
     case "$CMD" in
         *".desktop") sh -c "$(grep '^Exec=' "$HOME/.local/share/applications/$CMD" | cut -d= -f2-)" ;;
-        *"https://"*) sh -c "$CMD &" ;;
-        *) sh -c "$CMD &" ;;
+        *"https://"*) nohup $CMD >/dev/null 2>&1 & ;;
+        *) nohup sh -c "$CMD" >/dev/null 2>&1 & ;;
     esac
 fi
