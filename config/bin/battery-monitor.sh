@@ -1,6 +1,6 @@
 #!/bin/sh
 # OpenRiot - Battery Monitor
-# Sends waybar notifications at 20% and 10% thresholds via openriot --notify
+# Sends notifications at 20% and 10% thresholds via openriot --notify
 
 NOTIFIED_20=0
 NOTIFIED_10=0

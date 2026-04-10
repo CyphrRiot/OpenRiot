@@ -1,0 +1,11 @@
+#!/bin/sh
+# OpenRiot Xsession — for xenodm or startx
+# OpenBSD X11
+
+export LC_CTYPE=en_US.UTF-8
+
+# Load Xresources
+[ -f ~/.Xresources ] && xrdb -merge ~/.Xresources
+
+# Start i3
+exec i3

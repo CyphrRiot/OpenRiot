@@ -3,7 +3,7 @@
 # Ported from OpenRiot for OpenBSD
 # =============================================================================
 
-# Set UTF-8 locale for foot/wayland compatibility
+# Set UTF-8 locale for foot/X11 compatibility
 set -gx LANG en_US.UTF-8
 set -gx LC_ALL en_US.UTF-8
 
@@ -13,7 +13,7 @@ if not test -d $XDG_DATA_HOME/fish
     mkdir -p $XDG_DATA_HOME/fish
 end
 
-# XDG_RUNTIME_DIR — required by Wayland compositors
+# XDG_RUNTIME_DIR — required by X11
 set -gx XDG_RUNTIME_DIR /tmp/$USER-runtime
 if not test -d $XDG_RUNTIME_DIR
     mkdir -p $XDG_RUNTIME_DIR
@@ -72,9 +72,9 @@ function fish_prompt
     set_color normal
 end
 
-# NOTE: Sway autostart is handled in the Sway config itself, NOT here.
-# fish is a login shell — it should NEVER exec sway, or SSH sessions die.
-# On TTY1, xenodm launches sway directly. On SSH, you get a shell.
+# NOTE: i3 autostart is handled in the i3 config itself, NOT here.
+# fish is a login shell — it should NEVER exec i3, or SSH sessions die.
+# On TTY1, xenodm launches ~/.xsession which starts i3. On SSH, you get a shell.
 function fish_right_prompt
     set_color purple
     printf "("
@@ -101,8 +101,8 @@ alias ls='lsd'
 alias ll='lsd -l'
 alias la='lsd -la'
 
-# mpv with Wayland GPU output
-alias mpv='mpv --vo=gpu --gpu-context=wayland --hwdec=auto-safe'
+# mpv with X11 GPU output
+alias mpv='mpv --vo=gpu --gpu-context=x11 --hwdec=auto-safe'
 
 # OpenBSD-specific aliases
 alias doas='doas'

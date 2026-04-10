@@ -1,0 +1,75 @@
+# OpenRiot i3 Config — OpenBSD X11
+
+set $mod Mod4
+set $terminal foot
+set $fileManager thunar
+set $browser firefox
+set $editor hx
+set $menu rofi -show drun
+
+font pango:FiraCode Nerd Font 11
+default_border pixel 1
+default_floating_border pixel 1
+hide_edge_borders smart
+smart_gaps on
+smart_borders on
+
+# Colors
+client.focused           #4c7899 #285577 #ffffff
+client.focused_inactive  #333333 #333333 #ffffff
+client.unfocused         #333333 #333333 #888888
+client.urgent            #d12121 #880000 #ffffff
+
+# Include user-specific overrides
+include keybindings.conf
+
+# =============================================================================
+# AUTOSTART
+# =============================================================================
+
+# Status bar
+exec --no-startup-id polybar main
+
+# Wallpaper
+exec --no-startup-id feh --bg-fill $HOME/.local/share/openriot/backgrounds/riot_00.jpg
+
+# Compositor
+exec --no-startup-id picom
+
+# Notifications
+exec --no-startup-id dunst
+
+# Clipboard manager
+exec --no-startup-id clipmenud
+
+# Auto-tiling
+exec_always --no-startup-id i3-auto-layout
+
+# Night light (redshift)
+exec --no-startup-id redshift -t 3500:3500
+
+# =============================================================================
+# BEHAVIOR
+# =============================================================================
+
+focus_follows_mouse no
+workspace_auto_back_and_forth yes
+floating_modifier $mod normal
+
+# =============================================================================
+# WINDOW RULES
+# =============================================================================
+
+# Floating terminal
+for_window [class="^URxvt$" instance="^floating"] floating enable, resize set 900 600, move position center
+
+# Transmission
+for_window [class="^Transmission$"] floating enable, resize set 800 600, move position center
+
+# OpenRiot dialogs
+for_window [title="^(OpenRiot Update Available)$"] floating enable, resize set 35% 65%, move position center
+for_window [title="^(OpenRiot Control Panel)$"] floating enable, resize set 900 85%, move position center
+
+# Popups
+for_window [class="^(xdg-desktop-portal-gtk)$" title="^(Save a File)$"] floating enable
+

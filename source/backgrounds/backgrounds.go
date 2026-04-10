@@ -12,7 +12,7 @@ import (
 )
 
 
-// Next cycles to the next wallpaper and restarts swaybg.
+// Next cycles to the next wallpaper and restarts feh.
 func Next() int {
 	home := os.Getenv("HOME")
 	bgsDir := filepath.Join(home, ".local", "share", "openriot", "backgrounds")
@@ -60,10 +60,10 @@ func Next() int {
 	_ = os.MkdirAll(filepath.Dir(stateFile), 0o755)
 	_ = os.WriteFile(stateFile, []byte(next+"\n"), 0o644)
 
-	_ = exec.Command("pkill", "-x", "swaybg").Run()
+	_ = exec.Command("pkill", "-x", "feh").Run()
 	time.Sleep(500 * time.Millisecond)
 
-	cmd := exec.Command("swaybg", "-i", next, "-m", "fill")
+	cmd := exec.Command("feh", "--bg-fill", next)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	cmd.Stdin = nil
 	cmd.Stdout = nil
@@ -71,10 +71,10 @@ func Next() int {
 	_ = cmd.Start()
 
 	time.Sleep(1 * time.Second)
-	if exec.Command("pgrep", "-x", "swaybg").Run() == nil {
+	if exec.Command("pgrep", "-x", "feh").Run() == nil {
 		fmt.Printf("Switched to: %s\n", filepath.Base(next))
 		return 0
 	}
-	fmt.Println("Warning: swaybg may not have started")
+	fmt.Println("Warning: feh may not have started")
 	return 0
 }

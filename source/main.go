@@ -22,6 +22,7 @@ import (
 	"openriot/display"
 	"openriot/installer"
 	"openriot/notify"
+	"openriot/polybar"
 )
 
 // Injected at build time via Makefile ldflags:
@@ -110,7 +111,14 @@ func main() {
 		os.Exit(display.Run(os.Args[2:]))
 	}
 	if len(os.Args) >= 2 && os.Args[1] == "--lock" {
-		cmd := exec.Command("swaylock", "-f")
+		// Generate lock screen background
+		lockScript := filepath.Join(getInstallDir(), "config", "bin", "openriot-lock.sh")
+		if _, err := os.Stat(lockScript); err == nil {
+			exec.Command("sh", lockScript).Run()
+		}
+		// Lock with generated background
+		bgPath := "/tmp/i3lock-bg.png"
+		cmd := exec.Command("i3lock", "-i", bgPath)
 		cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 		cmd.Stdin = nil
 		cmd.Stdout = nil
@@ -124,7 +132,7 @@ func main() {
 	}
 	if len(os.Args) >= 2 && os.Args[1] == "--power-menu" {
 		menu := "Lock\nSuspend\nReboot\nShutdown\nLogout"
-		cmd := exec.Command("fuzzel", "--dmenu", "--prompt=Power: ", "--width=20", "--lines=5")
+		cmd := exec.Command("sh", "-c", "echo -e 'Lock\\nSuspend\\nReboot\\nShutdown\\nLogout' | rofi -dmenu -p 'Power: '")
 		cmd.Stdin = strings.NewReader(menu)
 		out, err := cmd.Output()
 		if err != nil {
@@ -133,20 +141,28 @@ func main() {
 		choice := strings.TrimSpace(string(out))
 		switch choice {
 		case "Lock":
-			exec.Command("swaylock", "-f").Run()
+			lockScript := filepath.Join(getInstallDir(), "config", "bin", "openriot-lock.sh")
+			if _, err := os.Stat(lockScript); err == nil {
+				exec.Command("sh", lockScript).Run()
+			}
+			exec.Command("i3lock", "-i", "/tmp/i3lock-bg.png").Run()
 		case "Suspend":
-			exec.Command("swaylock", "-f").Run()
+			lockScript := filepath.Join(getInstallDir(), "config", "bin", "openriot-lock.sh")
+			if _, err := os.Stat(lockScript); err == nil {
+				exec.Command("sh", lockScript).Run()
+			}
+			exec.Command("i3lock", "-i", "/tmp/i3lock-bg.png").Run()
 			exec.Command("zzz").Run()
 		case "Reboot":
 			exec.Command("shutdown", "-r", "now").Run()
 		case "Shutdown":
 			exec.Command("shutdown", "-p", "now").Run()
 		case "Logout":
-			exec.Command("swaymsg", "exit").Run()
+			exec.Command("i3-msg", "exit").Run()
 		}
 		return
 	}
-	if len(os.Args) >= 2 && os.Args[1] == "--swaybg-next" {
+	if len(os.Args) >= 2 && os.Args[1] == "--wallpaper-next" {
 		os.Exit(backgrounds.Next())
 	}
 	if len(os.Args) >= 2 && os.Args[1] == "--suspend-if-undocked" {
@@ -212,10 +228,26 @@ func main() {
 		}
 		os.Exit(0)
 	}
-	// --notify-waybar
-	if len(os.Args) >= 2 && os.Args[1] == "--notify-waybar" {
-		if err := notify.Waybar(); err != nil {
-			fmt.Fprintf(os.Stderr, "notify waybar error: %v\n", err)
+	// --notify-dunst (alias: --notify-status)
+	if len(os.Args) >= 2 && (os.Args[1] == "--notify-dunst" || os.Args[1] == "--notify-status") {
+		if err := notify.Status(); err != nil {
+			fmt.Fprintf(os.Stderr, "notify dunst error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+	// --polybar-metrics outputs CPU and RAM for polybar
+	if len(os.Args) >= 2 && os.Args[1] == "--polybar-metrics" {
+		if err := polybar.RunMetrics(); err != nil {
+			fmt.Fprintf(os.Stderr, "polybar metrics error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+	// --polybar-volume outputs volume with icon for polybar
+	if len(os.Args) >= 2 && os.Args[1] == "--polybar-volume" {
+		if err := polybar.RunVolume(); err != nil {
+			fmt.Fprintf(os.Stderr, "polybar volume error: %v\n", err)
 			os.Exit(1)
 		}
 		os.Exit(0)
@@ -268,6 +300,8 @@ func main() {
 	fmt.Fprintf(os.Stderr, "  --volume <args>    Adjust volume\n")
 	fmt.Fprintf(os.Stderr, "  --brightness <args> Adjust brightness\n")
 	fmt.Fprintf(os.Stderr, "  --notify \"title\" \"body\" Send notification\n")
+	fmt.Fprintf(os.Stderr, "  --polybar-metrics    Show CPU/RAM for polybar\n")
+	fmt.Fprintf(os.Stderr, "  --polybar-volume    Show volume for polybar\n")
 	fmt.Fprintf(os.Stderr, "  --crypto [BTC|ETH] Show crypto prices\n")
 	fmt.Fprintf(os.Stderr, "  --share-log [file] Upload log to ix.io for sharing\n")
 	fmt.Fprintf(os.Stderr, "  --version         Show version\n")
@@ -484,4 +518,10 @@ func compareVersions(a, b string) int {
 		}
 	}
 	return 0
+}
+
+// getInstallDir returns the installation directory
+func getInstallDir() string {
+	homeDir, _ := os.UserHomeDir()
+	return filepath.Join(homeDir, ".local", "share", "openriot")
 }

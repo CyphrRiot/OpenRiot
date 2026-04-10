@@ -1,0 +1,10 @@
+@theme "/usr/local/share/rofi/themes/arthur.rasi"
+
+configuration {
+    modi: "calc,drun";
+    show-icons: true;
+    display-drun: "Apps";
+    display-calc: "Calc";
+    terminal: "foot";
+    font: "FiraCode Nerd Font 14";
+}

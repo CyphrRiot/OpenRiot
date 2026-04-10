@@ -68,7 +68,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 			srcDir := filepath.Join(configSourceDir, patternWithoutGlob)
 			globDest := filepath.Join(configDir, rule.Pattern)
 
-			// baseDest is the parent directory (e.g., ~/.config/sway for pattern "sway/*")
+			// baseDest is the parent directory (e.g., ~/.config/i3 for pattern "i3/*")
 			baseDest := filepath.Dir(globDest)
 			if rule.Target != "" {
 				if strings.HasPrefix(rule.Target, "~/") {
@@ -171,7 +171,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 				fmt.Printf("%s[WARN]%s Failed to copy %s: %v\n", Yellow, Reset, rule.Pattern, err)
 				continue
 			} else {
-				// Get category from pattern (e.g., "sway/config" -> "sway")
+				// Get category from pattern (e.g., "i3/config" -> "i3")
 				parts := strings.Split(rule.Pattern, "/")
 				category := parts[0]
 				categoryStats[category]++

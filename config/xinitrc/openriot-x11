@@ -1,0 +1,9 @@
+#!/bin/sh
+# OpenRiot X11 startup
+# Run with: xinit ~/.xinitrc
+
+# Load Xresources
+[ -f ~/.Xresources ] && xrdb -merge ~/.Xresources
+
+# Start i3 (or fallback)
+exec i3

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 OpenRiot Version Check - Handles update notifications and upgrade flow
-OpenBSD compatible - uses swaymsg for dispatch, foot terminal
+OpenBSD compatible - uses i3-msg or direct launch with foot terminal
 """
 
 import json
@@ -129,40 +129,33 @@ def cleanup_lock_file():
 
 
 def launch_upgrade_terminal():
-    """Launch upgrade in foot terminal via swaymsg"""
+    """Launch upgrade in foot terminal"""
     update_command = "curl -fsSL https://openriot.org/setup.sh | sh"
 
     # Build terminal command (foot runs program directly, so pass bash -c)
     terminal_cmd = f'foot bash -c \'cd $HOME; echo "Starting OpenRiot update..."; {update_command}; echo "Update complete. Press Enter to close."; read\''
 
+    # Try i3-msg first (i3 IPC)
     try:
-        # Use swaymsg to exec the terminal like Super+Enter
         result = subprocess.run(
-            ["swaymsg", "exec", terminal_cmd],
+            ["i3-msg", "exec", terminal_cmd],
             capture_output=True,
             text=True,
             timeout=10,
         )
-
         if result.returncode == 0:
-            log_msg("Successfully launched update terminal via swaymsg")
-            return True
-        else:
-            log_msg(f"swaymsg dispatch failed: {result.stderr}", "ERROR")
-            # Fallback: try direct execution
-            subprocess.Popen(
-                ["foot", "bash", "-c", f"cd $HOME && {update_command} && read"]
-            )
+            log_msg("Successfully launched update terminal via i3-msg")
             return True
     except FileNotFoundError:
-        log_msg("swaymsg not found, trying direct terminal launch", "WARNING")
-        subprocess.Popen(
-            ["foot", "bash", "-c", f"cd $HOME && {update_command} && read"]
-        )
-        return True
+        log_msg("i3-msg not found, trying direct terminal launch", "WARNING")
     except Exception as e:
-        log_msg(f"Failed to launch terminal: {e}", "ERROR")
-        return False
+        log_msg(f"i3-msg dispatch failed: {e}", "WARNING")
+
+    # Fallback: direct execution
+    subprocess.Popen(
+        ["foot", "bash", "-c", f"cd $HOME && {update_command} && read"]
+    )
+    return True
 
 
 def show_gtk_dialog(local_ver, remote_ver):
@@ -309,7 +302,7 @@ def main():
         except FileNotFoundError:
             pass
 
-        # Handle --click from waybar
+        # Handle --click from polybar
         if "--click" in sys.argv:
             if seen_ver == remote_ver:
                 # Already seen - just notify and exit
@@ -337,7 +330,7 @@ def main():
                         launch_upgrade_terminal()
             sys.exit(0)
 
-        # Output for waybar
+        # Output for polybar
         if seen_ver == remote_ver:
             print(
                 f'{{"text":"󰏖","tooltip":"OpenRiot update available (seen)\\nCurrent: {local_ver}\\nAvailable: {remote_ver}","class":"update-seen"}}'

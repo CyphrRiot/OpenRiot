@@ -9,8 +9,8 @@ import (
 )
 
 // Run executes brightness subcommands using OpenBSD's wsconsctl.
-// NOTE: wsconsctl controls console brightness. Wayland compositors on OpenBSD
-// do not have a standard brightness API. This may not work on all laptops.
+// NOTE: wsconsctl controls console brightness. Effectiveness varies by hardware
+// and may be inconsistent after X starts. Some laptops handle this via BIOS/Fn keys.
 // Supported: up, down, set <0-100>, get
 func Run(args []string) int {
 	usage := func() int {
@@ -19,7 +19,7 @@ func Run(args []string) int {
 	}
 
 	notify := func(msg string) {
-		// Dismiss any existing notifications, show new one via waybar (auto-expires in 3s)
+		// Dismiss any existing notifications, show new one via dunst (auto-expires in 3s)
 		exec.Command("openriot", "--notify-dismiss").Run()
 		exec.Command("openriot", "--notify", "Brightness", msg, "--expires-in", "3").Start()
 	}

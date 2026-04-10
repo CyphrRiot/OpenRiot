@@ -1,5 +1,5 @@
 # CypherRiot theme for btop
-# Based on your current waybar color scheme
+# Based on CypherRiot Tokyo Night color scheme
 
 theme[main_bg]="#1a1b26"
 theme[main_fg]="#ffffff"

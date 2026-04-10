@@ -1,255 +1,107 @@
 # AGENTS.md - OpenRiot Codebase Guide
 
-You are a cautious, obedient coding assistant for an OpenBSD Go project with extensive YAML configs. Your #1 rule: NEVER execute git commit, git push, git add -A, or any permanent filesystem/git change without first showing me the exact proposed command/diff and waiting for my explicit "YES", "approve", or "go ahead" confirmation. If unsure, ask. Do not assume or act autonomously on changes.
-Always summarize planned actions first and seek approval for anything destructive or permanent.
-
-### PROPOSAL FORMAT (MANDATORY)
-
-Before ANY change, present in this format. ONE issue at a time. Wait for approval before proceeding.
-
-```
-Title: {title of issue}
-Description: {description of what we are fixing}
-Files: {list files impacted}
-Reason: {show reason / evidence}
-```
-
-Continue? [Y/n]
-
-### BUILD AND COMMIT RULES (MANDATORY)
-
-1. **NEVER commit without explicit user permission** — show diff first, wait for "yes"
-2. **NEVER bump VERSION without explicit user permission**
-3. **ALWAYS run `make` before a commit** (even config-only changes — to verify)
-4. **Commit binary with source changes** — use `git add -A` or `git commit -am`
-5. **The binary (`install/openriot`) IS the product** — if source changes, binary MUST be committed
-
-### PACKAGE VERIFICATION (MANDATORY)
-
-Before adding ANY package to `install/packages.yaml`, ALWAYS verify it exists in OpenBSD:
-- Search: https://openbsd.app/?search={package_name}&current=on
-- Do NOT assume a package exists
-- Report the search URL in your proposal
-
-### WAYBAR SCRIPTS (CURRENT)
-
-```
-waybar/scripts/
-├── openriot-update.sh      # waybar module
-├── system-metrics.sh       # CPU+RAM combined
-├── waybar-battery.sh       # battery status
-├── waybar-network          # network status
-├── waybar-volume.sh        # volume control
-├── weather-emoji-plain.sh  # weather display
-└── wifi-selector.sh        # network picker
-```
-
-**Removed (unused):** waybar-cpu.sh, waybar-memory.sh, waybar-temp.sh, wireguard-click.sh, wireguard-status.sh, recording-indicator.sh
+You are a cautious, obedient coding assistant for an OpenBSD Go project with extensive YAML configs. Your #1 rule: **NEVER execute git commit, git push, git add -A, or any permanent filesystem/git change without first showing the exact proposed command/diff and waiting for explicit "YES", "approve", or "go ahead" confirmation.** If unsure, ask. Do not assume or act autonomously on changes.
 
 ---
 
-## Current Project Status (April 2026 - v0.7)
+## CRITICAL PLATFORM RULES
 
-### Install Output Clean (April 2026)
-
-The install output is now clean and consistent:
-- 1-space indentation for all log levels
-- Packages: "Installing packages (X new, Y already installed)..." — only shows new ones
-- Configs: Category summaries like "[DONE] fish: 5 files"
-- Commands: Run silently, only errors shown
-- Source builds: Only show [DONE] if actually built (skip [SKIP] items)
-
-### Migration Complete
-Shell logic has been migrated to packages.yaml + Go binary. YAML is now single source of truth.
-
-**setup.sh role:** Bootstrap only - checks, git clone, then delegates to openriot binary
-**openriot --install role:** CopyConfigs() → ExecCommands() → SourceBuilds()
-
-### Bootstrap vs Binary Flow
-```
-setup.sh (bootstrap, runs BEFORE repo exists)
-├── check_openbsd_version
-├── configure_doas_installurl     # must run before pkg_add
-├── install_bootstrap_packages   # git
-└── setup_repository             # git clone
-
-openriot binary (handles install, AFTER repo exists)
-├── --install-packages           # pkg_add from packages.yaml
-├── --install                    # CopyConfigs + ExecCommands + SourceBuilds
-└── --source-builds              # build wlsunset, crush, etc.
-```
-
-### Binary Installation Locations
-| Binary | Location | Method |
-|--------|----------|--------|
-| openriot | ~/.local/share/openriot/install/openriot | Pre-built, shipped with repo |
-| wlsunset | /usr/local/bin/wlsunset | Built from source via meson |
-| crush | /usr/local/bin/crush | Downloaded pre-built from GitHub |
-| waybar, sway, foot, etc. | /usr/local/bin/ | OpenBSD packages via pkg_add |
-
-### No ~/.local/bin
-Nothing goes to ~/.local/bin. All binaries install to /usr/local/bin (system-wide) or stay in ~/.local/share/openriot.
-
----
-
-## Build Commands
-
-- `make build` — Cross-compile for OpenBSD amd64
-- `make dev` — Native build on Linux for testing
-- `make verify` — Build + smoke test (`--version`)
-- `make iso` — Full ISO build
-- `make binary-push` — Build + strip binary history + commit + force-push
-- `make download-packages` — Download packages into `~/.pkgcache/`
-- `make clean` — Clean build artifacts
-- `make test` — Run Go tests
-
-### Binary Commit Workflow (CRITICAL)
-
-The binary (`install/openriot`) is tracked in git WITHOUT history to keep repo small.
-
-**Workflow summary:**
-
-| Scenario | Command |
-|----------|---------|
-| Config/code only (no binary change) | `git add -A && git commit -am "msg" && git push` |
-| Binary + other changes | `git add -A && git commit -am "msg"` then `make binary-push` |
-| Binary-only change | `make binary-push` |
-
-**Step-by-step:**
-
-1. **Code/configs only** (no `make build`):
-   ```bash
-   git add -A
-   git commit -am "update sway config"
-   git push
-   ```
-
-2. **Code changes requiring new binary**:
-   ```bash
-   # a) Normal commit for configs/code
-   git add -A
-   git commit -am "add new installer module"
-
-   # b) Then rebuild and push binary (auto-strips history, force-pushes all)
-   make binary-push
-   ```
-
-**`make binary-push` does:**
-- Builds new binary
-- Checks if binary has >1 commit in git history
-- If yes: strips history with `git filter-repo`, restores origin, rebuilds
-- Commits binary + force-pushes everything
-
-**Warning:** `make binary-push` does `git push --force --all`. Collaborators must `git pull --rebase`.
-
-**NEVER do:**
-- `git add -A && git commit -am` then `make binary-push` (double-commit)
-- Add binary commits manually (use `make binary-push`)
-- Add `install/openriot` back to `.gitignore`
-
----
-
-### Commit & Push Workflow (Legacy)
-
-1. Make code/config changes
-2. Run `make build` — cross-compile OpenBSD binary into `install/openriot`
-3. **ALWAYS stage ALL changed files**: `git add -A` or `git commit -am "message"`
-4. Show diff to user for approval
-5. Only commit/push after explicit "yes" or "go ahead"
-
-**CRITICAL**: The binary (`install/openriot`) IS the product. If source changes, the binary MUST be committed. Use `make binary-push` for binary-containing commits.
-
----
-
-## Version Handling
-
-- Current version: v0.7 (see `VERSION` file)
-- Never hard-code version numbers
-- Read version from `Makefile` variable `OPENRIOT_VERSION`
+1. **YOU ARE ON OPENBSD** — `uname -a` confirms `OpenBSD mini.openriot.org 7.9`
+2. **Current branch:** `i3` — i3/X11 migration work ONLY until 100% working
+3. **Validate before acting** — Always verify packages with `pkg_info -Q <pkg>` on this OpenBSD system. Search https://openbsd.app/?search={pkg} for package availability.
+4. **Keep i3 branch focused** — No mixing sway/wayland work on this branch
 
 ---
 
 ## Project Overview
 
-OpenRiot is an OpenBSD desktop configuration tool. Install with:
+**OpenRiot** is an OpenBSD desktop configuration tool. Install with:
 ```bash
 curl -fsSL https://openriot.org/setup.sh | sh
 ```
 
-### Main Components
+**Platform:** OpenBSD 7.9 | **Language:** Go 1.26+ | **Build:** CGO-free cross-compilation
 
-1. **Binary (`source/main.go`)** - CLI with modes:
-   - `--install`: Deploy configs, run commands, source builds
-   - `--install-packages`: Install packages via pkg_add
-   - `--source-builds`: Build software from source
-   - `--packages`: List packages from YAML
-   - Runtime: `--volume`, `--brightness`, `--power-menu`, `--wlsunset`, etc.
+### Components
 
-2. **Configuration (`install/packages.yaml`)**
-   - YAML-based module definitions
-   - Package lists per module (bare names — `pkg_add` auto-resolves versions)
-   - Config file patterns and deployment rules
-   - Command execution for post-install setup (desc/cmd format)
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| CLI binary | `source/main.go` | Runtime commands + installer |
+| Installer modules | `source/installer/` | Copy configs, run commands, source builds |
+| Config YAML | `install/packages.yaml` | Single source of truth for all install logic |
+| Bootstrap script | `setup.sh` | Pre-repo setup (doas, git clone, delegates to binary) |
+| Pre-built binary | `install/openriot` | Shipped with repo, built from source/ |
 
-3. **Installer (`source/installer/`)**
-   - `configs.go`: Config file deployment with preserve rules, category summaries
-   - `packages.go`: Package installation logic, skip already-installed
-   - `execcommands.go`: Post-install command execution (silent)
-   - `sourcebuilds.go`: Source code compilation (skip if installed)
-   - `colors.go`: ANSI color constants for output
+### Architecture
 
-4. **Setup Script (`setup.sh`)** - Bootstrap only
+```
+setup.sh (bootstrap, runs BEFORE repo exists)
+├── check_openbsd_version
+├── configure_doas_installurl    # must run before pkg_add
+├── install_bootstrap_packages   # git
+└── setup_repository            # git clone
 
----
-
-## Installer Colors
-
-The openriot binary outputs colored text:
-- `[INFO]` = Blue (cyan)
-- `[WARN]` = Yellow
-- `[DONE]` = Green
-- `[DEBUG]` = White
-
-Color constants defined in `source/installer/colors.go`.
-
----
-
-## Module Structure (packages.yaml)
-
-```yaml
-module_name:
-    packages: ["package-name"]  # Bare names only — pkg_add resolves versions
-    configs:  # File deployment patterns
-        - pattern: "source_pattern/*"
-          target: "optional_target"
-          preserve_if_exists: ["file1", "file2"]
-    commands:  # Shell commands with descriptions
-        - desc: "Human-readable description"
-          cmd: "actual shell command"
-    build: ["source build commands"]  # For type: "Source"
-    depends: ["other.module"]
-    start: "Starting message"
-    end: "Completion message"
-    type: "Package|Source"
-    critical: true|false
+openriot binary (handles install, AFTER repo exists)
+├── openriot --install-packages  # pkg_add from packages.yaml
+├── openriot --install          # CopyConfigs() → ExecCommands() → SourceBuilds()
+└── openriot --source-builds    # build wlsunset, crush, etc. (called separately)
 ```
 
-**Module categories:** core, desktop, system, media, fonts, themes, source
+---
 
-**Package versions:** OpenBSD's `pkg_add` automatically resolves the latest version, so use bare package names (e.g., `foot` not `foot-1.26.1`). Full versions were used historically but are no longer needed.
+## Build Commands
+
+- `make build` — Cross-compile for OpenBSD amd64 (standard release)
+- `make linux` — Native build on Linux for testing (faster iteration)
+- `make verify` — `make linux` + smoke test (`./install/openriot --version`)
+- `make test` — Run Go tests (`cd source && go test ./...`)
+- `make deps` — Tidy Go module dependencies
+- `make clean` — Remove build artifacts
+- `make iso` — Build full bootable ISO
+- `make isotest` — Build ISO and run in QEMU
+- `make binary-push` — Build + strip binary history + commit + force-push
+- `make ultra` — Static build with optional UPX compression
+
+### Binary-in-Git Workflow (CRITICAL)
+
+The binary (`install/openriot`) is tracked in git **without history** to keep repo small.
+
+| Scenario | Command |
+|----------|---------|
+| Config/code only | `git add -A && git commit -am "msg" && git push` |
+| Code + binary change | `git add -A && git commit -am "msg"` then `make binary-push` |
+| Binary-only change | `make binary-push` |
+
+**`make binary-push` does:**
+1. Checks if binary has >1 commit in git history
+2. If yes: runs `git filter-repo --force --path install/openriot --invert-paths`, restores origin, rebuilds
+3. Commits binary + force-pushes everything (`git push --force --all`)
+
+**NEVER do:**
+- `git add -A && git commit -am` then `make binary-push` (double-commit)
+- Add `install/openriot` back to `.gitignore`
+
+---
+
+## Version Handling
+
+- Read version from `VERSION` file (single source of truth)
+- Read from Makefile: `OPENRIOT_VERSION = $(shell cat VERSION 2>/dev/null || echo "0.8")`
+- Versions are injected at build time via `go build -ldflags="-X main.version=$(OPENRIOT_VERSION)"`
+- **Never hard-code version numbers in Go files**
+- OpenBSD version also injected: `-X main.openbsdVersion=$(OPENBSD_VERSION)`
 
 ---
 
 ## Go Patterns
 
-- Error handling: functions return `error` as final return value
-- Logging: Print to stdout with `[INFO]`, `[WARN]`, `[DONE]` prefixes (1 space after tag)
-- File operations: Use `filepath.Join()`, check with `os.Stat()` + `os.IsNotExist()`
-- Test mode detection: `testMode` flag uses `~/Code/OpenRiot` vs `~/.local/share/openriot`
+- **Error handling:** functions return `error` as final return value
+- **Logging:** Print to stdout with `[INFO]`, `[WARN]`, `[DONE]` prefixes (1 space after tag)
+- **File operations:** Use `filepath.Join()`, check with `os.Stat()` + `os.IsNotExist()`
+- **Test mode:** `testMode` flag uses `~/Code/OpenRiot` vs `~/.local/share/openriot` paths
+- **Unused parameters:** Use `(void)param;` to avoid build failures (important for C code)
 
----
-
-## Adding New openriot CLI Flags
+### Adding New CLI Flags
 
 Pattern in `source/main.go`:
 ```go
@@ -258,98 +110,162 @@ if len(os.Args) >= 2 && os.Args[1] == "--your-flag" {
     return
 }
 ```
-**Always `return` after handling a flag.**
+**Always `return` after handling a flag.** Flags are checked sequentially; put `--version` and `--test` checks first.
+
+---
+
+## Module Structure (packages.yaml)
+
+YAML structure for installation modules:
+
+```yaml
+module_name:
+    packages: ["package-name"]        # Passed to pkg_add
+    configs:                          # File deployment rules
+        - pattern: "source_pattern/*"
+          target: "optional_target"  # Override default ~/.config/
+          preserve_if_exists: ["file1", "file2"]  # Skip if exists at dest
+    commands:                         # Shell commands to run post-install
+        - desc: "Human-readable description"
+          cmd: "actual shell command"
+    build: ["source build commands"]  # Only for type: "Source"
+    depends: ["other.module"]          # Not currently enforced
+    start: "Starting message"
+    end: "Completion message"
+    type: "Package|Source"
+    critical: true|false
+```
+
+**Module categories:** `core`, `desktop`, `system`, `media`, `fonts`, `themes`, `source`
+
+### YAML Categories vs. Actual Structure
+
+The Go `Config` struct has: `Core`, `System`, `Desktop`, `Media`, `Fonts`, `Themes`, `Source`
+
+However, `source` modules (wlsunset, crush, bibata-cursor, stormy) are nested under `desktop:` in packages.yaml, not under a top-level `source:` key. The `source` category in the YAML comments is misleading.
+
+---
+
+## Installer Modules
+
+| File | Function | Behavior |
+|------|----------|----------|
+| `configs.go` | `CopyConfigs()` | Deploys files from `config/` to `~/.config/`, skips identical content |
+| `packages.go` | `InstallPackages()` | Runs `pkg_info -e` first to skip already-installed packages |
+| `execcommands.go` | `ExecCommands()` | Runs commands silently, continues on error |
+| `sourcebuilds.go` | `SourceBuilds()` | Runs build commands as `/bin/sh`, skips on `[SKIP]` in output |
+| `colors.go` | Color constants | `[INFO]`=cyan, `[WARN]`=yellow, `[DONE]`=green, `[ERR!]`=red |
+
+### Config Deployment Rules
+
+- **Source:** `config/` directory in repo
+- **Destination:** `~/.config/` by default (override with `target: "~/path"` or absolute path)
+- **Glob patterns:** `pattern: "i3/*"` copies all files recursively
+- **Preserve:** `preserve_if_exists: ["file"]` skips copy if file already exists at destination
+- **Identical content:** Skips write if destination content matches source (prevents spurious reloads)
+
+### Source Build Pattern
+
+Each build command checks if already installed before doing work:
+```bash
+if [ -x /usr/local/bin/wlsunset ]; then echo '[SKIP] wlsunset already installed'; else ...build...; fi
+```
+The installer checks for `[SKIP]` in output to suppress the `[DONE]` message.
+
+---
+
+## Package Management
+
+- **pkg_add resolves versions** automatically, but `pkg_info -e` requires **exact versions** (e.g., `foot-1.26.1`, not `foot`)
+- **Verify packages exist:** Search https://openbsd.app/?search={package}&current=on before adding
+- **Package check:** `pkg_info -e <package>` returns success only with exact version
+- **Install command:** `doas pkg_add -D unsigned <package>`
+- **GetPackages()** deduplicates across all modules using a `seen` map
+- **Rule:** Always use exact versions in packages.yaml. Bare names cause `pkg_info -e` to fail and packages get reinstalled.
+
+---
+
+## Polybar Scripts
+
+Located at `config/polybar/scripts/`:
+
+```
+polybar/scripts/
+├── openriot-update.sh      # polybar module
+├── system-metrics.sh       # CPU+RAM combined
+├── battery.sh              # battery status
+├── network.sh              # network status
+├── volume.sh               # volume control
+├── weather-emoji-plain.sh  # weather display
+└── wifi-selector.sh       # network picker via rofi
+```
+
+**RULE:** Use Nerd Font icons in polybar custom modules — they work fine on X11.
+
+---
+
+## Terminal Configuration
+
+- **Current primary:** foot terminal (X11-native)
+- **Config:** `config/foot/foot.ini`
+- **Backup available:** alacritty (config in `config/alacritty/`)
 
 ---
 
 ## OpenBSD-Specific Technical Findings
 
-### OpenBSD has no librt
-- POSIX timer functions stubbed with ENOSYS
-- Use `ualarm()` instead (available in libc)
+| Issue | Solution |
+|-------|----------|
+| OpenBSD tar doesn't support `-J` flag | `xz -d file.tar.xz && tar -xf file.tar` |
+| OpenBSD has no librt | POSIX timers stubbed with ENOSYS; use `ualarm()` instead |
+| Keychron K2 Pro Mac mode | Sends Super keycodes as Mod4; i3 config uses `set $mod Mod4` |
+| Git config timing | `git config --global pull.rebase true` must run **before** any git operations |
+| curl usage in setup.sh | The installer already uses curl; banned commands apply to `wget` not `curl` |
 
-### OpenBSD tar doesn't support -J flag
-- Solution: `xz -d file.tar.xz && tar -xf file.tar`
+---
 
-### Git config timing
-- `git config --global pull.rebase true` must run **before** any git operations
+## Setup Script Details
 
-### Keychron K2 Pro Super Key Fix
-- Keychron K2 Pro in Mac mode sends Super keycodes recognized as Mod4
-- Changed `set $mod Mod4` in sway config (was Mod1/Alt)
-- Verify with `wev` — press Super key, should show MOD4 mod
-- Unused parameters/functions cause build failures
-- Use `(void)param;` for unused parameters
+- **Log file:** `~/.cache/openriot/setup.log` (NOT `~/.local/share/openriot/`)
+- **Real user detection:** Uses `getent passwd "$REAL_USER"` to find home directory — handles `doas`/`sudo` HOME mismatch
+- **Installurl:** Configures `/etc/installurl` with `https://cdn.openbsd.org/pub/OpenBSD`
+- **Git config:** Sets `pull.rebase=true` and `init.defaultBranch=master`
+- **No git history in clone:** `git clone --depth 1 -b main` for minimal footprint
 
-### Package Versions
-- OpenBSD's `pkg_add` auto-resolves latest versions — use bare package names (`foot` not `foot-1.26.1`)
-- Full versions were historically used but are no longer needed
-- `pkg_info -Q <package>` shows what's installed
+---
+
+## Config File Locations
+
+| File | Purpose |
+|------|---------|
+| `config/i3/config` | Main i3 WM config |
+| `config/i3/keybindings.conf` | User keybindings (included by main config) |
+| `config/polybar/config` | Polybar status bar |
+| `config/fish/config.fish` | Fish shell config |
+| `config/fastfetch/config.jsonc` | Fastfetch (replaces neofetch) |
+| `config/btop/btop.conf` | System monitor |
+| `config/helix/config.toml` | Helix editor |
+| `config/crypto.toml` | Crypto price API config (preserved on install) |
+| `config/applications/*.desktop` | Desktop entries installed to `~/.local/share/applications/` |
+| `config/backgrounds/*` | Wallpapers installed to `~/.local/share/openriot/backgrounds` |
+| `config/xinitrc/openriot-x11` | X11 startup script |
+| `config/xsession/openriot-xsession` | Xenodm session script |
+
+---
+
+## Progress.md vs AGENTS.md
+
+- **AGENTS.md:** Describes the codebase, patterns, conventions — what agents need to know
+- **Progress.md:** Tracks active issues, testing status, known bugs — project-level state
 
 ---
 
 ## User Preferences
 
-- **Propose before editing**: Show exact diff before applying changes
-- **Wait for confirmation**: Only edit after user says "yes", "y", "proceed", etc.
-- **One issue at a time**: Don't batch multiple changes together
-- **Test locally first**: For Go changes: `make dev` → `make build`
-- **Show proof**: Evidence that change works before asking for confirmation
-- **Use Nerd Font icons**: Prefer Nerd Font in fastfetch (not waybar JSON modules)
-- **No polling if possible**: Use signals (SIGUSR1) to refresh waybar modules
-- **Commit separately**: Each logical change gets its own commit
-
----
-
-## Recent Completed Work (v0.7)
-
-### Install Output Cleanup (April 2026)
-- Consistent 1-space indentation for all log levels
-- Remove duplicate "Deploying configuration files..." header
-- Commands run silently (only errors shown)
-- Package skip messages removed (show only new installs)
-- Category summaries for config deployment
-
-### Command Descriptions (April 2026)
-- Changed `commands: ["shell command"]` to `commands: [desc: "...", cmd: "..."]`
-- Cleaner output: "Adding fish to /etc/shells" instead of full command
-
-### Terminal Switch (April 2026)
-- Switched from alacritty to havoc terminal
-- havoc config at `config/havoc/havoc.cfg`
-
-### Package Version Fixes (April 2026)
-- havoc: 0.17.5p0 → 0.7.0 (correct OpenBSD version)
-- All packages now use full version strings
-
-### Waybar Scripts Cleanup (April 2026)
-- Removed unused scripts: waybar-cpu.sh, waybar-memory.sh, waybar-temp.sh, wireguard-*.sh, recording-indicator.sh
-- system-metrics.sh now combines CPU+RAM
-- Remaining: 10 files (was 16)
-
-### Fastfetch Logo Fix (April 2026)
-- Changed config.jsonc from "blowfish" to "openbsd_small"
-- Also set in fish alias and function
-
-### Screenshot Compression (April 2026)
-- screenshot.png (1.2MB) → screenshot.jpg (298KB)
-
----
-
-## Next Steps
-
-1. Test full install after these changes
-2. Verify havoc terminal works correctly
-3. Test waybar modules refresh properly
-
----
-
-## Related Files
-
-| File | Purpose |
-|------|---------|
-| `Progress.md` | Project-level tracking, known bugs |
-| `VERSION` | Current version (v0.7) |
-| `Makefile` | Build commands |
-| `install/packages.yaml` | Single source of truth for install |
-| `source/installer/` | Go installer modules |
+- **Propose before editing:** Show exact diff before applying changes
+- **Wait for confirmation:** Only edit after user says "yes", "y", "proceed", etc.
+- **One issue at a time:** Don't batch multiple changes together
+- **Test locally first:** For Go changes: `make dev` → `make build`
+- **Show proof:** Evidence that change works before asking for confirmation
+- **Commit separately:** Each logical change gets its own commit
+- **Verify packages:** Always check https://openbsd.app/ before adding packages
