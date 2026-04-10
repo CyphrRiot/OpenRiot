@@ -18,7 +18,7 @@ padding-right = 2
 font-0 = FiraCode Nerd Font:size=11
 font-1 = unifont:size=6;-3
 
-modules-left = i3
+modules-left = workspace1 workspace2 workspace3 workspace4
 modules-center = date
 modules-right = system-metrics volume network battery openriot-update power lock
 
@@ -32,6 +32,50 @@ label-unfocused = ○
 label-urgent = ●
 label-urgent-foreground = #d12121
 label-mode-foreground = #ffffff
+
+[module/workspace1]
+type = custom/script
+exec = $HOME/.local/share/openriot/config/polybar/scripts/workspaces.sh 1
+interval = 2
+tail = true
+format = <label>
+format-foreground = #ffffff
+label = %output%
+click-left = i3-msg workspace 1
+tooltip = Workspace 1
+
+[module/workspace2]
+type = custom/script
+exec = $HOME/.local/share/openriot/config/polybar/scripts/workspaces.sh 2
+interval = 2
+tail = true
+format = <label>
+format-foreground = #888888
+label = %output%
+click-left = i3-msg workspace 2
+tooltip = Workspace 2
+
+[module/workspace3]
+type = custom/script
+exec = $HOME/.local/share/openriot/config/polybar/scripts/workspaces.sh 3
+interval = 2
+tail = true
+format = <label>
+format-foreground = #888888
+label = %output%
+click-left = i3-msg workspace 3
+tooltip = Workspace 3
+
+[module/workspace4]
+type = custom/script
+exec = $HOME/.local/share/openriot/config/polybar/scripts/workspaces.sh 4
+interval = 2
+tail = true
+format = <label>
+format-foreground = #888888
+label = %output%
+click-left = i3-msg workspace 4
+tooltip = Workspace 4
 
 [module/date]
 type = internal/date

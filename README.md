@@ -380,7 +380,7 @@ Polybar is your status bar. Click on modules for more:
 
 | Module          | Click Action                        |
 | --------------- | ---------------------------------- |
-| Workspace       | Click ●/○ to switch                |
+| Workspaces      | Click any workspace to switch       |
 | Date            | Shows day, date, time             |
 | System Metrics  | Shows CPU + RAM usage              |
 | Volume          | Click to toggle, scroll to adjust |
@@ -389,6 +389,16 @@ Polybar is your status bar. Click on modules for more:
 | OpenRiot Update | Click to check for updates        |
 | Power           | Click for power menu               |
 | Lock            | Click to lock screen               |
+
+**Workspace Bar:** Shows all 4 workspaces with indicators and app icons. Example:
+
+```
+● 󰊠 󰈹   ○   ◉ 󰝰   ○
+```
+- `●` focused workspace
+- `◉` unfocused with windows
+- `○` empty workspace
+- Icons show running apps: `󰊠` foot, `󰈹` firefox, `󰝰` thunar, etc.
 
 ## Shell Aliases & Quick Reference
 
