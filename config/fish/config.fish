@@ -19,13 +19,7 @@ if not test -d $XDG_RUNTIME_DIR
     mkdir -p $XDG_RUNTIME_DIR
 end
 
-# Greeting with fastfetch if available
-function fish_greeting
-    if command -v fastfetch >/dev/null 2>&1
-        # Run fastfetch with timeout to prevent hanging on font/locale issues
-        timeout 5 fastfetch --logo-width 20 --logo openbsd_small 2>/dev/null
-    end
-end
+# No greeting - prevents fastfetch hangs in foot
 
 # =============================================================================
 # Path Configuration
