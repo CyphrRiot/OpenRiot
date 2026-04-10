@@ -62,8 +62,8 @@ desktop:
             - polybar-3.7.2
             - rofi-1.7.9.1
             - scrot-1.12.1
-            - feh-3.10.3
-            - picom-11.2p0
+            - feh-3.11.3
+            - picom-13
             - xclip-0.13p1
             - ImageMagick-6.9.13.43
             - dunst-1.13.1
