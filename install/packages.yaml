@@ -69,7 +69,7 @@ desktop:
             - dunst-1.13.1
             - clipmenu-6.2.0
             - clipnotify-1.0.2
-            - dmenu-5.7
+            - dmenu-5.4
             - libqalculate-5.8.0p1
             - redshift-1.12p11
         configs:
@@ -128,12 +128,12 @@ desktop:
             - tdesktop-6.6.4p0
             - helix-25.07.1
             - lsd-1.1.5p2
-            - thunar-4.20.8p0
+            - thunar-4.20.8
             - thunar-archive-0.6.0
             - thunar-vcs-0.4.0
-            - xfce4-settings-4.20.1p0
+            - xfce4-settings-4.20.4
             - lf-41
-            - abiword-3.0.5p2v0
+            - abiword-3.0.9pre20260116
         configs:
             - pattern: gtk-3.0/*
             - pattern: gtk-4.0/*
