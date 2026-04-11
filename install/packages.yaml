@@ -224,7 +224,6 @@ system:
         type: "Package"
         critical: true
 
-system:
     services:
         type: "Package"
         commands:
