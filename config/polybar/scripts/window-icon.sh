@@ -19,7 +19,7 @@ case "$CLASS" in
     # === Browsers ===
     firefox) echo "󰈹" ;;
     firefox-esr) echo "󰈹" ;;
-    chromium|chrome) echo "󰊯" ;;
+    chromium|chrome|ungoogled-chromium) echo "󰊯" ;;
     thorium) echo "󰊯" ;;
     librewolf) echo "󰈹" ;;
     floorp) echo "󰈹" ;;
@@ -36,12 +36,7 @@ case "$CLASS" in
     dolphin) echo "󰝰" ;;
     pcmanfm) echo "󰝰" ;;
     pcmanfm-qt) echo "󰝰" ;;
-    lf) echo "󰝰" ;;
-    ranger) echo "󰝰" ;;
-    yazi) echo "󰝰" ;;
-    nnn) echo "󰝰" ;;
-   车上) echo "󰝰" ;;
-   车上-desktop) echo "󰝰" ;;
+    lf|ranger|yazi|nnn) echo "󰝰" ;;
 
     # === Communication ===
     telegram-desktop|tdesktop|telegram) echo "󰘦" ;;
@@ -93,8 +88,9 @@ case "$CLASS" in
     vlc) echo "󰕼" ;;
     totem) echo "󰕼" ;;
     audacious) echo "󰕼" ;;
-    smplayer) echo "󰕼" ;;
-    smplayer) echo "󰕼" ;;
+    smplayer|lollypop) echo "󰕼" ;;
+    strawberry|lollypop) echo "󰽴" ;;
+    cmus|cantata|ncmpcpp|mpd) echo "󰽴" ;;
     strawberry) echo "󰽴" ;;
     lxmusic) echo "󰽴" ;;
     rhythmbox) echo "󰝚" ;;

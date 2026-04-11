@@ -28,9 +28,20 @@
   <meta name="author" content="CyphrRiot">
   <meta name="theme-color" content="#8b5cf6">
 
-  <!-- Preload critical fonts -->
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Nerd Font for polybar-style icons - loads @font-face declarations -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono-nerd-font@1.0.0/index.css">
+
+  <!-- JetBrains Mono from Google Fonts -->
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"></noscript>
+
+  <style>
+    /* Map Nerd Font PUA icons to Font Awesome equivalents */
+    .icon-launcher::before { content: "\f026"; font-family "Font Awesome 6 Free"; font-weight: 900; }
+  </style>
 
   <style>
     /* Remove only the top padding/margin that creates blank space */

@@ -68,9 +68,9 @@ func RunCrypto(mode string) error {
 
 	// Get cache paths
 	cacheDir := getCacheDir()
-	curFile := filepath.Join(cacheDir, "openriot-crypto.json")
-	prevFile := filepath.Join(cacheDir, "openriot-crypto-prev.json")
-	ohlcFile := filepath.Join(cacheDir, "openriot-ohlc.json")
+	curFile := filepath.Join(cacheDir, "hyprlock-crypto.json")
+	prevFile := filepath.Join(cacheDir, "hyprlock-crypto-prev.json")
+	ohlcFile := filepath.Join(cacheDir, "hyprlock-ohlc.json")
 
 	// Fetch prices
 	ids := make([]string, 0)
@@ -165,7 +165,7 @@ func RunCrypto(mode string) error {
 
 	switch mode {
 	case "ROWML":
-		return outputROWML(items, config.Display.ShowTotals, curFile)
+		return outputROWML(items, config.Display.ShowTotals, curFile, config.Indicators.Oversold)
 	case "ROW":
 		return outputROW(items)
 	default:
@@ -228,7 +228,7 @@ func fetchPrices(ids []string, curFile string, apiKey string) {
 		url += "&x_cg_demo_api_key=" + apiKey
 	}
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("User-Agent", "OpenRiot/crypto")
+	req.Header.Set("User-Agent", "ArchRiot/hyprlock-crypto")
 
 	client := &http.Client{Timeout: 6 * time.Second}
 	resp, err := client.Do(req)
@@ -315,24 +315,21 @@ func fetchOHLC(coinID string, days int, apiKey string) []float64 {
 	}
 
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("User-Agent", "OpenRiot/crypto")
+	req.Header.Set("User-Agent", "ArchRiot/hyprlock-crypto")
 
 	client := &http.Client{Timeout: 8 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-
 		return nil
 	}
 	defer resp.Body.Close()
 
 	var data map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-
 		return nil
 	}
 
 	if prices, ok := data["prices"].([]interface{}); ok {
-
 		result := make([]float64, len(prices))
 		for i, p := range prices {
 			if arr, ok := p.([]interface{}); ok && len(arr) > 1 {
@@ -422,8 +419,118 @@ func calculateBollingerBands(prices []float64, period int, stdDev float64) (uppe
 	return math.Round(upper*100) / 100, math.Round(lower*100) / 100
 }
 
+// coinIsConcentrated returns true if the coin exceeds 35% of portfolio
+func coinIsConcentrated(sym string, items []CryptoItem) bool {
+	for _, it := range items {
+		if it.Sym == sym && it.Held > 0 && it.Price > 0 {
+			coinValue := it.Held * it.Price
+			totalValue := 0.0
+			for _, item := range items {
+				if item.Price > 0 && item.Held > 0 {
+					totalValue += item.Held * item.Price
+				}
+			}
+			if totalValue > 0 && (coinValue/totalValue) > 0.35 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// checkConcentration checks if a coin exceeds 35% of portfolio value
+func checkConcentration(sym string, held, price float64, items []CryptoItem) string {
+	if held <= 0 || price <= 0 {
+		return ""
+	}
+	coinValue := held * price
+	totalValue := 0.0
+	for _, it := range items {
+		if it.Price > 0 && it.Held > 0 {
+			totalValue += it.Held * it.Price
+		}
+	}
+	if totalValue > 0 && (coinValue/totalValue) > 0.35 {
+		return " ⚠"
+	}
+	return ""
+}
+
+// coinPercentOfPortfolio returns the percentage of portfolio a coin represents
+func coinPercentOfPortfolio(sym string, items []CryptoItem) float64 {
+	coinValue := 0.0
+	totalValue := 0.0
+	for _, it := range items {
+		if it.Price > 0 && it.Held > 0 {
+			totalValue += it.Held * it.Price
+			if it.Sym == sym {
+				coinValue = it.Held * it.Price
+			}
+		}
+	}
+	if totalValue > 0 {
+		return coinValue / totalValue
+	}
+	return 0
+}
+
+// findRotationTarget returns the best coin to rotate INTO (lowest RSI, below 35% allocation)
+func findRotationTarget(items []CryptoItem, oversold int, currentSym string) string {
+	// Collect candidates and their scores
+	type candidate struct {
+		sym   string
+		score float64
+	}
+	var candidates []candidate
+
+	for _, it := range items {
+		if it.Sym == currentSym || it.Sym == "USD" || it.Sym == "USDC" {
+			continue
+		}
+		if it.RSI == 0 {
+			continue
+		}
+		// Skip concentrated coins (>35%)
+		if coinIsConcentrated(it.Sym, items) {
+			continue
+		}
+
+		// Skip coins >15% of portfolio - avoid concentration
+		if coinPercentOfPortfolio(it.Sym, items) > 0.15 {
+			continue
+		}
+
+		// Score: prefer oversold coins, then lowest RSI
+		score := it.RSI
+		if it.RSI <= float64(oversold) {
+			score -= 50 // Bonus for oversold
+		}
+		// Also penalize if price is above BB upper (overbought)
+		if it.BBUpper > 0 && it.Price > it.BBUpper {
+			score += 30
+		}
+
+		candidates = append(candidates, candidate{sym: it.Sym, score: score})
+	}
+
+	// Pick best candidate
+	bestScore := 101.0
+	bestCoin := ""
+	for _, c := range candidates {
+		if c.score < bestScore {
+			bestScore = c.score
+			bestCoin = c.sym
+		}
+	}
+
+	if bestCoin == "" {
+		return "USD"
+	}
+	return bestCoin
+}
+
 // calculateSellLimit computes the optimal sell limit (max 20% of entry value)
-func calculateSellLimit(sym string, currentPrice, entryPrice, held float64, item CryptoItem, items []CryptoItem) string {
+func calculateSellLimit(sym string, currentPrice, entryPrice, held float64, item CryptoItem, items []CryptoItem, oversold int) string {
 	// Skip USD-like stablecoins - you can't sell USD into another token
 	upperSym := strings.ToUpper(sym)
 	if upperSym == "USD" || upperSym == "USDC" || upperSym == "USDT" || upperSym == "DAI" {
@@ -474,14 +581,15 @@ func calculateSellLimit(sym string, currentPrice, entryPrice, held float64, item
 
 	unitsStr := formatUnits(unitsToSell)
 	targetStr := formatPrice(targetPrice)
+	rotationTarget := findRotationTarget(items, oversold, sym)
 
 	if currentPrice < entryPrice && entryPrice > 0 {
 		stopPrice := currentPrice * 0.90
 		stopStr := formatPrice(stopPrice)
-		return fmt.Sprintf("%s @ $%s (Stop)", unitsStr, stopStr)
+		return fmt.Sprintf("%s @ $%s (Stop) → %s", unitsStr, stopStr, rotationTarget)
 	}
 
-	return fmt.Sprintf("%s @ $%s", unitsStr, targetStr)
+	return fmt.Sprintf("%s @ $%s → %s", unitsStr, targetStr, rotationTarget)
 }
 
 // Output formatters matching shell script exactly
@@ -651,17 +759,17 @@ func outputROW(items []CryptoItem) error {
 		}
 		parts = append(parts, line)
 	}
-	fmt.Println(strings.Join(parts, " * "))
+	fmt.Println(strings.Join(parts, " • "))
 	return nil
 }
 
-func outputROWML(items []CryptoItem, showTotals bool, curFile string) error {
+func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold int) error {
 	lines := []string{}
 
 	// Header row
-	header := "COIN     HELD   PRICE        % GAINS       $ GAINS           REBALANCE"
+	header := "COIN     HELD   PRICE        % GAINS       $ GAINS                REBALANCE"
 	lines = append(lines, header)
-	separator := "------ ------   -----------  -------  ------------   -----------------"
+	separator := "------ ------   -----------  -------  ------------   ----------------------"
 	lines = append(lines, separator)
 
 	// Sort items - preserve config order, move USD to end (matching shell)
@@ -682,14 +790,14 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string) error {
 	}
 
 	for _, item := range displayItems {
-		arrow := " *"
+		arrow := " •"
 		if item.Price > 0 && item.PrevPrice > 0 {
 			if item.Price > item.PrevPrice {
-				arrow = " "
+				arrow = " ▲"
 			} else if item.Price < item.PrevPrice {
-				arrow = " "
+				arrow = " ▼"
 			} else {
-				arrow = " *"
+				arrow = " •"
 			}
 		}
 
@@ -717,15 +825,21 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string) error {
 
 		// Calculate sell limit
 		sellStr := ""
-		if item.Held > 0 {
-			sellStr = fmt.Sprintf("%17s", calculateSellLimit(item.Sym, item.Price, item.Entry, item.Held, item, items))
+		if item.Held > 0 && item.Sym != "USD" && item.Sym != "USDC" {
+			sellStr = calculateSellLimit(item.Sym, item.Price, item.Entry, item.Held, item, items, oversold)
+		}
+
+		// Check concentration
+		concStr := checkConcentration(item.Sym, item.Held, item.Price, items)
+		if concStr != "" {
+			symStr = item.Sym + concStr
 		}
 
 		// Build line matching shell format exactly:
 		// Shell: f"{sym} {held_str} {price_str} {pct_str} {amt_str}{arrow}{sell_str:>22}"
 		// Note: NO space between amt_str and arrow in shell
 		priceStr := fmtPrice(item.Price)
-		line := fmt.Sprintf("%s %s %s %s %s%s %s", symStr, heldStr, priceStr, pctStr, amtStr, arrow, sellStr)
+		line := fmt.Sprintf("%s %s %s %s %s%s %22s", symStr, heldStr, priceStr, pctStr, amtStr, arrow, sellStr)
 		lines = append(lines, line)
 	}
 
@@ -756,7 +870,7 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string) error {
 			} else {
 				gainStr = "-" + formatNumberWithWidth(-gainTotal, 12)
 			}
-			lines = append(lines, fmt.Sprintf("%s%s%s", strings.Repeat(" ", 37), gainStr, strings.Repeat(" ", 15))+heldStr)
+			lines = append(lines, fmt.Sprintf("%s%s%s", strings.Repeat(" ", 37), gainStr, strings.Repeat(" ", 13))+heldStr)
 		} else {
 			var gainStr string
 			if gainTotal >= 0 {
@@ -764,7 +878,7 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string) error {
 			} else {
 				gainStr = "-" + formatNumberWithWidth(-gainTotal, 12)
 			}
-			lines = append(lines, fmt.Sprintf("%s%s%s", strings.Repeat(" ", 37), gainStr, strings.Repeat(" ", 23)))
+			lines = append(lines, fmt.Sprintf("%s%s%s", strings.Repeat(" ", 37), gainStr, strings.Repeat(" ", 21)))
 		}
 	}
 

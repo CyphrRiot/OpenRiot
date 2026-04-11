@@ -16,7 +16,7 @@ func RunMetrics() error {
 	// RAM usage — OpenBSD
 	ram := getRAM()
 
-	fmt.Printf(" %s%% %s%%\n", cpu, ram)
+	fmt.Printf("  󰘚 %s%%  󰘛 %s%%\n", cpu, ram)
 	return nil
 }
 
@@ -43,7 +43,7 @@ func getCPU() string {
 }
 
 func getRAM() string {
-	// Get total memory
+	// Get total physical memory
 	totalOut, err := exec.Command("sysctl", "-n", "hw.physmem").Output()
 	if err != nil {
 		return "0"
@@ -53,37 +53,32 @@ func getRAM() string {
 		return "0"
 	}
 
-	// Get free pages and page size
-	pageSizeOut, err := exec.Command("sysctl", "-n", "hw.pagesize").Output()
-	if err != nil {
-		return "0"
-	}
-	pageSize, err := strconv.ParseInt(strings.TrimSpace(string(pageSizeOut)), 10, 64)
-	if err != nil {
-		return "0"
-	}
-
-	vmstatOut, err := exec.Command("vmstat", "2", "1").Output()
+	// Parse vmstat for free memory
+	vmstatOut, err := exec.Command("vmstat", "1", "1").Output()
 	if err != nil {
 		return "0"
 	}
 	lines := strings.Split(strings.TrimSpace(string(vmstatOut)), "\n")
-	if len(lines) < 3 {
+	if len(lines) < 2 {
 		return "0"
 	}
-	fields := strings.Fields(lines[2])
-	// free pages is typically the 5th column (index 4)
-	if len(fields) > 4 {
-		freePages, err := strconv.ParseInt(fields[4], 10, 64)
-		if err != nil {
-			return "0"
+	fields := strings.Fields(lines[len(lines)-1])
+	// vmstat output: avm and fre columns with M suffix
+	// fre is free memory in MB
+	var freeMB int64
+	for _, f := range fields {
+		if strings.HasSuffix(f, "M") && !strings.Contains(f, "K") {
+			mb, _ := strconv.ParseInt(strings.TrimSuffix(f, "M"), 10, 64)
+			// Last M value is typically free memory
+			freeMB = mb
 		}
-		freeBytes := freePages * pageSize
-		usedBytes := total - freeBytes
-		ramPct := int(usedBytes * 100 / total)
-		return strconv.Itoa(ramPct)
 	}
-	return "0"
+	if freeMB == 0 {
+		return "0"
+	}
+	usedMB := int64(total/(1024*1024)) - freeMB
+	ramPct := int(usedMB * 100 / (total / (1024 * 1024)))
+	return strconv.Itoa(ramPct)
 }
 
 // RunVolume outputs volume with icon for polybar
@@ -94,13 +89,13 @@ func RunVolume() error {
 
 	var icon string
 	if mute {
-		icon = "🔇"
+		icon = "󰖁"
 	} else if vol >= 70 {
-		icon = "🔊"
+		icon = "󰕾"
 	} else if vol >= 30 {
-		icon = "🔉"
+		icon = "󰖀"
 	} else {
-		icon = "🔈"
+		icon = "󰕿"
 	}
 
 	fmt.Printf("%s %d%%\n", icon, vol)

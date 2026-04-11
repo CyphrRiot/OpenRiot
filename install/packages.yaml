@@ -95,6 +95,8 @@ desktop:
               target: "~/.xinitrc"
             - pattern: xsession/openriot-xsession
               target: "~/.xsession"
+            - pattern: picom.conf
+              target: "~/.config/picom.conf"
         commands:
             - desc: "Make all scripts executable"
               cmd: "find ~/.local/share/openriot/config -name \"*.sh\" -exec chmod +x {} \\; 2>/dev/null || true"
@@ -133,6 +135,7 @@ desktop:
             - thunar-archive-0.6.0
             - thunar-vcs-0.4.0
             - xfce4-settings-4.20.4
+            - gnome-themes-extra-3.28p7
             - lf-41
             - abiword-3.0.9pre20260116
         configs:
@@ -140,6 +143,8 @@ desktop:
             - pattern: gtk-4.0/*
             - pattern: Thunar/*
               target: "~/.config/Thunar/"
+            - pattern: xfce4/*
+              target: "~/.config/xfce4/"
             - pattern: helix/*
               preserve_if_exists: [config.toml]
             - pattern: crypto.toml
@@ -163,7 +168,7 @@ desktop:
         type: "Package"
         critical: false
 
-
+source:
     crush:
         type: "Source"
         build:
@@ -183,10 +188,18 @@ desktop:
     stormy:
         type: "Source"
         build:
-            - "if [ -x /usr/local/bin/stormy ]; then echo '[SKIP] stormy already installed'; else go install github.com/ashish0kumar/stormy@latest && doas mv \"$HOME/go/bin/stormy\" /usr/local/bin/stormy && doas chmod +x /usr/local/bin/stormy; fi"
+            - "if [ -x /usr/local/bin/stormy ]; then echo '[SKIP] stormy already installed'; else go install github.com/ashish0kumar/stormy@latest && doas mv \"$HOME/go/bin/stormy\" /usr/local/share/applications/ && doas chmod +x /usr/local/share/applications/stormy; fi"
         depends: [system.tools]
         start: "Installing stormy weather CLI"
         end: "stormy installed"
+
+    wifi-menu:
+        type: "Source"
+        build:
+            - "if [ -x /usr/local/bin/wifi-menu ]; then echo '[SKIP] wifi-menu already installed'; else curl -fsSL https://github.com/D5Nch3ck/wifi-menu/releases/latest/download/wifi-menu -o /tmp/wifi-menu && doas mv /tmp/wifi-menu /usr/local/bin/wifi-menu && doas chmod +x /usr/local/bin/wifi-menu; fi"
+        depends: []
+        start: "Installing wifi-menu"
+        end: "wifi-menu installed"
 
 fonts:
     fira-code:

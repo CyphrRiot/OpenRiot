@@ -1,7 +1,7 @@
 #!/bin/sh
 # OpenRiot - Polybar Network Status
 # OpenBSD compatible — uses ifconfig(8)
-# Output: plain text with Nerd Font icons
+# Output: ETH and/or WIFI icons based on active interfaces
 
 get_wifi_interface() {
     ifconfig | awk '/^[a-z]/ { iface=$1 } /ieee80211/ { print iface; exit }'
@@ -11,7 +11,7 @@ get_eth_interface() {
     ifconfig | awk '/^[a-z]/ { iface=$1 } /status: active/ && iface !~ /lo|vlan|enc|pflog|tun|wg/ { print iface; exit }'
 }
 
-get_wifi() {
+get_wifi_icon() {
     iface="$1"
     info=$(ifconfig "$iface" 2>/dev/null)
     ssid=$(printf '%s' "$info" | grep -oE 'nwid [^ ]+' | awk '{print $2}')
@@ -19,7 +19,7 @@ get_wifi() {
         printf "󰤟"
         return
     fi
-    signal=$(printf '%s' "$info" | grep -oE 'signal [-0-9]+' | awk '{print $2}')
+    signal=$(printf '%s' "$info" | grep -oE '\-?[0-9]+dBm' | tr -d 'dBm')
     if [ -n "$signal" ]; then
         percent=$(awk -v s="$signal" 'BEGIN { p = int((s + 100) * 2); if (p > 100) p = 100; if (p < 0) p = 0; print p }')
     else
@@ -36,20 +36,22 @@ get_wifi() {
     else
         icon="󰤯"
     fi
-    printf "%s %s" "$icon" "$ssid"
+    printf "%s" "$icon"
 }
 
-get_ethernet() {
-    printf "󰈀"
-}
-
+output=""
 eth=$(get_eth_interface)
 wifi=$(get_wifi_interface)
 
 if [ -n "$eth" ]; then
-    get_ethernet
-elif [ -n "$wifi" ]; then
-    get_wifi "$wifi"
-else
+    output="${output}󰈀  "
+fi
+if [ -n "$wifi" ]; then
+    output="${output}$(get_wifi_icon)"
+fi
+
+if [ -z "$output" ]; then
     printf "󰤯"
+else
+    printf "%s" "$output"
 fi

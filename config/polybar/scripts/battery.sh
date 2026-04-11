@@ -6,11 +6,12 @@
 percent=$(apm -l 2>/dev/null)
 ac=$(apm -a 2>/dev/null)
 
-if [ -z "$percent" ] || [ "$percent" -eq 255 ]; then
-    printf " "
+# No battery or error - output nothing
+if [ -z "$percent" ] || [ "$percent" = "255" ] || [ "$percent" = "0" ]; then
     exit 0
 fi
 
+# Has battery - output status
 if [ "$ac" = "1" ]; then
     icon="󰂄"
 elif [ "$percent" -ge 90 ]; then

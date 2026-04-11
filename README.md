@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-0.8-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.0-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -42,7 +42,7 @@ This isn’t shaped by committees, corporate roadmaps, or quarterly deliverables
 
 ---
 
-![OpenRiot Desktop](assets/screenshot.jpg)
+![OpenRiot Desktop](assets/screenshot.png)
 
 ## ⚠️ **NOT READY FOR PRODUCTION USE** ⚠️
 
@@ -72,7 +72,6 @@ The ISO install is functional but has known limitations:
 - [🔧 Troubleshooting](#troubleshooting)
 - [🦊 Browser & Data Transfer](#browser--data-transfer)
 - [📄 License](#license)
-- [📋 Progress](./Progress.md)
 
 ## ✅ Supported Systems
 
@@ -203,7 +202,7 @@ Before booting the OpenRiot ISO:
 
 ### Why This Matters for OpenBSD
 
-OpenBSD is more conservative than Linux about hardware defaults. It assumes a clean, standards-compliant UEFI environment. Secure Boot, fast boot, and RAID modes are all Microsoft/Intel/AMD-specific optimizations that OpenBSD doesn't use — they can cause boot failures, disk recognition issues, or prevent Sway from starting.
+OpenBSD is more conservative than Linux about hardware defaults. It assumes a clean, standards-compliant UEFI environment. Secure Boot, fast boot, and RAID modes are all Microsoft/Intel/AMD-specific optimizations that OpenBSD doesn't use — they can cause boot failures, disk recognition issues, or prevent i3 from starting.
 
 ## 🔊 Bluetooth
 
@@ -340,34 +339,44 @@ _This section is being actively documented. For now, the essential bindings are 
 
 ### Essential Keybindings
 
-|| Key                   | Action                     |
-|| --------------------- | -------------------------- |
-|| `Super + Return`      | Open terminal              |
-|| `Super + Shift + Return` | Floating terminal        |
-|| `Super + D`           | Open app launcher (rofi) |
-|| `Super + Q`           | Close window               |
-|| `Super + E`           | Proton Mail (web app)      |
-|| `Super + L`           | Lock screen                |
-|| `Super + Z`           | Toggle floating            |
-|| `Super + H`           | Split horizontal           |
-|| `Super + V`           | Split vertical             |
-|| `Super + P`           | Toggle layout              |
-|| `Super + 1-4`         | Switch workspace           |
-|| `Super + Shift + 1-4` | Move window to workspace   |
-|| `Super + Shift + E`   | Exit i3                    |
-|| `Super + F`           | File Manager (Thunar)      |
-|| `Super + B`           | Browser                    |
-|| `Super + O`           | Open Helix (editor)        |
-|| `Super + C`           | Open Crush AI              |
-|| `Super + T`           | Open system monitor (btop) |
-|| `Super + G`           | Telegram                   |
-|| `Super + M`           | Google Messages            |
-|| `Super + X`           | X (Twitter)               |
-|| `Super + K`           | Google Keep                |
-|| `Super + Shift + S`   | Screenshot (region)        |
-|| `Alt + Tab`           | Cycle windows              |
-|| `Alt + Shift + Tab`   | Cycle windows (reverse)    |
-|| `Super + Shift + H`   | OpenRiot Help (website)    |
+| Key                          | Action                           |
+| ---------------------------- | -------------------------------- |
+| `Super + Return`             | Open terminal                    |
+| `Super + Shift + Return`     | Floating terminal                |
+| `Super + D`                  | Open app launcher (rofi)         |
+| `Super + Q`                  | Close window                     |
+| `Super + E`                  | Proton Mail (web app)            |
+| `Super + L`                  | Lock screen                      |
+| `Super + Z`                  | Toggle floating                  |
+| `Super + H`                  | Split horizontal                 |
+| `Super + P`                  | Toggle layout                    |
+| `Super + Shift + F`          | Toggle fullscreen                |
+| `Super + 1-4`               | Switch workspace                 |
+| `Super + Shift + 1-4`        | Move window to workspace         |
+| `Super + Shift + E`          | Exit i3                          |
+| `Super + F`                  | File Manager (Thunar)            |
+| `Super + B`                  | Browser (Firefox)                |
+| `Super + O`                  | Open Helix (editor)             |
+| `Super + C`                  | Open Crush AI                    |
+| `Super + T`                  | Open system monitor (btop)      |
+| `Super + G`                  | Telegram                         |
+| `Super + M`                  | Google Messages                  |
+| `Super + X`                  | X (Twitter)                      |
+| `Super + K`                  | Google Keep                      |
+| `Super + W`                  | Next wallpaper                   |
+| `Super + Shift + S`          | Screenshot (region)              |
+| `Super + Shift + V`          | Clipboard manager                 |
+| `Alt + Tab`                  | Cycle windows                    |
+| `Alt + Shift + Tab`          | Cycle windows (reverse)          |
+| `Super + Shift + H`          | OpenRiot Help (website)          |
+| `Super + Escape`             | Power menu                       |
+| `Super + =`                  | Calculator (rofi)                |
+| `Super + [ / ]`              | Resize: shrink/grow width       |
+| `Super + Shift + [ / ]`      | Resize: shrink/grow height      |
+| `Super + -`                  | Show scratchpad                  |
+| `Super + Shift + -`          | Move to scratchpad               |
+| `Super + Shift + C`          | Reload i3 config                 |
+| `Super + Shift + R`          | Restart i3                       |
 
 
 ### App Launcher (Rofi)
@@ -376,7 +385,7 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 
 | App              | Icon | Description              |
 | ---------------- | ---- | ------------------------ |
-| Terminal         | 󰽒   | Foot terminal emulator   |
+| Terminal         | 󰽒   | Alacritty terminal       |
 | Firefox          | 󰈹   | Web browser              |
 | Telegram         | 󰘦   | Messaging app            |
 | Flare            | 󰇢   | Matrix messenger         |
@@ -391,7 +400,7 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | Transmission     | 󰇚   | BitTorrent client        |
 | Proton Mail      | 󰊫   | Email (web app)          |
 
-![OpenRiot Foot Terminal](assets/terminal.png)
+![OpenRiot Terminal](assets/terminal.png)
 
 ### Polybar Modules
 
@@ -399,35 +408,39 @@ Polybar is your status bar. Click on modules for more:
 
 | Module          | Click Action                        |
 | --------------- | ---------------------------------- |
-| Workspaces      | Click any workspace to switch       |
-| Date            | Shows day, date, time             |
-| System Metrics  | Shows CPU + RAM usage              |
-| Volume          | Click to toggle, scroll to adjust |
-| Network         | Shows connection status            |
-| Battery         | Shows charge percentage           |
-| OpenRiot Update | Click to check for updates        |
-| Power           | Click for power menu               |
-| Lock            | Click to lock screen               |
+| Launcher        | Opens app launcher                  |
+| Workspaces 1-4  | Click to switch workspace           |
+| Window Title    | Shows focused window name           |
+| Date           | Click: next wallpaper              |
+| CPU            | Shows CPU usage                     |
+| Volume         | Click to toggle mute, scroll adjust |
+| Network        | Click for wifi-menu                 |
+| Battery        | Shows charge percentage + time      |
+| OpenRiot Update | Click to check for updates         |
+| Power          | Click for power menu               |
+| Lock           | Click to lock screen               |
 
 **Workspace Bar:** Shows all 4 workspaces with indicators and app icons. Example:
 
 ```
-● 󰽒 󰈹   ○   ◉ 󰝰   ○
+● 󰞷 󰈹   ○   ◉ 󰝰   ○
 ```
 - `●` focused workspace
 - `◉` unfocused with windows
 - `○` empty workspace
-- Icons show running apps: `󰊠` foot, `󰈹` firefox, `󰝰` thunar, etc.
+- Icons show running apps: `󰞷` Alacritty, `󰈹` Firefox, `󰝰` Thunar, etc.
 
 ## Shell Aliases & Quick Reference
 
 Fish comes pre-configured with useful aliases:
 
-| Alias | Command   | Description             |
-| ----- | --------- | ----------------------- |
-| `ls`  | `lsd`      | Default listing with icons  |
-| `ll`  | `lsd -l`   | Long listing with icons     |
-| `la`  | `lsd -la`  | Show hidden files           |
+| Alias | Command   | Description                    |
+| ----- | --------- | ------------------------------ |
+| `ls`  | `lsd`     | Default listing with icons     |
+| `ll`  | `lsd -l`  | Long listing with icons        |
+| `la`  | `lsd -la` | Show hidden files              |
+| `vi`  | `hx`      | Open Helix editor              |
+| `vim` | `hx`      | Open Helix editor              |
 
 ### lf File Manager Shortcuts
 
@@ -537,17 +550,15 @@ If you know Vim/Neovim, here's how the same tasks work in Helix:
 | Task                       | Vim/Neovim                 | Helix Equivalent            | Notes / Nuances in Helix                                                                                                                                   |
 | -------------------------- | -------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Go to top of document      | `gg`                       | `gg`                        | Same as Vim. Also works with a count (e.g., `5gg` for line 5).                                                                                             |
-| Go to bottom of document   | `G`                        | `ge`                        | Different from Vim. `G` alone does nothing useful by default.                                                                                              |
-| Delete character           | `x`                        | `x`                         | **OpenRiot remaps `x` to `delete_char_forward`** — now works exactly like Vim! `X` deletes backward.                                                       |
-| Delete line                | `dd`                       | `dl` or `x` then `d`        | Use `dl` (delete line under cursor). Or `x` to select, `d` to delete.                                                                                      |
+| Go to bottom of document   | `G`                        | `G`                        | `G` goes to bottom of document (OpenRiot remaps this).                                                                             |
+| Delete character           | `x`                        | `x`                        | Selects entire line in Helix. Use `dl` to delete line, or `d` after selection.                                                      |
+| Delete line                | `dd`                       | `dl`                       | Use `dl` (delete line under cursor).                                                                                               |
 | Go to end of line          | `$`                        | `gl`                        | `gl` = goto line end. Very common.                                                                                                                         |
 | Go to start of line        | `0` or `^`                 | `gh`                        | `gh` = goto home (start of line). Use `gs` if you want the first non-whitespace character (like Vim's `^`).                                                |
 | Copy line (yank line)      | `yy`                       | `yl`                        | `yl` yanks the current line.                                                                                                                               |
 | Paste line                 | `p` (below) or `P` (above) | `p` (after) or `P` (before) | Works similarly, but Helix pastes after/before the current selection (or cursor position). For a full line paste, the behavior is usually what you expect. |
 | Copy text (yank selection) | `y` (after selecting)      | `y`                         | Same letter, but you select first (e.g., `w` for word, `gl` for to end of line, or visual movements).                                                      |
 | Paste text                 | `p` or `P`                 | `p` or `P`                  | Same as above. Helix also supports system clipboard via `<space>p` / `<space>y` (or configure defaults).                                                   |
-
-> **Note:** OpenRiot's Helix config remaps `x` to `delete_char_forward` and `X` to `delete_char_backward` — so `x` now works like Vim instead of Helix's default (select entire line).
 
 ### Helix on OpenBSD & OpenRiot
 
@@ -570,7 +581,7 @@ _See the [helix-cheat-sheet](https://github.com/stevenhoy/helix-cheat-sheet) pro
 
 ### AI Integration with OpenRouter
 
-OpenRiot bundles **Crush** for AI-assisted coding. Crush is a modern, lightweight, Go-based terminal AI coding agent with excellent OpenBSD support. It is built automatically during setup and installed to `~/.local/bin/crush`.
+OpenRiot bundles **Crush** for AI-assisted coding. Crush is a modern, lightweight, Go-based terminal AI coding agent with excellent OpenBSD support. It is built automatically during setup and installed to `/usr/local/bin/crush`.
 
 ![Crush AI in action](assets/crush.png)
 
@@ -771,8 +782,8 @@ All package installation uses `pkg_add -D unsigned` — fresh packages matching 
 OpenRiot sets sensible defaults. Key environment variables:
 
 ```bash
-# OpenRiot session
-echo "OpenRiot $OPENRIOT_VERSION"
+# Check OpenRiot version
+openriot --version
 
 # XDG directories (usually correct by default)
 echo $XDG_CONFIG_HOME
@@ -798,8 +809,6 @@ Each module has its own config section. Common modules:
 | ----------- | ----------------- |
 | Workspaces  | `i3/workspaces` |
 | CPU         | `cpu`             |
-| Memory      | `memory`          |
-| Temperature | `temperature`     |
 | Battery     | `battery`         |
 | Network     | `network`         |
 | Volume      | `volume`          |
@@ -925,11 +934,14 @@ cat /etc/resolv.conf
 If something goes wrong, upload your log file for debugging:
 
 ```bash
-# Upload setup log
-~/.local/share/openriot/setup.sh --share-log
+# Setup log location
+~/.cache/openriot/setup.log
 
-# Upload install log
-~/.local/share/openriot/install/openriot --share-log install.log
+# Install log location
+/tmp/openriot-install.log
+
+# Share install log
+~/.local/share/openriot/install/openriot --share-log /tmp/openriot-install.log
 ```
 
 This will upload the log to tmpfiles.org and give you a URL to share.

@@ -111,14 +111,8 @@ func main() {
 		os.Exit(display.Run(os.Args[2:]))
 	}
 	if len(os.Args) >= 2 && os.Args[1] == "--lock" {
-		// Generate lock screen background
 		lockScript := filepath.Join(getInstallDir(), "config", "bin", "openriot-lock.sh")
-		if _, err := os.Stat(lockScript); err == nil {
-			exec.Command("sh", lockScript).Run()
-		}
-		// Lock with generated background
-		bgPath := "/tmp/i3lock-bg.png"
-		cmd := exec.Command("i3lock", "-i", bgPath)
+		cmd := exec.Command("sh", lockScript)
 		cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 		cmd.Stdin = nil
 		cmd.Stdout = nil

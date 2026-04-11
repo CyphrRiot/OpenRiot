@@ -26,17 +26,21 @@ while IFS='|' read -r name cmd icon; do
     # Remove leading/trailing whitespace
     name="$(echo "$name" | xargs)"
     icon="$(echo "$icon" | xargs)"
-    ROFI_INPUT="${ROFI_INPUT}${name}\n"
+    ROFI_INPUT="${ROFI_INPUT}${icon}  ${name}\n"
 done < "$APPS_FILE"
 
-# Run rofi with custom dmenu mode
-SELECTED="$(printf '%b' "$ROFI_INPUT" | rofi -dmenu -i -p "Apps" -format i)"
+# Run rofi with simple-tokyonight theme
+SELECTED="$(printf '%b' "$ROFI_INPUT" | rofi -dmenu -i -p "Apps" -format i -theme "${CONFIG_DIR}/rofi/simple-tokyonight.rasi")"
 
 if [ -n "$SELECTED" ]; then
     # Get the command for selected index - need to skip comments/empty lines
     # Use awk to get the Nth non-comment line
+    NAME="$(awk -F'|' 'NF>0 && $1 !~ /^#/ {print $1}' "$APPS_FILE" | sed -n "$((SELECTED + 1))p" | xargs)"
     CMD="$(awk -F'|' 'NF>0 && $1 !~ /^#/ {print $2}' "$APPS_FILE" | sed -n "$((SELECTED + 1))p" | xargs)"
-    
+
+    # Show launching notification
+    notify-send "Launching $NAME..." -t 1000 &
+
     # Execute the command
     case "$CMD" in
         *".desktop") sh -c "$(grep '^Exec=' "$HOME/.local/share/applications/$CMD" | cut -d= -f2-)" ;;

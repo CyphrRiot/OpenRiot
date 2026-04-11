@@ -3,7 +3,7 @@
 set $mod Mod4
 set $terminal alacritty
 set $fileManager thunar
-set $browser firefox
+set $browser $HOME/.local/share/openriot/config/bin/firefox-wrapper.sh
 set $editor hx
 set $menu $HOME/.local/share/openriot/config/rofi/launcher.sh
 
@@ -33,7 +33,7 @@ exec --no-startup-id polybar main
 exec --no-startup-id feh --bg-fill $HOME/.local/share/openriot/backgrounds/riot_00.jpg
 
 # Compositor
-exec --no-startup-id picom
+exec --no-startup-id picom --config $HOME/.local/share/openriot/config/picom.conf --backend glx
 
 # Notifications
 exec --no-startup-id dunst
@@ -45,7 +45,10 @@ exec --no-startup-id clipmenud
 exec_always --no-startup-id i3-auto-layout
 
 # Night light (redshift)
-exec --no-startup-id redshift -t 3500:3500
+exec --no-startup-id redshift -l 40.71:-74.00 -t 4000:4000
+
+# GTK/XFCE settings daemon
+exec --no-startup-id xfsettingsd
 
 # =============================================================================
 # BEHAVIOR

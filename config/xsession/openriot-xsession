@@ -4,8 +4,18 @@
 
 export LC_CTYPE=en_US.UTF-8
 
+# Set cursor theme
+export XCURSOR_THEME=Bibata-Modern-Ice
+export XCURSOR_SIZE=24
+
+# Create ~/Screenshots directory if it doesn't exist
+mkdir -p ~/Screenshots
+
 # Load Xresources
 [ -f ~/.Xresources ] && xrdb -merge ~/.Xresources
+
+# Start D-Bus session (required for Flare and other apps)
+eval $(dbus-launch --sh-syntax)
 
 # Start i3
 exec i3

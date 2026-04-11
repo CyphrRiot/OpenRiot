@@ -19,7 +19,10 @@ if not test -d $XDG_RUNTIME_DIR
     mkdir -p $XDG_RUNTIME_DIR
 end
 
-# No greeting - prevents fastfetch hangs in foot
+# No greeting - use fastfetch instead
+set -g fish_greeting ""
+# Run fastfetch on new shell
+fastfetch
 
 # =============================================================================
 # Path Configuration
@@ -27,6 +30,9 @@ end
 
 # Add OpenRiot scripts to PATH
 fish_add_path --prepend $HOME/.local/share/openriot/config/bin
+
+# Add OpenRiot binary to PATH (for CLI commands)
+fish_add_path --prepend $HOME/.local/share/openriot/install
 
 # OpenBSD paths
 fish_add_path --prepend /usr/local/bin
@@ -62,11 +68,8 @@ function fish_prompt
     set_color cyan
     printf "%s" (string replace $HOME "~" (pwd))
     if command git rev-parse --git-dir >/dev/null 2>&1
-        set_color yellow
-        printf " (%s)" (git rev-parse --abbrev-ref HEAD 2>/dev/null)
+        printf " %s" (__fish_git_prompt)
     end
-    set_color normal
-    printf "%s" (__fish_git_prompt)
     if test $last_status -ne 0
         set_color red
         printf " [%d]" $last_status
@@ -106,8 +109,7 @@ alias ls='lsd'
 alias ll='lsd -l'
 alias la='lsd -la'
 
-# mpv with X11 GPU output
-alias mpv='mpv --vo=gpu --gpu-context=x11 --hwdec=auto-safe'
+# mpv - works fine with defaults on X11
 
 # OpenBSD-specific aliases
 alias doas='doas'
@@ -118,13 +120,12 @@ function dum
 end
 
 # =============================================================================
-# OpenRouter LLM Configuration
+# History Configuration
 # =============================================================================
 
-# OpenRouter API key for Neovim plugins (Avante, CodeCompanion)
-# Get your free key from https://openrouter.ai/settings
-# NOTE: Replace "YOUR_OPENROUTER_API_KEY" with your actual key after install
-if not set -q OPENROUTER_API_KEY
-    set -gx OPENROUTER_API_KEY "YOUR_OPENROUTER_API_KEY"
-end
-set -gx OPENROUTER_BASE_URL "https://openrouter.ai/api/v1"
+# Limit history size to prevent corruption
+set -gx fish_history_size 10000
+
+# =============================================================================
+# Aliases & Functions
+# =============================================================================
