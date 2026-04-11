@@ -7,98 +7,149 @@ import (
 	"strings"
 )
 
-// RunMetrics outputs CPU and RAM usage for polybar
-// Mimics system-metrics.sh: uses vmstat and sysctl
+// RunMetrics outputs CPU icon for polybar (memory is separate module)
 func RunMetrics() error {
-	// CPU usage — OpenBSD: use vmstat
 	cpu := getCPU()
-
-	// RAM usage — OpenBSD
-	ram := getRAM()
-
-	fmt.Printf("  󰘚 %s%%  󰘛 %s%%\n", cpu, ram)
+	cpuPct := getCPUPercent()
+	fmt.Printf(" %s\nCPU: %s%%\n", cpu, cpuPct)
 	return nil
 }
 
 func getCPU() string {
-	out, err := exec.Command("vmstat", "1", "1").Output()
+	cpu := getCPUPercentInt()
+	// 0-25%: 󰡳, 25-50%: 󰡵, 50-90%: 󰊚, 90%+: 󰡴
+	switch {
+	case cpu >= 90:
+		return "󰡴"
+	case cpu >= 50:
+		return "󰊚"
+	case cpu >= 25:
+		return "󰡵"
+	default:
+		return "󰡳"
+	}
+}
+
+func getCPUPercent() string {
+	return strconv.Itoa(getCPUPercentInt())
+}
+
+func getCPUPercentInt() int {
+	out, err := exec.Command("/usr/bin/vmstat", "1", "1").Output()
 	if err != nil {
-		return "0"
+		return 0
 	}
 	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
 	if len(lines) < 2 {
-		return "0"
+		return 0
 	}
 	fields := strings.Fields(lines[len(lines)-1])
-	// vmstat output: idle CPU% is the last column
 	if len(fields) > 0 {
 		idle, err := strconv.ParseFloat(fields[len(fields)-1], 64)
 		if err != nil {
-			return "0"
+			return 0
 		}
-		cpu := int(100 - idle)
-		return strconv.Itoa(cpu)
+		return int(100 - idle)
 	}
-	return "0"
+	return 0
+}
+
+// GetRAM returns memory icon (for polybar)
+func GetRAM() string {
+	ram := getRAMPercentInt()
+	// 0-25%: 󱊔, 25-50%: 󱊗, 50-90%: 󱊖, 90%+: 󱊕
+	switch {
+	case ram >= 90:
+		return "󱊕"
+	case ram >= 50:
+		return "󱊖"
+	case ram >= 25:
+		return "󱊗"
+	default:
+		return "󱊔"
+	}
 }
 
 func getRAM() string {
-	// Get total physical memory
-	totalOut, err := exec.Command("sysctl", "-n", "hw.physmem").Output()
+	ram := getRAMPercentInt()
+	// 0-25%: 󱊔, 25-50%: 󱊗, 50-90%: 󱊖, 90%+: 󱊕
+	switch {
+	case ram >= 90:
+		return "󱊕"
+	case ram >= 50:
+		return "󱊖"
+	case ram >= 25:
+		return "󱊗"
+	default:
+		return "󱊔"
+	}
+}
+
+func getRAMPercent() string {
+	return strconv.Itoa(getRAMPercentInt())
+}
+
+// GetCPUPercent returns CPU usage as "XX%" string (for notifications)
+func GetCPUPercent() string {
+	return getCPUPercent() + "%"
+}
+
+// GetMemPercent returns memory usage as "XX%" string (for notifications)
+func GetMemPercent() string {
+	return getRAMPercent() + "%"
+}
+
+func getRAMPercentInt() int {
+	totalOut, err := exec.Command("/sbin/sysctl", "-n", "hw.physmem").Output()
 	if err != nil {
-		return "0"
+		return 0
 	}
 	total, err := strconv.ParseInt(strings.TrimSpace(string(totalOut)), 10, 64)
 	if err != nil || total == 0 {
-		return "0"
+		return 0
 	}
 
-	// Parse vmstat for free memory
-	vmstatOut, err := exec.Command("vmstat", "1", "1").Output()
+	vmstatOut, err := exec.Command("/usr/bin/vmstat", "1", "1").Output()
 	if err != nil {
-		return "0"
+		return 0
 	}
 	lines := strings.Split(strings.TrimSpace(string(vmstatOut)), "\n")
 	if len(lines) < 2 {
-		return "0"
+		return 0
 	}
 	fields := strings.Fields(lines[len(lines)-1])
-	// vmstat output: avm and fre columns with M suffix
-	// fre is free memory in MB
 	var freeMB int64
 	for _, f := range fields {
 		if strings.HasSuffix(f, "M") && !strings.Contains(f, "K") {
 			mb, _ := strconv.ParseInt(strings.TrimSuffix(f, "M"), 10, 64)
-			// Last M value is typically free memory
 			freeMB = mb
 		}
 	}
 	if freeMB == 0 {
-		return "0"
+		return 0
 	}
 	usedMB := int64(total/(1024*1024)) - freeMB
-	ramPct := int(usedMB * 100 / (total / (1024 * 1024)))
-	return strconv.Itoa(ramPct)
+	return int(usedMB * 100 / (total / (1024 * 1024)))
 }
 
-// RunVolume outputs volume with icon for polybar
-// Mimics volume.sh: gets volume from sndioctl, outputs icon + percentage
+// RunVolume outputs volume icon for polybar
 func RunVolume() error {
 	vol := getVolume()
 	mute := isMuted()
 
 	var icon string
-	if mute {
-		icon = "󰖁"
-	} else if vol >= 70 {
+	if mute || vol == 0 {
+		icon = ""
+	} else if vol >= 67 {
 		icon = "󰕾"
-	} else if vol >= 30 {
+	} else if vol >= 34 {
 		icon = "󰖀"
 	} else {
 		icon = "󰕿"
 	}
 
-	fmt.Printf("%s %d%%\n", icon, vol)
+	// Output: icon + tooltip with percentage
+	fmt.Printf("%s\nVolume: %d%%\n", icon, vol)
 	return nil
 }
 

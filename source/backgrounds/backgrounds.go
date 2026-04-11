@@ -12,6 +12,30 @@ import (
 )
 
 
+// Load restores the last saved wallpaper or falls back to default.
+func Load() int {
+	home := os.Getenv("HOME")
+	stateFile := filepath.Join(home, ".config", "openriot", ".current-background")
+	bgsDir := filepath.Join(home, ".local", "share", "openriot", "backgrounds")
+	defaultBg := filepath.Join(bgsDir, "riot_00.jpg")
+
+	wallpaper := defaultBg
+	if b, err := os.ReadFile(stateFile); err == nil {
+		candidate := strings.TrimSpace(string(b))
+		if _, err := os.Stat(candidate); err == nil {
+			wallpaper = candidate
+		}
+	}
+
+	cmd := exec.Command("feh", "--bg-fill", wallpaper)
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	_ = cmd.Start()
+
+	return 0
+}
+
 // Next cycles to the next wallpaper and restarts feh.
 func Next() int {
 	home := os.Getenv("HOME")

@@ -19,17 +19,17 @@
 
 </div>
 
-OpenRiot is the answer to every time you've thought "Why can't an OpenBSD installation just work correctly from the start and give me a fully functional desktop environment that's actually usable?" Built on the same principles as [ArchRiot](https://ArchRiot.org) and by the same creator. If you liked ArchRiot, you'll love OpenRiot.
+OpenRiot is the answer to every time you've thought "Why can't an OpenBSD installation just work correctly and be usable without a hundred hours of fiddling?"
 
-- Read the [Post on X](https://x.com/CyphrRiot/status/2039409143891837297?s=20) to understand why OpenRiot was created and more about the creator's vision for the system.
+- Read the [original Post on X](https://x.com/CyphrRiot/status/2039409143891837297?s=20)
 
 ### **Curated to be correct**
 
 - **🪟 i3 Tiling** — X11-native tiling that actually gets it right
-- **⚡ Robust Binary** — Atomic operations, run-time, instant rollbacks, zero dependency hell
-- **🛡️ Privacy** — Zero telemetry, tracking, zero data harvesting, zero ID requirements
+- **⚡ Robust Binary** — Atomic operations, run-time, rollbacks, no dependency hell
+- **🛡️ Privacy** — Zero telemetry, tracking, data harvesting, or ID requirements
 - **🎨 Aesthetics** — Carefully crafted dark themes that work at any hour
-- **💻 Development** — Helix, shell enhancements, and other upgrades
+- **💻 Development** — Helix, shell enhancements, crush, and other upgrades
 - **💎 OpenBSD** — The most security-audited OS on the planet
 
 #### Built on OpenBSD.
@@ -37,6 +37,8 @@ OpenRiot is the answer to every time you've thought "Why can't an OpenBSD instal
 **Because compromises belong on other operating systems.**
 
 This isn’t shaped by committees, corporate roadmaps, or quarterly deliverables. It’s built and maintained by one person with an obsessive focus on doing it right the first time — because a mediocre computing environment isn’t just inconvenient. It’s an insult to what computers should be.
+
+Built on the same principles as [ArchRiot](https://ArchRiot.org) and by the same creator. If you liked ArchRiot, you'll love OpenRiot.
 
 > "Linux has never been about quality. There are so many parts of the system that are just these cheap little hacks, and it happens to run." -Theo de Raadt
 
@@ -377,6 +379,26 @@ _This section is being actively documented. For now, the essential bindings are 
 | `Super + Shift + -`          | Move to scratchpad               |
 | `Super + Shift + C`          | Reload i3 config                 |
 | `Super + Shift + R`          | Restart i3                       |
+| `Super + Tab`                | Focus next window                |
+| `Super + Shift + Tab`        | Focus previous window             |
+| `Super + Arrow keys`         | Focus window direction           |
+| `Super + Ctrl + Arrow`       | Move window                      |
+| `Super + button4/5`         | Scroll workspaces                |
+| `Print`                     | Screenshot (window)              |
+| `Shift + Print`             | Screenshot (fullscreen)          |
+| `Ctrl + Print`              | Screenshot to clipboard          |
+| `Super + Shift + X`         | Compose tweet                    |
+| `Super + Shift + space`     | Refresh polybar                  |
+
+
+### Media Keys
+
+| Key                    | Action                           |
+| ---------------------- | -------------------------------- |
+| `Volume +/-`           | Adjust volume                    |
+| `Mute`                 | Toggle mute                      |
+| `Mic Mute`             | Toggle microphone mute           |
+| `Brightness +/-`       | Adjust screen brightness         |
 
 
 ### App Launcher (Rofi)
@@ -388,7 +410,6 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | Terminal         | 󰽒   | Alacritty terminal       |
 | Firefox          | 󰈹   | Web browser              |
 | Telegram         | 󰘦   | Messaging app            |
-| Flare            | 󰇢   | Matrix messenger         |
 | Helix            | 󰛞   | Text editor              |
 | File Manager     | 󰝰   | Thunar file browser      |
 | System Monitor   | 󰍹   | btop resource monitor    |
@@ -568,7 +589,7 @@ Helix works **beautifully** on OpenBSD:
 - Native OpenBSD packaging (`pkg_add helix`)
 - Full Tree-sitter and LSP support for Go, Rust, Python, Lua, YAML, TOML, and many other languages
 - No plugin manager headaches — everything just works
-- Plays perfectly with i3, foot terminal, and fish shell
+- Plays perfectly with i3, Alacritty terminal, and fish shell
 
 **Pro tip:** Helix has one of the best default dark themes available. It looks right at home with OpenRiot's dark aesthetic.
 

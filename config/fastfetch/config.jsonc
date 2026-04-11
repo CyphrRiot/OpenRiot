@@ -76,11 +76,6 @@
             "keyColor": "yellow",
         },
         {
-            "type": "kernel",
-            "key": " KRN",
-            "keyColor": "yellow",
-        },
-        {
             "type": "shell",
             "key": " SHL",
             "keyColor": "yellow",

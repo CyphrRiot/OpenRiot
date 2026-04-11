@@ -1,5 +1,5 @@
 * {
-  font:   "Iosevka Nerd Font Medium 11";
+  font:   "FiraCode Nerd Font Medium 11";
 
   bg0     : #1a1b26;
   bg1     : #1f2335;
@@ -15,7 +15,7 @@
   magenta : #9a7ecc;
   cyan    : #4abaaf;
 
-  accent: @red;
+  accent: @blue;
   urgent: @yellow;
 
   background-color : transparent;
@@ -66,7 +66,7 @@ textbox {
 
 listview {
   padding      : 4px 0px;
-  lines        : 12;
+  lines        : 20;
   columns      : 1;
   scrollbar    : true;
   fixed-height : false;

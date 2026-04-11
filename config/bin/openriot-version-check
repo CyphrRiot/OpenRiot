@@ -129,11 +129,11 @@ def cleanup_lock_file():
 
 
 def launch_upgrade_terminal():
-    """Launch upgrade in foot terminal"""
+    """Launch upgrade in alacritty terminal"""
     update_command = "curl -fsSL https://openriot.org/setup.sh | sh"
 
-    # Build terminal command (foot runs program directly, so pass bash -c)
-    terminal_cmd = f'foot bash -c \'cd $HOME; echo "Starting OpenRiot update..."; {update_command}; echo "Update complete. Press Enter to close."; read\''
+    # Build terminal command (alacritty -e runs program directly)
+    terminal_cmd = f'alacritty -e bash -c \'cd $HOME; echo "Starting OpenRiot update..."; {update_command}; echo "Update complete. Press Enter to close."; read\''
 
     # Try i3-msg first (i3 IPC)
     try:
@@ -153,7 +153,7 @@ def launch_upgrade_terminal():
 
     # Fallback: direct execution
     subprocess.Popen(
-        ["foot", "bash", "-c", f"cd $HOME && {update_command} && read"]
+        ["alacritty", "-e", "bash", "-c", f"cd $HOME && {update_command} && read"]
     )
     return True
 

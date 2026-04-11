@@ -13,6 +13,7 @@ core:
             - jq-1.8.1
         configs:
             - pattern: fastfetch/*
+              target: "~/.config/fastfetch"
         depends: []
         start: "Installing base tools"
         end: "Base tools installed"
@@ -79,14 +80,9 @@ desktop:
                       monitors.conf,
                       windowrules.conf,
                   ]
-            - pattern: backgrounds/*
-              target: "~/.local/share/openriot/backgrounds"
             - pattern: polybar/*
             - pattern: rofi/*
             - pattern: dunst/*
-            - pattern: bin/*
-              target: "~/.local/share/openriot/config/bin"
-              preserve_if_exists: [openriot-lock.sh]
             - pattern: fonts/*
               target: "~/.local/share/fonts"
             - pattern: Xresources
@@ -95,8 +91,13 @@ desktop:
               target: "~/.xinitrc"
             - pattern: xsession/openriot-xsession
               target: "~/.xsession"
+              # Always overwrite - this is a system config, not user customization
             - pattern: picom.conf
               target: "~/.config/picom.conf"
+            - pattern: alacritty/*
+              target: "~/.config/alacritty"
+            - pattern: nvim/*
+            - pattern: lf/*
         commands:
             - desc: "Make all scripts executable"
               cmd: "find ~/.local/share/openriot/config -name \"*.sh\" -exec chmod +x {} \\; 2>/dev/null || true"
@@ -127,7 +128,6 @@ desktop:
     apps:
         packages:
             - firefox-149.0
-            - flare-messenger-0.17.5p0
             - tdesktop-6.6.4p0
             - helix-25.07.1
             - lsd-1.1.5p2
@@ -148,6 +148,7 @@ desktop:
             - pattern: helix/*
               preserve_if_exists: [config.toml]
             - pattern: crypto.toml
+              target: "~/.config/crypto.toml"
               preserve_if_exists: [crypto.toml]
             - pattern: applications/*
               target: "~/.local/share/applications/"
@@ -216,6 +217,7 @@ system:
             - wget-1.25.0p0
             - unzip-6.0p18
             - xz-5.8.3
+            - zip-3.0p3
             - go-1.26.1
             - chafa-1.16.2
             - age-1.3.1

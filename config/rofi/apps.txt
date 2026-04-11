@@ -1,10 +1,9 @@
 # OpenRiot Custom App List for Rofi
 # Only shows our curated apps - no system clutter
 
-Terminal|alacritty|󰽒
+Terminal|alacritty|󰞷
 Firefox|firefox|󰈹
 Telegram|tdesktop.desktop|󰘦
-Flare|flare|󰇢
 Helix|alacritty -e hx|󰛞
 File Manager|thunar|󰝰
 System Monitor|alacritty -e btop|󰍹

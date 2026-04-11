@@ -3,7 +3,7 @@
 # Output: icon only (version shown in polybar tooltip)
 
 if [ "${1:-}" = "--click" ]; then
-    foot -e sh -c 'curl -fsSL https://openriot.org/setup.sh | sh' &
+    alacritty -e sh -c 'curl -fsSL https://openriot.org/setup.sh | sh' &
     exit 0
 fi
 
@@ -25,7 +25,7 @@ is_newer() {
 if [ "$remote_version" = "unknown" ] || [ "$local_version" = "unknown" ]; then
     printf "?"
 elif [ "$(is_newer "$local_version" "$remote_version")" = "yes" ]; then
-    printf "󰏔"
+    printf "󰋻"
 else
-    printf "󰏓"
+    printf "󰚇"
 fi

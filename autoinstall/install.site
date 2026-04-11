@@ -26,20 +26,14 @@ echo ""
 # ============================================================
 
 # ============================================================
-# STEP 1: Configure doas
+# NOTE: doas and X11 sets are handled by setup.sh post-reboot
+# install.site handles only essential pre-reboot configuration
 # ============================================================
-log "Step 1: Configuring doas..."
-cat > /etc/doas.conf << 'EOF'
-permit nopass :wheel
-EOF
-chmod 0440 /etc/doas.conf
-chown root /etc/doas.conf
-log "doas configured"
 
 # ============================================================
-# STEP 2: Enable services
+# STEP 1: Enable services
 # ============================================================
-log "Step 2: Enabling services..."
+log "Step 1: Enabling services..."
 rcctl enable apmd
 rcctl set apmd flags -A
 rcctl enable sndiod
@@ -51,7 +45,7 @@ log "Services enabled"
 # STEP 3: Welcome message (online setup.sh runs after reboot)
 # Use a sentinel file to ensure we only write once
 # ============================================================
-log "Step 3: Writing welcome message..."
+log "Step 2: Writing welcome message..."
 SENTINEL="/etc/openriot/.welcome_done"
 if [ -f "$SENTINEL" ]; then
     log "Welcome message already written (sentinel exists)"

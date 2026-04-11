@@ -168,6 +168,8 @@ func RunCrypto(mode string) error {
 		return outputROWML(items, config.Display.ShowTotals, curFile, config.Indicators.Oversold)
 	case "ROW":
 		return outputROW(items)
+	case "NOTIFY":
+		return outputNotify(items)
 	default:
 		// Single symbol mode
 		for _, item := range items {
@@ -451,7 +453,7 @@ func checkConcentration(sym string, held, price float64, items []CryptoItem) str
 		}
 	}
 	if totalValue > 0 && (coinValue/totalValue) > 0.35 {
-		return " ⚠"
+		return ""
 	}
 	return ""
 }
@@ -896,4 +898,69 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold i
 	os.WriteFile(prevFile, data, 0644)
 
 	return nil
+}
+
+// outputNotify outputs simple format for notifications: "ZEC 275.00 x $378.03 ▲ 75.54%"
+func outputNotify(items []CryptoItem) error {
+	// Sort items - preserve config order, move USD to end
+	sort.Slice(items, func(i, j int) bool {
+		if items[i].Sym == "USD" {
+			return false
+		}
+		if items[j].Sym == "USD" {
+			return true
+		}
+		return items[i].Index < items[j].Index
+	})
+
+	for _, item := range items {
+		// Skip USD
+		if item.Sym == "USD" {
+			continue
+		}
+
+		arrow := "•"
+		if item.Price > 0 && item.PrevPrice > 0 {
+			if item.Price > item.PrevPrice {
+				arrow = "▲"
+			} else if item.Price < item.PrevPrice {
+				arrow = "▼"
+			}
+		}
+
+		// Format with commas for thousands
+		held := formatNumberSimple(item.Held)
+		price := formatNumberSimple(item.Price)
+		pct := ""
+		if item.Held > 0 && item.Entry > 0 {
+			glPct := ((item.Price - item.Entry) / item.Entry) * 100
+			pct = fmt.Sprintf("%.2f%%", glPct)
+		}
+		fmt.Printf("%s %s x $%s %s %s\n", item.Sym, held, price, arrow, pct)
+	}
+	return nil
+}
+
+// formatNumberSimple formats with commas (e.g., 73045 -> 73,045.00)
+func formatNumberSimple(v float64) string {
+	str := fmt.Sprintf("%.2f", v)
+	parts := strings.Split(str, ".")
+	intPart := parts[0]
+	decPart := ""
+	if len(parts) > 1 {
+		decPart = parts[1]
+	}
+	var result strings.Builder
+	length := len(intPart)
+	for i, c := range intPart {
+		if i > 0 && (length-i)%3 == 0 {
+			result.WriteString(",")
+		}
+		result.WriteRune(c)
+	}
+	intPart = result.String()
+	if decPart != "" {
+		return intPart + "." + decPart
+	}
+	return intPart
 }

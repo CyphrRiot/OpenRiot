@@ -159,6 +159,9 @@ func main() {
 	if len(os.Args) >= 2 && os.Args[1] == "--wallpaper-next" {
 		os.Exit(backgrounds.Next())
 	}
+	if len(os.Args) >= 2 && os.Args[1] == "--wallpaper-load" {
+		os.Exit(backgrounds.Load())
+	}
 	if len(os.Args) >= 2 && os.Args[1] == "--suspend-if-undocked" {
 		detect.SuspendIfUndocked()
 		return
@@ -244,6 +247,28 @@ func main() {
 			fmt.Fprintf(os.Stderr, "polybar volume error: %v\n", err)
 			os.Exit(1)
 		}
+		os.Exit(0)
+	}
+
+	// --polybar-memory outputs memory icon for polybar
+	if len(os.Args) >= 2 && os.Args[1] == "--polybar-memory" {
+		ram := polybar.GetRAM()
+		ramPct := polybar.GetMemPercent()
+		fmt.Printf(" %s\nMemory: %s\n", ram, ramPct)
+		os.Exit(0)
+	}
+
+	// --cpu-notify shows CPU usage notification
+	if len(os.Args) >= 2 && os.Args[1] == "--cpu-notify" {
+		cpuPct := polybar.GetCPUPercent()
+		exec.Command("notify-send", "-t", "1500", "CPU Usage", cpuPct).Start()
+		os.Exit(0)
+	}
+
+	// --mem-notify shows memory usage notification
+	if len(os.Args) >= 2 && os.Args[1] == "--mem-notify" {
+		memPct := polybar.GetMemPercent()
+		exec.Command("notify-send", "-t", "1500", "Memory Usage", memPct).Start()
 		os.Exit(0)
 	}
 

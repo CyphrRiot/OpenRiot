@@ -18,6 +18,7 @@ client.focused           #4c7899 #285577 #ffffff
 client.focused_inactive  #333333 #333333 #ffffff
 client.unfocused         #333333 #333333 #888888
 client.urgent            #d12121 #880000 #ffffff
+client.background        #1a1b26
 
 # Include user-specific overrides
 include keybindings.conf
@@ -30,7 +31,7 @@ include keybindings.conf
 exec --no-startup-id polybar main
 
 # Wallpaper
-exec --no-startup-id feh --bg-fill $HOME/.local/share/openriot/backgrounds/riot_00.jpg
+exec --no-startup-id $HOME/.local/share/openriot/install/openriot --wallpaper-load
 
 # Compositor
 exec --no-startup-id picom --config $HOME/.local/share/openriot/config/picom.conf --backend glx

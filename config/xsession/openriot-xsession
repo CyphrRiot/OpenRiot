@@ -20,11 +20,11 @@ xset -dpms
 # Screensaver after 10 minutes, lock when activated
 xset s 600
 
-# Lock screen when screensaver activates
-exec --no-startup-id xss-lock -- i3lock -c "#08090c"
-
-# Start D-Bus session (required for Flare and other apps)
+# Start D-Bus session (MUST be before xss-lock)
 eval $(dbus-launch --sh-syntax)
+
+# Lock screen when screensaver activates
+xss-lock -- $HOME/.local/share/openriot/config/bin/openriot-lock.sh &
 
 # Start i3
 exec i3

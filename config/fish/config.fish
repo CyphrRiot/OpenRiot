@@ -36,6 +36,10 @@ fish_add_path --prepend $HOME/.local/share/openriot/install
 
 # OpenBSD paths
 fish_add_path --prepend /usr/local/bin
+fish_add_path --prepend /usr/bin
+fish_add_path --prepend /bin
+fish_add_path --prepend /usr/sbin
+fish_add_path --prepend /sbin
 
 # =============================================================================
 # Git Prompt Configuration

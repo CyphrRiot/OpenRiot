@@ -2,8 +2,8 @@
 # OpenRiot Custom Rofi Launcher
 # Only shows our curated app list, no system clutter
 
-CONFIG_DIR="$HOME/.local/share/openriot/config"
-APPS_FILE="${CONFIG_DIR}/rofi/apps.txt"
+CONFIG_DIR="$HOME/.config/rofi"
+APPS_FILE="${CONFIG_DIR}/apps.txt"
 
 if [ ! -f "$APPS_FILE" ]; then
     CONFIG_DIR="$HOME/.config/openriot"
@@ -30,7 +30,7 @@ while IFS='|' read -r name cmd icon; do
 done < "$APPS_FILE"
 
 # Run rofi with simple-tokyonight theme
-SELECTED="$(printf '%b' "$ROFI_INPUT" | rofi -dmenu -i -p "Apps" -format i -theme "${CONFIG_DIR}/rofi/simple-tokyonight.rasi")"
+SELECTED="$(printf '%b' "$ROFI_INPUT" | rofi -dmenu -i -p "Apps" -format i -theme "${CONFIG_DIR}/simple-tokyonight.rasi")"
 
 if [ -n "$SELECTED" ]; then
     # Get the command for selected index - need to skip comments/empty lines
@@ -39,7 +39,7 @@ if [ -n "$SELECTED" ]; then
     CMD="$(awk -F'|' 'NF>0 && $1 !~ /^#/ {print $2}' "$APPS_FILE" | sed -n "$((SELECTED + 1))p" | xargs)"
 
     # Show launching notification
-    notify-send "Launching $NAME..." -t 1000 &
+    notify-send "Launching $NAME..." -t 2000 &
 
     # Execute the command
     case "$CMD" in

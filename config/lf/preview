@@ -1,7 +1,7 @@
 #!/bin/sh
 # =============================================================================
 # OpenRiot — LF Image Preview Script
-# Uses chafa for terminal-native image rendering in foot/Sway
+# Uses chafa for terminal-native image rendering
 # Requires: chafa (pkg_add chafa)
 # =============================================================================
 
@@ -19,9 +19,9 @@ fi
 # Image file extensions
 case "$FILE" in
     *.jpg|*.jpeg|*.png|*.gif|*.webp|*.bmp|*.ico|*.svg)
-        # Use sixel for foot (best quality in Wayland terminal)
+        # Use sixel if terminal supports it (best quality)
         # Fall back to symbols/braille for other terminals
-        if [ -n "$CHafa_SIXEL" ] || [ "$TERM" = "foot" ]; then
+        if [ -n "$CHafa_SIXEL" ] || [ "$TERM" = "foot" ] || [ "$TERM" = "alacritty" ]; then
             chafa --sixel --size="${WIDTH}x${HEIGHT}" "$FILE" 2>/dev/null
         else
             chafa --symbols=block --size="${WIDTH}x${HEIGHT}" "$FILE" 2>/dev/null

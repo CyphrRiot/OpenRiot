@@ -16,9 +16,7 @@ func Run(args []string) int {
 	}
 
 	notify := func(msg string) {
-		// Dismiss any existing notifications, show new one via dunst (auto-expires in 3s)
-		exec.Command("openriot", "--notify-dismiss").Run()
-		exec.Command("openriot", "--notify", "Volume", msg, "--expires-in", "3").Start()
+		exec.Command("notify-send", "-t", "1500", "Volume", msg).Start()
 	}
 
 	sndioctl := func(cmd string) error {

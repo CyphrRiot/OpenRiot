@@ -110,10 +110,9 @@ configure_doas_installurl() {
         if grep -q "^permit nopass :wheel" "$doas_conf" 2>/dev/null; then
             success "doas already configured"
         else
-            doas cp "$doas_conf" "${doas_conf}.bak" && warn "Backed up existing doas.conf"
-            echo "$doas_entry" | doas tee "$doas_conf" >/dev/null
-            doas chmod 0440 "$doas_conf"
-            success "doas configured (nopasswd)"
+            # Append instead of overwriting user's existing doas rules
+            echo "$doas_entry" | doas tee -a "$doas_conf" >/dev/null
+            success "doas configured (appended nopass rule)"
         fi
     else
         echo "$doas_entry" | doas tee "$doas_conf" >/dev/null

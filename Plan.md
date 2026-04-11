@@ -1,123 +1,149 @@
-# OpenRiot — File Audit Order
+# OpenRiot Config Refactor Plan
 
-**Branch:** `i3` — X11/i3 migration
-**Audit started:** Apr 9, 2026
-
----
-
-## AUDIT ORDER
-
-1. **Root Scripts** → 2. **config/bin/** → 3. **config/polybar/scripts/** → 4. **Backgrounds** → 5. **Source** → 6. **packages.yaml**
+## Goal
+Clean up the repository structure and fix config deployment so apps find configs in standard locations.
 
 ---
 
-## 1. Root Scripts (5)
+## Current Problem
 
-| # | File | Status |
-|---|------|--------|
-| 1.1 | `setup.sh` | ✅ DONE |
-| 1.2 | `watcher.sh` | ✅ DONE |
-| 1.3 | `build-iso.sh` | ✅ FIXED (Wayland→X11 comments) |
-| 1.4 | `test-image.sh` | ✅ DONE |
-| 1.5 | `test-iso.sh` | ✅ DONE |
+The installer copies configs to `~/.local/share/openriot/config/` but most apps expect configs in `~/.config/`:
 
----
+```
+Current: ~/.local/share/openriot/config/
+Expected: ~/.config/
+```
 
-## 2. config/bin/ Scripts (5)
-
-| # | File | Status |
-|---|------|--------|
-| 2.1 | `battery-monitor.sh` | ✅ DONE |
-| 2.2 | `openriot-lock.sh` | ✅ FIXED (hyprlock→i3lock) |
-| 2.3 | `openriot-version-check` | ✅ DONE |
-| 2.4 | `transmission-start` | ✅ DONE |
-| 2.5 | `transmission-stop` | ✅ DONE |
+This means:
+- Alacritty, i3, polybar, rofi, fish, helix, etc. are NOT reading our configs
+- Only configs with explicit `--config` flags or special handling work
 
 ---
 
-## 3. config/polybar/scripts/ (3)
+## Proposed Structure
 
-| # | File | Status |
-|---|------|--------|
-| 3.1 | `battery.sh` | ✅ DONE |
-| 3.2 | `network.sh` | ✅ DONE |
-| 3.3 | `openriot-update.sh` | ✅ DONE |
-
----
-
-## 4. Backgrounds (16 images)
-
-| Status |
-|--------|
-| ✅ SKIP (images only) |
-
----
-
-## 5. wlsunset REPLACEMENT
-
-| Item | Status |
-|------|--------|
-| wlsunset (Wayland-only) | ✅ DONE — replaced by `redshift-1.12p11` (X11) |
-
----
-
-## 6. Source Code (19 Go files)
-
-| # | File | Status |
-|---|------|--------|
-| 5.1 | `source/audio/volume.go` | ✅ DONE |
-| 5.2 | `source/backgrounds/backgrounds.go` | ✅ DONE |
-| 5.3 | `source/config/loader.go` | ✅ DONE |
-| 5.4 | `source/config/types.go` | ✅ DONE |
-| 5.5 | `source/crypto/crypto.go` | ✅ DONE |
-| 5.6 | `source/crypto/trading.go` | ✅ DONE |
-| 5.7 | `source/detect/detect.go` | ✅ DONE |
-| 5.8 | `source/display/display.go` | ✅ DONE |
-| 5.9 | `source/git/credentials.go` | ✅ DONE |
-| 5.10 | `source/go.mod` | ✅ DONE |
-| 5.11 | `source/go.sum` | ✅ DONE |
-| 5.12 | `source/installer/colors.go` | ✅ DONE |
-| 5.13 | `source/installer/configs.go` | ✅ DONE |
-| 5.14 | `source/installer/execcommands.go` | ✅ DONE |
-| 5.15 | `source/installer/packages.go` | ✅ DONE |
-| 5.16 | `source/installer/sourcebuilds.go` | ✅ DONE |
-| 5.17 | `source/logger/logger.go` | ✅ DONE |
-| 5.18 | `source/main.go` | ✅ DONE |
-| 5.19 | `source/notify/notify.go` | ✅ DONE |
-| 5.20 | `source/tui/messages.go` | ✅ DONE |
-| 5.21 | `source/tui/model.go` | ✅ DONE |
-| 5.22 | `source/polybar/polybar.go` | ✅ DONE |
-
-### wlsunset (9 files)
-
-| # | File | Status |
-|---|------|--------|
-| 5.23 | `source/wlsunset/` | ✅ DONE (DELETED — replaced by redshift) |
+```
+repo/
+├── backgrounds/          → ~/.local/share/openriot/backgrounds/
+├── bin/                  → ~/.local/share/openriot/bin/  (in PATH)
+├── share/
+│   ├── applications/    → ~/.local/share/applications/
+│   └── fonts/           → ~/.local/share/fonts/
+└── config/               → ~/.config/
+    ├── i3/
+    ├── polybar/
+    ├── rofi/
+    ├── alacritty/
+    ├── fish/
+    ├── helix/
+    ├── btop/
+    ├── nvim/
+    ├── lf/
+    ├── Thunar/
+    ├── dunst/
+    ├── gtk-3.0/
+    ├── gtk-4.0/
+    ├── xfce4/
+    ├── picom.conf
+    ├── crypto.toml        (preserve_if_exists)
+    ├── xinitrc/          → ~/.xinitrc (special handling)
+    └── xsession/         → ~/.xsession (special handling)
+```
 
 ---
 
-## 6. packages.yaml
+## Files to Move
 
-| Status |
-|--------|
-| ✅ DONE |
-
----
-
-## LEGEND
-
-- ✅ DONE — Audited, no changes needed
-- ✅ FIXED — Audited and fixed
-- 🔄 NEXT — Currently reviewing
-- 🔄 HERE — Currently being fixed
-- ⏳ — Not yet reviewed
-- ✅ SKIP — No audit needed (images/binary)
+| Current Location | New Location | Deploy Target |
+|-----------------|--------------|---------------|
+| `config/backgrounds/` | `backgrounds/` | `~/.local/share/openriot/backgrounds/` |
+| `config/applications/` | `share/applications/` | `~/.local/share/applications/` |
+| `config/fonts/` | `share/fonts/` | `~/.local/share/fonts/` |
+| `config/bin/` | `bin/` | `~/.local/share/openriot/bin/` |
+| `config/*` | `config/*` | `~/.config/*` |
 
 ---
 
-## POST-AUDIT TASKS
+## Execution Steps
 
-| Step | Task | Status |
-|------|------|--------|
-| 1 | Add scrot package for X11 screen capture | ✅ DONE |
-| 2 | Add age package for file encryption | ✅ DONE |
+### Step 1: Move directories
+```bash
+mv config/backgrounds backgrounds/
+mv config/applications share/applications
+mv config/fonts share/fonts
+mv config/bin bin/
+```
+
+### Step 2: Update packages.yaml
+
+Replace the desktop.i3.configs section with a comprehensive list that copies config/* to ~/.config/
+
+### Step 3: Update path references
+
+**Files that need path updates:**
+
+1. `config/polybar/config`:
+   - Change: `$HOME/.local/share/openriot/config/polybar/scripts/...`
+   - To: `$HOME/.config/polybar/scripts/...`
+   - Also: `config = $HOME/.local/share/openriot/config/polybar/config`
+   - To: `config = $HOME/.config/polybar/config`
+
+2. `config/rofi/launcher.sh`:
+   - Change: `$HOME/.local/share/openriot/config/bin/...`
+   - To: `$HOME/.local/share/openriot/bin/...`
+
+3. Any other hardcoded paths to config directories
+
+### Step 4: Update PATH
+
+Fish config should have:
+```fish
+fish_add_path --prepend $HOME/.local/share/openriot/bin
+fish_add_path --prepend $HOME/.local/share/openriot/install
+```
+
+### Step 5: Test
+
+1. Build installer: `make build`
+2. Test on clean system
+3. Verify apps are reading configs
+
+---
+
+## What Gets Preserved (preserve_if_exists)
+
+- `config/crypto.toml`
+- `config/i3/keybindings.conf`
+- `config/i3/monitors.conf`
+- `config/i3/windowrules.conf`
+- `bin/openriot-lock.sh`
+- `helix/config.toml`
+
+---
+
+## Benefits
+
+1. **Apps find configs automatically** — no `--config` flags needed
+2. **Standard Unix structure** — follows XDG Base Directory spec
+3. **Cleaner repo** — separates different types of content
+4. **Preserve still works** — user modifications protected
+5. **Future-proof** — easier to add new apps
+
+---
+
+## Related Config Locations
+
+| App | Default Config Location |
+|-----|------------------------|
+| i3 | `~/.config/i3/` |
+| polybar | `~/.config/polybar/` |
+| rofi | `~/.config/rofi/` |
+| alacritty | `~/.config/alacritty/` |
+| fish | `~/.config/fish/` |
+| helix | `~/.config/helix/` |
+| btop | `~/.config/btop/` |
+| nvim | `~/.config/nvim/` |
+| lf | `~/.config/lf/` |
+| Thunar | `~/.config/Thunar/` |
+| dunst | `~/.config/dunst/` |
+| picom | `~/.config/picom.conf` |

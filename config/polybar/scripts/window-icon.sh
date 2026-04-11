@@ -7,7 +7,6 @@ CLASS="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
 
 case "$CLASS" in
     # === Terminals ===
-    foot) echo "󰽒" ;;
     alacritty) echo "󰞷" ;;
     kitty) echo "󰄛" ;;
     ghostty) echo "󰊠" ;;
@@ -50,8 +49,6 @@ case "$CLASS" in
     geary) echo "󰊫" ;;
     evolution) echo "󰊫" ;;
     mailspring) echo "󰊫" ;;
-    flares) echo "󰇢" ;;
-    flare) echo "󰇢" ;;
 
     # === Development ===
     code|code-oss) echo "󰨞" ;;
