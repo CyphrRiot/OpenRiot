@@ -634,6 +634,27 @@ For a Zed-like experience, run Helix and Crush side-by-side in Zellij:
 
 Select code in Helix (`y` to yank), paste into Crush, and ask questions.
 
+### Password Management with Glyphriot
+
+OpenRiot includes **[Glyphriot](https://github.com/CyphrRiot/glyphriot)**, a secure password manager that uses a memorable seed phrase and optional glyph to derive your master password. Run with:
+
+```fish
+glyphriot --prompt
+```
+
+This prompts for your seed and optional glyph, then derives the master password using Argon2id.
+
+**Key features:**
+- Seed + glyph → master password (never stored)
+- Supports multiple services
+- Encrypted storage with age
+- Master password derived on-demand
+
+**Security notes:**
+- Your seed is never stored — only the derived hash
+- Use a strong, unique seed you can remember
+- Add a glyph for extra security (optional but recommended)
+
 <a id="browser--data-transfer"></a>
 
 ## 🦊 Browser & Data Transfer

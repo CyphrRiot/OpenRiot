@@ -202,6 +202,14 @@ source:
         start: "Installing wifi-menu"
         end: "wifi-menu installed"
 
+    glyphriot:
+        type: "Source"
+        build:
+            - "if [ -x /usr/local/bin/glyphriot ]; then echo '[SKIP] glyphriot already installed'; else go install github.com/CyphrRiot/glyphriot@latest && doas mv $HOME/go/bin/glyphriot /usr/local/bin/glyphriot && doas chmod +x /usr/local/bin/glyphriot; fi"
+        depends: [system.tools]
+        start: "Installing glyphriot password manager"
+        end: "glyphriot installed"
+
 fonts:
     fira-code:
         type: "Source"
