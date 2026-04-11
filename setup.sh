@@ -126,6 +126,14 @@ configure_doas_installurl() {
     success "installurl configured"
 }
 
+configure_pkg_add() {
+    info "Configuring package mirror..."
+    doas tee /etc/pkg_add.conf >/dev/null << 'EOF'
+installpath = cdn.openbsd.org/pub/OpenBSD
+EOF
+    success "Package mirror configured"
+}
+
 # -----------------------------------------------------------------------------
 # Check available disk space (simple shell)
 # -----------------------------------------------------------------------------
@@ -305,6 +313,7 @@ main() {
 
     check_openbsd_version
     configure_doas_installurl
+    configure_pkg_add
     install_bootstrap_packages
     setup_repository
     check_disk_space 1
@@ -316,7 +325,7 @@ main() {
             return
         fi
         info "Installing X11 file sets..."
-        # TODO: Change to version-based path when 7.9 releases (e.g. 7.9/amd64/)
+        # Using snapshots URL - X11 sets aren't in releases yet for new version
         AMD64_PATH="https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64"
         cd /tmp
         VER_NUM=$(uname -r | sed 's/\.//' | sed 's/-.*//')

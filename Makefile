@@ -89,17 +89,9 @@ clean:
 	@rm -f $(SOURCE_DIR)/$(BINARY_NAME)
 	@echo "=== Clean complete ==="
 
-# ISO build
-iso: build
-	@OPENRIOT_VERSION=`cat VERSION` && \
-	echo "=== Building OpenRIOT v$$OPENRIOT_VERSION ISO ==="
-	@./build-iso.sh
-	@echo ""
-	@echo "ISO built: isos/openriot.iso"
-
-isotest: iso
-	@echo "=== Running QEMU test ==="
-	@./test-iso.sh
+# ISO build - DEPRECATED
+# Custom ISO is no longer needed. Use standard OpenBSD ISO + setup.sh.
+# See README.md for installation instructions.
 
 # Binary push
 binary-push: build

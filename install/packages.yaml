@@ -59,6 +59,7 @@ desktop:
             - i3-4.25.1
             - i3lock-2.15
             - i3status-2.15p0
+            - xautolock-2.2
             - polybar-3.7.2
             - rofi-1.7.9.1
             - scrot-1.12.1
@@ -98,6 +99,8 @@ desktop:
               target: "~/.config/alacritty"
             - pattern: nvim/*
             - pattern: lf/*
+            - pattern: bin/*
+              target: "~/.local/bin"
         commands:
             - desc: "Make all scripts executable"
               cmd: "find ~/.local/share/openriot/config -name \"*.sh\" -exec chmod +x {} \\; 2>/dev/null || true"
@@ -189,26 +192,10 @@ source:
     stormy:
         type: "Source"
         build:
-            - "if [ -x /usr/local/bin/stormy ]; then echo '[SKIP] stormy already installed'; else go install github.com/ashish0kumar/stormy@latest && doas mv \"$HOME/go/bin/stormy\" /usr/local/share/applications/ && doas chmod +x /usr/local/share/applications/stormy; fi"
+            - "if [ -x /usr/local/bin/stormy ]; then echo '[SKIP] stormy already installed'; else go install github.com/ashish0kumar/stormy@latest && doas mv $HOME/go/bin/stormy /usr/local/bin/stormy && doas chmod +x /usr/local/bin/stormy; fi"
         depends: [system.tools]
         start: "Installing stormy weather CLI"
         end: "stormy installed"
-
-    wifi-menu:
-        type: "Source"
-        build:
-            - "if [ -x /usr/local/bin/wifi-menu ]; then echo '[SKIP] wifi-menu already installed'; else curl -fsSL https://github.com/D5Nch3ck/wifi-menu/releases/latest/download/wifi-menu -o /tmp/wifi-menu && doas mv /tmp/wifi-menu /usr/local/bin/wifi-menu && doas chmod +x /usr/local/bin/wifi-menu; fi"
-        depends: []
-        start: "Installing wifi-menu"
-        end: "wifi-menu installed"
-
-    glyphriot:
-        type: "Source"
-        build:
-            - "if [ -x /usr/local/bin/glyphriot ]; then echo '[SKIP] glyphriot already installed'; else go install github.com/CyphrRiot/glyphriot@latest && doas mv $HOME/go/bin/glyphriot /usr/local/bin/glyphriot && doas chmod +x /usr/local/bin/glyphriot; fi"
-        depends: [system.tools]
-        start: "Installing glyphriot password manager"
-        end: "glyphriot installed"
 
 fonts:
     fira-code:
@@ -236,6 +223,21 @@ system:
         end: "System tools installed"
         type: "Package"
         critical: true
+
+system:
+    services:
+        type: "Package"
+        commands:
+            - desc: "Enable apmd (power management)"
+              cmd: "doas rcctl enable apmd && doas rcctl set apmd flags -A"
+            - desc: "Enable sndiod (audio)"
+              cmd: "doas rcctl enable sndiod"
+            - desc: "Enable and start seatd (seat management)"
+              cmd: "doas rcctl enable seatd && doas rcctl start seatd"
+        depends: [core.base]
+        start: "Configuring system services"
+        end: "System services configured"
+
 # NOT NEEDED FOR OPENBSD (kept for reference)
 # These OpenRiot packages have no OpenBSD equivalent:
 #

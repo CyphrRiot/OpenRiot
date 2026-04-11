@@ -4,7 +4,6 @@
   <property name="Net" type="empty">
     <property name="ThemeName" type="string" value="Adwaita"/>
     <property name="IconThemeName" type="string" value="Papirus-Dark"/>
-    <property name="PreferDarkTheme" type="bool" value="true"/>
     <property name="DoubleClickTime" type="empty"/>
     <property name="DoubleClickDistance" type="empty"/>
     <property name="DndDragThreshold" type="empty"/>
@@ -13,6 +12,7 @@
     <property name="SoundThemeName" type="empty"/>
     <property name="EnableEventSounds" type="empty"/>
     <property name="EnableInputFeedbackSounds" type="empty"/>
+    <property name="PreferDarkTheme" type="bool" value="true"/>
   </property>
   <property name="Xft" type="empty">
     <property name="DPI" type="empty"/>
@@ -33,7 +33,7 @@
     <property name="MenuBarAccel" type="empty"/>
     <property name="CursorThemeName" type="string" value="Bibata-Modern-Ice"/>
     <property name="CursorThemeSize" type="empty"/>
-    <property name="DecorationLayout" type="empty"/>
+    <property name="DecorationLayout" type="string" value="icon,menu:minimize,maximize,close"/>
     <property name="DialogsUseHeader" type="empty"/>
     <property name="TitlebarMiddleClick" type="empty"/>
   </property>

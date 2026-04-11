@@ -90,10 +90,10 @@ output_workspace() {
         *)        indicator="○" ;;
     esac
     
-    # Get unique icons for windows in this workspace
+    # Get icons for all windows in this workspace
     icons="$(get_window_classes "$ws_num" | while read -r cls; do
         map_icon "$cls"
-    done | sort -u | tr '\n' ' ' | sed 's/ *$//')"
+    done | tr '\n' ' ' | sed 's/ *$//')"
     
     if [ -n "$icons" ]; then
         echo "$indicator $icons"

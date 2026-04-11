@@ -17,14 +17,12 @@ mkdir -p ~/Screenshots
 # Disable DPMS (prevent screen power off)
 xset -dpms
 
-# Screensaver after 10 minutes, lock when activated
+# Screensaver after 10 minutes
 xset s 600
 
-# Start D-Bus session (MUST be before xss-lock)
-eval $(dbus-launch --sh-syntax)
-
-# Lock screen when screensaver activates
-xss-lock -- $HOME/.local/share/openriot/config/bin/openriot-lock.sh &
+# Use xautolock to trigger i3lock (OpenBSD doesn't have xss-lock)
+xautolock -time 10 -locker "$HOME/.local/share/openriot/config/bin/openriot-lock.sh" &
+xset s on
 
 # Start i3
 exec i3

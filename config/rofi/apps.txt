@@ -8,8 +8,8 @@ Helix|alacritty -e hx|󰛞
 File Manager|thunar|󰝰
 System Monitor|alacritty -e btop|󰍹
 Htop|alacritty -e htop|󰍹
-Crush|crush|󰚩
-Media Player|mpv|󰕼
+Crush AI|alacritty -e crush|󰚩
+Media Player|mpv --player-operation-mode=pseudo-gui|
 Word Processor|abiword|󰈙
 Settings|xfce4-settings-manager|󰒓
 Transmission|transmission-start.desktop|󰇚

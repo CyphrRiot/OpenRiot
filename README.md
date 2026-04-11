@@ -50,12 +50,10 @@ Built on the same principles as [ArchRiot](https://ArchRiot.org) and by the same
 
 OpenRiot is under active development.
 
-The ISO install is functional but has known limitations:
-
 - Some features are still being developed and tested
 - **DO NOT use on production systems**
 
-**Current status:** ISO installs and boots, packages install via installer, i3 desktop configured and functional.
+**Current status:** Standard OpenBSD install + setup.sh, i3 desktop configured and functional.
 
 ---
 
@@ -89,7 +87,7 @@ These ThinkPads have excellent OpenBSD support for WiFi, trackpoints, and suspen
 | **X1 Carbon Gen 7**   | Intel i7-8665U    | ⭐⭐ `iwm` (Intel 9560)      | Premium build, good Linux/OpenBSD support |
 | **X270**              | Intel i5-6300U    | ⭐ `iwm` (Intel 8265)        | Small, portable, older but solid          |
 
-You can buy a T14s Gen 1 for ~$300 USD at experience [Amazon](https://www.amazon.com/dp/B086MD6LTM).
+You can buy a T14s Gen 1 for ~$300 USD at [Amazon](https://www.amazon.com/dp/B086MD6LTM). You can also buy a T14s Gen 1 for around the same price.
 
 ### Other Well-Supported Laptops
 
@@ -192,9 +190,9 @@ Before installing OpenBSD (and therefore OpenRiot), you need to make some BIOS/U
 
 ### Pre-Installation Checklist
 
-Before booting the OpenRiot ISO:
+Before booting the OpenBSD ISO:
 
-- USB drive created with OpenRiot ISO (see above)
+- USB drive created with OpenBSD ISO (see above)
 - Secure Boot disabled in BIOS
 - Boot mode set to UEFI
 - USB boot enabled
@@ -252,17 +250,19 @@ For the best OpenBSD + i3 experience:
 
 ## 🚀 Installing OpenRiot
 
-The OpenRiot ISO installs OpenBSD + i3 desktop automatically. It's the OpenBSD installer with pre-configured settings.
+You will be installing OpenBSD 7.9 and then running a script that installs the full OpenRiot distribution, Window Management, applications, and everything else. It's a process, so be patient with the installation.
+
+> Typical time to install is about 15 minutes.
 
 ### 1. Download
 
-Get the ISO from the [Release Page](https://github.com/CyphrRiot/OpenRiot/releases/tag/v1.0) (~757MB)
+Get the [OpenBSD ISO](https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install79.iso) directly from OpenBSD.
 
 ### 2. Create bootable USB
 
-Replace `/dev/sdX` with your USB device (check with `dmesg`):
+Replace `/dev/sdX` with your USB device (check with `lsblk`):
 ```bash
-dd if=openriot.iso of=/dev/sdX bs=4M status=progress
+dd if=install79.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
 ### 3. Boot and install OpenBSD
@@ -288,7 +288,7 @@ dd if=openriot.iso of=/dev/sdX bs=4M status=progress
 | Partition layout     | Type `c` for custom                                   |
 | Label editor         | `z` → `a /` → size → `a swap` → `a /home` → `w` → `q` |
 | Location of sets     | Type `disk`                                           |
-| Set name(s)          | Press `Enter` (all sets + site79.tgz)                 |
+| Set name(s)          | Press `Enter` (all sets)                              |
 | SHA256 verification | Type `yes` → Enter                                   |
 
 **Partition layout (choose `c`):**
@@ -414,8 +414,8 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | File Manager     | 󰝰   | Thunar file browser      |
 | System Monitor   | 󰍹   | btop resource monitor    |
 | Htop             | 󰍹   | Process viewer           |
-| Crush            | 󰚩   | AI CLI assistant         |
-| Media Player     | 󰕼   | mpv video player         |
+| Crush AI         | 󰚩   | AI CLI assistant         |
+| Media Player     |    | mpv video player         |
 | Word Processor   | 󰈙   | Abiword document editor  |
 | Settings         | 󰒓   | XFCE settings manager    |
 | Transmission     | 󰇚   | BitTorrent client        |

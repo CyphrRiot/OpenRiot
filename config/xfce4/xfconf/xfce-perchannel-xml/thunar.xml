@@ -1,0 +1,25 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<channel name="thunar" version="1.0">
+  <property name="last-view" type="string" value="ThunarIconView"/>
+  <property name="last-icon-view-zoom-level" type="string" value="THUNAR_ZOOM_LEVEL_100_PERCENT"/>
+  <property name="last-window-width" type="int" value="918"/>
+  <property name="last-window-height" type="int" value="526"/>
+  <property name="last-window-maximized" type="bool" value="false"/>
+  <property name="misc-single-click" type="bool" value="false"/>
+  <property name="shortcuts-icon-emblems" type="bool" value="true"/>
+  <property name="shortcuts-icon-size" type="string" value="THUNAR_ICON_SIZE_24"/>
+  <property name="tree-icon-emblems" type="bool" value="true"/>
+  <property name="misc-symbolic-icons-in-sidepane" type="bool" value="false"/>
+  <property name="misc-use-csd" type="bool" value="false"/>
+  <property name="last-separator-position" type="int" value="170"/>
+  <property name="last-menubar-visible" type="bool" value="false"/>
+  <property name="misc-symbolic-icons-in-toolbar" type="bool" value="true"/>
+  <property name="last-toolbar-items" type="string" value="menu:1,back:1,forward:1,open-parent:1,open-home:1,new-tab:0,new-window:0,toggle-split-view:0,undo:0,redo:0,zoom-out:0,zoom-in:0,zoom-reset:0,view-as-icons:0,view-as-detailed-list:0,view-as-compact-list:0,view-switcher:0,location-bar:1,reload:0,search:1,uca-action-1775862279187963-1:0"/>
+  <property name="last-side-pane" type="string" value="THUNAR_SIDEPANE_TYPE_HIDDEN_SHORTCUTS"/>
+  <property name="misc-file-size-binary" type="bool" value="true"/>
+  <property name="misc-change-window-icon" type="bool" value="true"/>
+  <property name="misc-date-style" type="string" value="THUNAR_DATE_STYLE_SHORT"/>
+  <property name="default-view" type="string" value="ThunarIconView"/>
+  <property name="misc-open-new-window-as-tab" type="bool" value="false"/>
+</channel>

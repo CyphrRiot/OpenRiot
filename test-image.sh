@@ -12,7 +12,7 @@ MEMORY="2048"
 # Check if disk exists
 if [ ! -f "$DISK_PATH" ]; then
     echo "Error: $DISK_PATH not found"
-    echo "Run 'make isotest' first to install OpenBSD"
+    echo "Boot from OpenBSD ISO and install to a qcow2 image first."
     exit 1
 fi
 

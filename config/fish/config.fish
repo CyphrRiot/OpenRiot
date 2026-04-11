@@ -128,7 +128,7 @@ end
 # =============================================================================
 
 # Limit history size to prevent corruption
-set -gx fish_history_size 10000
+set -gx fish_history_size 5000
 
 # =============================================================================
 # Aliases & Functions
