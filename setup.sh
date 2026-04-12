@@ -360,6 +360,8 @@ main() {
     echo "|  xenodm will start X11 automatically on next boot.         |"
     echo "+------------------------------------------------------------+"
     echo ""
+    echo "Press any key to continue..."
+    read -r dummy < /dev/tty || true
 }
 
 main "$@"

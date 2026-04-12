@@ -2,6 +2,7 @@
 .work/
 isos/*.iso
 dev
+*.core
 
 # Test images (created by make isotest)
 *.qcow2

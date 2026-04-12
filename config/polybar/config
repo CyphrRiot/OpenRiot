@@ -205,7 +205,7 @@ tooltip = Battery status
 [module/openriot-update]
 type = custom/script
 exec = $HOME/.local/share/openriot/config/polybar/scripts/openriot-update.sh
-interval = 300
+interval = 3600
 tail = false
 format = <label>
 format-foreground = ${colors.fg}
