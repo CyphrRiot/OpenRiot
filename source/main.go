@@ -198,14 +198,26 @@ func main() {
 			fmt.Fprintln(os.Stderr, "Usage: openriot --notify \"title\" \"body\" [--urgency normal] [--expires-in seconds]")
 			os.Exit(1)
 		}
+		// Call notify-send to display notification
+		args := []string{"/usr/local/bin/notify-send"}
+		if urgency != "normal" {
+			args = append(args, "-u", urgency)
+		}
+		if expiresIn > 0 {
+			args = append(args, "-t", fmt.Sprintf("%d", expiresIn*1000))
+		}
+		args = append(args, title)
+		if body != "" {
+			args = append(args, body)
+		}
+		cmd := exec.Command(args[0], args[1:]...)
+		cmd.Run()
+		// Also save to JSON for polybar module
 		var expiresAt int64
 		if expiresIn > 0 {
 			expiresAt = time.Now().Unix() + int64(expiresIn)
 		}
-		if err := notify.Add(title, body, urgency, expiresAt); err != nil {
-			fmt.Fprintf(os.Stderr, "notify error: %v\n", err)
-			os.Exit(1)
-		}
+		notify.Add(title, body, urgency, expiresAt)
 		os.Exit(0)
 	}
 	// --notify-dismiss [id]
