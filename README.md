@@ -316,8 +316,9 @@ dd if=install79.img of=/dev/sdX bs=4M status=progress oflag=sync
 | Encrypt disk         | Type `p` or `no`                                      |
 | Partition layout     | Type `c` for custom                                   |
 | Label editor         | `z` → `a /` → size → `a swap` → `a /home` → `w` → `q` |
-| Location of sets     | Type `disk`                                           |
-| Set name(s)          | Press `Enter` (all sets)                              |
+| Location of sets     | **If online:** Type `http` → Use `http` or `httpcd`      |
+|                     | **If offline:** Type `disk` → Select the correct disk     |
+| Set name(s)          | Press `Enter` (all sets) or type specific sets           |
 | SHA256 verification | Type `yes` → Enter                                   |
 
 **Partition layout (choose `c`):**

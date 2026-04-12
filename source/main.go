@@ -270,8 +270,8 @@ func main() {
 
 	// --mem-notify shows memory usage notification
 	if len(os.Args) >= 2 && os.Args[1] == "--mem-notify" {
-		memPct := polybar.GetMemPercent()
-		exec.Command("notify-send", "-t", "1500", "Memory Usage", memPct).Start()
+		memDetails := polybar.GetMemDetails()
+		exec.Command("notify-send", "-t", "5000", "Memory Usage", memDetails).Start()
 		os.Exit(0)
 	}
 

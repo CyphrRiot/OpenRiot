@@ -55,10 +55,11 @@
             "showUsed": true,
             "showPercent": true,
             "showTotal": true,
+            "mountPoints": ["/", "/home"]
         },
         {
             "type": "localip",
-            "key": " LIP",
+            "key": " IP",
             "keyColor": "cyan",
         },
         {
@@ -68,32 +69,32 @@
         "break",
         {
             "type": "custom",
-            "format": "\u001b[90m┌────────────────────Software──────────────────────┐",
+            "format": "\u001b[90m┌──────────────General Configuration───────────────┐",
         },
         {
             "type": "os",
-            "key": " OS",
-            "keyColor": "yellow",
+            "key": " OS Ver",
+            "keyColor": "magenta",
         },
         {
             "type": "shell",
-            "key": " SHL",
-            "keyColor": "yellow",
+            "key": " Shell",
+            "keyColor": "magenta",
         },
         {
             "type": "uptime",
-            "key": " UP",
-            "keyColor": "yellow",
+            "key": " Uptime",
+            "keyColor": "cyan",
         },
         {
             "type": "wm",
-            "key": " WM",
-            "keyColor": "yellow",
+            "key": " WinMgr",
+            "keyColor": "magenta",
         },
         {
             "type": "terminal",
-            "key": " TRM",
-            "keyColor": "yellow",
+            "key": " Term",
+            "keyColor": "magenta",
         },
         {
             "type": "custom",

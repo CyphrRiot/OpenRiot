@@ -99,8 +99,31 @@ func GetMemPercent() string {
 	return getRAMPercent() + "%"
 }
 
+// GetMemDetails returns detailed memory info for notifications
+// Format: "X.XX GiB of Y.YY GiB\nTotal Used: Z%"
+func GetMemDetails() string {
+	totalOut, _ := exec.Command("/sbin/sysctl", "-n", "hw.usermem").Output()
+	total, _ := strconv.ParseInt(strings.TrimSpace(string(totalOut)), 10, 64)
+
+	vmstatOut, _ := exec.Command("/usr/bin/vmstat", "1", "1").Output()
+	lines := strings.Split(strings.TrimSpace(string(vmstatOut)), "\n")
+	var freeMB int64
+	for _, f := range strings.Fields(lines[len(lines)-1]) {
+		if strings.HasSuffix(f, "M") && !strings.Contains(f, "K") {
+			mb, _ := strconv.ParseInt(strings.TrimSuffix(f, "M"), 10, 64)
+			freeMB = mb
+		}
+	}
+
+	usedGB := float64(total/(1024*1024*1024)) - float64(freeMB)/1024
+	totalGB := float64(total) / (1024 * 1024 * 1024)
+	usedPct := int(float64(usedGB) / totalGB * 100)
+
+	return fmt.Sprintf("%.2f GiB of %.2f GiB\nTotal Used: %d%%", usedGB, totalGB, usedPct)
+}
+
 func getRAMPercentInt() int {
-	totalOut, err := exec.Command("/sbin/sysctl", "-n", "hw.physmem").Output()
+	totalOut, err := exec.Command("/sbin/sysctl", "-n", "hw.usermem").Output()
 	if err != nil {
 		return 0
 	}
