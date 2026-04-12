@@ -3,7 +3,26 @@
 # Output: icon only (version shown in polybar tooltip)
 
 if [ "${1:-}" = "--click" ]; then
-    alacritty --class openriot_upgrade -e sh -c 'printf "You are about to upgrade OpenRiot... are you sure? [Y/n] "; read -r ans; case "$ans" in [yY]|"") curl -fsSL https://openriot.org/setup.sh | sh ;; *) echo "Canceled."; sleep 1 ;; esac' &
+    local_version=$(cat ~/.local/share/openriot/VERSION 2>/dev/null || echo "unknown")
+    remote_version=$(timeout 10 curl -s https://openriot.org/VERSION 2>/dev/null || echo "unknown")
+
+    is_newer() {
+        printf '%s\n%s\n' "$1" "$2" | awk 'BEGIN{FS="."} {
+            for (i=1; i<=3; i++) { v[NR*10+i] = ($i+0) }
+        } END {
+            for (i=1; i<=3; i++) {
+                if (v[20+i] > v[10+i]) { print "yes"; exit }
+                if (v[10+i] > v[20+i]) { print "no"; exit }
+            }
+            print "no"
+        }'
+    }
+
+    if [ "$(is_newer "$local_version" "$remote_version")" = "yes" ]; then
+        alacritty --class openriot_upgrade -e sh -c 'printf "You are about to upgrade OpenRiot... are you sure? [Y/n] "; read -r ans; case "$ans" in [yY]|"") curl -fsSL https://openriot.org/setup.sh | sh ;; *) echo "Canceled."; sleep 1 ;; esac' &
+    else
+        notify-send "OpenRiot" "No upgrade available (v$local_version)"
+    fi
     exit 0
 fi
 
