@@ -903,71 +903,94 @@ max_pairs = 6
 - Show P/L: set `held > 0` AND `entry > 0`
 - Show totals: `show_totals = true`
 
-### 🔒 Mullvad VPN on OpenBSD
+### 🔒 WireGuard VPN
 
-OpenRiot supports Mullvad VPN with WireGuard. Here's how to set it up:
+OpenRiot includes a polybar module to toggle WireGuard VPN with a single click.
 
-#### 1. Install WireGuard Tools
+#### Prerequisites
 
+1. Install WireGuard tools:
 ```bash
 pkg_add wireguard-tools
 ```
 
-#### 2. Generate Mullvad Config
-
-1. Log into your [Mullvad account](https://mullvad.net/)
-2. Go to **Account** → **WireGuard keys**
-3. Generate a new WireGuard key
-4. Download the WireGuard config file
-
-#### 3. Place the Config
-
+2. Create the config directory:
 ```bash
-# Save the Mullvad config
+doas mkdir -p /etc/wireguard
+```
+
+#### Setting Up Mullvad VPN
+
+1. **Generate your config:**
+   - Go to [mullvad.net/en/account/wireguard-config](https://mullvad.net/en/account/wireguard-config)
+   - Select **Linux** platform (WireGuard works the same on OpenBSD)
+   - Click **Generate Key**
+   - Choose a server location (Country/City)
+   - Download the config file
+
+2. **Install the config:**
+```bash
+# Move the downloaded config to WireGuard directory
 doas mv ~/Downloads/mullvad.conf /etc/wireguard/wg0.conf
 ```
 
-#### 4. Connect
+#### Using the VPN
+
+**Polybar Module:**
+
+| Icon | Meaning |
+|------|---------|
+| 󰛳 | No config file installed |
+| 󰅛 | Config exists, VPN disconnected |
+| 󰱓 | VPN connected |
+
+Click the icon to toggle. You'll see notifications for:
+- "Starting WireGuard..."
+- "Stopping WireGuard..."
+- "WireGuard is not configured. Go to OpenRiot.org Read directions." (if no config)
+
+#### Manual Commands
 
 ```bash
-doas rcctl enable wg-quickwg0
-doas rcctl start wg-quickwg0
-```
+# Connect
+doas wg-quick up /etc/wireguard/wg0.conf
 
-#### 5. Verify
+# Disconnect
+doas wg-quick down /etc/wireguard/wg0.conf
 
-```bash
-# Check if tunnel is up
-ifconfig wg0
-
-# Verify traffic goes through VPN
+# Verify connection
 curl https://am.i.mullvad.net/json
 ```
 
-The output should show `"mullvad_exit_ip": true`
-
-#### Disconnect
-
-```bash
-doas rcctl stop wg-quickwg0
-```
+The output should show `"mullvad_exit_ip": true` when connected.
 
 #### Auto-start at Boot (Optional)
 
+Create `/etc/rc.local`:
 ```bash
-doas rcctl enable wg-quickwg0
+#!/bin/sh
+wg-quick up /etc/wireguard/wg0.conf
 ```
 
-#### DNS Leaks
-
-Mullvad config includes their DNS servers by default. To verify no DNS leaks:
-
+Make it executable:
 ```bash
-# Check DNS
-cat /etc/resolv.conf
-
-# Should show Mullvad DNS (10.64.0.1 or similar)
+doas chmod +x /etc/rc.local
 ```
+
+#### Troubleshooting
+
+**VPN won't connect:**
+```bash
+# Check if config exists
+ls -la /etc/wireguard/wg0.conf
+
+# Check interface
+ifconfig wg0
+```
+
+**Slow speeds:**
+- Try a different Mullvad server location
+- Some Mullvad servers may have limited bandwidth
 
 ## 🔧 Troubleshooting
 

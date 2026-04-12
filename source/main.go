@@ -22,6 +22,7 @@ import (
 	"openriot/installer"
 	"openriot/notify"
 	"openriot/polybar"
+	"openriot/wireguard"
 )
 
 // Injected at build time via Makefile ldflags:
@@ -100,6 +101,21 @@ func main() {
 		}
 		fmt.Printf("Current: %s\n", localVer)
 		os.Exit(1)
+	}
+
+	// --wireguard-status - for polybar
+	if len(os.Args) >= 2 && os.Args[1] == "--wireguard-status" {
+		fmt.Print(wireguard.Status())
+		return
+	}
+
+	// --wireguard - toggle VPN
+	if len(os.Args) >= 2 && os.Args[1] == "--wireguard" {
+		if err := wireguard.Toggle(); err != nil {
+			fmt.Fprintf(os.Stderr, "WireGuard error: %v\n", err)
+			os.Exit(1)
+		}
+		return
 	}
 
 	// All other CLI commands
