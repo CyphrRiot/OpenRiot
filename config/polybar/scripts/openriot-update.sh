@@ -3,7 +3,7 @@
 # Output: icon only (version shown in polybar tooltip)
 
 if [ "${1:-}" = "--click" ]; then
-    alacritty -e sh -c 'curl -fsSL https://openriot.org/setup.sh | sh' &
+    alacritty -e sh -c 'printf "You are about to upgrade OpenRiot... are you sure? [Y/n] "; read -r ans; case "$ans" in [yY]|"") curl -fsSL https://openriot.org/setup.sh | sh ;; *) echo "Canceled."; sleep 1 ;; esac' &
     exit 0
 fi
 
