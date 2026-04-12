@@ -109,6 +109,9 @@ if not type -q vim
     alias vi='hx'
 end
 
+# Helix alias
+alias helix='hx'
+
 # Directory listing with lsd (better ls)
 alias ls='lsd'
 alias ll='lsd -l'

@@ -131,7 +131,7 @@ desktop:
     apps:
         packages:
             - firefox-149.0
-            #- tdesktop-6.6.4p0
+            - tdesktop-6.7.1
             - helix-25.07.1
             - lsd-1.1.5p2
             - thunar-4.20.8

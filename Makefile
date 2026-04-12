@@ -42,10 +42,91 @@ dev:
 	chmod 0755 ../$(INSTALL_DIR)/$(BINARY_NAME) && \
 	echo "=== Dev build complete: $(INSTALL_DIR)/$(BINARY_NAME) ==="
 
-# Release build
-release: build
+# Release build with versioning
+release:
+	@echo "Building binary..."; make build; echo ""; \
+	OPENRIOT_VERSION=`cat VERSION` && \
+	CURRENT_BRANCH=`git branch --show-current` && \
+	echo "Current version: v$$OPENRIOT_VERSION"; \
+	echo "Branch: $$CURRENT_BRANCH"; \
+	echo ""; \
+	MAJOR=`echo $$OPENRIOT_VERSION | cut -d. -f1` && \
+	MINOR=`echo $$OPENRIOT_VERSION | cut -d. -f2` && \
+	if [ "$(BUMP)" = "major" ]; then \
+		NEW_VERSION=$$((MAJOR+1)).0; \
+		echo "Bump type: major"; \
+	else \
+		NEW_VERSION=$$MAJOR.$$((MINOR+1)); \
+		echo "Bump type: minor (default)"; \
+	fi && \
+	echo "New version: v$$NEW_VERSION"; \
+	echo ""; \
+	echo "Changes since last commit:"; \
+	git diff --stat; \
+	echo ""; \
+	if [ -n "$$(git status --porcelain)" ]; then \
+		echo "WARNING: Uncommitted changes exist:"; \
+		git status --short; \
+		echo ""; \
+		echo "Press Enter to proceed or Ctrl+C to abort."; \
+		read -r; \
+	fi; \
+	if [ -n "$(DRYRUN)" ]; then \
+		echo "=== DRY RUN - No changes made ==="; \
+		echo "Would do:"; \
+		echo "  1. Build binary"; \
+		echo "  2. Update VERSION to $$NEW_VERSION"; \
+		echo "  3. Update README.md badge to v$$NEW_VERSION"; \
+		echo "  4. git add -A (all changes)"; \
+		echo "  5. git commit (opens Helix editor)"; \
+		echo "  6. git tag 'v$$NEW_VERSION'"; \
+		echo "  7. Push (if confirmed)"; \
+	else \
+		echo "Updating VERSION..."; \
+		echo $$NEW_VERSION > VERSION; \
+		echo "Updating README badge..."; \
+		sed -i "s/version-[0-9.]*/version-$$NEW_VERSION/" README.md; \
+		echo "Committing..."; \
+		git add -A; \
+		git commit; \
+		echo "Creating tag..."; \
+		git tag -a "v$$NEW_VERSION" -m "OpenRiot v$$NEW_VERSION"; \
+		echo ""; \
+		echo "=== Release v$$NEW_VERSION created ==="; \
+		echo ""; \
+		echo "Would you like to push and tag? [Y/n]"; \
+		read -r PUSH_CONF; \
+		if [ "$${PUSH_CONF:-y}" = "y" ] || [ "$${PUSH_CONF:-y}" = "Y" ]; then \
+			git push && git push origin "v$$NEW_VERSION"; \
+		fi \
+	fi
+
+# Create release (called by setup.sh after confirm)
+create-release:
 	@OPENRIOT_VERSION=`cat VERSION` && \
-	echo "=== Release v$$OPENRIOT_VERSION ready ==="
+	MAJOR=`echo $$OPENRIOT_VERSION | cut -d. -f1` && \
+	MINOR=`echo $$OPENRIOT_VERSION | cut -d. -f2` && \
+	if [ "$(BUMP)" = "major" ]; then \
+		NEW_VERSION=$$((MAJOR+1)).0; \
+		echo "Bump type: major"; \
+	else \
+		NEW_VERSION=$$MAJOR.$$((MINOR+1)); \
+		echo "Bump type: minor (default)"; \
+	fi && \
+	echo "Updating VERSION: v$$OPENRIOT_VERSION -> v$$NEW_VERSION"; \
+	echo $$NEW_VERSION > VERSION && \
+	echo "Updating README badge..."; \
+	sed -i "s/version-[0-9.]*/version-$$NEW_VERSION/" README.md && \
+	echo "Committing changes..."; \
+	git add VERSION README.md && \
+	git commit -m "v$$NEW_VERSION" && \
+	echo "Creating tag..."; \
+	git tag -a "v$$NEW_VERSION" -m "OpenRiot v$$NEW_VERSION" && \
+	echo ""; \
+	echo "=== Release v$$NEW_VERSION created ==="; \
+	echo ""; \
+	echo "Next steps:"; \
+	echo "  git push && git push --tags"
 
 # Ultra build — static + optional UPX
 ultra:

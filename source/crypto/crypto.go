@@ -68,9 +68,9 @@ func RunCrypto(mode string) error {
 
 	// Get cache paths
 	cacheDir := getCacheDir()
-	curFile := filepath.Join(cacheDir, "hyprlock-crypto.json")
-	prevFile := filepath.Join(cacheDir, "hyprlock-crypto-prev.json")
-	ohlcFile := filepath.Join(cacheDir, "hyprlock-ohlc.json")
+	curFile := filepath.Join(cacheDir, "openriot-crypto.json")
+	prevFile := filepath.Join(cacheDir, "openriot-crypto-prev.json")
+	ohlcFile := filepath.Join(cacheDir, "openriot-ohlc.json")
 
 	// Fetch prices
 	ids := make([]string, 0)
@@ -231,7 +231,7 @@ func fetchPrices(ids []string, curFile string, apiKey string) {
 		url += "&x_cg_demo_api_key=" + apiKey
 	}
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("User-Agent", "ArchRiot/hyprlock-crypto")
+	req.Header.Set("User-Agent", "OpenRiot/crypto")
 
 	client := &http.Client{Timeout: 6 * time.Second}
 	resp, err := client.Do(req)
@@ -318,7 +318,7 @@ func fetchOHLC(coinID string, days int, apiKey string) []float64 {
 	}
 
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("User-Agent", "ArchRiot/hyprlock-crypto")
+	req.Header.Set("User-Agent", "OpenRiot/crypto")
 
 	client := &http.Client{Timeout: 8 * time.Second}
 	resp, err := client.Do(req)

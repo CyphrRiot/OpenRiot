@@ -70,7 +70,7 @@ format = <label>
 format-foreground = ${colors.fg}
 format-padding = 0
 label = %output%
-click-left = i3-msg workspace 1
+click-left = $HOME/.local/share/openriot/config/polybar/scripts/workspaces-click.sh %lx
 
 [module/workspaces2]
 type = custom/script
@@ -81,7 +81,7 @@ format = <label>
 format-foreground = ${colors.fg}
 format-padding = 0
 label = %output%
-click-left = i3-msg workspace 2
+click-left = $HOME/.local/share/openriot/config/polybar/scripts/workspaces-click.sh %lx
 
 [module/workspaces3]
 type = custom/script
@@ -92,7 +92,7 @@ format = <label>
 format-foreground = ${colors.fg}
 format-padding = 0
 label = %output%
-click-left = i3-msg workspace 3
+click-left = $HOME/.local/share/openriot/config/polybar/scripts/workspaces-click.sh %lx
 
 [module/workspaces4]
 type = custom/script
@@ -103,7 +103,7 @@ format = <label>
 format-foreground = ${colors.fg}
 format-padding = 0
 label = %output%
-click-left = i3-msg workspace 4
+click-left = $HOME/.local/share/openriot/config/polybar/scripts/workspaces-click.sh %lx
 
 [module/i3]
 type = internal/i3
