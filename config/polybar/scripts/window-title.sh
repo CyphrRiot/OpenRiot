@@ -42,5 +42,5 @@ if title:
 
 title="$(get_focused_title)"
 if [ -n "$title" ]; then
-    printf "  %s" "$title"
+    printf " %s" "$title"
 fi

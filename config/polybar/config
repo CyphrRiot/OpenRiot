@@ -5,7 +5,7 @@ bg = #1a0a3d
 bg2 = #1a0a3d
 fg = #c0caf5
 fg2 = #a9b1d6
-fg3 = #7aa2f7
+fg3 = #565f89
 red = #f7768e
 orange = #ff9e64
 yellow = #e0af68
@@ -42,6 +42,7 @@ spacing = 0
 ; Fonts
 font-0 = "FiraCode Nerd Font:size=11"
 font-1 = "FiraCode Nerd Font:size=15"
+font-2 = "Paper Mono:style=Regular:size=8"
 
 ; Separator style
 separator = ""
@@ -101,7 +102,7 @@ interval = 2
 tail = false
 format = <label>
 format-foreground = ${colors.fg}
-format-padding = 0
+format-padding = 3
 label = %output%
 click-left = $HOME/.local/share/openriot/config/polybar/scripts/workspaces-click.sh %lx
 
@@ -112,7 +113,7 @@ strip-wsnumbers = false
 
 [module/launcher]
 type = custom/text
-format = "%{T2}  %{T-}"
+format = "%{T2} %{T-}"
 format-foreground = ${colors.fg}
 format-padding = 0
 click-left = $HOME/.local/share/openriot/config/rofi/launcher.sh
@@ -123,15 +124,15 @@ label-mode-foreground = ${colors.fg}
 
 label-focused = 󰟠
 label-focused-foreground = ${colors.fg}
-label-focused-padding = 3
+label-focused-padding = 2
 
 label-unfocused = 󰊉
 label-unfocused-foreground = ${colors.fg2}
-label-unfocused-padding = 3
+label-unfocused-padding = 2
 
 label-visible = 󰊉
 label-visible-foreground = ${colors.fg2}
-label-visible-padding = 3
+label-visible-padding = 2
 
 label-urgent = 󰨏
 label-urgent-foreground = ${colors.bg}
@@ -291,7 +292,7 @@ exec = $HOME/.local/share/openriot/config/polybar/scripts/window-title.sh
 interval = 1
 tail = false
 format = <label>
-format-foreground = ${colors.fg2}
+format-foreground = ${colors.fg3}
 format-padding = 0
 label = %output%
 label-empty =

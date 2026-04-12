@@ -10,6 +10,7 @@ set $menu $HOME/.local/share/openriot/config/rofi/launcher.sh
 font pango:FiraCode Nerd Font 11
 default_border pixel 1
 default_floating_border pixel 1
+default_orientation horizontal
 hide_edge_borders smart
 smart_gaps on
 
@@ -43,7 +44,7 @@ exec --no-startup-id dunst
 exec --no-startup-id clipmenud
 
 # Auto-tiling
-exec_always --no-startup-id i3-auto-layout
+# exec_always --no-startup-id i3-auto-layout
 
 # GTK/XFCE settings daemon
 exec --no-startup-id xfsettingsd
@@ -63,11 +64,14 @@ floating_modifier Mod4
 # Floating terminal
 for_window [class="^URxvt$" instance="^floating"] floating enable, resize set 900 600, move position center
 
+# Centered floating terminal (Super+Shift+Enter)
+for_window [class="^floating_center"] floating enable, resize set 40% 75%, move position center
+
 # Transmission
 for_window [class="^Transmission$"] floating enable, resize set 800 600, move position center
 
 # OpenRiot dialogs
-for_window [title="^(OpenRiot Update Available)$"] floating enable, resize set 35% 65%, move position center
+for_window [class="^(openriot_upgrade|OpenRiot Update Available)$"] floating enable, resize set 35% 65%, move position center
 for_window [title="^(OpenRiot Control Panel)$"] floating enable, resize set 900 85%, move position center
 
 # Popups

@@ -49,10 +49,10 @@ set -g __fish_git_prompt_showdirtystate yes
 set -g __fish_git_prompt_showstashstate yes
 set -g __fish_git_prompt_showuntrackedfiles yes
 set -g __fish_git_prompt_showupstream yes
-set -g __fish_git_prompt_color_branch yellow
+set -g __fish_git_prompt_color_branch 9d7cd8
 set -g __fish_git_prompt_color_upstream_ahead purple
 set -g __fish_git_prompt_color_upstream_behind red
-set -g __fish_git_prompt_color_dirtystate ff8c00
+set -g __fish_git_prompt_color_dirtystate 565f89
 set -g __fish_git_prompt_char_dirtystate "●"
 set -g __fish_git_prompt_char_stagedstate "→"
 set -g __fish_git_prompt_char_untrackedfiles "☡"
@@ -67,19 +67,19 @@ set -g __fish_git_prompt_char_upstream_equal ""
 
 function fish_prompt
     set -l last_status $status
-    set_color purple
-    echo -n '🐡 '
-    set_color cyan
+    set_color bb9af7
+    echo -n ' '
+    set_color 7dcfff
     printf "%s" (string replace $HOME "~" (pwd))
     if command git rev-parse --git-dir >/dev/null 2>&1
-        printf " %s" (__fish_git_prompt)
+        printf "%s" (__fish_git_prompt)
     end
     if test $last_status -ne 0
         set_color red
         printf " [%d]" $last_status
         set_color normal
     end
-    set_color cyan
+    set_color bb9af7
     printf " ❯ "
     set_color normal
 end
@@ -88,12 +88,6 @@ end
 # fish is a login shell — it should NEVER exec i3, or SSH sessions die.
 # On TTY1, xenodm launches ~/.xsession which starts i3. On SSH, you get a shell.
 function fish_right_prompt
-    set_color purple
-    printf "("
-    set_color cyan
-    printf "%s" (hostname)
-    set_color purple
-    printf ") "
     set_color blue
     printf "%s" (date "+%H:%M:%S")
     set_color normal
@@ -132,7 +126,7 @@ end
 # =============================================================================
 
 # Limit history size to prevent corruption
-set -gx fish_history_size 5000
+set -gx fish_history_size 1000
 
 # =============================================================================
 # Aliases & Functions
