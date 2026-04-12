@@ -23,6 +23,14 @@ OpenRiot is the answer to every time you've thought "Why can't an OpenBSD instal
 
 - Read the [original Post on X](https://x.com/CyphrRiot/status/2039409143891837297?s=20)
 
+### System Requirements
+
+|| Requirement | Notes |
+| --- | --- | --- |
+| **Resolution** | 1920x1080 minimum | OpenRiot's i3/polybar setup requires 1080p or higher |
+| **RAM** | 4GB+ recommended | |
+| **Disk** | 25GB+ recommended | |
+
 ### **Curated to be correct**
 
 - **🪟 i3 Tiling** — X11-native tiling that actually gets it right
@@ -256,14 +264,35 @@ You will be installing OpenBSD 7.9 and then running a script that installs the f
 
 ### 1. Download
 
-Get the [OpenBSD ISO](https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install79.iso) directly from OpenBSD.
+OpenBSD 7.9 is available as two download types:
+
+#### Option A: ISO (Best for CD/DVD)
+
+The `.iso` file is intended for optical media. If burning to CD/DVD, use this.
+
+Download: [install79.iso](https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install79.iso)
+
+#### Option B: Disk Image (Best for USB)
+
+The `.img` file is pre-configured for USB boot and bootloader. **Recommended for most users** — use this if installing from USB.
+
+Download: [install79.img](https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install79.img)
 
 ### 2. Create bootable USB
 
-Replace `/dev/sdX` with your USB device (check with `lsblk`):
+> ⚠️ **Choose your file type:**
+
+**For ISO:**
 ```bash
 dd if=install79.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
+
+**For IMG (recommended):**
+```bash
+dd if=install79.img of=/dev/sdX bs=4M status=progress oflag=sync
+```
+
+> ⚠️ Replace `/dev/sdX` with your actual USB device (check with `lsblk` or `dmesg` after inserting).
 
 ### 3. Boot and install OpenBSD
 
