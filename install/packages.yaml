@@ -235,6 +235,8 @@ system:
               cmd: "doas rcctl enable seatd && doas rcctl start seatd"
             - desc: "Create WireGuard config directory"
               cmd: "doas mkdir -p /etc/wireguard && doas chmod 700 /etc/wireguard"
+            - desc: "Install Atheros AR9271 WiFi firmware (if adapter present)"
+              cmd: "if [ -d /etc/firmware ] && ! [ -f /etc/firmware/athn-open-ar9271 ]; then fw_update -v athn 2>/dev/null || (cd /etc/firmware && ftp -o athn-ucode.tgz https://firmware.openbsd.org/firmware/$(uname -r)/athn-ucode.tgz 2>/dev/null && tar -xzf athn-ucode.tgz && rm -f athn-ucode.tgz); fi"
         depends: [core.base]
         start: "Configuring system services"
         end: "System services configured"

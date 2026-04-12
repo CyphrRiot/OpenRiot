@@ -103,10 +103,11 @@ end
 # Aliases & Functions
 # =============================================================================
 
-# Vim/Vi aliases to helix
-alias vim='hx'
-alias vi='hx'
-alias helix='hx'
+# Vim/Vi aliases to helix (only if vim is not installed)
+if not type -q vim
+    alias vim='hx'
+    alias vi='hx'
+end
 
 # Directory listing with lsd (better ls)
 alias ls='lsd'

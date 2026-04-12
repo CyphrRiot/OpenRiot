@@ -23,14 +23,6 @@ OpenRiot is the answer to every time you've thought "Why can't an OpenBSD instal
 
 - Read the [original Post on X](https://x.com/CyphrRiot/status/2039409143891837297?s=20)
 
-### System Requirements
-
-|| Requirement | Notes |
-| --- | --- | --- |
-| **Resolution** | 1920x1080 minimum | OpenRiot's User Interface requires this |
-| **RAM** | 4GB+ minimum | 8GB+ Optimal |
-| **Disk** | 25GB+ recommended | 100GB+ Optimal |
-
 ### **Curated to be correct**
 
 - **🪟 i3 Tiling** — X11-native tiling that actually gets it right
@@ -47,6 +39,14 @@ OpenRiot is the answer to every time you've thought "Why can't an OpenBSD instal
 This isn’t shaped by committees, corporate roadmaps, or quarterly deliverables. It’s built and maintained by one person with an obsessive focus on doing it right the first time — because a mediocre computing environment isn’t just inconvenient. It’s an insult to what computers should be.
 
 Built on the same principles as [ArchRiot](https://ArchRiot.org) and by the same creator. If you liked ArchRiot, you'll love OpenRiot.
+
+### System Requirements
+
+|| Requirement | Notes |
+| --- | --- | --- |
+| **Resolution** | 1920x1080 minimum | OpenRiot's User Interface requires this |
+| **RAM** | 4GB+ minimum | 8GB+ Optimal |
+| **Disk** | 25GB+ recommended | 100GB+ Optimal |
 
 > "Linux has never been about quality. There are so many parts of the system that are just these cheap little hacks, and it happens to run." -Theo de Raadt
 
