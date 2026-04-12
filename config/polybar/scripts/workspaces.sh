@@ -84,16 +84,28 @@ output_workspace() {
     ws_num="$1"
     state="$(get_state "$ws_num")"
     
-    case "$state" in
-        focused)  indicator="●" ;;
-        urgent)   indicator="◉" ;;
-        *)        indicator="○" ;;
-    esac
-    
     # Get icons for all windows in this workspace
     icons="$(get_window_classes "$ws_num" | while read -r cls; do
         map_icon "$cls"
     done | tr '\n' ' ' | sed 's/ *$//')"
+    
+    # Determine indicator based on state AND whether has apps
+    if [ "$state" = "focused" ]; then
+        indicator=""
+    elif [ "$state" = "urgent" ]; then
+        indicator=""
+    elif [ -n "$icons" ]; then
+        # Inactive with apps
+        indicator=""
+    else
+        # Inactive empty
+        indicator=""
+    fi
+    
+    # Dim and shrink icons for unfocused workspaces
+    if [ "$state" = "unfocused" ] && [ -n "$icons" ]; then
+        icons="%{T0}%{F#5656B6}$icons%{F-}%{T-}"
+    fi
     
     if [ -n "$icons" ]; then
         echo "$indicator $icons"
@@ -115,5 +127,5 @@ else
             output="$output   $(output_workspace $i)"
         fi
     done
-    echo "${output:-○   ○   ○   ○}"
+    echo "${output:-         }"
 fi

@@ -1,4 +1,4 @@
-@theme "/home/grendel/.config/rofi/simple-tokyonight.rasi"
+@theme "~/.config/rofi/simple-tokyonight.rasi"
 
 configuration {
     modi: "calc,drun";
