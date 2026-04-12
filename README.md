@@ -27,9 +27,9 @@ OpenRiot is the answer to every time you've thought "Why can't an OpenBSD instal
 
 || Requirement | Notes |
 | --- | --- | --- |
-| **Resolution** | 1920x1080 minimum | OpenRiot's i3/polybar setup requires 1080p or higher |
-| **RAM** | 4GB+ recommended | |
-| **Disk** | 25GB+ recommended | |
+| **Resolution** | 1920x1080 minimum | OpenRiot's User Interface requires this |
+| **RAM** | 4GB+ minimum | 8GB+ Optimal |
+| **Disk** | 25GB+ recommended | 100GB+ Optimal |
 
 ### **Curated to be correct**
 
