@@ -1,8 +1,7 @@
 #!/bin/sh
 # =============================================================================
 # OpenRiot — LF Image Preview Script
-# Uses chafa for terminal-native image rendering
-# Requires: chafa (pkg_add chafa)
+# Image previews require chafa: doas pkg_add chafa (optional)
 # =============================================================================
 
 # Dimensions from lf

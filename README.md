@@ -525,7 +525,7 @@ Fish comes pre-configured with useful aliases:
 | `q`       | Quit                             |
 | `Q`       | Quit all lf instances            |
 
-**Note:** Press `?` in lf for full help. File previews shown inline (images via chafa, text via bat).
+**Note:** Press `?` in lf for full help. File previews shown inline (text via bat, images require optional chafa: `doas pkg_add chafa`).
 
 ### Tutorial Video
 
