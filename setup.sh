@@ -345,7 +345,7 @@ main() {
 
     # Restart polybar if running
     info "Restarting polybar..."
-    pkill -HUP polybar 2>/dev/null || true
+    pkill polybar 2>/dev/null || true
     sleep 1
     nohup polybar main >/dev/null 2>&1 &
     success "Polybar restarted"
