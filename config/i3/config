@@ -45,9 +45,6 @@ exec --no-startup-id clipmenud
 # Auto-tiling
 exec_always --no-startup-id i3-auto-layout
 
-# Night light (redshift)
-exec --no-startup-id redshift -l 40.71:-74.00 -t 4000:4000
-
 # GTK/XFCE settings daemon
 exec --no-startup-id xfsettingsd
 

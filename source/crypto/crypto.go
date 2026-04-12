@@ -196,8 +196,9 @@ func loadCryptoConfig() (*Config, error) {
 		APIKey:  "",
 		Pairs: []PairConfig{
 			{Sym: "BTC", Coin: "bitcoin", Held: 0, Entry: 0},
-			{Sym: "ETH", Coin: "ethereum", Held: 0, Entry: 0},
+			{Sym: "ZEC", Coin: "zcash", Held: 0, Entry: 0},
 			{Sym: "XMR", Coin: "monero", Held: 0, Entry: 0},
+			{Sym: "LTC", Coin: "litecoin", Held: 0, Entry: 0},
 		},
 	}
 

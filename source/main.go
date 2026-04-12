@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -139,13 +138,11 @@ func main() {
 			if _, err := os.Stat(lockScript); err == nil {
 				exec.Command("sh", lockScript).Run()
 			}
-			exec.Command("i3lock", "-i", "/tmp/i3lock-bg.png").Run()
 		case "Suspend":
 			lockScript := filepath.Join(getInstallDir(), "config", "bin", "openriot-lock.sh")
 			if _, err := os.Stat(lockScript); err == nil {
 				exec.Command("sh", lockScript).Run()
 			}
-			exec.Command("i3lock", "-i", "/tmp/i3lock-bg.png").Run()
 			exec.Command("zzz").Run()
 		case "Reboot":
 			exec.Command("shutdown", "-r", "now").Run()
@@ -164,16 +161,6 @@ func main() {
 	}
 	if len(os.Args) >= 2 && os.Args[1] == "--suspend-if-undocked" {
 		detect.SuspendIfUndocked()
-		return
-	}
-	// --wlsunset - output emoji based on wlsunset state
-	if len(os.Args) >= 2 && os.Args[1] == "--wlsunset" {
-		out, _ := exec.Command("pgrep", "-x", "wlsunset").Output()
-		if len(out) > 0 {
-			fmt.Print("󰆗") // Moon - warm mode on
-		} else {
-			fmt.Print("󰛨") // Lightbulb - warm mode off
-		}
 		return
 	}
 	// --notify "title" "body" [--urgency normal|critical|low] [--expires-in seconds]
@@ -443,49 +430,7 @@ func runInstallPackages() {
 	}
 }
 
-// writeOpenRouterToFish writes OpenRouter API key to fish config
-func writeOpenRouterToFish(apiKey string) {
-	if apiKey == "" {
-		return
-	}
 
-	usr, err := user.Current()
-	if err != nil {
-		fmt.Printf("[ERR!] Failed to get current user: %v\n", err)
-		return
-	}
-
-	fishConfigPath := filepath.Join(usr.HomeDir, ".config", "fish", "config.fish")
-
-	content, err := os.ReadFile(fishConfigPath)
-	if err != nil {
-		fmt.Printf("[ERR!] Failed to read fish config: %v\n", err)
-		return
-	}
-
-	if strings.Contains(string(content), "OPENROUTER_API_KEY") {
-		fmt.Println("[INFO] OpenRouter already configured in fish config")
-		return
-	}
-
-	openRouterConfig := `
-
-# OpenRouter LLM Configuration
-# Get your free key from https://openrouter.ai/settings
-set -gx OPENROUTER_API_KEY "` + apiKey + `"
-set -gx OPENROUTER_BASE_URL "https://openrouter.ai/api/v1"
-`
-
-	newContent := string(content) + openRouterConfig
-
-	err = os.WriteFile(fishConfigPath, []byte(newContent), 0644)
-	if err != nil {
-		fmt.Printf("[ERR!] Failed to write fish config: %v\n", err)
-		return
-	}
-
-	fmt.Println("[INFO] OpenRouter API key saved to fish config")
-}
 
 // getLocalVersion reads the local VERSION file
 func getLocalVersion() string {

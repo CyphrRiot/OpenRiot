@@ -81,7 +81,7 @@ case "$CLASS" in
 
     # === Media Players ===
     spotify) echo "󰽴" ;;
-    celluloid|mpv) echo "󰕼" ;;
+    celluloid|mpv) echo "" ;;
     vlc) echo "󰕼" ;;
     totem) echo "󰕼" ;;
     audacious) echo "󰕼" ;;

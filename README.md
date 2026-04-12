@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.0-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.1-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -980,10 +980,10 @@ If something goes wrong, upload your log file for debugging:
 ~/.cache/openriot/setup.log
 
 # Install log location
-/tmp/openriot-install.log
+~/.cache/openriot/install.log
 
 # Share install log
-~/.local/share/openriot/install/openriot --share-log /tmp/openriot-install.log
+~/.local/share/openriot/install/openriot --share-log install.log
 ```
 
 This will upload the log to tmpfiles.org and give you a URL to share.
