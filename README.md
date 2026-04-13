@@ -73,10 +73,10 @@ OpenRiot is under active development. It may not work as expected. Some features
     - [⌨️ Keybindings Customization](#keybindings-customization)
     - [📊 Polybar Modules](#polybar-modules)
     - [🔐 Crypto Config](#crypto-config)
-    - [🔒 Mullvad VPN](#mullvad-vpn-on-openbsd)
+    - [🔒 WireGuard VPN](#wireguard-vpn)
+    - [📥 Transmission](#transmission-bittorrent-client)
 - [🔧 Troubleshooting](#troubleshooting)
 - [🦊 Browser & Data Transfer](#browser--data-transfer)
-- [📄 License](#license)
 
 ## ✅ Supported Systems
 
@@ -1076,7 +1076,7 @@ OpenRiot includes Transmission daemon with a web interface and polybar integrati
 
 **Always run Transmission behind a VPN!** Your ISP can see BitTorrent traffic, and you can receive copyright infringement notices (or worse) if you download copyrighted material. 😉
 
-Click the **VPN icon (󰱓)** in polybar to connect before downloading anything.
+Click the **VPN icon** 󰱓 in polybar to connect before downloading anything.
 
 ### Accessing the Web Interface
 
@@ -1096,8 +1096,8 @@ Click the icon to toggle. Notifications confirm state changes.
 ### Rofi Menu
 
 The app launcher (Rofi) also has a Transmission entry that dynamically shows:
-- **Transmission 󰭽** — Click to stop
-- **Transmission 󰅤** — Click to start
+- **Transmission** 󰭽 — Click to stop
+- **Transmission** 󰅤 — Click to start
 
 ### Default Settings
 
