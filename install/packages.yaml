@@ -105,9 +105,9 @@ desktop:
             - desc: "Remove deprecated polybar scripts"
               cmd: "rm -f ~/.config/polybar/scripts/*.sh"
             - desc: "Taking dunst behind the barn"
-              cmd: "pkill -9 dunst 2>/dev/null || true; sleep 1; /usr/local/bin/dunst & disown"
+              cmd: "pkill -9 dunst 2>/dev/null || true; sleep 1; nohup /usr/local/bin/dunst >/dev/null 2>&1 &"
             - desc: "Taking picom for a stroll"
-              cmd: "pkill -9 picom 2>/dev/null || true; sleep 1; /usr/local/bin/picom & disown"
+              cmd: "pkill -9 picom 2>/dev/null || true; sleep 1; nohup /usr/local/bin/picom >/dev/null 2>&1 &"
         depends: [core.base, fonts.fira-code]
         start: "Installing i3 desktop"
         end: "i3 desktop installed"
@@ -161,6 +161,8 @@ desktop:
               target: "~/.local/share/applications/"
             - pattern: dconf/*
               target: "~/.config/openriot/dconf/"
+            - pattern: text-editor/*
+              target: "~/.local/share/gtksourceview-5/styles/"
         depends: [core.base, desktop.i3]
         start: "Installing desktop applications"
         end: "Desktop applications installed"

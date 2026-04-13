@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.11-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.12-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -72,6 +72,7 @@ OpenRiot is under active development. It may not work as expected. Some features
     - [🔄 Environment Variables](#environment-variables)
     - [⌨️ Keybindings Customization](#keybindings-customization)
     - [📊 Polybar Modules](#polybar-modules)
+    - [🌤 Weather Module](#-weather-module-polybar)
     - [🔐 Crypto Config](#-crypto-config)
     - [🔒 WireGuard VPN](#-wireguard-vpn)
     - [📥 Transmission](#-transmission-bittorrent-client)
@@ -881,16 +882,6 @@ All package installation uses `pkg_add -D unsigned` — fresh packages matching 
 <a id="advanced-usage"></a>
 
 ## 🧰 Advanced Usage
-
-**In This Section:**
-- [Environment Variables](#environment-variables)
-- [Keybindings Customization](#keybindings-customization)
-- [Polybar Modules](#polybar-modules)
-- [Weather Module](#-weather-module-polybar)
-- [Crypto Config](#-crypto-config)
-- [WireGuard VPN](#-wireguard-vpn)
-- [Transmission BitTorrent](#-transmission-bittorrent-client)
-- [Proton Drive Sync](#-proton-drive-sync)
 
 ### Environment Variables
 
