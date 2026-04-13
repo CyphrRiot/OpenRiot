@@ -72,9 +72,9 @@ OpenRiot is under active development. It may not work as expected. Some features
     - [🔄 Environment Variables](#environment-variables)
     - [⌨️ Keybindings Customization](#keybindings-customization)
     - [📊 Polybar Modules](#polybar-modules)
-    - [🔐 Crypto Config](#crypto-config)
-    - [🔒 WireGuard VPN](#wireguard-vpn)
-    - [📥 Transmission](#transmission-bittorrent-client)
+    - [🔐 Crypto Config](#-crypto-config)
+    - [🔒 WireGuard VPN](#-wireguard-vpn)
+    - [📥 Transmission](#-transmission-bittorrent-client)
 - [🔧 Troubleshooting](#troubleshooting)
 - [🦊 Browser & Data Transfer](#browser--data-transfer)
 
