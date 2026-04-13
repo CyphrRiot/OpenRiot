@@ -7,5 +7,5 @@ if [ "$1" = "--notify" ]; then
     NOTIFY_MSG="$3"
     shift 3
 fi
-notify-send -i firefox "$TITLE" "$NOTIFY_MSG" &
+notify-send -i "$HOME/.local/share/openriot/config/icons/firefox.png" "$TITLE" "$NOTIFY_MSG" &
 exec firefox "$@"

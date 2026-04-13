@@ -108,6 +108,8 @@ desktop:
               cmd: "if command -v autotiling >/dev/null 2>&1; then echo '[SKIP] autotiling already installed'; elif pip3 install autotiling 2>&1 | grep -q 'Requirement already satisfied'; then echo '[SKIP] autotiling already installed'; elif pip3 install autotiling --break-system-packages 2>/dev/null || pip3 install autotiling 2>/dev/null; then echo '[SKIP] autotiling installed'; else echo '[WARN] autotiling install failed, tiling will be manual'; fi"
             - desc: "Remove deprecated polybar config"
               cmd: "rm -f ~/.config/polybar/config"
+            - desc: "Remove deprecated polybar scripts"
+              cmd: "rm -f ~/.config/polybar/scripts/*.sh"
         depends: [core.base, fonts.fira-code]
         start: "Installing i3 desktop"
         end: "i3 desktop installed"
@@ -144,6 +146,7 @@ desktop:
             - papirus-icon-theme-20250501p1
             - lf-41
             - abiword-3.0.9pre20260116
+            - gnome-text-editor-49.1
         configs:
             - pattern: gtk-3.0/*
             - pattern: gtk-4.0/*
@@ -158,11 +161,16 @@ desktop:
               preserve_if_exists: [crypto.toml]
             - pattern: applications/*
               target: "~/.local/share/applications/"
+            - pattern: dconf/*
+              target: "~/.config/openriot/dconf/"
         depends: [core.base, desktop.i3]
         start: "Installing desktop applications"
         end: "Desktop applications installed"
         type: "Package"
         critical: false
+        commands:
+            - desc: "Import gnome-text-editor dconf settings"
+              cmd: "dconf load /org/gnome/TextEditor/ < $HOME/.config/openriot/dconf/org.gnome.TextEditor.ini"
 
     media:
         packages:
@@ -192,13 +200,13 @@ source:
         start: "Installing Bibata-Modern-Ice cursor theme"
         end: "Bibata cursor installed"
 
-    stormy:
-        type: "Source"
-        build:
-            - "if [ -x /usr/local/bin/stormy ]; then echo '[SKIP] stormy already installed'; else go install github.com/ashish0kumar/stormy@latest && doas mv $HOME/go/bin/stormy /usr/local/bin/stormy && doas chmod +x /usr/local/bin/stormy; fi"
-        depends: [system.tools]
-        start: "Installing stormy weather CLI"
-        end: "stormy installed"
+#    stormy:
+#        type: "Source"
+#        build:
+#            - "if [ -x /usr/local/bin/stormy ]; then echo '[SKIP] stormy already installed'; else go install github.com/ashish0kumar/stormy@latest && doas mv $HOME/go/bin/stormy /usr/local/bin/stormy && doas chmod +x /usr/local/bin/stormy; fi"
+#        depends: [system.tools]
+#        start: "Installing stormy weather CLI"
+#        end: "stormy installed"
 
 fonts:
     fira-code:

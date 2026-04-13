@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.5-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.6-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -40,6 +40,14 @@ This isn’t shaped by committees, corporate roadmaps, or quarterly deliverables
 
 Built on the same principles as [ArchRiot](https://ArchRiot.org) and by the same creator. If you liked ArchRiot, you'll love OpenRiot.
 
+---
+
+## ⚠️ **The Usual Free Software Warning** ⚠️
+
+OpenRiot is under active development. It may not work as expected. Some features might be broken. Use at your own risk. Blah blah.
+
+---
+
 ### System Requirements
 
 || Requirement | Notes |
@@ -53,17 +61,6 @@ Built on the same principles as [ArchRiot](https://ArchRiot.org) and by the same
 ---
 
 ![OpenRiot Desktop](assets/screenshot.png)
-
-## ⚠️ **NOT READY FOR PRODUCTION USE** ⚠️
-
-OpenRiot is under active development.
-
-- Some features are still being developed and tested
-- **DO NOT use on production systems**
-
-**Current status:** Standard OpenBSD install + setup.sh, i3 desktop configured and functional.
-
----
 
 ## 📚 Navigate This Guide
 
@@ -465,10 +462,11 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 
 | App              | Icon | Description              |
 | ---------------- | ---- | ------------------------ |
-| Terminal         | 󰽒   | Alacritty terminal       |
+| Terminal         | 󰞷   | Alacritty terminal       |
 | Firefox          | 󰈹   | Web browser              |
-| Telegram         | 󰘦   | Messaging app            |
-| Helix            | 󰛞   | Text editor              |
+| Telegram         | 󰭹   | Messaging app            |
+| Helix            |    | Text editor              |
+| Text Editor      |    | GNOME text editor        |
 | File Manager     | 󰝰   | Thunar file browser      |
 | System Monitor   | 󰍹   | btop resource monitor    |
 | Htop             | 󰍹   | Process viewer           |
@@ -490,14 +488,19 @@ Polybar is your status bar. Click on modules for more:
 | Launcher        | Opens app launcher                  |
 | Workspaces 1-4  | Click to switch workspace           |
 | Window Title    | Shows focused window name           |
-| Date           | Click: next wallpaper              |
-| CPU            | Shows CPU usage                     |
-| Volume         | Click to toggle mute, scroll adjust |
-| Network        | Click for wifi-menu                 |
-| Battery        | Shows charge percentage + time      |
+| Date            | Click: next wallpaper              |
+| night-light     | Toggle night light (redshift)       |
+| weather         | Shows current temp + conditions (OpenWeatherMap) |
+| crypto          | Shows crypto prices                 |
+| CPU             | Shows CPU usage                     |
+| memory          | Shows memory usage                  |
+| Volume          | Click to toggle mute, scroll adjust |
+| Network         | Click for wifi-menu                 |
+| wireguard       | Toggle VPN connection               |
+| Battery         | Shows charge percentage + time      |
 | OpenRiot Update | Click to check for updates         |
-| Power          | Click for power menu               |
-| Lock           | Click to lock screen               |
+| Power           | Click for power menu               |
+| Lock            | Click to lock screen               |
 
 **Workspace Bar:** Shows all 4 workspaces with indicators and app icons. Example:
 
@@ -914,16 +917,31 @@ Each module has its own config section. Common modules:
 | Volume      | `volume`          |
 | Clock       | `clock`           |
 
+### 🌤 Weather Module (Polybar)
+
+The weather module shows current temperature and conditions in the polybar status bar using OpenWeatherMap API.
+
+**Configuration:**
+
+1. Create weather config at `~/.config/weather.cfg`:
+
+```ini
+location=Las Vegas
+units=imperial
+api=85a4e3c55b73909f42c6a23ec35b7147
+```
+
+- `location` - City name (required)
+- `units` - `imperial` (°F) or `metric` (°C)
+- `api` - OpenWeatherMap API key (optional, uses built-in key if omitted)
+
+2. Restart polybar: `Super + Shift + R`
+
+**If no config exists**, the weather module is hidden automatically.
+
+---
+
 ### 🔐 Crypto Config
-
-**Weather (Polybar)**
-
-- Requires: `stormy` package (auto-installed)
-- Disable: `touch ~/.config/openriot/disable-weather`
-- Enable: `rm ~/.config/openriot/disable-weather`
-- Location config (optional):
-    - `~/.config/polybar/scripts/weather-emoji-plain.sh` or `~/.config/openriot/weather.conf`
-    - Format: `LOCATION="City, CC"`
 
 **Crypto on Lock Screen**
 
@@ -1123,7 +1141,7 @@ doas vi /etc/myname
     ```
 
 2. **Common fixes:**
-    - Graphics driver issue: Check X11 logs in `~/.local/share/xorg/`
+    - Graphics driver issue: Check X11 logs at `/var/log/Xorg.0.log`
     - Verify DISPLAY is set: `echo $DISPLAY`
 
 3. **Check dmesg for hardware issues:**

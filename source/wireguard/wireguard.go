@@ -3,18 +3,17 @@ package wireguard
 import (
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
 const (
-	IconNotConfigured = "󰛳"
-	IconDisconnected  = "󰅛"
-	IconConnected     = "󰱓"
-	ConfigPath        = "/etc/wireguard/wg0.conf"
+	ConfigPath = "/etc/wireguard/wg0.conf"
 )
 
 func isConfigured() bool {
-	_, err := os.Stat(ConfigPath)
+	cmd := exec.Command("doas", "test", "-f", ConfigPath)
+	err := cmd.Run()
 	return err == nil
 }
 
@@ -26,29 +25,43 @@ func isRunning() bool {
 
 func Status() string {
 	if !isConfigured() {
-		return IconNotConfigured
+		return "󰛳"
 	}
 	if isRunning() {
-		return IconConnected
+		return "󰱓"
 	}
-	return IconDisconnected
+	return "󰅛"
+}
+
+func getHome() string {
+	home, _ := os.UserHomeDir()
+	return home
 }
 
 func Start() error {
-	exec.Command("notify-send", "-u", "normal", "Starting WireGuard...").Run()
+	home := getHome()
+	iconPath := filepath.Join(home, ".local/share/openriot/config/icons")
+	vpnIcon := filepath.Join(iconPath, "vpn.png")
+	exec.Command("/usr/local/bin/notify-send", "-i", vpnIcon, "-u", "normal", "VPN", "Starting WireGuard...").Run()
 	cmd := exec.Command("doas", "wg-quick", "up", ConfigPath)
 	return cmd.Run()
 }
 
 func Stop() error {
-	exec.Command("notify-send", "-u", "normal", "Stopping WireGuard...").Run()
+	home := getHome()
+	iconPath := filepath.Join(home, ".local/share/openriot/config/icons")
+	vpnIcon := filepath.Join(iconPath, "vpn.png")
+	exec.Command("/usr/local/bin/notify-send", "-i", vpnIcon, "-u", "normal", "VPN", "Stopping WireGuard...").Run()
 	cmd := exec.Command("doas", "wg-quick", "down", ConfigPath)
 	return cmd.Run()
 }
 
 func Toggle() error {
 	if !isConfigured() {
-		exec.Command("notify-send", "-u", "critical", "WireGuard is not configured.\nGo to OpenRiot.org\nRead directions.").Run()
+		home := getHome()
+		iconPath := filepath.Join(home, ".local/share/openriot/config/icons")
+		vpnErrIcon := filepath.Join(iconPath, "vpn-error.png")
+		exec.Command("/usr/local/bin/notify-send", "-i", vpnErrIcon, "-u", "critical", "VPN", "Not configured\nGo to OpenRiot.org\nRead directions.").Run()
 		return nil
 	}
 	if isRunning() {

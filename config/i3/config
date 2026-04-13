@@ -5,7 +5,7 @@ set $terminal alacritty
 set $fileManager thunar
 set $browser $HOME/.local/share/openriot/config/bin/firefox-wrapper.sh
 set $editor hx
-set $menu $HOME/.local/share/openriot/config/rofi/launcher.sh
+set $menu $HOME/.local/share/openriot/install/openriot --rofi
 
 font pango:FiraCode Nerd Font 11
 default_border pixel 1

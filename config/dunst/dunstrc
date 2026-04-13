@@ -4,7 +4,7 @@
 [global]
     monitor = 0
     follow = mouse
-    width = 300
+    width = 400
     height = 200
     offset = (16, 42)
     scale = 0
@@ -22,7 +22,7 @@
     frame_width = 1
     frame_color = "#7aa2f7"
     sort = no
-    font = FiraCode Nerd Font 11
+    font = FiraCode Nerd Font 10
     line_height = 0
     markup = full
     format = "<b>%s</b>\n%b"
@@ -62,7 +62,7 @@
 [urgency_critical]
     background = "#1a1b26"
     foreground = "#f7768e"
-    frame_color = "#f7768e"
+    frame_color = "#6600cc"
     timeout = 5
 
 [shortcut]

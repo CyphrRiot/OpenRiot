@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -15,9 +17,16 @@ func Run(args []string) int {
 		return 1
 	}
 
-	notify := func(msg string) {
-		exec.Command("notify-send", "-t", "1500", "Volume", msg).Start()
+		home := os.Getenv("HOME")
+	iconPath := filepath.Join(home, ".local/share/openriot/config/icons")
+	speakerIcon := filepath.Join(iconPath, "speaker.png")
+	speakerMutedIcon := filepath.Join(iconPath, "speaker-muted.png")
+	micIcon := filepath.Join(iconPath, "mic.png")
+	micMutedIcon := filepath.Join(iconPath, "mic-muted.png")
+	notify := func(icon, msg string) {
+		exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "1500", "Settings", msg).Start()
 	}
+	_ = speakerIcon // used in switch below
 
 	sndioctl := func(cmd string) error {
 		parts := strings.Fields(cmd)
@@ -40,6 +49,15 @@ func Run(args []string) int {
 		return strings.TrimSpace(string(out)) == "1"
 	}
 
+	// toPercent converts sndioctl float (0-1) to percentage string (0-100)
+	toPercent := func(raw string) string {
+		f, err := strconv.ParseFloat(strings.TrimSpace(raw), 64)
+		if err != nil {
+			return raw
+		}
+		return strconv.Itoa(int(f * 100))
+	}
+
 	micMuted := func() bool {
 		out, _ := exec.Command("sh", "-c", "sndioctl input.mute 2>/dev/null | cut -d= -f2").Output()
 		return strings.TrimSpace(string(out)) == "1"
@@ -53,18 +71,18 @@ func Run(args []string) int {
 	case "toggle":
 		sndioctl("output.mute=!")
 		if isMuted() {
-			notify("Speaker: Muted")
+			notify(speakerMutedIcon, "Speaker: Muted")
 		} else {
-			notify(fmt.Sprintf("Speaker: %s%%", vol()))
+			notify(speakerIcon, fmt.Sprintf("Speaker: %s%%", toPercent(vol())))
 		}
 		return 0
 	case "inc":
 		sndioctl("output.level=+0.05")
-		notify(fmt.Sprintf("Volume Up: %s%%", vol()))
+		notify(speakerIcon, fmt.Sprintf("Speaker: %s%%", toPercent(vol())))
 		return 0
 	case "dec":
 		sndioctl("output.level=-0.05")
-		notify(fmt.Sprintf("Volume Down: %s%%", vol()))
+		notify(speakerIcon, fmt.Sprintf("Speaker: %s%%", toPercent(vol())))
 		return 0
 	case "get":
 		fmt.Println(vol())
@@ -72,18 +90,18 @@ func Run(args []string) int {
 	case "mic-toggle":
 		sndioctl("input.mute=!")
 		if micMuted() {
-			notify("Microphone: Muted")
+			notify(micMutedIcon, "Mic: Muted")
 		} else {
-			notify(fmt.Sprintf("Microphone: %s%%", micVol()))
+			notify(micIcon, fmt.Sprintf("Mic: %s%%", toPercent(micVol())))
 		}
 		return 0
 	case "mic-inc":
 		sndioctl("input.level=+0.05")
-		notify(fmt.Sprintf("Mic Up: %s%%", micVol()))
+		notify(micIcon, fmt.Sprintf("Mic: %s%%", toPercent(micVol())))
 		return 0
 	case "mic-dec":
 		sndioctl("input.level=-0.05")
-		notify(fmt.Sprintf("Mic Down: %s%%", micVol()))
+		notify(micIcon, fmt.Sprintf("Mic: %s%%", toPercent(micVol())))
 		return 0
 	case "mic-get":
 		fmt.Println(micVol())

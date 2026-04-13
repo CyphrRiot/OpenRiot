@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"openriot/audio"
@@ -20,9 +19,19 @@ import (
 	"openriot/detect"
 	"openriot/display"
 	"openriot/installer"
+	"openriot/lock"
 	"openriot/notify"
+	"openriot/network"
+	"openriot/nightlight"
 	"openriot/polybar"
+	"openriot/battery"
+	"openriot/rofi"
+	"openriot/weather"
+	"openriot/workspace"
 	"openriot/wireguard"
+	"openriot/windowicon"
+	"openriot/windowtitle"
+	"openriot/update"
 )
 
 // Injected at build time via Makefile ldflags:
@@ -109,6 +118,97 @@ func main() {
 		return
 	}
 
+	// --update-status - outputs update icon for polybar
+	if len(os.Args) >= 2 && os.Args[1] == "--update-status" {
+		fmt.Print(update.Get())
+		return
+	}
+
+	// --update - handle update click
+	if len(os.Args) >= 2 && os.Args[1] == "--update" {
+		update.Click()
+		return
+	}
+
+	// --rofi - app launcher
+	if len(os.Args) >= 2 && os.Args[1] == "--rofi" {
+		if err := rofi.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "rofi error: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
+
+	// --weather - outputs weather icon + temp for polybar
+	if len(os.Args) >= 2 && os.Args[1] == "--weather" {
+		fmt.Print(weather.Get())
+		return
+	}
+
+	// --network - outputs wifi icon for polybar
+	if len(os.Args) >= 2 && os.Args[1] == "--network" {
+		fmt.Print(network.Get())
+		return
+	}
+
+	// --wifi-info - shows wifi connection status notification
+	if len(os.Args) >= 2 && os.Args[1] == "--wifi-info" {
+		details := network.GetDetails()
+		home := os.Getenv("HOME")
+		iconPath := filepath.Join(home, ".local/share/openriot/config/icons/wifi.png")
+		exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "2000", "WiFi", details).Start()
+		return
+	}
+
+	// --battery - outputs battery icon + percentage for polybar
+	if len(os.Args) >= 2 && os.Args[1] == "--battery" {
+		fmt.Print(battery.Get())
+		return
+	}
+
+	// --night-light-status - outputs night light icon for polybar
+	if len(os.Args) >= 2 && os.Args[1] == "--night-light-status" {
+		fmt.Print(nightlight.Get())
+		return
+	}
+
+	// --night-light - toggle night light
+	if len(os.Args) >= 2 && os.Args[1] == "--night-light" {
+		nightlight.Toggle()
+		return
+	}
+
+	// --window-icon <class> - outputs icon for window class
+	if len(os.Args) >= 2 && os.Args[1] == "--window-icon" {
+		if len(os.Args) < 3 {
+			fmt.Fprintln(os.Stderr, "Usage: openriot --window-icon <class>")
+			os.Exit(1)
+		}
+		fmt.Print(windowicon.Get(os.Args[2]))
+		return
+	}
+
+	// --window-title - outputs focused window title for polybar
+	if len(os.Args) >= 2 && os.Args[1] == "--window-title" {
+		fmt.Print(windowtitle.Get())
+		return
+	}
+
+	// --workspace-switch N - switch to workspace N (no-op if already there)
+	if len(os.Args) >= 2 && os.Args[1] == "--workspace-switch" {
+		if len(os.Args) < 3 {
+			fmt.Fprintln(os.Stderr, "Usage: openriot --workspace-switch <N>")
+			os.Exit(1)
+		}
+		target, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Invalid workspace number")
+			os.Exit(1)
+		}
+		workspace.Switch(target)
+		return
+	}
+
 	// --wireguard - toggle VPN
 	if len(os.Args) >= 2 && os.Args[1] == "--wireguard" {
 		if err := wireguard.Toggle(); err != nil {
@@ -126,13 +226,7 @@ func main() {
 		os.Exit(display.Run(os.Args[2:]))
 	}
 	if len(os.Args) >= 2 && os.Args[1] == "--lock" {
-		lockScript := filepath.Join(getInstallDir(), "config", "bin", "openriot-lock.sh")
-		cmd := exec.Command("sh", lockScript)
-		cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
-		cmd.Stdin = nil
-		cmd.Stdout = nil
-		cmd.Stderr = nil
-		cmd.Start()
+		lock.Lock()
 		return
 	}
 	if len(os.Args) >= 2 && os.Args[1] == "--suspend" {
@@ -179,15 +273,17 @@ func main() {
 		detect.SuspendIfUndocked()
 		return
 	}
-	// --notify "title" "body" [--urgency normal|critical|low] [--expires-in seconds]
+	// --notify "title" "body" [--urgency normal|critical|low] [--expires-in seconds] [--icon path]
 	if len(os.Args) >= 2 && os.Args[1] == "--notify" {
-		title, body, urgency := "", "", "normal"
+		title, body, urgency, iconPath := "", "", "normal", ""
 		expiresIn := 0
 		for i := 2; i < len(os.Args); i++ {
 			if os.Args[i] == "--urgency" && i+1 < len(os.Args) {
 				urgency = os.Args[i+1]
 			} else if os.Args[i] == "--expires-in" && i+1 < len(os.Args) {
 				fmt.Sscanf(os.Args[i+1], "%d", &expiresIn)
+			} else if os.Args[i] == "--icon" && i+1 < len(os.Args) {
+				iconPath = os.Args[i+1]
 			} else if title == "" {
 				title = os.Args[i]
 			} else if body == "" {
@@ -195,11 +291,14 @@ func main() {
 			}
 		}
 		if title == "" {
-			fmt.Fprintln(os.Stderr, "Usage: openriot --notify \"title\" \"body\" [--urgency normal] [--expires-in seconds]")
+			fmt.Fprintln(os.Stderr, "Usage: openriot --notify \"title\" \"body\" [--urgency normal] [--expires-in seconds] [--icon path]")
 			os.Exit(1)
 		}
 		// Call notify-send to display notification
 		args := []string{"/usr/local/bin/notify-send"}
+		if iconPath != "" {
+			args = append(args, "-i", iconPath)
+		}
 		if urgency != "normal" {
 			args = append(args, "-u", urgency)
 		}
@@ -276,14 +375,20 @@ func main() {
 	// --cpu-notify shows CPU usage notification
 	if len(os.Args) >= 2 && os.Args[1] == "--cpu-notify" {
 		cpuPct := polybar.GetCPUPercent()
-		exec.Command("notify-send", "-t", "1500", "CPU Usage", cpuPct).Start()
+		home := os.Getenv("HOME")
+		iconPath := filepath.Join(home, ".local/share/openriot/config/icons")
+		cpuIcon := filepath.Join(iconPath, "cpu.png")
+		exec.Command("/usr/local/bin/notify-send", "-i", cpuIcon, "-t", "1500", "CPU", cpuPct).Start()
 		os.Exit(0)
 	}
 
 	// --mem-notify shows memory usage notification
 	if len(os.Args) >= 2 && os.Args[1] == "--mem-notify" {
 		memDetails := polybar.GetMemDetails()
-		exec.Command("notify-send", "-t", "5000", "Memory Usage", memDetails).Start()
+		home := os.Getenv("HOME")
+		iconPath := filepath.Join(home, ".local/share/openriot/config/icons")
+		memIcon := filepath.Join(iconPath, "memory.png")
+		exec.Command("/usr/local/bin/notify-send", "-i", memIcon, "-t", "5000", "Memory", memDetails).Start()
 		os.Exit(0)
 	}
 
@@ -294,6 +399,16 @@ func main() {
 			mode = os.Args[2]
 		}
 		if err := crypto.RunCrypto(mode); err != nil {
+			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
+		}
+		return
+	}
+	if len(os.Args) >= 2 && os.Args[1] == "--crypto-notify" {
+		home := os.Getenv("HOME")
+		iconPath := filepath.Join(home, ".local/share/openriot/config/icons/crypto.png")
+		exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "0", "-r", "1", "Crypto", "Loading...").Start()
+		time.Sleep(100 * time.Millisecond)
+		if err := crypto.RunCrypto("NOTIFY_SEND"); err != nil {
 			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
 		}
 		return
@@ -328,6 +443,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "  --install-packages Install packages from packages.yaml\n")
 	fmt.Fprintf(os.Stderr, "  --source-builds    Build software from source\n")
 	fmt.Fprintf(os.Stderr, "  --packages         List packages from packages.yaml\n")
+	fmt.Fprintf(os.Stderr, "  --rofi            Show app launcher\n")
 	fmt.Fprintf(os.Stderr, "  --lock            Lock the screen\n")
 	fmt.Fprintf(os.Stderr, "  --suspend         Suspend the system\n")
 	fmt.Fprintf(os.Stderr, "  --power-menu       Show power menu\n")

@@ -111,7 +111,8 @@ alias ls='lsd'
 alias ll='lsd -l'
 alias la='lsd -la'
 
-# mpv - works fine with defaults on X11
+# more sucks without this
+alias more='more -e'
 
 # OpenBSD-specific aliases
 alias doas='doas'

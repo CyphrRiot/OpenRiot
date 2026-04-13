@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 	"sort"
@@ -170,6 +171,8 @@ func RunCrypto(mode string) error {
 		return outputROW(items)
 	case "NOTIFY":
 		return outputNotify(items)
+	case "NOTIFY_SEND":
+		return outputNotifySend(items)
 	default:
 		// Single symbol mode
 		for _, item := range items {
@@ -903,6 +906,35 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold i
 
 // outputNotify outputs simple format for notifications: "ZEC 275.00 x $378.03 ▲ 75.54%"
 func outputNotify(items []CryptoItem) error {
+	for _, item := range items {
+		if item.Sym == "USD" {
+			continue
+		}
+		arrow := "•"
+		if item.Price > 0 && item.PrevPrice > 0 {
+			if item.Price > item.PrevPrice {
+				arrow = "▲"
+			} else if item.Price < item.PrevPrice {
+				arrow = "▼"
+			}
+		}
+		held := formatNumberSimple(item.Held)
+		price := formatNumberSimple(item.Price)
+		pct := ""
+		if item.Held > 0 && item.Entry > 0 {
+			glPct := ((item.Price - item.Entry) / item.Entry) * 100
+			pct = fmt.Sprintf("%.2f%%", glPct)
+		}
+		fmt.Printf("%s %s x $%s %s %s\n", item.Sym, held, price, arrow, pct)
+	}
+	return nil
+}
+
+// outputNotifySend sends crypto prices as a dunst notification
+func outputNotifySend(items []CryptoItem) error {
+	home, _ := os.UserHomeDir()
+	iconPath := filepath.Join(home, ".local/share/openriot/config/icons/crypto.png")
+
 	// Sort items - preserve config order, move USD to end
 	sort.Slice(items, func(i, j int) bool {
 		if items[i].Sym == "USD" {
@@ -914,12 +946,11 @@ func outputNotify(items []CryptoItem) error {
 		return items[i].Index < items[j].Index
 	})
 
+	var lines []string
 	for _, item := range items {
-		// Skip USD
 		if item.Sym == "USD" {
 			continue
 		}
-
 		arrow := "•"
 		if item.Price > 0 && item.PrevPrice > 0 {
 			if item.Price > item.PrevPrice {
@@ -928,8 +959,6 @@ func outputNotify(items []CryptoItem) error {
 				arrow = "▼"
 			}
 		}
-
-		// Format with commas for thousands
 		held := formatNumberSimple(item.Held)
 		price := formatNumberSimple(item.Price)
 		pct := ""
@@ -937,8 +966,11 @@ func outputNotify(items []CryptoItem) error {
 			glPct := ((item.Price - item.Entry) / item.Entry) * 100
 			pct = fmt.Sprintf("%.2f%%", glPct)
 		}
-		fmt.Printf("%s %s x $%s %s %s\n", item.Sym, held, price, arrow, pct)
+		lines = append(lines, fmt.Sprintf("%s %s x $%s %s %s", item.Sym, held, price, arrow, pct))
 	}
+
+	body := strings.Join(lines, "\n")
+	exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "0", "-r", "1", "Crypto", body).Run()
 	return nil
 }
 

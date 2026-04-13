@@ -13,12 +13,9 @@ OPENBSD_VERSION = 7.9
 # ============================================================
 # Targets
 # ============================================================
-.PHONY: all build clean deps test verify dev release ultra iso isotest binary-push help
+.PHONY: all build linux clean deps test verify release ultra iso isotest binary-push help
 
-all: build
-
-# Standard build — cross-compiled for OpenBSD
-build:
+all:
 	@OPENRIOT_VERSION=`cat VERSION` && \
 	echo "=== Building OpenRIOT v$$OPENRIOT_VERSION for OpenBSD $(OPENBSD_VERSION) ===" && \
 	cd $(SOURCE_DIR) && \
@@ -30,21 +27,28 @@ build:
 	chmod 0755 ../$(INSTALL_DIR)/$(BINARY_NAME) && \
 	echo "=== Build complete: $(INSTALL_DIR)/$(BINARY_NAME) ==="
 
-# Development build — native arch, faster iteration
-dev:
+# Build + copy to local install (for when polybar is stopped)
+build: all
+	@mkdir -p $$HOME/.local/share/openriot/install && \
+	cp $(INSTALL_DIR)/$(BINARY_NAME) $$HOME/.local/share/openriot/install/ && \
+	echo "=== Local install updated ==="
+
+# Linux build — native
+linux:
 	@OPENRIOT_VERSION=`cat VERSION` && \
-	echo "=== Development build (native) ===" && \
+	echo "=== Building OpenRIOT v$$OPENRIOT_VERSION for Linux ===" && \
 	cd $(SOURCE_DIR) && \
+	CGO_ENABLED=0 GOOS=linux GOARCH=$(ARCH) \
 	go build \
-	-ldflags="-X main.version=$$OPENRIOT_VERSION -X main.openbsdVersion=$(OPENBSD_VERSION)" \
+	-ldflags="-s -w -X main.version=$$OPENRIOT_VERSION" \
 	-trimpath \
 	-o ../$(INSTALL_DIR)/$(BINARY_NAME) . && \
 	chmod 0755 ../$(INSTALL_DIR)/$(BINARY_NAME) && \
-	echo "=== Dev build complete: $(INSTALL_DIR)/$(BINARY_NAME) ==="
+	echo "=== Linux build complete: $(INSTALL_DIR)/$(BINARY_NAME) ==="
 
 # Release build with versioning
 release:
-	@echo "Building binary..."; make build; echo ""; \
+	@echo "Building binary..."; make; \
 	OPENRIOT_VERSION=`cat VERSION` && \
 	CURRENT_BRANCH=`git branch --show-current` && \
 	echo "Current version: v$$OPENRIOT_VERSION"; \
@@ -159,7 +163,7 @@ test:
 	@cd $(SOURCE_DIR) && go test ./...
 
 # Verify build
-verify: dev
+verify: all
 	@$(INSTALL_DIR)/$(BINARY_NAME) --version
 	@echo "=== Binary OK ==="
 
@@ -201,10 +205,11 @@ help:
 	@echo "OpenBSD : $(OPENBSD_VERSION)"
 	@echo ""
 	@echo "Targets:"
-	@echo "  build              Build openriot binary (cross-compiled for OpenBSD)"
-	@echo "  dev                Fast native build for local testing"
-	@echo "  release            Alias for build"
-	@echo "  ultra              Maximum-optimized build with optional UPX"
+	@echo "  (default)         Build openriot binary (cross-compiled for OpenBSD)"
+	@echo "  build             Build + copy to ~/.local/share/openriot/install/"
+	@echo "  linux             Build for Linux (native)"
+	@echo "  release            Version bump, commit, tag, and push"
+	@echo "  ultra              Maximum-optimized static build with optional UPX"
 	@echo "  iso                Build full bootable ISO"
 	@echo "  isotest            Build ISO and run in QEMU"
 	@echo "  deps               Tidy Go module dependencies"
