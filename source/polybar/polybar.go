@@ -105,19 +105,30 @@ func GetMemDetails() string {
 	totalOut, _ := exec.Command("/sbin/sysctl", "-n", "hw.usermem").Output()
 	total, _ := strconv.ParseInt(strings.TrimSpace(string(totalOut)), 10, 64)
 
-	vmstatOut, _ := exec.Command("/usr/bin/vmstat", "1", "1").Output()
-	lines := strings.Split(strings.TrimSpace(string(vmstatOut)), "\n")
-	var freeMB int64
-	for _, f := range strings.Fields(lines[len(lines)-1]) {
-		if strings.HasSuffix(f, "M") && !strings.Contains(f, "K") {
-			mb, _ := strconv.ParseInt(strings.TrimSuffix(f, "M"), 10, 64)
-			freeMB = mb
+	topOut, _ := exec.Command("/usr/bin/top", "-n", "1").Output()
+	lines := strings.Split(strings.TrimSpace(string(topOut)), "\n")
+	var usedMB int64
+	for _, line := range lines {
+		if strings.HasPrefix(line, "Memory:") {
+			fields := strings.Fields(line)
+			for i, f := range fields {
+				if f == "Real:" && i+1 < len(fields) {
+					ram := fields[i+1]
+					if idx := strings.Index(ram, "/"); idx > 0 {
+						ram = ram[:idx]
+					}
+					ram = strings.TrimSuffix(ram, "M")
+					usedMB, _ = strconv.ParseInt(ram, 10, 64)
+					break
+				}
+			}
+			break
 		}
 	}
 
-	usedGB := float64(total/(1024*1024*1024)) - float64(freeMB)/1024
+	usedGB := float64(usedMB) / 1024
 	totalGB := float64(total) / (1024 * 1024 * 1024)
-	usedPct := int(float64(usedGB) / totalGB * 100)
+	usedPct := int(float64(usedMB) * 1024 * 1024 / float64(total) * 100)
 
 	return fmt.Sprintf("%.2f GiB of %.2f GiB\nTotal Used: %d%%", usedGB, totalGB, usedPct)
 }
@@ -132,27 +143,33 @@ func getRAMPercentInt() int {
 		return 0
 	}
 
-	vmstatOut, err := exec.Command("/usr/bin/vmstat", "1", "1").Output()
+	topOut, err := exec.Command("/usr/bin/top", "-n", "1").Output()
 	if err != nil {
 		return 0
 	}
-	lines := strings.Split(strings.TrimSpace(string(vmstatOut)), "\n")
-	if len(lines) < 2 {
-		return 0
-	}
-	fields := strings.Fields(lines[len(lines)-1])
-	var freeMB int64
-	for _, f := range fields {
-		if strings.HasSuffix(f, "M") && !strings.Contains(f, "K") {
-			mb, _ := strconv.ParseInt(strings.TrimSuffix(f, "M"), 10, 64)
-			freeMB = mb
+	lines := strings.Split(strings.TrimSpace(string(topOut)), "\n")
+	var usedMB int64
+	for _, line := range lines {
+		if strings.HasPrefix(line, "Memory:") {
+			fields := strings.Fields(line)
+			for i, f := range fields {
+				if f == "Real:" && i+1 < len(fields) {
+					ram := fields[i+1]
+					if idx := strings.Index(ram, "/"); idx > 0 {
+						ram = ram[:idx]
+					}
+					ram = strings.TrimSuffix(ram, "M")
+					usedMB, _ = strconv.ParseInt(ram, 10, 64)
+					break
+				}
+			}
+			break
 		}
 	}
-	if freeMB == 0 {
+	if usedMB == 0 {
 		return 0
 	}
-	usedMB := int64(total/(1024*1024)) - freeMB
-	return int(usedMB * 100 / (total / (1024 * 1024)))
+	return int(float64(usedMB) * 1024 * 1024 / float64(total) * 100)
 }
 
 // RunVolume outputs volume icon for polybar

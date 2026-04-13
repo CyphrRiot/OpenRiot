@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.9-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.10-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -1067,6 +1067,54 @@ ifconfig wg0
 **Slow speeds:**
 - Try a different Mullvad server location
 - Some Mullvad servers may have limited bandwidth
+
+## 📥 Transmission BitTorrent Client
+
+OpenRiot includes Transmission daemon with a web interface and polybar integration.
+
+### ⚠️ IMPORTANT: Use with VPN
+
+**Always run Transmission behind a VPN!** Your ISP can see BitTorrent traffic, and you can receive copyright infringement notices (or worse) if you download copyrighted material. 😉
+
+Click the **VPN icon (󰱓)** in polybar to connect before downloading anything.
+
+### Accessing the Web Interface
+
+Open in Firefox: [http://127.0.0.1:9091](http://127.0.0.1:9091)
+
+No authentication required by default.
+
+### Polybar Module
+
+| Icon | Meaning |
+|------|---------|
+| 󰅤 | Transmission stopped |
+| 󰭽 | Transmission running |
+
+Click the icon to toggle. Notifications confirm state changes.
+
+### Rofi Menu
+
+The app launcher (Rofi) also has a Transmission entry that dynamically shows:
+- **Transmission 󰭽** — Click to stop
+- **Transmission 󰅤** — Click to start
+
+### Default Settings
+
+- **Download directory:** `~/Downloads`
+- **Blocklist:** Enabled (courtesy of [BT BlockLists](https://github.com/Naunter/BT_BlockLists))
+- **RPC port:** 9091
+- **Peer port:** 51413 (randomized)
+
+### Manual Commands
+
+```bash
+# Check if running
+pgrep transmission-daemon
+
+# View logs
+cat ~/.local/share/transmission/daemon.log
+```
 
 ## 🔧 Troubleshooting
 

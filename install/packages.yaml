@@ -112,6 +112,8 @@ desktop:
               cmd: "rm -f ~/.config/polybar/scripts/*.sh"
             - desc: "Taking dunst behind the barn"
               cmd: "pkill -9 dunst 2>/dev/null || true; sleep 1; /usr/local/bin/dunst & disown"
+            - desc: "Taking picom for a stroll"
+              cmd: "pkill -9 picom 2>/dev/null || true; sleep 1; /usr/local/bin/picom & disown"
         depends: [core.base, fonts.fira-code]
         start: "Installing i3 desktop"
         end: "i3 desktop installed"
@@ -178,7 +180,10 @@ desktop:
         packages:
             - mpv-0.41.0p0
             - transmission-4.1.1
-        configs: []
+        configs:
+            - pattern: "transmission-daemon/settings.json"
+              target: "~/.config/transmission-daemon"
+              preserve_if_exists: [settings.json]
         depends: [core.base, desktop.i3]
         start: "Installing media controls"
         end: "Media controls installed"

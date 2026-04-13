@@ -21,7 +21,7 @@ xset -dpms
 xset s 600
 
 # Use xautolock to trigger i3lock (OpenBSD doesn't have xss-lock)
-xautolock -time 10 -locker "$HOME/.local/share/openriot/config/bin/openriot-lock.sh" &
+xautolock -time 10 -locker "$HOME/.local/share/openriot/install/openriot --lock" &
 xset s on
 
 # Start i3

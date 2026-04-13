@@ -13,5 +13,5 @@ Crush AI|alacritty -e crush|󰚩
 Media Player|mpv --player-operation-mode=pseudo-gui|
 Word Processor|abiword|󰈙
 Settings|xfce4-settings-manager|󰒓
-Transmission|transmission-start.desktop|󰇚
+Transmission|transmission-dynamic|󰇚
 Proton Mail|firefox https://mail.protonmail.com|󰊫

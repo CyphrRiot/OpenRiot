@@ -172,6 +172,28 @@ func main() {
 		return
 	}
 
+	// --polybar-transmission - outputs transmission icon for polybar
+	if len(os.Args) >= 2 && os.Args[1] == "--polybar-transmission" {
+		if rofi.IsTransmissionRunning() {
+			fmt.Print("󰭽")
+		} else {
+			fmt.Print("󰅤")
+		}
+		return
+	}
+
+	// --transmission-stop - stop transmission daemon
+	if len(os.Args) >= 2 && os.Args[1] == "--transmission-stop" {
+		if rofi.IsTransmissionRunning() {
+			exec.Command("pkill", "-u", os.Getenv("USER"), "transmission-daemon").Run()
+			exec.Command("/usr/local/bin/notify-send", "-t", "2000", "Transmission", "Stopping Transmission...").Run()
+		} else {
+			exec.Command("sh", "-c", "mkdir -p ~/.local/share/transmission ~/.config/transmission && transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &").Run()
+			exec.Command("/usr/local/bin/notify-send", "-t", "2000", "Transmission", "Starting Transmission...").Run()
+		}
+		return
+	}
+
 	// --night-light - toggle night light
 	if len(os.Args) >= 2 && os.Args[1] == "--night-light" {
 		nightlight.Toggle()
@@ -243,15 +265,9 @@ func main() {
 		choice := strings.TrimSpace(string(out))
 		switch choice {
 		case "Lock":
-			lockScript := filepath.Join(getInstallDir(), "config", "bin", "openriot-lock.sh")
-			if _, err := os.Stat(lockScript); err == nil {
-				exec.Command("sh", lockScript).Run()
-			}
+			lock.Lock()
 		case "Suspend":
-			lockScript := filepath.Join(getInstallDir(), "config", "bin", "openriot-lock.sh")
-			if _, err := os.Stat(lockScript); err == nil {
-				exec.Command("sh", lockScript).Run()
-			}
+			lock.Lock()
 			exec.Command("zzz").Run()
 		case "Reboot":
 			exec.Command("shutdown", "-r", "now").Run()

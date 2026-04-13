@@ -3,9 +3,6 @@
 # Format: ● 󰊠 󰈹
 # Usage: workspaces.sh [workspace_num]
 
-SCRIPT_DIR="$(dirname "$0")"
-ICON_SCRIPT="${SCRIPT_DIR}/window-icon.sh"
-
 # Get window classes for a workspace
 get_window_classes() {
     ws_num="$1"

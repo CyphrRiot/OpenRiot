@@ -62,10 +62,18 @@ func Run() error {
 
 	entry := entries[idx]
 
-	// Send launching notification
+	// Send launching/stopping notification
 	go func() {
 		iconPath := filepath.Join(homeDir, ".local/share/openriot/config/icons/applications.png")
-		exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "2000", "Applications", fmt.Sprintf("Launching %s...", entry.Name)).Run()
+		name := entry.Name
+		msg := "Launching"
+		if strings.Contains(name, "󰭽") {
+			msg = "Stopping"
+			name = "Transmission"
+		} else if strings.Contains(name, "󰅤") {
+			name = "Transmission"
+		}
+		exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "2000", "Applications", fmt.Sprintf("%s %s...", msg, name)).Run()
 	}()
 
 	// Execute the command
@@ -121,7 +129,26 @@ func parseAppsFile(path string) ([]appEntry, error) {
 		entries = append(entries, entry)
 	}
 
+	// Handle dynamic entries
+	for i, entry := range entries {
+		if entry.Name == "Transmission" {
+			if IsTransmissionRunning() {
+				entries[i].Name = "Transmission 󰅤"
+				entries[i].Cmd = "pkill -u $USER transmission-daemon"
+			} else {
+				entries[i].Name = "Transmission 󰭽"
+				entries[i].Cmd = "sh -c \"mkdir -p ~/.local/share/transmission ~/.config/transmission && transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &\""
+			}
+		}
+	}
+
 	return entries, scanner.Err()
+}
+
+func IsTransmissionRunning() bool {
+	cmd := exec.Command("pgrep", "-u", os.Getenv("USER"), "transmission-daemon")
+	err := cmd.Run()
+	return err == nil
 }
 
 func executeCommand(cmd string) error {
