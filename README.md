@@ -58,6 +58,17 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 > "Linux has never been about quality. There are so many parts of the system that are just these cheap little hacks, and it happens to run." -Theo de Raadt
 
+#### Xenocara's Hardening (OpenBSD's Custom X11 Server)
+
+Xenocara is not vanilla X.Org. It is OpenBSD's integrated, heavily patched build of the X server with these security features:
+
+- **Privilege separation**: The server runs with minimal privileges; input and rendering are isolated.
+- **Pledge(2) and unveil(2)**: The X server itself and many clients are sandboxed.
+- **No unnecessary setuid root**: Modern Xenocara drops privileges aggressively.
+- **Stronger default configuration**: Fewer extensions enabled by default, audited for local attacks.
+
+This makes the underlying X server far more resistant to client-side abuse than stock Xorg on Linux. Xenocara users generally consider it one of the more secure X11 implementations available.
+
 ---
 
 ![OpenRiot Desktop](assets/screenshot.png)
@@ -909,16 +920,28 @@ Edit this file to customize. After saving, press `Super + Shift + R` to reload i
 
 Polybar modules are in `~/.config/polybar/config`.
 
-Each module has its own config section. Common modules:
+Each module is a custom script that outputs icon + info for display. Modules update automatically and respond to clicks.
 
-| Module      | Config Section    |
-| ----------- | ----------------- |
-| Workspaces  | `i3/workspaces` |
-| CPU         | `cpu`             |
-| Battery     | `battery`         |
-| Network     | `network`         |
-| Volume      | `volume`          |
-| Clock       | `clock`           |
+| Module | Icons | Click Action | Scroll |
+|--------|-------|-------------|--------|
+| **launcher** |  | Open app launcher (Rofi) | - |
+| **workspaces** | 1-4 | Switch to workspace | - |
+| **window-title** | text | - | - |
+| **date** | text | Next wallpaper | - |
+| **volume** |  muted, 󰕿 low, 󰖀 med, 󰕾 high | Toggle mute | Volume adjust |
+| **network** | 󰤯 disconnected, signal bars | WiFi info | - |
+| **battery** | 󰂄 charging, 󰂂-󰁺 discharge levels | - | - |
+| **crypto** |  | Show crypto prices | - |
+| **night-light** | /󰌵 | Toggle redshift | - |
+| **cpu** | 󰡳/󰡵/󰊚/󰡴 (0-25/50/90%+) | CPU notification | - |
+| **memory** | 󱊔/󱊗/󱊖/󱊕 (0-25/50/90%+) | Memory notification | - |
+| **wireguard** | 󰛳/󰅛/󰱓 | Toggle VPN | - |
+| **openriot-update** | 󰋻 update, 󰚇 up to date | Check for updates | - |
+| **weather** | Based on condition code | - | - |
+| **proton-drive** | 󰴋 | Sync Proton Drive | - |
+| **transmission** | 󰭽 active, 󰅤 stopped | Toggle daemon | - |
+| **power** | ⏻ | Open power menu | - |
+| **lock** | 󰌾 | Lock screen | - |
 
 ### 🌤 Weather Module (Polybar)
 
