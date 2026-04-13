@@ -50,7 +50,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ### System Requirements
 
-|| Requirement | Notes |
+| Requirement | Notes |
 | --- | --- | --- |
 | **Resolution** | 1920x1080 minimum | OpenRiot's User Interface requires this |
 | **RAM** | 4GB+ minimum | 8GB+ Optimal |
@@ -1041,7 +1041,7 @@ doas mv ~/Downloads/mullvad.conf /etc/wireguard/wg0.conf
 **Polybar Module:**
 
 | Icon | Meaning |
-|------|---------|
+---------------|
 | 󰛳 | No config file installed |
 | 󰅛 | Config exists, VPN disconnected |
 | 󰱓 | VPN connected |
@@ -1113,7 +1113,7 @@ No authentication required by default.
 ### Polybar Module
 
 | Icon | Meaning |
-|------|---------|
+---------------|
 | 󰅤 | Transmission stopped |
 | 󰭽 | Transmission running |
 
@@ -1160,7 +1160,7 @@ rclone config
 ```
 
 | Prompt | Action |
-|--------|--------|
+----------------|
 | `n` | New remote |
 | Name | `ProtonSync` |
 | Storage | `protondrive` |
