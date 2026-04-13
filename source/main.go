@@ -45,7 +45,23 @@ var openbsdVersion = "7.9"
 
 var testMode bool
 
+// logDebugCall logs each binary invocation to /tmp/openriot_calls.log
+func logDebugCall() {
+	if os.Getenv("OPENRIOT_DEBUG") != "1" {
+		return
+	}
+	f, err := os.OpenFile("/tmp/openriot_calls.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "DEBUG: cannot open log: %v\n", err)
+		return
+	}
+	defer f.Close()
+	fmt.Fprintf(f, "%s %s\n", time.Now().Format("15:04:05.000"), strings.Join(os.Args[1:], " "))
+}
+
 func main() {
+	logDebugCall()
+
 	// Check for version flag first
 	for _, arg := range os.Args[1:] {
 		if arg == "--version" {

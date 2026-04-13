@@ -1,0 +1,4 @@
+#!/bin/sh
+pkill polybar
+rm -f /tmp/openriot_calls.log
+bash -c 'nohup env OPENRIOT_DEBUG=1 polybar >/dev/null 2>&1 & disown'

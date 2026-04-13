@@ -29,6 +29,7 @@ fastfetch
 # =============================================================================
 
 # Add OpenRiot scripts to PATH
+fish_add_path --prepend $HOME/.local/bin
 fish_add_path --prepend $HOME/.local/share/openriot/config/bin
 
 # Add OpenRiot binary to PATH (for CLI commands)
