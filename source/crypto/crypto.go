@@ -904,7 +904,7 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold i
 	return nil
 }
 
-// outputNotify outputs simple format for notifications: "ZEC 275.00 x $378.03 ▲ 75.54%"
+// outputNotify outputs simple format for notifications: "BTC     1.18 x $ 73,237.00 ▲ +10.13%"
 func outputNotify(items []CryptoItem) error {
 	for _, item := range items {
 		if item.Sym == "USD" {
@@ -918,14 +918,12 @@ func outputNotify(items []CryptoItem) error {
 				arrow = "▼"
 			}
 		}
-		held := formatNumberSimple(item.Held)
-		price := formatNumberSimple(item.Price)
 		pct := ""
 		if item.Held > 0 && item.Entry > 0 {
 			glPct := ((item.Price - item.Entry) / item.Entry) * 100
 			pct = fmt.Sprintf("%.2f%%", glPct)
 		}
-		fmt.Printf("%s %s x $%s %s %s\n", item.Sym, held, price, arrow, pct)
+		fmt.Printf("%-5s %6s x $%12s %s %9s\n", item.Sym, fmt.Sprintf("%.2f", item.Held), formatNumberSimple(item.Price), arrow, pct)
 	}
 	return nil
 }
@@ -959,17 +957,17 @@ func outputNotifySend(items []CryptoItem) error {
 				arrow = "▼"
 			}
 		}
-		held := formatNumberSimple(item.Held)
-		price := formatNumberSimple(item.Price)
 		pct := ""
 		if item.Held > 0 && item.Entry > 0 {
 			glPct := ((item.Price - item.Entry) / item.Entry) * 100
 			pct = fmt.Sprintf("%.2f%%", glPct)
 		}
-		lines = append(lines, fmt.Sprintf("%s %s x $%s %s %s", item.Sym, held, price, arrow, pct))
+		lines = append(lines, fmt.Sprintf("%-5s %6s x $%12s %s %9s", item.Sym, fmt.Sprintf("%.2f", item.Held), formatNumberSimple(item.Price), arrow, pct))
 	}
 
 	body := strings.Join(lines, "\n")
+	lines = append(lines, "")
+	body = strings.Join(lines, "\n")
 	exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "0", "-r", "1", "Crypto", body).Run()
 	return nil
 }

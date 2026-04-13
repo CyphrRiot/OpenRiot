@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.10-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.11-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -75,6 +75,7 @@ OpenRiot is under active development. It may not work as expected. Some features
     - [🔐 Crypto Config](#-crypto-config)
     - [🔒 WireGuard VPN](#-wireguard-vpn)
     - [📥 Transmission](#-transmission-bittorrent-client)
+    - [📂 Proton Drive](#-proton-drive-sync)
 - [🔧 Troubleshooting](#troubleshooting)
 - [🦊 Browser & Data Transfer](#browser--data-transfer)
 
@@ -1116,6 +1117,86 @@ pgrep transmission-daemon
 # View logs
 cat ~/.local/share/transmission/daemon.log
 ```
+
+## 📂 Proton Drive Sync
+
+OpenBSD has no native Proton Drive client. OpenRiot includes **rclone** for end-to-end encrypted bidirectional file syncing.
+
+### Complete Setup Guide
+
+### 1. Create Proton Drive Folder
+
+1. Log into [drive.proton.me](https://drive.proton.me)
+2. Create a new folder named **`ProtonSync`** (case-sensitive)
+
+### 2. Configure rclone
+
+```bash
+rclone config
+```
+
+| Prompt | Action |
+|--------|--------|
+| `n` | New remote |
+| Name | `ProtonSync` |
+| Storage | `protondrive` |
+| Proton email | Your email |
+| Proton password | Your password |
+| 2FA | Code if enabled |
+
+### 3. Create Local Sync Folder
+
+```bash
+mkdir -p ~/ProtonSync
+```
+
+### 4. Initial Sync (dry-run first)
+
+```bash
+rclone bisync ~/ProtonSync proton:ProtonSync --dry-run
+```
+
+If output looks correct, remove `--dry-run` to sync.
+
+### 5. Set Up Automatic Sync
+
+Edit your crontab:
+```bash
+doas crontab -e
+```
+
+Add this line (replace `username` with your actual username):
+```cron
+*/15 * * * * /usr/local/bin/rclone bisync /home/username/ProtonSync proton:ProtonSync --fast-list >> /var/log/rclone.log 2>&1
+```
+
+### 6. Secure Your Config
+
+```bash
+chmod 600 ~/.config/rclone/rclone.conf
+```
+
+### How It Works
+
+- **Polybar icon** 󰴋 means ready to sync
+- **Click the icon** to open a centered terminal for manual sync
+- **Cron** runs bisync every 15 minutes automatically
+- Files are encrypted client-side before transit (end-to-end encryption)
+
+### Sync Between Multiple Systems
+
+`rclone bisync` is bidirectional — it syncs both ways:
+- Local changes → Proton Drive
+- Proton Drive changes (from other systems) → Local
+
+If both systems edit the same file, rclone creates a conflict file (`.sync_orig`) that you can manually resolve.
+
+### Security Notes
+
+- Your files remain encrypted end-to-end — Proton never sees unencrypted data
+- rclone never sees your actual file contents
+- Keep `rclone.conf` permissions at 600
+- Run rclone as your normal user, never root
 
 ## 🔧 Troubleshooting
 

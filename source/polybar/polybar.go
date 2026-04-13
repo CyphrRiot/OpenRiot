@@ -2,6 +2,7 @@ package polybar
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -211,4 +212,48 @@ func isMuted() bool {
 		return false
 	}
 	return strings.TrimSpace(string(out)) == "1"
+}
+
+// RunProtonDrive outputs proton-drive icon for polybar
+func RunProtonDrive() error {
+	icon := GetProtonDriveIcon()
+	fmt.Printf("%s\nProton Drive: %s\n", icon, getProtonDriveTooltip())
+	return nil
+}
+
+// GetProtonDriveIcon returns sync or no-sync icon based on config
+func GetProtonDriveIcon() string {
+	if isProtonDriveConfigured() {
+		return "󰴋"
+	}
+	return ""
+}
+
+// IsProtonDriveConfigured returns true if Proton Drive sync is set up
+func IsProtonDriveConfigured() bool {
+	return isProtonDriveConfigured()
+}
+
+func isProtonDriveConfigured() bool {
+	// Check for ~/ProtonSync folder
+	home := os.Getenv("HOME")
+	syncFolder := home + "/ProtonSync"
+	if _, err := os.Stat(syncFolder); err != nil {
+		return false
+	}
+
+	// Check for rclone config
+	rcloneConf := home + "/.config/rclone/rclone.conf"
+	if _, err := os.Stat(rcloneConf); err != nil {
+		return false
+	}
+
+	return true
+}
+
+func getProtonDriveTooltip() string {
+	if isProtonDriveConfigured() {
+		return "Ready to sync"
+	}
+	return "Not configured"
 }
