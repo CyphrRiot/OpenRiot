@@ -110,6 +110,8 @@ desktop:
               cmd: "rm -f ~/.config/polybar/config"
             - desc: "Remove deprecated polybar scripts"
               cmd: "rm -f ~/.config/polybar/scripts/*.sh"
+            - desc: "Taking dunst behind the barn"
+              cmd: "pkill -9 dunst && sleep 1 && dunst & disown"
         depends: [core.base, fonts.fira-code]
         start: "Installing i3 desktop"
         end: "i3 desktop installed"
