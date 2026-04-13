@@ -234,9 +234,8 @@ func main() {
 		return
 	}
 	if len(os.Args) >= 2 && os.Args[1] == "--power-menu" {
-		menu := "Lock\nSuspend\nReboot\nShutdown\nLogout"
-		cmd := exec.Command("sh", "-c", "echo -e 'Lock\\nSuspend\\nReboot\\nShutdown\\nLogout' | rofi -dmenu -p 'Power: '")
-		cmd.Stdin = strings.NewReader(menu)
+		cmd := exec.Command("rofi", "-dmenu", "-p", "Power: ")
+		cmd.Stdin = strings.NewReader("Lock\nSuspend\nReboot\nShutdown\nLogout")
 		out, err := cmd.Output()
 		if err != nil {
 			return

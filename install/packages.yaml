@@ -202,6 +202,14 @@ source:
         start: "Installing Bibata-Modern-Ice cursor theme"
         end: "Bibata cursor installed"
 
+    kora:
+        type: "Source"
+        build:
+            - "if [ -d \"$HOME/.local/share/icons/kora\" ]; then echo '[SKIP] Kora icon theme already installed'; else rm -rf /tmp/kora && git clone https://github.com/bikass/kora.git /tmp/kora && mkdir -p $HOME/.local/share/icons && cp -rf /tmp/kora/kora $HOME/.local/share/icons/ && rm -rf /tmp/kora && gtk-update-icon-cache -f $HOME/.local/share/icons/kora 2>/dev/null || true; fi"
+        depends: [system.tools]
+        start: "Installing Kora icon theme"
+        end: "Kora icon theme installed"
+
 #    stormy:
 #        type: "Source"
 #        build:
