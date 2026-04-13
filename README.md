@@ -941,6 +941,20 @@ api=85a4e3c55b73909f42c6a23ec35b7147
 
 **If no config exists**, the weather module is hidden automatically.
 
+**Weather Icons:**
+
+| Code | Condition | Icon |
+|------|-----------|------|
+| 01x | Clear sky | 󰖕 |
+| 02x | Few clouds |  |
+| 03x/04x | Scattered/broken |  |
+| 09x | Drizzle |  |
+| 10x | Rain |  |
+| 11x | Thunderstorm |  |
+| 13x | Snow |  |
+| 50x | Mist/Fog | 󰖑 |
+| default | Unknown | 󰨹 |
+
 ---
 
 ### 🔐 Crypto Config

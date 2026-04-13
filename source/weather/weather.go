@@ -134,19 +134,21 @@ func getWeatherIcon(code string) string {
 	case strings.HasPrefix(code, "01"): // clear
 		return "󰖕"
 	case strings.HasPrefix(code, "02"): // few clouds
-		return "󰖓"
+		return ""
 	case strings.HasPrefix(code, "03"), strings.HasPrefix(code, "04"): // clouds
-		return "�霾"
-	case strings.HasPrefix(code, "09"), strings.HasPrefix(code, "10"): // rain
-		return "󰼰"
+		return ""
+	case strings.HasPrefix(code, "09"): // drizzle
+		return ""
+	case strings.HasPrefix(code, "10"): // rain
+		return ""
 	case strings.HasPrefix(code, "11"): // thunderstorm
-		return "󰼱"
+		return ""
 	case strings.HasPrefix(code, "13"): // snow
-		return "󰼱"
-	case strings.HasPrefix(code, "50"): // mist
-		return "󰼰"
+		return ""
+	case strings.HasPrefix(code, "50"): // mist/fog/haze
+		return "󰖑"
 	default:
-		return "󰖐"
+		return "󰨹"
 	}
 }
 
