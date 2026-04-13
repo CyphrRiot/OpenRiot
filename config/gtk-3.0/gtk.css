@@ -270,3 +270,46 @@ listview row:selected {
     background-color: @selected_bg_color;
     color: @selected_fg_color;
 }
+
+/* Thunar iconview selected items - ensure visible when focused/unfocused */
+.thunar iconview cell:selected,
+.thunar iconview cell:selected:focus {
+    background-color: #7aa2f7;
+    color: #0f1016;
+    text-shadow: none;
+}
+
+/* Selected items in unfocused windows - prevent black icons */
+.thunar iconview:selected:not(:focus) {
+    background-color: #7aa2f7;
+    color: #0f1016;
+}
+
+/* Ensure icons in selections stay visible */
+.thunar iconview cell:selected image,
+.thunar iconview cell:selected:backdrop image {
+    filter: none;
+}
+
+/* Thunar selection when window is unfocused (backdrop state) */
+.thunar .view:selected:backdrop {
+    background-color: #7aa2f7;
+    color: #0f1016;
+}
+
+.thunar iconview:selected:backdrop {
+    background-color: #7aa2f7;
+    color: #0f1016;
+}
+
+.thunar iconview cell:selected:backdrop {
+    background-color: #7aa2f7;
+}
+.thunar iconview cell:selected:backdrop * {
+    color: inherit;
+    background-color: transparent;
+    -gtk-icon-source: none;
+    -gtk-icon-effect: none;
+    opacity: 1;
+    filter: none;
+}

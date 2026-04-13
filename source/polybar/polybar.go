@@ -11,7 +11,7 @@ import (
 func RunMetrics() error {
 	cpu := getCPU()
 	cpuPct := getCPUPercent()
-	fmt.Printf(" %s\nCPU: %s%%\n", cpu, cpuPct)
+	fmt.Printf("%s\nCPU: %s%%\n", cpu, cpuPct)
 	return nil
 }
 
