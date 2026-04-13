@@ -5,13 +5,12 @@
     monitor = 0
     follow = mouse
     width = 400
-    height = 200
+    height = (0, 200)
     offset = (16, 42)
     scale = 0
     notification_limit = 10
     progress_bar = true
     progress_bar_height = 10
-    progress_bar_frame = true
     progress_bar_min_width = 150
     progress_bar_max_width = 300
     indicate_hidden = true
@@ -23,30 +22,20 @@
     frame_color = "#7aa2f7"
     sort = no
     font = FiraCode Nerd Font 10
-    line_height = 0
     markup = full
     format = "<b>%s</b>\n%b"
     alignment = left
     vertical_alignment = center
     show_age_threshold = 60
     word_wrap = false
-    ellipse_size = 50
     ignore_newline = false
     stack_duplicates = true
     hide_duplicate_count = false
-    show_transients = true
-    urgent = server
-    normalize = true
-    geometry = 
-    transparency = 0
-    notification_depth = 3
     sticky_history = true
     history_length = 20
-    always_run_script = true
-    script_dir = ~/.local/share/openriot/config/dunst/scripts
-    default_icon = dialog-information
     corner_radius = 8
-    ignore_dbusnext = false
+    close = ctrl+space
+    history = ctrl+grave
 
 [urgency_low]
     background = "#1a1b26"
@@ -64,12 +53,3 @@
     foreground = "#f7768e"
     frame_color = "#6600cc"
     timeout = 5
-
-[shortcut]
-    close = ctrl+space
-    close_all = ctrl+shift+space
-    history = ctrl+grave
-    context = ctrl+shift+period
-
-[script]
-    openriot_update = openriot-update.sh
