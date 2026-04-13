@@ -223,7 +223,7 @@ fonts:
     fira-code:
         type: "Source"
         build:
-            - "if [ -d \"$HOME/.local/share/fonts/FiraCode\" ]; then echo '[SKIP] FiraCode already installed'; else mkdir -p $HOME/.local/share/fonts && curl -fsSL https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip -o /tmp/firacode.zip && unzip -o /tmp/firacode.zip -d $HOME/.local/share/fonts/FiraCode && rm -f /tmp/firacode.zip && fc-cache -f; fi"
+            - "if [ -d \"$HOME/.local/share/fonts/FiraCode\" ]; then echo '[SKIP] FiraCode already installed'; else mkdir -p $HOME/.local/share/fonts && cp -r $HOME/.local/share/openriot/assets/fonts/* $HOME/.local/share/fonts/ && fc-cache -f; fi"
         depends: []
         start: "Installing FiraCode Nerd Font"
         end: "FiraCode Nerd Font installed"
