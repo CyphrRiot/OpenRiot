@@ -26,12 +26,15 @@ func ExecCommands(cfg *config.Config, dryRun bool) error {
 				continue
 			}
 
-			// Execute the command silently
+			// Show command being run
+			fmt.Printf("%s[INFO]%s Running: %s\n", Blue, Reset, entry.Desc)
+
+			// Execute the command
 			execCmd := exec.Command("/bin/sh", "-c", entry.Cmd)
-			_, err := execCmd.CombinedOutput()
+			output, err := execCmd.CombinedOutput()
 
 			if err != nil {
-				fmt.Printf("%s[WARN]%s Command failed: %s - %v\n", Yellow, Reset, entry.Desc, err)
+				fmt.Printf("%s[WARN]%s Command failed: %s - %v\n%s%s\n", Yellow, Reset, entry.Desc, err, string(output), Reset)
 				// Continue even if a command fails - don't stop the whole install
 			}
 		}
