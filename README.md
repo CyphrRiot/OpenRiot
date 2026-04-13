@@ -64,7 +64,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📚 Navigate This Guide
 
-- [🚀 Installing OpenRiot](#-installing-openriot)
+- [🚀 Installing OpenRiot](#installing-openriot)
 - [⌨️ Master Your OpenRiot Desktop](#master-your-openriot-desktop)
 - [📝 Using Helix (Editor)](#using-helix)
 - [🔄 System Management](#system-management)
@@ -497,6 +497,7 @@ Polybar is your status bar. Click on modules for more:
 | Volume          | Click to toggle mute, scroll adjust |
 | Network         | Click for wifi-menu                 |
 | wireguard       | Toggle VPN connection               |
+| transmission    | Toggle Transmission daemon          |
 | Battery         | Shows charge percentage + time      |
 | OpenRiot Update | Click to check for updates         |
 | Power           | Click for power menu               |
