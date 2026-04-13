@@ -75,12 +75,6 @@ desktop:
             - redshift-1.12p11
         configs:
             - pattern: i3/*
-              preserve_if_exists:
-                  [
-                      keybindings.conf,
-                      monitors.conf,
-                      windowrules.conf,
-                  ]
             - pattern: polybar/*
             - pattern: rofi/*
             - pattern: dunst/*

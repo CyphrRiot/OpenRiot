@@ -233,13 +233,6 @@ run_openriot_install() {
     # Run as USER - no doas, log to ~/.cache/openriot/
     cd "$INSTALL_DIR/install" || { error "Cannot cd to $INSTALL_DIR/install"; exit 1; }
 
-    # Clean up stale config that may block new install (directories that should be files)
-    info "Cleaning up stale config..."
-    [ -d "$HOME/.xinitrc" ] && rm -rf "$HOME/.xinitrc"
-    [ -d "$HOME/.xsession" ] && rm -rf "$HOME/.xsession"
-    # Also clean old i3 config that may conflict
-    [ -d "$HOME/.config/i3" ] && rm -rf "$HOME/.config/i3"
-
     INSTALL_LOG="$HOME/.cache/openriot/install.log"
     mkdir -p "$(dirname "$INSTALL_LOG")"
     ./openriot --install 2>&1 | tee -a "$INSTALL_LOG"
