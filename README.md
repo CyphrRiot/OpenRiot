@@ -882,6 +882,16 @@ All package installation uses `pkg_add -D unsigned` — fresh packages matching 
 
 ## 🧰 Advanced Usage
 
+**In This Section:**
+- [Environment Variables](#environment-variables)
+- [Keybindings Customization](#keybindings-customization)
+- [Polybar Modules](#polybar-modules)
+- [Weather Module](#-weather-module-polybar)
+- [Crypto Config](#-crypto-config)
+- [WireGuard VPN](#-wireguard-vpn)
+- [Transmission BitTorrent](#-transmission-bittorrent-client)
+- [Proton Drive Sync](#-proton-drive-sync)
+
 ### Environment Variables
 
 OpenRiot sets sensible defaults. Key environment variables:
