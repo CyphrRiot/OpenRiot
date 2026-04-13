@@ -194,7 +194,7 @@ func main() {
 	if len(os.Args) >= 2 && os.Args[1] == "--proton-drive-sync" {
 		if polybar.IsProtonDriveConfigured() {
 			exec.Command("/usr/local/bin/notify-send", "-t", "2000", "Proton Drive", "Syncing...").Run()
-			cmd := `rclone bisync ~/ProtonSync proton:ProtonSync --resync --progress; printf "\nDone. Press Enter to close..."; read -r ans`
+			cmd := `echo "Proton Drive is now syncing... be patient..."; rclone bisync ~/ProtonSync proton:ProtonSync --resync --progress; printf "\nDone. Press Enter to close..."; read -r ans`
 			exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
 		} else {
 			exec.Command("/usr/local/bin/notify-send", "-t", "5000", "-u", "critical", "Proton Drive", "Not configured").Run()
