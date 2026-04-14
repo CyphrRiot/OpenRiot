@@ -33,7 +33,7 @@ $ openriot --proton-drive
 (nothing - module hidden)
 ```
 
-### `--proton-drive-click`
+### `--proton-drive-sync`
 Click action - reads state, performs appropriate action.
 
 | State | Action |
@@ -124,8 +124,9 @@ func checkProtonDriveSync() string {
    - Update `RunProtonDrive()` - uses new state logic
 
 2. **`source/main.go`**
-   - Add `--proton-drive-click` flag
-   - Implement click handler with state-aware actions
+   - Modify `--proton-drive-sync` flag
+   - Add state detection before running sync
+   - Implement state-aware click behavior
 
 3. **`config/polybar/config.ini`**
    - Add `proton-drive` module entry
@@ -138,7 +139,7 @@ type = custom/script
 exec = $HOME/.local/share/openriot/install/openriot --proton-drive
 interval = 60
 format-padding = 1
-click-left = $HOME/.local/share/openriot/install/openriot --proton-drive-click
+click-left = $HOME/.local/share/openriot/install/openriot --proton-drive-sync
 ```
 
 ---

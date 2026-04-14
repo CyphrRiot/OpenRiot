@@ -4,118 +4,144 @@ import (
 	"fmt"
 	"os/exec"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
 func Get() string {
-	iface := getWifiInterface()
-	if iface == "" {
+	return GetWifi()
+}
+
+func GetWifi() string {
+	iface, connected := getWifiInterface()
+	if !connected {
 		return "󰤯"
 	}
 
 	signal := getSignal(iface)
-	if signal == 0 {
-		return "󰤯"
+	if signal > 0 {
+		return getWifiIcon(signal)
 	}
-
-	return getWifiIcon(signal)
+	return "󰤯"
 }
 
-func GetDetails() string {
-	iface := getWifiInterface()
+func GetEth() string {
+	iface, hasCarrier := getEthInterface()
 	if iface == "" {
-		return "No interface found"
+		return ""
+	}
+
+	if hasCarrier {
+		return "󰈀"
+	}
+	return "󰌙"
+}
+
+func GetWifiDetails() string {
+	iface, connected := getWifiInterface()
+	if !connected {
+		return fmt.Sprintf("Not Connected\nInterface: %s\n\n1. Update /etc/hostname.%s\n2. Run    doas /etc/netstart %s\n3. Pray to the ancient gods of BSD", iface, iface, iface)
 	}
 
 	cmd := exec.Command("/sbin/ifconfig", iface)
 	output, _ := cmd.Output()
-	outputStr := string(output)
+	details := string(output)
 
-	if !strings.Contains(outputStr, "status: active") {
-		return "Not connected"
-	}
+	ap := extractAP(details)
+	ip := extractIP(details)
 
-	// Get AP name (join the network)
-	ap := ""
-	if strings.Contains(outputStr, "join") {
-		lines := strings.Split(outputStr, "\n")
-		for _, line := range lines {
-			if strings.Contains(line, "join") {
-				parts := strings.Fields(line)
-				for i, p := range parts {
-					if p == "join" && i+1 < len(parts) {
-						ap = parts[i+1]
-						break
-					}
-				}
-				break
-			}
-		}
-	}
-	if ap == "" {
-		ap = "Unknown"
-	}
-
-	// Get IP address
-	ip := ""
-	lines := strings.Split(outputStr, "\n")
-	for _, line := range lines {
-		if strings.Contains(line, "inet ") {
-			parts := strings.Fields(line)
-			for i, p := range parts {
-				if p == "inet" && i+1 < len(parts) {
-					ip = parts[i+1]
-					break
-				}
-			}
-			break
-		}
-	}
-	if ip == "" {
-		ip = "N/A"
-	}
-
-	return fmt.Sprintf("AP: %s\nIP: %s\nNC: %s", ap, ip, iface)
+	return fmt.Sprintf("AP: %s\nIP: %s\nInterface: %s", ap, ip, iface)
 }
 
-func getWifiInterface() string {
+func GetEthDetails() string {
+	iface, hasCarrier := getEthInterface()
+	if iface == "" {
+		return "No Ethernet interface"
+	}
+
+	if !hasCarrier {
+		return fmt.Sprintf("No Carrier\nInterface: %s\n\nCheck cable connection", iface)
+	}
+
+	cmd := exec.Command("/sbin/ifconfig", iface)
+	output, _ := cmd.Output()
+	ip := extractIP(string(output))
+
+	return fmt.Sprintf("IP: %s\nInterface: %s", ip, iface)
+}
+
+// IsConnected returns true if wifi is connected
+func IsConnected() bool {
+	_, connected := getWifiInterface()
+	return connected
+}
+
+func getWifiInterface() (string, bool) {
 	cmd := exec.Command("/sbin/ifconfig")
 	output, _ := cmd.Output()
 
 	var current string
+	isWifi := false
 	lines := strings.Split(string(output), "\n")
 	for _, line := range lines {
 		if matched, _ := regexp.MatchString(`^[a-z]+[0-9]+:`, line); matched {
 			current = strings.TrimSuffix(strings.SplitN(line, ":", 2)[0], ":")
+			isWifi = false
 		}
-		if strings.Contains(line, "ieee80211") && current != "" {
-			return current
+		if strings.Contains(line, "ieee80211") && current != "ieee80211" {
+			isWifi = true
+		}
+		if isWifi && strings.Contains(line, "join") {
+			return current, true
 		}
 	}
-	return ""
+	return "", false
+}
+
+func getEthInterface() (string, bool) {
+	cmd := exec.Command("/sbin/ifconfig")
+	output, _ := cmd.Output()
+
+	var current string
+	var isEth bool
+	hasCarrier := false
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		if matched, _ := regexp.MatchString(`^[a-z]+[0-9]+:`, line); matched {
+			current = strings.TrimSuffix(strings.SplitN(line, ":", 2)[0], ":")
+			isEth = false
+			hasCarrier = false
+		}
+		if strings.Contains(line, "media: Ethernet") {
+			isEth = true
+		}
+		if isEth && strings.Contains(line, "status: active") {
+			hasCarrier = true
+		}
+		if isEth && current != "" && current != "lo0" && current != "ieee80211" {
+			if strings.Contains(line, "media:") || strings.Contains(line, "status:") || strings.Contains(line, "inet ") {
+				return current, hasCarrier
+			}
+		}
+	}
+	return "", false
 }
 
 func getSignal(iface string) int {
 	cmd := exec.Command("/sbin/ifconfig", iface)
 	output, _ := cmd.Output()
 
-	re := regexp.MustCompile(`-[0-9]+dBm`)
-	match := re.FindString(string(output))
-	if match == "" {
-		return 0
+	re := strings.Fields(string(output))
+	for _, s := range re {
+		if strings.HasPrefix(s, "-") && strings.HasSuffix(s, "dBm") {
+			var signal int
+			fmt.Sscanf(s, "%ddBm", &signal)
+			return -signal
+		}
 	}
-
-	signalStr := strings.Trim(match, "-dBm")
-	signal, err := strconv.Atoi(signalStr)
-	if err != nil {
-		return 0
-	}
-	return signal
+	return 0
 }
 
 func getWifiIcon(signal int) string {
-	// Convert dBm to percentage (-100dBm = 0%, -30dBm = 100%)
 	percent := (signal + 100) * 100 / 70
 	if percent > 100 {
 		percent = 100
@@ -134,4 +160,37 @@ func getWifiIcon(signal int) string {
 		return "󰤟"
 	}
 	return "󰤯"
+}
+
+func extractAP(output string) string {
+	if !strings.Contains(output, "join") {
+		return "N/A"
+	}
+	lines := strings.Split(output, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "join") {
+			parts := strings.Fields(line)
+			for i, p := range parts {
+				if p == "join" && i+1 < len(parts) {
+					return parts[i+1]
+				}
+			}
+		}
+	}
+	return "Unknown"
+}
+
+func extractIP(output string) string {
+	lines := strings.Split(output, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "inet ") {
+			parts := strings.Fields(line)
+			for i, p := range parts {
+				if p == "inet" && i+1 < len(parts) {
+					return parts[i+1]
+				}
+			}
+		}
+	}
+	return "N/A"
 }

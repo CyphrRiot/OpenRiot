@@ -13,8 +13,9 @@ OPENBSD_VERSION = 7.9
 # ============================================================
 # Targets
 # ============================================================
-.PHONY: all build linux clean deps test verify release ultra iso isotest binary-push help
+.PHONY: all build linux clean deps test verify release ultra iso isotest binary-push install help
 
+# Build only (no install) - use for testing
 all:
 	@OPENRIOT_VERSION=`cat VERSION` && \
 	echo "=== Building OpenRIOT v$$OPENRIOT_VERSION for OpenBSD $(OPENBSD_VERSION) ===" && \
@@ -27,11 +28,15 @@ all:
 	chmod 0755 ../$(INSTALL_DIR)/$(BINARY_NAME) && \
 	echo "=== Build complete: $(INSTALL_DIR)/$(BINARY_NAME) ==="
 
-# Build + copy to local install (for when polybar is stopped)
-build: all
+# Install to local (build + copy)
+install: all
 	@mkdir -p $$HOME/.local/share/openriot/install && \
 	cp $(INSTALL_DIR)/$(BINARY_NAME) $$HOME/.local/share/openriot/install/ && \
 	echo "=== Local install updated ==="
+
+# Build target fails - use 'make' for dev or 'make install' to deploy
+build:
+	@echo "ERROR: Use 'make' (dev) or 'make install' (deploy)" && exit 1
 
 # Linux build — native
 linux:
@@ -206,7 +211,9 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@echo "  (default)         Build openriot binary (cross-compiled for OpenBSD)"
-	@echo "  build             Build + copy to ~/.local/share/openriot/install/"
+	@echo "  (default)         Build openriot binary (cross-compiled for OpenBSD)"
+	@echo "  install           Build + copy to ~/.local/share/openriot/install/"
+	@echo "  build             FAIL - use 'make' or 'make install'"
 	@echo "  linux             Build for Linux (native)"
 	@echo "  release            Version bump, commit, tag, and push"
 	@echo "  ultra              Maximum-optimized static build with optional UPX"

@@ -59,6 +59,11 @@ func logDebugCall() {
 	fmt.Fprintf(f, "%s %s\n", time.Now().Format("15:04:05.000"), strings.Join(os.Args[1:], " "))
 }
 
+// getIconPath returns absolute path to an icon file
+func getIconPath(filename string) string {
+	return filepath.Join(os.Getenv("HOME"), ".local/share/openriot/config/icons", filename)
+}
+
 func main() {
 	logDebugCall()
 
@@ -161,18 +166,34 @@ func main() {
 		return
 	}
 
-	// --network - outputs wifi icon for polybar
-	if len(os.Args) >= 2 && os.Args[1] == "--network" {
-		fmt.Print(network.Get())
+	// --network-wifi - outputs wifi icon for polybar
+	if len(os.Args) >= 2 && os.Args[1] == "--network-wifi" {
+		fmt.Print(network.GetWifi())
+		return
+	}
+
+	// --network-eth - outputs eth icon for polybar
+	if len(os.Args) >= 2 && os.Args[1] == "--network-eth" {
+		fmt.Print(network.GetEth())
 		return
 	}
 
 	// --wifi-info - shows wifi connection status notification
 	if len(os.Args) >= 2 && os.Args[1] == "--wifi-info" {
-		details := network.GetDetails()
-		home := os.Getenv("HOME")
-		iconPath := filepath.Join(home, ".local/share/openriot/config/icons/wifi.png")
-		exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "2000", "WiFi", details).Start()
+		details := network.GetWifiDetails()
+		icon := "wifi.png"
+		if !network.IsConnected() {
+			icon = "wifi-off.png"
+		}
+		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath(icon), "-t", "5000", "WiFi", details).Start()
+		return
+	}
+
+	// --eth-info - shows ethernet connection status notification
+	if len(os.Args) >= 2 && os.Args[1] == "--eth-info" {
+		details := network.GetEthDetails()
+		icon := "ethernet.png"
+		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath(icon), "-t", "5000", "Ethernet", details).Start()
 		return
 	}
 
@@ -191,9 +212,9 @@ func main() {
 	// --polybar-transmission - outputs transmission icon for polybar
 	if len(os.Args) >= 2 && os.Args[1] == "--polybar-transmission" {
 		if rofi.IsTransmissionRunning() {
-			fmt.Print("󰭽")
+			fmt.Print("󰐻")
 		} else {
-			fmt.Print("󰅤")
+			fmt.Print("󱧝")
 		}
 		return
 	}
@@ -208,25 +229,51 @@ func main() {
 
 	// --proton-drive-sync - sync Proton Drive (click action)
 	if len(os.Args) >= 2 && os.Args[1] == "--proton-drive-sync" {
+		icon := getIconPath("proton-drive.png")
 		if polybar.IsProtonDriveConfigured() {
-			exec.Command("/usr/local/bin/notify-send", "-t", "2000", "Proton Drive", "Syncing...").Run()
-			cmd := `echo "Proton Drive is now syncing... be patient..."; rclone bisync ~/ProtonSync proton:ProtonSync --resync --progress; printf "\nDone. Press Enter to close..."; read -r ans`
-			exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
+			// Check sync state
+			state := polybar.CheckProtonDriveSyncState()
+			if state == "synced" {
+				exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Proton Drive", "Already Synced ✓").Run()
+			} else {
+				exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Proton Drive", "Syncing...").Run()
+				cmd := `echo "Proton Drive is now syncing... be patient..."; rclone bisync ~/ProtonSync proton:ProtonSync --resync --progress; printf "\nDone. Press Enter to close..."; read -r ans`
+				exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
+			}
 		} else {
-			exec.Command("/usr/local/bin/notify-send", "-t", "5000", "-u", "critical", "Proton Drive", "Not configured").Run()
-			exec.Command("/usr/local/bin/notify-send", "-t", "5000", "-u", "critical", "Setup Required", "See OpenRiot.org for setup info").Run()
+			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "5000", "-u", "critical", "Proton Drive", "Not configured").Run()
+			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "5000", "-u", "critical", "Setup Required", "See OpenRiot.org for setup info").Run()
+		}
+		return
+	}
+
+	// --proton-drive-init - populate bisync cache files
+	if len(os.Args) >= 2 && os.Args[1] == "--proton-drive-init" {
+		icon := getIconPath("proton-drive.png")
+		if polybar.IsProtonDriveConfigured() {
+			if err := polybar.InitProtonDriveCache(); err != nil {
+				fmt.Fprintf(os.Stderr, "proton-drive init error: %v\n", err)
+				exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "5000", "-u", "critical", "Proton Drive", "Failed to init cache").Run()
+			} else {
+				exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Proton Drive", "Cache initialized").Run()
+			}
+		} else {
+			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "5000", "-u", "critical", "Proton Drive", "Not configured").Run()
 		}
 		return
 	}
 
 	// --transmission-stop - stop transmission daemon
 	if len(os.Args) >= 2 && os.Args[1] == "--transmission-stop" {
+		var icon string
 		if rofi.IsTransmissionRunning() {
-			exec.Command("pkill", "-u", os.Getenv("USER"), "transmission-daemon").Run()
-			exec.Command("/usr/local/bin/notify-send", "-t", "2000", "Transmission", "Stopping Transmission...").Run()
+			icon = getIconPath("transmission-on.png")
+			exec.Command("pkill", "-INT", "transmission-daemon").Run()
+			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Transmission", "Stopping Transmission...").Run()
 		} else {
+			icon = getIconPath("transmission-off.png")
 			exec.Command("sh", "-c", "mkdir -p ~/.local/share/transmission ~/.config/transmission && transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &").Run()
-			exec.Command("/usr/local/bin/notify-send", "-t", "2000", "Transmission", "Starting Transmission...").Run()
+			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Transmission", "Starting Transmission...").Run()
 		}
 		return
 	}
@@ -427,20 +474,14 @@ func main() {
 	// --cpu-notify shows CPU usage notification
 	if len(os.Args) >= 2 && os.Args[1] == "--cpu-notify" {
 		cpuPct := polybar.GetCPUPercent()
-		home := os.Getenv("HOME")
-		iconPath := filepath.Join(home, ".local/share/openriot/config/icons")
-		cpuIcon := filepath.Join(iconPath, "cpu.png")
-		exec.Command("/usr/local/bin/notify-send", "-i", cpuIcon, "-t", "1500", "CPU", cpuPct).Start()
+		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath("cpu.png"), "-t", "1500", "CPU", cpuPct).Start()
 		os.Exit(0)
 	}
 
 	// --mem-notify shows memory usage notification
 	if len(os.Args) >= 2 && os.Args[1] == "--mem-notify" {
 		memDetails := polybar.GetMemDetails()
-		home := os.Getenv("HOME")
-		iconPath := filepath.Join(home, ".local/share/openriot/config/icons")
-		memIcon := filepath.Join(iconPath, "memory.png")
-		exec.Command("/usr/local/bin/notify-send", "-i", memIcon, "-t", "5000", "Memory", memDetails).Start()
+		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath("memory.png"), "-t", "5000", "Memory", memDetails).Start()
 		os.Exit(0)
 	}
 
@@ -456,9 +497,7 @@ func main() {
 		return
 	}
 	if len(os.Args) >= 2 && os.Args[1] == "--crypto-notify" {
-		home := os.Getenv("HOME")
-		iconPath := filepath.Join(home, ".local/share/openriot/config/icons/crypto.png")
-		exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "0", "-r", "1", "Crypto", "Loading...").Start()
+		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath("crypto.png"), "-t", "0", "-r", "1", "Crypto", "Loading...").Start()
 		time.Sleep(100 * time.Millisecond)
 		if err := crypto.RunCrypto("NOTIFY_SEND"); err != nil {
 			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
@@ -487,6 +526,22 @@ func main() {
 		return
 	}
 
+	// --make-icon <name> <symbol> - generate icon PNG
+	if len(os.Args) >= 2 && os.Args[1] == "--make-icon" {
+		if len(os.Args) < 4 {
+			fmt.Fprintf(os.Stderr, "Usage: openriot --make-icon <name> <symbol>\n")
+			os.Exit(1)
+		}
+		name := os.Args[2]
+		symbol := os.Args[3]
+		if err := makeIcon(name, symbol); err != nil {
+			fmt.Fprintf(os.Stderr, "make-icon error: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("Icon created: %s.png\n", name)
+		return
+	}
+
 	// No command or unknown command
 	fmt.Fprintf(os.Stderr, "openriot %s\n", version)
 	fmt.Fprintf(os.Stderr, "Usage: openriot <command>\n")
@@ -506,6 +561,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "  --polybar-volume    Show volume for polybar\n")
 	fmt.Fprintf(os.Stderr, "  --crypto [BTC|ETH] Show crypto prices\n")
 	fmt.Fprintf(os.Stderr, "  --share-log [file] Upload log to ix.io for sharing\n")
+	fmt.Fprintf(os.Stderr, "  --make-icon <name> <symbol> Generate icon PNG\n")
 	fmt.Fprintf(os.Stderr, "  --version         Show version\n")
 	os.Exit(1)
 }
@@ -531,6 +587,29 @@ func shareLog(filename string) error {
 	url := strings.TrimSpace(string(output))
 	fmt.Println(url)
 	return nil
+}
+
+// makeIcon generates a PNG icon from a Nerd Font symbol
+func makeIcon(name, symbol string) error {
+	home := os.Getenv("HOME")
+	font := filepath.Join(home, ".local/share/fonts/FiraCode/FiraCodeNerdFont-Regular.ttf")
+	iconDir := filepath.Join(home, ".local/share/openriot/config/icons")
+
+	// Ensure icon directory exists
+	if err := os.MkdirAll(iconDir, 0755); err != nil {
+		return fmt.Errorf("creating icon dir: %w", err)
+	}
+
+	output := filepath.Join(iconDir, name+".png")
+	cmd := exec.Command("convert",
+		"-background", "none",
+		"-fill", "white",
+		"-font", font,
+		"-pointsize", "32",
+		"label:"+symbol,
+		"-resize", "48x48",
+		output)
+	return cmd.Run()
 }
 
 // runInstall handles the --install command (runs as USER, no TTY/PTY needed)

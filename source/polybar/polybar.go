@@ -221,12 +221,16 @@ func RunProtonDrive() error {
 	return nil
 }
 
-// GetProtonDriveIcon returns sync or no-sync icon based on config
+// GetProtonDriveIcon returns sync state icon
 func GetProtonDriveIcon() string {
-	if isProtonDriveConfigured() {
-		return "󰴋"
+	if !isProtonDriveConfigured() {
+		return ""
 	}
-	return ""
+	state := checkProtonDriveSync()
+	if state == "synced" {
+		return "󱥾" // ✓ checkmark
+	}
+	return "󰴋" // sync arrows
 }
 
 // IsProtonDriveConfigured returns true if Proton Drive sync is set up
@@ -249,6 +253,63 @@ func isProtonDriveConfigured() bool {
 	}
 
 	return true
+}
+
+// checkProtonDriveSync returns "synced" or "needs-sync"
+// If cache files missing but configured, auto-init first
+func checkProtonDriveSync() string {
+	home := os.Getenv("HOME")
+	bisyncDir := home + "/.cache/rclone/bisync"
+
+	path1 := bisyncDir + "/home_grendel_ProtonSync..proton_ProtonSync.path1.lst"
+	path2 := bisyncDir + "/home_grendel_ProtonSync..proton_ProtonSync.path2.lst"
+
+	// If cache files missing but configured, auto-init
+	if !cacheFilesExist(path1, path2) && isProtonDriveConfigured() {
+		InitProtonDriveCache()
+	}
+
+	// Check if either file is missing
+	if _, err := os.Stat(path1); os.IsNotExist(err) {
+		return "needs-sync"
+	}
+	if _, err := os.Stat(path2); os.IsNotExist(err) {
+		return "needs-sync"
+	}
+
+	// Compare files (skip first line - timestamp differs each run)
+	content1, _ := os.ReadFile(path1)
+	content2, _ := os.ReadFile(path2)
+
+	lines1 := strings.Split(string(content1), "\n")
+	lines2 := strings.Split(string(content2), "\n")
+	if len(lines1) > 1 && len(lines2) > 1 && strings.Join(lines1[1:], "\n") == strings.Join(lines2[1:], "\n") {
+		return "synced"
+	}
+	return "needs-sync"
+}
+
+// CheckProtonDriveSyncState exports checkProtonDriveSync for main.go
+func CheckProtonDriveSyncState() string {
+	return checkProtonDriveSync()
+}
+
+// cacheFilesExist checks if both bisync cache files exist
+func cacheFilesExist(path1, path2 string) bool {
+	_, err1 := os.Stat(path1)
+	_, err2 := os.Stat(path2)
+	return err1 == nil && err2 == nil
+}
+
+// InitProtonDriveCache runs bisync --dry-run to populate cache files
+func InitProtonDriveCache() error {
+	home := os.Getenv("HOME")
+	cmd := exec.Command("rclone", "bisync",
+		home+"/ProtonSync",
+		"proton:ProtonSync",
+		"--dry-run",
+		"--work-dir", home+"/.cache/rclone/bisync")
+	return cmd.Run()
 }
 
 func getProtonDriveTooltip() string {

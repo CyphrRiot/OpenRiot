@@ -62,6 +62,9 @@ cp output.png ~/.local/share/openriot/config/icons/
 17. 󰹑 - workspace.png
 18. 󰚇 - no-upgrade.png
 19. 󰋻 - upgrade.png
+20. 󱥾 - proton-drive.png
+21. 󰐻 - transmission-on.png
+22. 󱧝 - transmission-off.png
 
 ## Status
 
@@ -83,7 +86,7 @@ To regenerate all icons, run:
 FONT="$HOME/.local/share/fonts/FiraCode/FiraCodeNerdFont-Regular.ttf"
 ICON_DIR="config/icons"
 
-for icon in memory cpu settings speaker speaker-muted mic mic-muted vpn vpn-error nightlight-on nightlight-off applications firefox wifi wifi-off crypto workspace no-upgrade upgrade; do
+for icon in memory cpu settings speaker speaker-muted mic mic-muted vpn vpn-error nightlight-on nightlight-off applications firefox wifi wifi-off crypto workspace no-upgrade upgrade proton-drive transmission-on transmission-off; do
     convert -background none -fill white -font "$FONT" -pointsize 32 label:"SYMBOL" -resize 48x48 "$ICON_DIR/$icon.png"
 done
 ```

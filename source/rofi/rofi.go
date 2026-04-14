@@ -133,10 +133,10 @@ func parseAppsFile(path string) ([]appEntry, error) {
 	for i, entry := range entries {
 		if entry.Name == "Transmission" {
 			if IsTransmissionRunning() {
-				entries[i].Name = "Transmission 󰅤"
-				entries[i].Cmd = "pkill -u $USER transmission-daemon"
+				entries[i].Name = "Transmission 󱧝"
+				entries[i].Cmd = "pkill -INT transmission-daemon"
 			} else {
-				entries[i].Name = "Transmission 󰭽"
+				entries[i].Name = "Transmission 󰐻"
 				entries[i].Cmd = "sh -c \"mkdir -p ~/.local/share/transmission ~/.config/transmission && transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &\""
 			}
 		}

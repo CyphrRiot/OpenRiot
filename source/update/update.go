@@ -64,7 +64,10 @@ func Click() error {
 	}
 
 	if compareVersions(local, cached) < 0 {
-		// Update available - launch upgrade confirmation in alacritty
+		// Update available - notify then launch upgrade confirmation
+		home, _ := os.UserHomeDir()
+		iconPath := filepath.Join(home, ".local/share/openriot/config/icons/upgrade.png")
+		exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "3000", "Desktop", fmt.Sprintf("v%s - Update available!", cached)).Run()
 		cmd := `printf "You are about to upgrade OpenRiot... are you sure? [Y/n] "; read -r ans; case "$ans" in [yY]|"") curl -fsSL https://openriot.org/setup.sh | sh ;; *) echo "Canceled."; sleep 1 ;; esac`
 		exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
 		return nil

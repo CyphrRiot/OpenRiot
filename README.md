@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.14-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.16-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -487,7 +487,7 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | Media Player     |    | mpv video player         |
 | Word Processor   | 󰈙   | Abiword document editor  |
 | Settings         | 󰒓   | XFCE settings manager    |
-| Transmission     | 󰇚   | BitTorrent client        |
+| Transmission     | 󰐻   | BitTorrent client        |
 | Proton Mail      | 󰊫   | Email (web app)          |
 
 ![OpenRiot Terminal](assets/terminal.png)
@@ -939,7 +939,7 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 | **openriot-update** | 󰋻 update, 󰚇 up to date | Check for updates | - |
 | **weather** | Based on condition code | - | - |
 | **proton-drive** | 󰴋 | Sync Proton Drive | - |
-| **transmission** | 󰭽 active, 󰅤 stopped | Toggle daemon | - |
+| **transmission** | 󰐻 active, 󱧝 stopped | Toggle daemon | - |
 | **power** | ⏻ | Open power menu | - |
 | **lock** | 󰌾 | Lock screen | - |
 
@@ -1136,8 +1136,8 @@ Click the icon to toggle. Notifications confirm state changes.
 ### Rofi Menu
 
 The app launcher (Rofi) also has a Transmission entry that dynamically shows:
-- **Transmission** 󰭽 — Click to stop
-- **Transmission** 󰅤 — Click to start
+- **Transmission** 󰐻 — Click to stop (running)
+- **Transmission** 󱧝 — Click to start (stopped)
 
 ### Default Settings
 
@@ -1216,9 +1216,8 @@ chmod 600 ~/.config/rclone/rclone.conf
 
 ### How It Works
 
-- **Polybar icon** 󰴋 means ready to sync
-- **Click the icon** to open a centered terminal for manual sync
-- **Cron** runs bisync every 15 minutes automatically
+- **Polybar icon** 󱥾 synced, 󰴋 needs sync, 󰫢 not configured
+- **Click the icon** to sync (auto-init cache on first click)
 - Files are encrypted client-side before transit (end-to-end encryption)
 
 ### Sync Between Multiple Systems
@@ -1290,14 +1289,16 @@ doas vi /etc/myname
     # Connect manually via hostname.if(5):
     doas vi /etc/hostname.iwn0
     # Add: nwid "YourNetworkName" wpakey "YourPassword" dhcp
+    # Add: inet autoconf
+    # Add: mode 11g
     # Then: doas sh /etc/netstart iwn0
     ```
 
 4. **After connecting:**
     ```bash
     # Verify connection
-    ifconfig iwm0
-    ping -c 3 openbsd.org
+    ifconfig iwn0
+    ping -c 3 cdn.openbsd.org
     ```
 
 ### i3 won't start
