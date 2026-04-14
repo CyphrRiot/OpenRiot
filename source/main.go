@@ -67,183 +67,159 @@ func getIconPath(filename string) string {
 func main() {
 	logDebugCall()
 
-	// Check for version flag first
-	for _, arg := range os.Args[1:] {
-		if arg == "--version" {
+	// Command map for CLI dispatcher
+	commands := map[string]func(){
+		"--version": func() {
 			fmt.Println("openriot", version)
 			os.Exit(0)
-		}
+		},
+		"--install": func() {
+			runInstall()
+		},
+		"--source-builds": func() {
+			runSourceBuilds()
+		},
+		"--install-packages": func() {
+			runInstallPackages()
+		},
+		"--packages": func() {
+			configPath := config.FindConfigFile()
+			if configPath == "" {
+				fmt.Fprintf(os.Stderr, "[ERR!] Could not find packages.yaml\n")
+				os.Exit(1)
+			}
+			cfg, err := config.LoadConfig(configPath)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "[ERR!] Failed to load config: %v\n", err)
+				os.Exit(1)
+			}
+			for _, pkg := range cfg.GetPackages() {
+				fmt.Println(pkg)
+			}
+			os.Exit(0)
+		},
+		"--check-packages": func() {
+			runCheckPackages()
+		},
+		"--sync-packages": func() {
+			runSyncPackages()
+		},
+		"--version-check": func() {
+			localVer := getLocalVersion()
+			remoteVer := getRemoteVersion()
+			if localVer == "unknown" || remoteVer == "unknown" {
+				os.Exit(1)
+			}
+			if compareVersions(localVer, remoteVer) < 0 {
+				fmt.Printf("Update available: %s -> %s\n", localVer, remoteVer)
+				os.Exit(0)
+			}
+			fmt.Printf("Current: %s\n", localVer)
+			os.Exit(1)
+		},
 	}
 
-	// Check for test mode flag (for testing on Linux without OpenBSD)
+	// Handle --test/-t flag first (affects other commands)
 	for _, arg := range os.Args[1:] {
 		if arg == "--test" || arg == "-t" {
 			testMode = true
 		}
 	}
 
-	// Handle --install (simple CLI, no TUI)
-	if len(os.Args) >= 2 && os.Args[1] == "--install" {
-		runInstall()
-		return
-	}
-
-	// Handle --source-builds (runs only the source builds phase, used by setup.sh)
-	if len(os.Args) >= 2 && os.Args[1] == "--source-builds" {
-		runSourceBuilds()
-		return
-	}
-
-	// --install-packages (installs packages from packages.yaml, used by setup.sh)
-	if len(os.Args) >= 2 && os.Args[1] == "--install-packages" {
-		runInstallPackages()
-		return
-	}
-
-	// --packages flag - outputs package list from packages.yaml (used by setup.sh)
-	if len(os.Args) >= 2 && os.Args[1] == "--packages" {
-		configPath := config.FindConfigFile()
-		if configPath == "" {
-			fmt.Fprintf(os.Stderr, "[ERR!] Could not find packages.yaml\n")
-			os.Exit(1)
+	// Dispatch command from map
+	if len(os.Args) >= 2 {
+		if fn, ok := commands[os.Args[1]]; ok {
+			fn()
+			return
 		}
-		cfg, err := config.LoadConfig(configPath)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "[ERR!] Failed to load config: %v\n", err)
-			os.Exit(1)
-		}
-		for _, pkg := range cfg.GetPackages() {
-			fmt.Println(pkg)
-		}
-		os.Exit(0)
-	}
-
-	// --check-packages - verify packages.yaml versions against installed
-	if len(os.Args) >= 2 && os.Args[1] == "--check-packages" {
-		runCheckPackages()
-		return
-	}
-
-	// --sync-packages - update packages.yaml to latest installed versions
-	if len(os.Args) >= 2 && os.Args[1] == "--sync-packages" {
-		runSyncPackages()
-		return
-	}
-
-	// --version-check - checks if remote version is newer than local (used by setup.sh)
-	if len(os.Args) >= 2 && os.Args[1] == "--version-check" {
-		localVer := getLocalVersion()
-		remoteVer := getRemoteVersion()
-		if localVer == "unknown" || remoteVer == "unknown" {
-			os.Exit(1)
-		}
-		if compareVersions(localVer, remoteVer) < 0 {
-			fmt.Printf("Update available: %s -> %s\n", localVer, remoteVer)
-			os.Exit(0)
-		}
-		fmt.Printf("Current: %s\n", localVer)
-		os.Exit(1)
 	}
 
 	// --wireguard-status - for polybar
-	if len(os.Args) >= 2 && os.Args[1] == "--wireguard-status" {
+	commands["--wireguard-status"] = func() {
 		fmt.Print(wireguard.Status())
-		return
 	}
 
 	// --update-status - outputs update icon for polybar
-	if len(os.Args) >= 2 && os.Args[1] == "--update-status" {
+	commands["--update-status"] = func() {
 		fmt.Print(update.Get())
-		return
 	}
 
 	// --update - handle update click
-	if len(os.Args) >= 2 && os.Args[1] == "--update" {
+	commands["--update"] = func() {
 		update.Click()
-		return
 	}
 
 	// --rofi - app launcher
-	if len(os.Args) >= 2 && os.Args[1] == "--rofi" {
+	commands["--rofi"] = func() {
 		if err := rofi.Run(); err != nil {
 			fmt.Fprintf(os.Stderr, "rofi error: %v\n", err)
 			os.Exit(1)
 		}
-		return
 	}
 
 	// --weather - outputs weather icon + temp for polybar
-	if len(os.Args) >= 2 && os.Args[1] == "--weather" {
+	commands["--weather"] = func() {
 		fmt.Print(weather.Get())
-		return
 	}
 
-	// --network-wifi - outputs wifi icon for polybar
-	if len(os.Args) >= 2 && os.Args[1] == "--network-wifi" {
+	// Dispatch Section 2 commands
+	if len(os.Args) >= 2 {
+		if fn, ok := commands[os.Args[1]]; ok {
+			fn()
+			return
+		}
+	}
+
+	// Section 3: Network, battery, and status commands
+	commands["--network-wifi"] = func() {
 		fmt.Print(network.GetWifi())
-		return
 	}
-
-	// --network-eth - outputs eth icon for polybar
-	if len(os.Args) >= 2 && os.Args[1] == "--network-eth" {
+	commands["--network-eth"] = func() {
 		fmt.Print(network.GetEth())
-		return
 	}
-
-	// --wifi-info - shows wifi connection status notification
-	if len(os.Args) >= 2 && os.Args[1] == "--wifi-info" {
+	commands["--wifi-info"] = func() {
 		details := network.GetWifiDetails()
 		icon := "wifi.png"
 		if !network.IsConnected() {
 			icon = "wifi-off.png"
 		}
 		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath(icon), "-t", "5000", "WiFi", details).Start()
-		return
 	}
-
-	// --eth-info - shows ethernet connection status notification
-	if len(os.Args) >= 2 && os.Args[1] == "--eth-info" {
+	commands["--eth-info"] = func() {
 		details := network.GetEthDetails()
 		icon := "ethernet.png"
 		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath(icon), "-t", "5000", "Ethernet", details).Start()
-		return
 	}
-
-	// --battery - outputs battery icon + percentage for polybar
-	if len(os.Args) >= 2 && os.Args[1] == "--battery" {
+	commands["--battery"] = func() {
 		fmt.Print(battery.Get())
-		return
 	}
-
-	// --night-light-status - outputs night light icon for polybar
-	if len(os.Args) >= 2 && os.Args[1] == "--night-light-status" {
+	commands["--night-light-status"] = func() {
 		fmt.Print(nightlight.Get())
-		return
 	}
-
-	// --polybar-transmission - outputs transmission icon for polybar
-	if len(os.Args) >= 2 && os.Args[1] == "--polybar-transmission" {
+	commands["--polybar-transmission"] = func() {
 		if rofi.IsTransmissionRunning() {
 			fmt.Print("󰐻")
 		} else {
 			fmt.Print("󱧝")
 		}
-		return
 	}
-
-	// --polybar-proton-drive - outputs proton drive icon for polybar
-	if len(os.Args) >= 2 && os.Args[1] == "--polybar-proton-drive" {
+	commands["--polybar-proton-drive"] = func() {
 		if err := polybar.RunProtonDrive(); err != nil {
 			fmt.Fprintf(os.Stderr, "polybar proton-drive error: %v\n", err)
 		}
-		return
 	}
 
-	// --proton-drive-sync - sync Proton Drive (click action)
-	if len(os.Args) >= 2 && os.Args[1] == "--proton-drive-sync" {
+	// Dispatch Section 3 commands
+	if len(os.Args) >= 2 {
+		if fn, ok := commands[os.Args[1]]; ok {
+			fn()
+			return
+		}
+	}
+
+	commands["--proton-drive-sync"] = func() {
 		icon := getIconPath("proton-drive.png")
 		if polybar.IsProtonDriveConfigured() {
-			// Check sync state
 			state := polybar.CheckProtonDriveSyncState()
 			if state == "synced" {
 				exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Proton Drive", "Already Synced ✓").Run()
@@ -256,11 +232,8 @@ func main() {
 			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "5000", "-u", "critical", "Proton Drive", "Not configured").Run()
 			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "5000", "-u", "critical", "Setup Required", "See OpenRiot.org for setup info").Run()
 		}
-		return
 	}
-
-	// --proton-drive-init - populate bisync cache files
-	if len(os.Args) >= 2 && os.Args[1] == "--proton-drive-init" {
+	commands["--proton-drive-init"] = func() {
 		icon := getIconPath("proton-drive.png")
 		if polybar.IsProtonDriveConfigured() {
 			if err := polybar.InitProtonDriveCache(); err != nil {
@@ -272,11 +245,8 @@ func main() {
 		} else {
 			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "5000", "-u", "critical", "Proton Drive", "Not configured").Run()
 		}
-		return
 	}
-
-	// --transmission-toggle - toggle transmission daemon
-	if len(os.Args) >= 2 && os.Args[1] == "--transmission-toggle" {
+	commands["--transmission-toggle"] = func() {
 		var icon string
 		if rofi.IsTransmissionRunning() {
 			icon = getIconPath("transmission-off.png")
@@ -287,33 +257,38 @@ func main() {
 			exec.Command("sh", "-c", "mkdir -p ~/.local/share/transmission ~/.config/transmission && transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &").Run()
 			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Transmission", "Starting Transmission...").Run()
 		}
-		return
 	}
-
-	// --night-light - toggle night light
-	if len(os.Args) >= 2 && os.Args[1] == "--night-light" {
+	commands["--night-light"] = func() {
 		nightlight.Toggle()
-		return
+	}
+	commands["--window-title"] = func() {
+		fmt.Print(windowtitle.Get())
+	}
+	commands["--wireguard"] = func() {
+		if err := wireguard.Toggle(); err != nil {
+			fmt.Fprintf(os.Stderr, "WireGuard error: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
-	// --window-icon <class> - outputs icon for window class
-	if len(os.Args) >= 2 && os.Args[1] == "--window-icon" {
+	// Dispatch Section 4 commands
+	if len(os.Args) >= 2 {
+		if fn, ok := commands[os.Args[1]]; ok {
+			fn()
+			return
+		}
+	}
+
+	// --window-icon <class> - outputs icon for window class (requires arg)
+	commands["--window-icon"] = func() {
 		if len(os.Args) < 3 {
 			fmt.Fprintln(os.Stderr, "Usage: openriot --window-icon <class>")
 			os.Exit(1)
 		}
 		fmt.Print(windowicon.Get(os.Args[2]))
-		return
 	}
-
-	// --window-title - outputs focused window title for polybar
-	if len(os.Args) >= 2 && os.Args[1] == "--window-title" {
-		fmt.Print(windowtitle.Get())
-		return
-	}
-
-	// --workspace-switch N - switch to workspace N (no-op if already there)
-	if len(os.Args) >= 2 && os.Args[1] == "--workspace-switch" {
+	// --workspace-switch N - switch to workspace N (requires arg)
+	commands["--workspace-switch"] = func() {
 		if len(os.Args) < 3 {
 			fmt.Fprintln(os.Stderr, "Usage: openriot --workspace-switch <N>")
 			os.Exit(1)
@@ -324,34 +299,24 @@ func main() {
 			os.Exit(1)
 		}
 		workspace.Switch(target)
-		return
 	}
 
-	// --wireguard - toggle VPN
-	if len(os.Args) >= 2 && os.Args[1] == "--wireguard" {
-		if err := wireguard.Toggle(); err != nil {
-			fmt.Fprintf(os.Stderr, "WireGuard error: %v\n", err)
-			os.Exit(1)
+	// Dispatch commands with args
+	if len(os.Args) >= 2 {
+		if fn, ok := commands[os.Args[1]]; ok {
+			fn()
+			return
 		}
-		return
 	}
 
-	// All other CLI commands
-	if len(os.Args) >= 2 && os.Args[1] == "--volume" {
-		os.Exit(audio.Run(os.Args[2:]))
-	}
-	if len(os.Args) >= 2 && os.Args[1] == "--brightness" {
-		os.Exit(display.Run(os.Args[2:]))
-	}
-	if len(os.Args) >= 2 && os.Args[1] == "--lock" {
+	// Section 5: Volume, brightness, lock, power menu
+	commands["--lock"] = func() {
 		lock.Lock()
-		return
 	}
-	if len(os.Args) >= 2 && os.Args[1] == "--suspend" {
+	commands["--suspend"] = func() {
 		exec.Command("zzz").Run()
-		return
 	}
-	if len(os.Args) >= 2 && os.Args[1] == "--power-menu" {
+	commands["--power-menu"] = func() {
 		cmd := exec.Command("rofi", "-dmenu", "-p", "Power: ")
 		cmd.Stdin = strings.NewReader("Lock\nSuspend\nReboot\nShutdown\nLogout")
 		out, err := cmd.Output()
@@ -372,19 +337,122 @@ func main() {
 		case "Logout":
 			exec.Command("i3-msg", "exit").Run()
 		}
-		return
 	}
-	if len(os.Args) >= 2 && os.Args[1] == "--wallpaper-next" {
+	commands["--wallpaper-next"] = func() {
 		os.Exit(backgrounds.Next())
 	}
-	if len(os.Args) >= 2 && os.Args[1] == "--wallpaper-load" {
+	commands["--wallpaper-load"] = func() {
 		os.Exit(backgrounds.Load())
 	}
-	if len(os.Args) >= 2 && os.Args[1] == "--suspend-if-undocked" {
+	commands["--suspend-if-undocked"] = func() {
 		detect.SuspendIfUndocked()
-		return
 	}
-	// --notify "title" "body" [--urgency normal|critical|low] [--expires-in seconds] [--icon path]
+
+	// Dispatch Section 5 commands
+	if len(os.Args) >= 2 {
+		if fn, ok := commands[os.Args[1]]; ok {
+			fn()
+			return
+		}
+	}
+
+	// Commands with args (volume, brightness)
+	if len(os.Args) >= 2 && os.Args[1] == "--volume" {
+		os.Exit(audio.Run(os.Args[2:]))
+	}
+	if len(os.Args) >= 2 && os.Args[1] == "--brightness" {
+		os.Exit(display.Run(os.Args[2:]))
+	}
+
+	// Section 6: Notify, polybar metrics, crypto commands
+	commands["--notify-dismiss"] = func() {
+		id := 0
+		if len(os.Args) >= 3 {
+			fmt.Sscanf(os.Args[2], "%d", &id)
+		}
+		if err := notify.Dismiss(id); err != nil {
+			fmt.Fprintf(os.Stderr, "notify dismiss error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+	commands["--notify-clear"] = func() {
+		if err := notify.Clear(); err != nil {
+			fmt.Fprintf(os.Stderr, "notify clear error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+	commands["--notify-dunst"] = func() {
+		if err := notify.Status(); err != nil {
+			fmt.Fprintf(os.Stderr, "notify dunst error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+	commands["--notify-status"] = func() {
+		if err := notify.Status(); err != nil {
+			fmt.Fprintf(os.Stderr, "notify dunst error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+	commands["--polybar-metrics"] = func() {
+		if err := polybar.RunMetrics(); err != nil {
+			fmt.Fprintf(os.Stderr, "polybar metrics error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+	commands["--polybar-volume"] = func() {
+		if err := polybar.RunVolume(); err != nil {
+			fmt.Fprintf(os.Stderr, "polybar volume error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+	commands["--polybar-memory"] = func() {
+		ram := polybar.GetRAM()
+		ramPct := polybar.GetMemPercent()
+		fmt.Printf(" %s\nMemory: %s\n", ram, ramPct)
+		os.Exit(0)
+	}
+	commands["--cpu-notify"] = func() {
+		cpuPct := polybar.GetCPUPercent()
+		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath("cpu.png"), "-t", "1500", "CPU", cpuPct).Start()
+		os.Exit(0)
+	}
+	commands["--mem-notify"] = func() {
+		memDetails := polybar.GetMemDetails()
+		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath("memory.png"), "-t", "5000", "Memory", memDetails).Start()
+		os.Exit(0)
+	}
+	commands["--crypto-notify"] = func() {
+		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath("crypto.png"), "-t", "0", "-r", "1", "Crypto", "Loading...").Start()
+		time.Sleep(100 * time.Millisecond)
+		if err := crypto.RunCrypto("NOTIFY_SEND"); err != nil {
+			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
+		}
+	}
+	commands["--crypto-refresh"] = func() {
+		os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot-crypto.json"))
+		os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot-crypto-prev.json"))
+		if err := crypto.RunCrypto("ROWML"); err != nil {
+			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
+		}
+	}
+	// Commands with args: --notify, --crypto, --share-log, --make-icon
+
+	// Dispatch Section 6 commands
+	if len(os.Args) >= 2 {
+		if fn, ok := commands[os.Args[1]]; ok {
+			fn()
+			return
+		}
+	}
+
+	// Commands with args (keep as if-statements)
+	// --notify "title" "body" [--urgency...] [--expires-in...] [--icon...]
 	if len(os.Args) >= 2 && os.Args[1] == "--notify" {
 		title, body, urgency, iconPath := "", "", "normal", ""
 		expiresIn := 0
@@ -405,7 +473,6 @@ func main() {
 			fmt.Fprintln(os.Stderr, "Usage: openriot --notify \"title\" \"body\" [--urgency normal] [--expires-in seconds] [--icon path]")
 			os.Exit(1)
 		}
-		// Call notify-send to display notification
 		args := []string{"/usr/local/bin/notify-send"}
 		if iconPath != "" {
 			args = append(args, "-i", iconPath)
@@ -422,7 +489,6 @@ func main() {
 		}
 		cmd := exec.Command(args[0], args[1:]...)
 		cmd.Run()
-		// Also save to JSON for polybar module
 		var expiresAt int64
 		if expiresIn > 0 {
 			expiresAt = time.Now().Unix() + int64(expiresIn)
@@ -430,74 +496,7 @@ func main() {
 		notify.Add(title, body, urgency, expiresAt)
 		os.Exit(0)
 	}
-	// --notify-dismiss [id]
-	if len(os.Args) >= 2 && os.Args[1] == "--notify-dismiss" {
-		id := 0
-		if len(os.Args) >= 3 {
-			fmt.Sscanf(os.Args[2], "%d", &id)
-		}
-		if err := notify.Dismiss(id); err != nil {
-			fmt.Fprintf(os.Stderr, "notify dismiss error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-	// --notify-clear
-	if len(os.Args) >= 2 && os.Args[1] == "--notify-clear" {
-		if err := notify.Clear(); err != nil {
-			fmt.Fprintf(os.Stderr, "notify clear error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-	// --notify-dunst (alias: --notify-status)
-	if len(os.Args) >= 2 && (os.Args[1] == "--notify-dunst" || os.Args[1] == "--notify-status") {
-		if err := notify.Status(); err != nil {
-			fmt.Fprintf(os.Stderr, "notify dunst error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-	// --polybar-metrics outputs CPU and RAM for polybar
-	if len(os.Args) >= 2 && os.Args[1] == "--polybar-metrics" {
-		if err := polybar.RunMetrics(); err != nil {
-			fmt.Fprintf(os.Stderr, "polybar metrics error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-	// --polybar-volume outputs volume with icon for polybar
-	if len(os.Args) >= 2 && os.Args[1] == "--polybar-volume" {
-		if err := polybar.RunVolume(); err != nil {
-			fmt.Fprintf(os.Stderr, "polybar volume error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-
-	// --polybar-memory outputs memory icon for polybar
-	if len(os.Args) >= 2 && os.Args[1] == "--polybar-memory" {
-		ram := polybar.GetRAM()
-		ramPct := polybar.GetMemPercent()
-		fmt.Printf(" %s\nMemory: %s\n", ram, ramPct)
-		os.Exit(0)
-	}
-
-	// --cpu-notify shows CPU usage notification
-	if len(os.Args) >= 2 && os.Args[1] == "--cpu-notify" {
-		cpuPct := polybar.GetCPUPercent()
-		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath("cpu.png"), "-t", "1500", "CPU", cpuPct).Start()
-		os.Exit(0)
-	}
-
-	// --mem-notify shows memory usage notification
-	if len(os.Args) >= 2 && os.Args[1] == "--mem-notify" {
-		memDetails := polybar.GetMemDetails()
-		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath("memory.png"), "-t", "5000", "Memory", memDetails).Start()
-		os.Exit(0)
-	}
-
-	// Crypto price commands
+	// --crypto [BTC|ETH]
 	if len(os.Args) >= 2 && os.Args[1] == "--crypto" {
 		mode := "BTC"
 		if len(os.Args) >= 3 {
@@ -505,27 +504,11 @@ func main() {
 		}
 		if err := crypto.RunCrypto(mode); err != nil {
 			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
-		}
-		return
+		os.Exit(1)
 	}
-	if len(os.Args) >= 2 && os.Args[1] == "--crypto-notify" {
-		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath("crypto.png"), "-t", "0", "-r", "1", "Crypto", "Loading...").Start()
-		time.Sleep(100 * time.Millisecond)
-		if err := crypto.RunCrypto("NOTIFY_SEND"); err != nil {
-			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
-		}
-		return
-	}
-	if len(os.Args) >= 2 && os.Args[1] == "--crypto-refresh" {
-		// Clear cache and fetch fresh prices
-		os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot-crypto.json"))
-		os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot-crypto-prev.json"))
-		if err := crypto.RunCrypto("ROWML"); err != nil {
-			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
-		}
-		return
-	}
-	// --share-log [filename] - upload log to ix.io for sharing
+	os.Exit(0)
+}
+	// --share-log [filename]
 	if len(os.Args) >= 2 && os.Args[1] == "--share-log" {
 		filename := "setup.log"
 		if len(os.Args) >= 3 {
@@ -535,10 +518,9 @@ func main() {
 			fmt.Fprintf(os.Stderr, "share-log error: %v\n", err)
 			os.Exit(1)
 		}
-		return
+		os.Exit(0)
 	}
-
-	// --make-icon <name> <symbol> - generate icon PNG
+	// --make-icon <name> <symbol>
 	if len(os.Args) >= 2 && os.Args[1] == "--make-icon" {
 		if len(os.Args) < 4 {
 			fmt.Fprintf(os.Stderr, "Usage: openriot --make-icon <name> <symbol>\n")
@@ -551,7 +533,7 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Printf("Icon created: %s.png\n", name)
-		return
+		os.Exit(0)
 	}
 
 	// No command or unknown command

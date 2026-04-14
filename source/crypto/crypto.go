@@ -965,7 +965,7 @@ func outputNotifySend(items []CryptoItem) error {
 		lines = append(lines, fmt.Sprintf("%-5s %6s x $%12s %s %9s", item.Sym, fmt.Sprintf("%.2f", item.Held), formatNumberSimple(item.Price), arrow, pct))
 	}
 
-	lines = append(lines, "󰳽 Click to Close")
+	lines = append(lines, "\n󰳽 Click to Close")
 	body := strings.Join(lines, "\n")
 	exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "0", "-r", "1", "Crypto", body).Run()
 	return nil
