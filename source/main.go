@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -504,17 +503,17 @@ func main() {
 		}
 		if err := crypto.RunCrypto(mode); err != nil {
 			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
-		os.Exit(1)
+			os.Exit(1)
+		}
+		os.Exit(0)
 	}
-	os.Exit(0)
-}
 	// --share-log [filename]
 	if len(os.Args) >= 2 && os.Args[1] == "--share-log" {
 		filename := "setup.log"
 		if len(os.Args) >= 3 {
 			filename = os.Args[2]
 		}
-		if err := shareLog(filename); err != nil {
+		if err := installer.ShareLog(filename); err != nil {
 			fmt.Fprintf(os.Stderr, "share-log error: %v\n", err)
 			os.Exit(1)
 		}
@@ -528,7 +527,7 @@ func main() {
 		}
 		name := os.Args[2]
 		symbol := os.Args[3]
-		if err := makeIcon(name, symbol); err != nil {
+		if err := installer.MakeIcon(name, symbol); err != nil {
 			fmt.Fprintf(os.Stderr, "make-icon error: %v\n", err)
 			os.Exit(1)
 		}
@@ -560,51 +559,7 @@ func main() {
 	os.Exit(1)
 }
 
-// shareLog uploads a file to ix.io pastebin for easy sharing
-func shareLog(filename string) error {
-	homeDir, _ := os.UserHomeDir()
-	logPath := filepath.Join(homeDir, ".cache", "openriot", filename)
-	
-	data, err := os.ReadFile(logPath)
-	if err != nil {
-		return fmt.Errorf("reading log file: %w", err)
-	}
 
-	// Upload to catbox.moe
-	cmd := exec.Command("curl", "-s", "-F", "reqtype=fileupload", "-F", "fileToUpload=@-", "https://catbox.moe/user/api.php")
-	cmd.Stdin = bytes.NewReader(data)
-	output, err := cmd.Output()
-	if err != nil {
-		return fmt.Errorf("upload failed: %w", err)
-	}
-
-	url := strings.TrimSpace(string(output))
-	fmt.Println(url)
-	return nil
-}
-
-// makeIcon generates a PNG icon from a Nerd Font symbol
-func makeIcon(name, symbol string) error {
-	home := os.Getenv("HOME")
-	font := filepath.Join(home, ".local/share/fonts/FiraCode/FiraCodeNerdFont-Regular.ttf")
-	iconDir := filepath.Join(home, ".local/share/openriot/config/icons")
-
-	// Ensure icon directory exists
-	if err := os.MkdirAll(iconDir, 0755); err != nil {
-		return fmt.Errorf("creating icon dir: %w", err)
-	}
-
-	output := filepath.Join(iconDir, name+".png")
-	cmd := exec.Command("convert",
-		"-background", "none",
-		"-fill", "white",
-		"-font", font,
-		"-pointsize", "32",
-		"label:"+symbol,
-		"-resize", "48x48",
-		output)
-	return cmd.Run()
-}
 
 // runInstall handles the --install command (runs as USER, no TTY/PTY needed)
 func runInstall() {
