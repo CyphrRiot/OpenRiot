@@ -64,7 +64,7 @@ func formatTime(minutes int) string {
 }
 
 func Get() string {
-	percent, ac := getBatteryStatus()
+	percent, ac, _ := getFullStatus()
 	if percent == 255 {
 		return "󱉞" // No battery
 	}
@@ -77,34 +77,14 @@ func Get() string {
 }
 
 func getBatteryStatus() (int, int) {
-	percent := 0
-	ac := 0
-
-	cmd := exec.Command("apm", "-b")
-	if output, err := cmd.Output(); err == nil {
-		bStatus, _ := strconv.Atoi(strings.TrimSpace(string(output)))
-		if bStatus == 4 { // battery absent
-			return 255, 0 // signal absent battery
-		}
-	}
-
-	cmd = exec.Command("apm", "-l")
-	if output, err := cmd.Output(); err == nil {
-		percent, _ = strconv.Atoi(strings.TrimSpace(string(output)))
-	}
-
-	cmd = exec.Command("apm", "-a")
-	if output, err := cmd.Output(); err == nil {
-		ac, _ = strconv.Atoi(strings.TrimSpace(string(output)))
-	}
-
+	percent, ac, _ := getFullStatus()
 	return percent, ac
 }
 
 func getBatteryIcon(percent, ac int) string {
-	// Arrays indexed by (percent-1)/10 = 0-9
+	// Arrays indexed by (percent-1)/10 = 0-8
 	batteryIcons := []string{"󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂"}
-	chargingIcons := []string{"󰢜", "󰢜", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"}
+	chargingIcons := []string{"󰢜", "󰢜", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋"}
 
 	idx := (percent - 1) / 10
 	if idx < 0 {
