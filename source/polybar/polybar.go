@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -255,14 +257,30 @@ func isProtonDriveConfigured() bool {
 	return true
 }
 
+// getCurrentUsername returns the current system username
+func getCurrentUsername() string {
+	user, err := user.Current()
+	if err != nil {
+		return "unknown"
+	}
+	return user.Username
+}
+
 // checkProtonDriveSync returns "synced" or "needs-sync"
-// If cache files missing but configured, auto-init first
 func checkProtonDriveSync() string {
 	home := os.Getenv("HOME")
 	bisyncDir := home + "/.cache/rclone/bisync"
 
-	path1 := bisyncDir + "/home_grendel_ProtonSync..proton_ProtonSync.path1.lst"
-	path2 := bisyncDir + "/home_grendel_ProtonSync..proton_ProtonSync.path2.lst"
+	// Find cache files using glob (works regardless of naming)
+	matches1, _ := filepath.Glob(bisyncDir + "/*path1.lst")
+	matches2, _ := filepath.Glob(bisyncDir + "/*path2.lst")
+
+	if len(matches1) == 0 || len(matches2) == 0 {
+		return "needs-sync"
+	}
+
+	path1 := matches1[0]
+	path2 := matches2[0]
 
 	// If cache files missing but configured, auto-init
 	if !cacheFilesExist(path1, path2) && isProtonDriveConfigured() {
@@ -283,10 +301,65 @@ func checkProtonDriveSync() string {
 
 	lines1 := strings.Split(string(content1), "\n")
 	lines2 := strings.Split(string(content2), "\n")
+
 	if len(lines1) > 1 && len(lines2) > 1 && strings.Join(lines1[1:], "\n") == strings.Join(lines2[1:], "\n") {
+		// Check bidirectional: local→cache AND cache→local
+		localFiles := getLocalFileList(home + "/ProtonSync")
+		cachedFiles := extractFilenames(lines1[1:])
+		if !filesInCache(localFiles, cachedFiles) || !filesInCache(cachedFiles, localFiles) {
+			return "needs-sync"
+		}
 		return "synced"
 	}
-	return "needs-sync"
+  return "needs-sync"
+
+}
+
+// getLocalFileList returns list of files in directory
+func getLocalFileList(dir string) []string {
+	var files []string
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return files
+	}
+	for _, e := range entries {
+		if !e.IsDir() {
+			files = append(files, e.Name())
+		}
+	}
+	return files
+}
+
+// extractFilenames extracts filenames from cache file lines
+func extractFilenames(lines []string) []string {
+	var names []string
+	for _, line := range lines {
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		// Format: "-    18070 - - timestamp \"filename\""
+		start := strings.Index(line, "\"")
+		end := strings.LastIndex(line, "\"")
+		if start >= 0 && end > start {
+			name := line[start+1 : end]
+			names = append(names, name)
+		}
+	}
+	return names
+}
+
+// filesInCache returns true if all local files are in cache
+func filesInCache(local, cached []string) bool {
+	cacheMap := make(map[string]bool)
+	for _, c := range cached {
+		cacheMap[c] = true
+	}
+	for _, f := range local {
+		if !cacheMap[f] {
+			return false
+		}
+	}
+	return true
 }
 
 // CheckProtonDriveSyncState exports checkProtonDriveSync for main.go
@@ -313,8 +386,12 @@ func InitProtonDriveCache() error {
 }
 
 func getProtonDriveTooltip() string {
-	if isProtonDriveConfigured() {
-		return "Ready to sync"
+	if !isProtonDriveConfigured() {
+		return "Not configured"
 	}
-	return "Not configured"
+	state := checkProtonDriveSync()
+	if state == "synced" {
+		return "Synced"
+	}
+	return "Needs sync"
 }
