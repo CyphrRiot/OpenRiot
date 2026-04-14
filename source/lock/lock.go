@@ -1,32 +1,52 @@
 package lock
 
 import (
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 	"syscall"
 )
 
 func Lock() error {
 	home, _ := os.UserHomeDir()
 
-	// Find locked.jpg (installed or repo)
-	lockJpg := filepath.Join(home, ".local/share/openriot/assets/locked.jpg")
-	if _, err := os.Stat(lockJpg); os.IsNotExist(err) {
-		lockJpg = filepath.Join(home, "Code/OpenRiot/assets/locked.jpg")
+	// Find random lock image
+	lockDir := filepath.Join(home, ".local/share/openriot/Locked")
+
+	// Look for locked_*.jpg in Locked directory
+	matches, _ := filepath.Glob(filepath.Join(lockDir, "locked_*.jpg"))
+	if len(matches) == 0 {
+		// Fallback to old locked.jpg
+		lockJpg := filepath.Join(home, ".local/share/openriot/assets/locked.jpg")
+		if _, err := os.Stat(lockJpg); os.IsNotExist(err) {
+			lockJpg = filepath.Join(home, "Code/OpenRiot/assets/locked.jpg")
+		}
+		if _, err := os.Stat(lockJpg); err == nil {
+			matches = append(matches, lockJpg)
+		}
 	}
 
-	lockPng := "/tmp/openriot-lock.png"
+	if len(matches) > 0 {
+		// Randomly select one
+		rand.Seed(time.Now().UnixNano())
+		lockJpg := matches[rand.Intn(len(matches))]
 
-	if _, err := os.Stat(lockJpg); err == nil {
+		// Notify user
+		lockIcon := filepath.Join(home, ".local/share/openriot/config/icons/lock.png")
+		exec.Command("/usr/local/bin/notify-send", "-i", lockIcon, "-t", "1500", "Screen Lock", "Screen is locking...").Start()
+		time.Sleep(500 * time.Millisecond)
+
 		// Get screen resolution
 		res := getResolution()
 		if res == "" {
 			res = "1920x1080"
 		}
 
-		// Convert and resize
+		// Convert to /tmp with exact resolution (centers and fills)
+		lockPng := "/tmp/openriot-lock.png"
 		cmd := exec.Command("convert", lockJpg, "-resize", res+"^", "-gravity", "center", "-extent", res, lockPng)
 		cmd.Run()
 
@@ -36,7 +56,7 @@ func Lock() error {
 			cmd.Stdin = nil
 			cmd.Stdout = nil
 			cmd.Stderr = nil
-			cmd.Run() // Run (not Start) so we wait for screen unlock before cleanup
+			cmd.Run() // Wait for unlock before cleanup
 			os.Remove(lockPng)
 			return nil
 		}
