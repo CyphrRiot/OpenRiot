@@ -5,7 +5,7 @@ Terminal|alacritty|󰞷
 Firefox|firefox|󰈹
 Telegram|tdesktop.desktop|󰭹
 Helix|alacritty -e hx|
-Text Editor|gnome-text-editor|
+Text Editor|gnome-text-editor|󰷉
 File Manager|thunar|󰝰
 System Monitor|alacritty -e btop|󰍹
 Htop|alacritty -e htop|󰍹

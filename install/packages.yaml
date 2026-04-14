@@ -26,7 +26,7 @@ core:
 
             - alacritty-0.16.1
             - havoc-0.7.0
-            - fzf-0.70.0
+            - fzf-0.71.0
             - ripgrep-15.1.0
             - htop-3.4.1
             - btop-1.4.6
@@ -63,7 +63,7 @@ desktop:
             - polybar-3.7.2
             - rofi-1.7.9.1
             - scrot-1.12.1
-            - feh-3.11.3
+            - feh-3.12.1
             - picom-13
             - xclip-0.13p1
             - ImageMagick-6.9.13.43
@@ -132,8 +132,8 @@ desktop:
 
     apps:
         packages:
-            - firefox-149.0
-            - tdesktop-6.7.1
+            - firefox-149.0.2
+            - tdesktop-6.7.5
             - helix-25.07.1
             - lsd-1.1.5p2
             - thunar-4.20.8

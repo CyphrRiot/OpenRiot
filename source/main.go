@@ -275,15 +275,15 @@ func main() {
 		return
 	}
 
-	// --transmission-stop - stop transmission daemon
-	if len(os.Args) >= 2 && os.Args[1] == "--transmission-stop" {
+	// --transmission-toggle - toggle transmission daemon
+	if len(os.Args) >= 2 && os.Args[1] == "--transmission-toggle" {
 		var icon string
 		if rofi.IsTransmissionRunning() {
-			icon = getIconPath("transmission-on.png")
+			icon = getIconPath("transmission-off.png")
 			exec.Command("pkill", "-INT", "transmission-daemon").Run()
 			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Transmission", "Stopping Transmission...").Run()
 		} else {
-			icon = getIconPath("transmission-off.png")
+			icon = getIconPath("transmission-on.png")
 			exec.Command("sh", "-c", "mkdir -p ~/.local/share/transmission ~/.config/transmission && transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &").Run()
 			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Transmission", "Starting Transmission...").Run()
 		}

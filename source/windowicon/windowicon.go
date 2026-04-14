@@ -16,7 +16,7 @@ func Get(class string) string {
 	if icon, ok := mappings[class]; ok {
 		return icon
 	}
-	return ""
+	return ""
 }
 
 func loadMappings() {
