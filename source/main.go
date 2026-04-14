@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -22,6 +20,7 @@ import (
 	"openriot/notify"
 	"openriot/network"
 	"openriot/nightlight"
+	"openriot/paths"
 	"openriot/polybar"
 	"openriot/battery"
 	"openriot/rofi"
@@ -58,11 +57,6 @@ func logDebugCall() {
 	fmt.Fprintf(f, "%s %s\n", time.Now().Format("15:04:05.000"), strings.Join(os.Args[1:], " "))
 }
 
-// getIconPath returns absolute path to an icon file
-func getIconPath(filename string) string {
-	return filepath.Join(os.Getenv("HOME"), ".local/share/openriot/config/icons", filename)
-}
-
 func main() {
 	logDebugCall()
 
@@ -76,10 +70,10 @@ func main() {
 			runInstall()
 		},
 		"--source-builds": func() {
-			runSourceBuilds()
+			installer.RunSourceBuilds(testMode)
 		},
 		"--install-packages": func() {
-			runInstallPackages()
+			installer.RunInstallPackages()
 		},
 		"--packages": func() {
 			configPath := config.FindConfigFile()
@@ -98,18 +92,18 @@ func main() {
 			os.Exit(0)
 		},
 		"--check-packages": func() {
-			runCheckPackages()
+			installer.RunCheckPackages()
 		},
 		"--sync-packages": func() {
-			runSyncPackages()
+			installer.RunSyncPackages()
 		},
 		"--version-check": func() {
-			localVer := getLocalVersion()
-			remoteVer := getRemoteVersion()
+			localVer := update.GetLocalVersion()
+			remoteVer := update.GetRemoteVersion()
 			if localVer == "unknown" || remoteVer == "unknown" {
 				os.Exit(1)
 			}
-			if compareVersions(localVer, remoteVer) < 0 {
+			if update.CompareVersions(localVer, remoteVer) < 0 {
 				fmt.Printf("Update available: %s -> %s\n", localVer, remoteVer)
 				os.Exit(0)
 			}
@@ -182,15 +176,20 @@ func main() {
 		if !network.IsConnected() {
 			icon = "wifi-off.png"
 		}
-		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath(icon), "-t", "5000", "WiFi", details).Start()
+		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath(icon), "-t", "5000", "WiFi", details).Start()
 	}
 	commands["--eth-info"] = func() {
 		details := network.GetEthDetails()
 		icon := "ethernet.png"
-		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath(icon), "-t", "5000", "Ethernet", details).Start()
+		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath(icon), "-t", "5000", "Ethernet", details).Start()
 	}
 	commands["--battery"] = func() {
 		fmt.Print(battery.Get())
+	}
+	commands["--battery-notify"] = func() {
+		batteryDetails := battery.GetNotifyDetails()
+		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("battery.png"), "-t", "5000", "Battery", batteryDetails).Start()
+		os.Exit(0)
 	}
 	commands["--night-light-status"] = func() {
 		fmt.Print(nightlight.Get())
@@ -217,7 +216,7 @@ func main() {
 	}
 
 	commands["--proton-drive-sync"] = func() {
-		icon := getIconPath("proton-drive.png")
+		icon := paths.GetIconPath("proton-drive.png")
 		if polybar.IsProtonDriveConfigured() {
 			state := polybar.CheckProtonDriveSyncState()
 			if state == "synced" {
@@ -233,7 +232,7 @@ func main() {
 		}
 	}
 	commands["--proton-drive-init"] = func() {
-		icon := getIconPath("proton-drive.png")
+		icon := paths.GetIconPath("proton-drive.png")
 		if polybar.IsProtonDriveConfigured() {
 			if err := polybar.InitProtonDriveCache(); err != nil {
 				fmt.Fprintf(os.Stderr, "proton-drive init error: %v\n", err)
@@ -248,11 +247,11 @@ func main() {
 	commands["--transmission-toggle"] = func() {
 		var icon string
 		if rofi.IsTransmissionRunning() {
-			icon = getIconPath("transmission-off.png")
+			icon = paths.GetIconPath("transmission-off.png")
 			exec.Command("pkill", "-INT", "transmission-daemon").Run()
 			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Transmission", "Stopping Transmission...").Run()
 		} else {
-			icon = getIconPath("transmission-on.png")
+			icon = paths.GetIconPath("transmission-on.png")
 			exec.Command("sh", "-c", "mkdir -p ~/.local/share/transmission ~/.config/transmission && transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &").Run()
 			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Transmission", "Starting Transmission...").Run()
 		}
@@ -418,16 +417,16 @@ func main() {
 	}
 	commands["--cpu-notify"] = func() {
 		cpuPct := polybar.GetCPUPercent()
-		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath("cpu.png"), "-t", "1500", "CPU", cpuPct).Start()
+		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("cpu.png"), "-t", "1500", "CPU", cpuPct).Start()
 		os.Exit(0)
 	}
 	commands["--mem-notify"] = func() {
 		memDetails := polybar.GetMemDetails()
-		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath("memory.png"), "-t", "5000", "Memory", memDetails).Start()
+		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("memory.png"), "-t", "5000", "Memory", memDetails).Start()
 		os.Exit(0)
 	}
 	commands["--crypto-notify"] = func() {
-		exec.Command("/usr/local/bin/notify-send", "-i", getIconPath("crypto.png"), "-t", "0", "-r", "1", "Crypto", "Loading...").Start()
+		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("crypto.png"), "-t", "0", "-r", "1", "Crypto", "Loading...").Start()
 		time.Sleep(100 * time.Millisecond)
 		if err := crypto.RunCrypto("NOTIFY_SEND"); err != nil {
 			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
@@ -598,256 +597,4 @@ func runInstall() {
 	}
 
 	// Source builds handled above, setup.sh shows completion box
-}
-
-// runSourceBuilds runs only the source builds phase (used by setup.sh)
-func runSourceBuilds() {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Could not determine home directory: %v\n", err)
-		os.Exit(1)
-	}
-
-	repoDir := filepath.Join(homeDir, ".local", "share", "openriot")
-	configPath := filepath.Join(repoDir, "install", "packages.yaml")
-
-	cfg, err := config.LoadConfig(configPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Failed to load config: %v\n", err)
-		os.Exit(1)
-	}
-
-	if err := installer.SourceBuilds(cfg, testMode); err != nil {
-		fmt.Printf("[WARN] Source builds: %v\n", err)
-	}
-	fmt.Println("[INFO] Source builds complete!")
-}
-
-// runInstallPackages installs packages from packages.yaml (used by setup.sh)
-func runInstallPackages() {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Could not determine home directory: %v\n", err)
-		os.Exit(1)
-	}
-
-	repoDir := filepath.Join(homeDir, ".local", "share", "openriot")
-	configPath := filepath.Join(repoDir, "install", "packages.yaml")
-
-	cfg, err := config.LoadConfig(configPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Failed to load config: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("%s[INFO]%s Installing packages from packages.yaml (safe one-by-one mode)...\n", installer.Blue, installer.Reset)
-
-	packages := cfg.GetPackages()
-	if len(packages) == 0 {
-		fmt.Fprintf(os.Stderr, "%s[ERR!]%s No packages found in packages.yaml\n", installer.Red, installer.Reset)
-		os.Exit(1)
-	}
-
-	failed, _ := installer.InstallPackages(packages)
-	if failed > 0 {
-		os.Exit(1)
-	}
-}
-
-// runCheckPackages verifies packages.yaml versions against installed
-func runCheckPackages() {
-	// Use repo path (not installed path)
-	configPath := "install/packages.yaml"
-
-	cfg, err := config.LoadConfig(configPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Failed to load config: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Get installed packages from pkg_info -a
-	installed := getInstalledPackages()
-	if len(installed) == 0 {
-		fmt.Fprintf(os.Stderr, "[ERR!] No packages found from pkg_info\n")
-		os.Exit(1)
-	}
-
-	// Check each yaml package against installed
-	yamlPkgs := cfg.GetPackages()
-	mismatches := 0
-
-	for _, pkg := range yamlPkgs {
-		base := getBaseName(pkg)
-		installedVer, exists := installed[base]
-		if !exists {
-			fmt.Printf("[MISSING] %s (not installed)\n", pkg)
-			mismatches++
-		} else if installedVer != pkg {
-			fmt.Printf("[MISMATCH] %s -> %s\n", pkg, installedVer)
-			mismatches++
-		}
-	}
-
-	if mismatches > 0 {
-		fmt.Printf("\n[WARN] %d package version mismatches found\n", mismatches)
-		fmt.Printf("[INFO] Run 'openriot --sync-packages' to update packages.yaml\n")
-		os.Exit(1)
-	}
-
-	fmt.Println("[OK] All packages in sync")
-	os.Exit(0)
-}
-
-// runSyncPackages updates packages.yaml to latest installed versions
-func runSyncPackages() {
-	// Use repo path (not installed path)
-	configPath := "install/packages.yaml"
-
-	// Get installed packages
-	installed := getInstalledPackages()
-	if len(installed) == 0 {
-		fmt.Fprintf(os.Stderr, "[ERR!] No packages found from pkg_info\n")
-		os.Exit(1)
-	}
-
-	// Read yaml file as text to preserve formatting
-	data, err := os.ReadFile(configPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Failed to read config: %v\n", err)
-		os.Exit(1)
-	}
-
-	lines := strings.Split(string(data), "\n")
-	updated := 0
-
-	// Replace only matching package lines
-	for i, line := range lines {
-		// Find indentation (spaces before "- ")
-		indent := ""
-		for j, ch := range line {
-			if ch == ' ' {
-				indent += " "
-			} else if ch == '-' && j+1 < len(line) && line[j+1] == ' ' {
-				break
-			} else {
-				indent = ""
-				break
-			}
-		}
-		trimmed := strings.TrimSpace(line)
-		if !strings.HasPrefix(trimmed, "- ") {
-			continue
-		}
-		pkg := strings.TrimPrefix(trimmed, "- ")
-		base := getBaseName(pkg)
-		if installedVer, exists := installed[base]; exists && installedVer != pkg {
-			lines[i] = indent + "- " + installedVer
-			updated++
-		}
-	}
-
-	// Write back (preserves formatting)
-	if err := os.WriteFile(configPath, []byte(strings.Join(lines, "\n")), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Failed to save config: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("[OK] Updated %d packages in packages.yaml\n", updated)
-	os.Exit(0)
-}
-
-// getInstalledPackages returns map of base name -> full package version
-func getInstalledPackages() map[string]string {
-	cmd := exec.Command("pkg_info", "-a")
-	output, err := cmd.Output()
-	if err != nil {
-		return nil
-	}
-
-	packages := make(map[string]string)
-	lines := strings.Split(string(output), "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-		// Format: package-version description
-		fields := strings.Fields(line)
-		if len(fields) >= 1 {
-			pkg := fields[0]
-			// Extract base name from package-version
-			if idx := strings.LastIndex(pkg, "-"); idx > 0 {
-				base := pkg[:idx]
-				packages[base] = pkg
-			}
-		}
-	}
-	return packages
-}
-
-// getBaseName extracts base name from package (e.g., "fish-4.6.0" -> "fish")
-func getBaseName(pkg string) string {
-	if idx := strings.LastIndex(pkg, "-"); idx > 0 {
-		return pkg[:idx]
-	}
-	return pkg
-}
-
-
-// getLocalVersion reads the local VERSION file
-func getLocalVersion() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "unknown"
-	}
-	versionPath := filepath.Join(homeDir, ".local", "share", "openriot", "VERSION")
-	data, err := os.ReadFile(versionPath)
-	if err != nil {
-		return "unknown"
-	}
-	return strings.TrimSpace(string(data))
-}
-
-// getRemoteVersion fetches VERSION from openriot.org
-func getRemoteVersion() string {
-	resp, err := http.Get("https://openriot.org/VERSION")
-	if err != nil {
-		return "unknown"
-	}
-	defer resp.Body.Close()
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "unknown"
-	}
-	return strings.TrimSpace(string(data))
-}
-
-// compareVersions compares two semantic versions (a vs b)
-// Returns -1 if a < b, 0 if a == b, 1 if a > b
-func compareVersions(a, b string) int {
-	partsA := strings.Split(a, ".")
-	partsB := strings.Split(b, ".")
-
-	for i := 0; i < 3; i++ {
-		var vA, vB int
-		if i < len(partsA) {
-			vA, _ = strconv.Atoi(partsA[i])
-		}
-		if i < len(partsB) {
-			vB, _ = strconv.Atoi(partsB[i])
-		}
-		if vA < vB {
-			return -1
-		}
-		if vA > vB {
-			return 1
-		}
-	}
-	return 0
-}
-
-// getInstallDir returns the installation directory
-func getInstallDir() string {
-	homeDir, _ := os.UserHomeDir()
-	return filepath.Join(homeDir, ".local", "share", "openriot")
 }

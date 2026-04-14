@@ -236,7 +236,7 @@ system:
             - xz-5.8.3
             - zip-3.0p3
             - go-1.26.1
-            - rclone-1.73.3
+            - rclone-1.73.4
             # - chafa-1.16.2
             - age-1.3.1
             - wireguard-tools-1.0.20210914p3v0

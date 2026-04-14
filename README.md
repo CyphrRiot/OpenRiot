@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.19-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.20-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -46,7 +46,11 @@ Built on the same principles as [ArchRiot](https://ArchRiot.org) and by the same
 
 OpenRiot is under active development. It may not work as expected. Some features might be broken. Use at your own risk. Blah blah.
 
----
+**Hardware Diversity:** Every system is unique — different network cards, WiFi chipsets, video cards, storage controllers, and countless other components. We've done our best to handle every possible configuration, but it's simply impossible to be completely comprehensive.
+
+**Found an issue?** [Open an issue on GitHub](https://github.com/CyphrRiot/OpenRiot/issues) and we'll work through it together.
+
+**Repository:** [github.com/CyphrRiot/OpenRiot](https://github.com/CyphrRiot/OpenRiot)
 
 ### System Requirements
 
@@ -511,7 +515,7 @@ Polybar is your status bar. Click on modules for more:
 | Network         | Click for wifi-menu                 |
 | wireguard       | Toggle VPN connection               |
 | transmission    | Toggle Transmission daemon          |
-| Battery         | Shows charge percentage + time      |
+| Battery         | Click: battery notification        |
 | OpenRiot Update | Click to check for updates         |
 | Power           | Click for power menu               |
 | Lock            | Click to lock screen               |

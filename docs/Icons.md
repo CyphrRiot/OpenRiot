@@ -58,13 +58,15 @@ cp output.png ~/.local/share/openriot/config/icons/
 13. 󰈹 - firefox.png
 14. 󰤨 - wifi.png
 15. 󰤯 - wifi-off.png
-16. 󰦝 - crypto.png
-17. 󰹑 - workspace.png
-18. 󰚇 - no-upgrade.png
-19. 󰋻 - upgrade.png
-20. 󱥾 - proton-drive.png
-21. 󰐻 - transmission-on.png
-22. 󱧝 - transmission-off.png
+16. 󰤯 - ethernet.png
+17. 󰦝 - crypto.png
+18. 󰹑 - workspace.png
+19. 󰚇 - no-upgrade.png
+20. 󰋻 - upgrade.png
+21. 󱥾 - proton-drive.png
+22. 󱉞 - battery.png
+23. 󰐻 - transmission-on.png
+24. 󱧝 - transmission-off.png
 
 ## Status
 

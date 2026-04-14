@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // RunMetrics outputs CPU icon for polybar (memory is separate module)
@@ -60,31 +61,31 @@ func getCPUPercentInt() int {
 // GetRAM returns memory icon (for polybar)
 func GetRAM() string {
 	ram := getRAMPercentInt()
-	// 0-25%: 󱊔, 25-50%: 󱊗, 50-90%: 󱊖, 90%+: 󱊕
+	// 0-25%: 󰢿, 25-50%: 󰢼, 50-75%: 󰢽, 75-100%: 󰢾
 	switch {
-	case ram >= 90:
-		return "󱊕"
+	case ram >= 75:
+		return "󰢾"
 	case ram >= 50:
-		return "󱊖"
+		return "󰢽"
 	case ram >= 25:
-		return "󱊗"
+		return "󰢼"
 	default:
-		return "󱊔"
+		return "󰢿"
 	}
 }
 
 func getRAM() string {
 	ram := getRAMPercentInt()
-	// 0-25%: 󱊔, 25-50%: 󱊗, 50-90%: 󱊖, 90%+: 󱊕
+	// 0-25%: 󰢿, 25-50%: 󰢼, 50-75%: 󰢽, 75-100%: 󰢾
 	switch {
-	case ram >= 90:
-		return "󱊕"
+	case ram >= 75:
+		return "󰢾"
 	case ram >= 50:
-		return "󱊖"
+		return "󰢽"
 	case ram >= 25:
-		return "󱊗"
+		return "󰢼"
 	default:
-		return "󱊔"
+		return "󰢿"
 	}
 }
 
@@ -295,24 +296,75 @@ func checkProtonDriveSync() string {
 		return "needs-sync"
 	}
 
-	// Compare files (skip first line - timestamp differs each run)
+	// Check if any local file was modified after last bisync run
 	content1, _ := os.ReadFile(path1)
-	content2, _ := os.ReadFile(path2)
-
 	lines1 := strings.Split(string(content1), "\n")
-	lines2 := strings.Split(string(content2), "\n")
-
-	if len(lines1) > 1 && len(lines2) > 1 && strings.Join(lines1[1:], "\n") == strings.Join(lines2[1:], "\n") {
-		// Check bidirectional: local→cache AND cache→local
-		localFiles := getLocalFileList(home + "/ProtonSync")
-		cachedFiles := extractFilenames(lines1[1:])
-		if !filesInCache(localFiles, cachedFiles) || !filesInCache(cachedFiles, localFiles) {
+	localFiles := getLocalFileList(home + "/ProtonSync")
+	for _, name := range localFiles {
+		localPath := home + "/ProtonSync/" + name
+		localMtime := getFileMtime(localPath)
+		cachedMtime := getCachedMtime(name, lines1[1:])
+		if cachedMtime.IsZero() || localMtime.After(cachedMtime) {
 			return "needs-sync"
 		}
-		return "synced"
 	}
-  return "needs-sync"
 
+	// Also check bidirectional: cache→local (files deleted locally should trigger sync)
+	cachedFiles := extractFilenames(lines1[1:])
+	if !filesInCache(cachedFiles, localFiles) {
+		return "needs-sync"
+	}
+
+	return "synced"
+}
+
+// getDirMtime returns the modification time of a directory (newest file inside)
+func getDirMtime(dir string) time.Time {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return time.Time{}
+	}
+	var newest time.Time
+	for _, e := range entries {
+		info, err := e.Info()
+		if err != nil {
+			continue
+		}
+		if info.ModTime().After(newest) {
+			newest = info.ModTime()
+		}
+	}
+	return newest
+}
+
+// getFileMtime returns the modification time of a single file
+func getFileMtime(path string) time.Time {
+	info, err := os.Stat(path)
+	if err != nil {
+		return time.Time{}
+	}
+	return info.ModTime()
+}
+
+// getCachedMtime extracts the mtime for a file from bisync cache lines
+func getCachedMtime(filename string, lines []string) time.Time {
+	prefix := `"` + filename + `"`
+	for _, line := range lines {
+		if strings.Contains(line, prefix) {
+			// Format: "-    18169 - - 2026-04-14T01:41:11.186703920+0000 \"filename\""
+			// Find timestamp after " - - " delimiter, before the opening quote
+			idx := strings.Index(line, " - - ")
+			quoteIdx := strings.Index(line, `"`)
+			if idx > 0 && quoteIdx > 0 {
+				ts := strings.TrimSpace(line[idx+5 : quoteIdx])
+				t, err := time.Parse("2006-01-02T15:04:05.999999999-0700", ts)
+				if err == nil {
+					return t
+				}
+			}
+		}
+	}
+	return time.Time{}
 }
 
 // getLocalFileList returns list of files in directory
