@@ -49,7 +49,7 @@ core:
             - desc: "Adding fish to /etc/shells"
               cmd: "if ! grep -q '^/usr/local/bin/fish$' /etc/shells 2>/dev/null; then echo '/usr/local/bin/fish' | doas tee -a /etc/shells >/dev/null; fi"
             - desc: "Setting fish as default shell"
-              cmd: "doas chsh -s /usr/local/bin/fish"
+              cmd: "doas chsh -s /usr/local/bin/fish $(logname)"
             - desc: "Customizing login message"
               cmd: "doas tee /etc/motd < $HOME/.local/share/openriot/install/motd"
 
