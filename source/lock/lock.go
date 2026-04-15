@@ -13,6 +13,11 @@ import (
 func Lock() error {
 	home, _ := os.UserHomeDir()
 
+	// Check if i3lock is already running
+	if checkLockRunning() {
+		return nil // Already locked, skip
+	}
+
 	// Find random lock image
 	lockDir := filepath.Join(home, ".local/share/openriot/Locked")
 
@@ -90,4 +95,14 @@ func getResolution() string {
 		}
 	}
 	return ""
+}
+
+// checkLockRunning returns true if i3lock is already running
+func checkLockRunning() bool {
+	cmd := exec.Command("pgrep", "-x", "i3lock")
+	output, err := cmd.Output()
+	if err != nil {
+		return false
+	}
+	return len(strings.TrimSpace(string(output))) > 0
 }
