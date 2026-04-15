@@ -311,6 +311,18 @@ func main() {
 	commands["--lock"] = func() {
 		lock.Lock()
 	}
+	commands["--signal-launch"] = func() {
+		home, _ := os.UserHomeDir()
+		cmd := exec.Command("pgrep", "-f", "gurk")
+		output, _ := cmd.Output()
+		if len(strings.TrimSpace(string(output))) > 0 {
+			// Already running
+			exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("signal.png"), "-t", "2000", "Signal", "Signal already launched").Run()
+			return
+		}
+		// Launch Signal
+		exec.Command("alacritty", "--class", "gurk", "--title", "Signal", "-e", home+"/.local/share/openriot/config/bin/gurk").Start()
+	}
 	commands["--suspend"] = func() {
 		exec.Command("zzz").Run()
 	}
