@@ -28,14 +28,14 @@ include keybindings.conf
 # AUTOSTART
 # =============================================================================
 
-# Status bar
-exec --no-startup-id polybar main
+# Status bar - restarts on i3 reload
+exec_always --no-startup-id sh -c 'pkill polybar; polybar main'
 
 # Wallpaper
 exec --no-startup-id $HOME/.local/share/openriot/install/openriot --wallpaper-load
 
-# Compositor
-exec --no-startup-id picom --config $HOME/.local/share/openriot/config/picom.conf --backend glx
+# Compositor - watchdog for crash recovery
+exec --no-startup-id sh -c 'while true; do pgrep picom >/dev/null || picom --config $HOME/.local/share/openriot/config/picom.conf --backend glx; sleep 5; done'
 
 # Notifications
 exec --no-startup-id dunst

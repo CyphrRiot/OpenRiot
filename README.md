@@ -279,7 +279,7 @@ For the best OpenBSD + i3 experience:
 
 You will be installing OpenBSD 7.9 and then running a script that installs the full OpenRiot distribution, Window Management, applications, and everything else. It's a process, so be patient with the installation.
 
-> Typical time to install is about 15 minutes.
+> Typical time to install is about 15 minutes (or more, depending on connection).
 
 ### 1. Download
 
