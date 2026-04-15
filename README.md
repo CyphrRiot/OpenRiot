@@ -275,6 +275,8 @@ For the best OpenBSD + i3 experience:
 
 <a id="choose-your-openriot-experience"></a>
 
+<a id="installing-openriot"></a>
+
 ## 🚀 Installing OpenRiot
 
 You will be installing OpenBSD 7.9 and then running a script that installs the full OpenRiot distribution, Window Management, applications, and everything else. It's a process, so be patient with the installation.
@@ -348,31 +350,22 @@ doas dd if=install79.img of=/dev/rsdXc bs=1M status=progress
 swap    2G (or more)
 ```
 
-### 4. After install — run setup
-
-When OpenBSD boots for the first time:
-
-1. Log in as your user
-2. Type the following commands:
-```bash
-doas pkg_add -D snapshot curl
-curl -fsSL https://openriot.org/setup.sh | sh
-```
-
-### 5. Reboot
+### 4. Reboot
 
 ```bash
 reboot
 ```
 
-After reboot, log in and type `startx` to start the desktop.
+### 5. After reboot — configure doas and run setup
 
-**Configure doas (passwordless sudo for OpenBSD):**
+Log in as **root** first:
 
 ```bash
-doas vi /etc/doas.conf
+# Configure doas (passwordless sudo for OpenBSD)
+vi /etc/doas.conf
+
 # Or create with:
-doas tee /etc/doas.conf << 'EOF'
+tee /etc/doas.conf << 'EOF'
 # OpenRiot-style: your user + wheel group, no password
 permit nopass $USER
 permit nopass :wheel
@@ -382,6 +375,15 @@ permit nopass keepenv $USER
 permit nopass keepenv :wheel
 EOF
 ```
+
+Now log in as **your user** and run:
+
+```bash
+doas pkg_add -D snapshot curl
+curl -fsSL https://openriot.org/setup.sh | sh
+```
+
+The desktop will start automatically after setup completes. No need to run `startx`.
 
 ---
 
@@ -545,139 +547,6 @@ Optional: **lf** (terminal file manager) is installed as a backup. Press `?` in 
 ### Tutorial Video
 
 **Tutorial Video:** [How to Set Up and Configure LF (The Best Terminal File Manager)](https://www.youtube.com/watch?v=2oWqD3JCXuI) by Eric Murphy (~16 min)
-
-<a id="using-helix"></a>
-
-## 📝 Using Helix — The Default Editor
-
-OpenRiot ships with **Helix** as the default terminal editor instead of Neovim.
-
-Helix is a modern, fast, and highly polished modal text editor written in Rust. It was chosen for OpenRiot because it perfectly aligns with the project's core philosophy: **simplicity, correctness, excellent defaults, and minimal maintenance overhead**.
-
-### Why Helix Was Chosen Over Neovim
-
-- **Sane defaults out of the box** — Built-in LSP support, Tree-sitter syntax highlighting, multi-cursor editing, fuzzy finding, and diagnostics work immediately with zero configuration.
-- **Minimal configuration** — A single, readable `config.toml` file (usually under 100 lines) replaces hundreds of lines of Lua plugins and init scripts.
-- **Performance** — Extremely fast startup time and low memory usage, which feels especially good on OpenBSD.
-- **Simpler maintenance** — Much easier to include and keep consistent across OpenRiot installs and future OpenBSD releases.
-- **Modern editing model** — Selection-first workflow (select then act) is consistent and reduces cognitive load once learned.
-- **Better security & auditability** — Written in Rust with memory safety, aligning with OpenBSD's values.
-
-Helix gives you a powerful, modern editing experience while staying lightweight and "correct" — exactly what OpenRiot aims for.
-
-### Getting Started with Helix
-
-Launch Helix with:
-
-- `Super + O` — Open Helix (default keybinding in OpenRiot)
-- Or simply run `hx` in any terminal
-
-Helix starts in **Normal mode** by default. Here are the most important commands to get you productive quickly:
-
-#### Basic Movement & Modes
-
-| Key         | Action                                |
-| ----------- | ------------------------------------- |
-| `i`         | Enter **Insert mode** (type normally) |
-| `Escape`    | Return to **Normal mode**             |
-| `h j k l`   | Move left / down / up / right         |
-| `w / b / e` | Jump word forward / backward / to end |
-| `gg / G`    | Go to top / bottom of file            |
-| `0 / $`     | Go to start / end of line             |
-
-#### Editing
-
-| Key     | Action                              |
-| ------- | ----------------------------------- |
-| `x`     | Select current line                 |
-| `y`     | Yank (copy) selection               |
-| `p / P` | Paste after / before cursor         |
-| `d`     | Delete selection                    |
-| `c`     | Change (delete + enter Insert mode) |
-| `> / <` | Indent / unindent selection         |
-| `u / U` | Undo / Redo                         |
-
-#### Advanced & Useful
-
-| Key            | Action                                     |
-| -------------- | ------------------------------------------ |
-| `Space + f`    | Open file picker (fuzzy finder)            |
-| `Space + b`    | Switch between open buffers                |
-| `Space + s`    | Symbol picker (functions, variables, etc.) |
-| `/`            | Search forward                             |
-| `:`            | Command mode (`:w`, `:q`, `:wq`, etc.)     |
-| `gd`           | Go to definition (via LSP)                 |
-| `Ctrl+w v / s` | Split window vertically / horizontally     |
-
-### Vim to Helix Quick Reference
-
-If you know Vim/Neovim, here's how the same tasks work in Helix:
-
-| Task                       | Vim/Neovim                 | Helix Equivalent            | Notes / Nuances in Helix                                                                                                                                   |
-| -------------------------- | -------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Go to top of document      | `gg`                       | `gg`                        | Same as Vim. Also works with a count (e.g., `5gg` for line 5).                                                                                             |
-| Go to bottom of document   | `G`                        | `G`                        | `G` goes to bottom of document (OpenRiot remaps this).                                                                             |
-| Delete character           | `x`                        | `x`                        | Selects entire line in Helix. Use `dl` to delete line, or `d` after selection.                                                      |
-| Delete line                | `dd`                       | `dl`                       | Use `dl` (delete line under cursor).                                                                                               |
-| Go to end of line          | `$`                        | `gl`                        | `gl` = goto line end. Very common.                                                                                                                         |
-| Go to start of line        | `0` or `^`                 | `gh`                        | `gh` = goto home (start of line). Use `gs` if you want the first non-whitespace character (like Vim's `^`).                                                |
-| Copy line (yank line)      | `yy`                       | `yl`                        | `yl` yanks the current line.                                                                                                                               |
-| Paste line                 | `p` (below) or `P` (above) | `p` (after) or `P` (before) | Works similarly, but Helix pastes after/before the current selection (or cursor position). For a full line paste, the behavior is usually what you expect. |
-| Copy text (yank selection) | `y` (after selecting)      | `y`                         | Same letter, but you select first (e.g., `w` for word, `gl` for to end of line, or visual movements).                                                      |
-| Paste text                 | `p` or `P`                 | `p` or `P`                  | Same as above. Helix also supports system clipboard via `<space>p` / `<space>y` (or configure defaults).                                                   |
-
-### Helix on OpenBSD & OpenRiot
-
-Helix works **beautifully** on OpenBSD:
-
-- Excellent performance on ThinkPads and Framework laptops
-- Native OpenBSD packaging (`pkg_add helix`)
-- Full Tree-sitter and LSP support for Go, Rust, Python, Lua, YAML, TOML, and many other languages
-- No plugin manager headaches — everything just works
-- Plays perfectly with i3, Alacritty terminal, and fish shell
-
-**Pro tip:** Helix has one of the best default dark themes available. It looks right at home with OpenRiot's dark aesthetic.
-
-For the complete keymap and configuration options, visit the official documentation:  
-[https://docs.helix-editor.com/](https://docs.helix-editor.com/)
-
-_See the [helix-cheat-sheet](https://github.com/stevenhoy/helix-cheat-sheet) project for a visual keybinding reference._
-
-**Tutorial Video:** [Helix Editor Crash Course](https://www.youtube.com/watch?v=HcuDmSb-JBU)
-
-### AI Integration with OpenRouter
-
-OpenRiot bundles **Crush** for AI-assisted coding. Crush is a modern, lightweight, Go-based terminal AI coding agent with excellent OpenBSD support. It is built automatically during setup and installed to `/usr/local/bin/crush`.
-
-![Crush AI in action](assets/crush.png)
-
-#### Configure Crush
-
-Create `~/.config/crush/config.yaml`:
-
-```yaml
-provider: openrouter
-model: minimax/minimax-m2.7
-api_key: sk-or-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-```
-
-Replace `sk-or-XXXXXXXX...` with your actual OpenRouter API key from https://openrouter.ai/settings
-
-#### How to Use
-
-Run Crush in a terminal:
-
-```fish
-crush
-```
-
-For a Zed-like experience, run Helix and Crush side-by-side in Zellij:
-
-1. Start Zellij with a vertical split
-2. Left pane: `hx`
-3. Right pane: `crush`
-
-Select code in Helix (`y` to yank), paste into Crush, and ask questions.
 
 ### Password Management with Glyphriot
 
@@ -984,6 +853,139 @@ max_pairs = 6
 - Add coin: `{ sym = "SYM", coin = "coin-gecko-id", held = 0, entry = 0 }`
 - Show P/L: set `held > 0` AND `entry > 0`
 - Show totals: `show_totals = true`
+
+<a id="using-helix"></a>
+
+## 📝 Using Helix — The Default Editor
+
+OpenRiot ships with **Helix** as the default terminal editor instead of Neovim.
+
+Helix is a modern, fast, and highly polished modal text editor written in Rust. It was chosen for OpenRiot because it perfectly aligns with the project's core philosophy: **simplicity, correctness, excellent defaults, and minimal maintenance overhead**.
+
+### Why Helix Was Chosen Over Neovim
+
+- **Sane defaults out of the box** — Built-in LSP support, Tree-sitter syntax highlighting, multi-cursor editing, fuzzy finding, and diagnostics work immediately with zero configuration.
+- **Minimal configuration** — A single, readable `config.toml` file (usually under 100 lines) replaces hundreds of lines of Lua plugins and init scripts.
+- **Performance** — Extremely fast startup time and low memory usage, which feels especially good on OpenBSD.
+- **Simpler maintenance** — Much easier to include and keep consistent across OpenRiot installs and future OpenBSD releases.
+- **Modern editing model** — Selection-first workflow (select then act) is consistent and reduces cognitive load once learned.
+- **Better security & auditability** — Written in Rust with memory safety, aligning with OpenBSD's values.
+
+Helix gives you a powerful, modern editing experience while staying lightweight and "correct" — exactly what OpenRiot aims for.
+
+### Getting Started with Helix
+
+Launch Helix with:
+
+- `Super + O` — Open Helix (default keybinding in OpenRiot)
+- Or simply run `hx` in any terminal
+
+Helix starts in **Normal mode** by default. Here are the most important commands to get you productive quickly:
+
+#### Basic Movement & Modes
+
+| Key         | Action                                |
+| ----------- | ------------------------------------- |
+| `i`         | Enter **Insert mode** (type normally) |
+| `Escape`    | Return to **Normal mode**             |
+| `h j k l`   | Move left / down / up / right         |
+| `w / b / e` | Jump word forward / backward / to end |
+| `gg / G`    | Go to top / bottom of file            |
+| `0 / $`     | Go to start / end of line             |
+
+#### Editing
+
+| Key     | Action                              |
+| ------- | ----------------------------------- |
+| `x`     | Select current line                 |
+| `y`     | Yank (copy) selection               |
+| `p / P` | Paste after / before cursor         |
+| `d`     | Delete selection                    |
+| `c`     | Change (delete + enter Insert mode) |
+| `> / <` | Indent / unindent selection         |
+| `u / U` | Undo / Redo                         |
+
+#### Advanced & Useful
+
+| Key            | Action                                     |
+| -------------- | ------------------------------------------ |
+| `Space + f`    | Open file picker (fuzzy finder)            |
+| `Space + b`    | Switch between open buffers                |
+| `Space + s`    | Symbol picker (functions, variables, etc.) |
+| `/`            | Search forward                             |
+| `:`            | Command mode (`:w`, `:q`, `:wq`, etc.)     |
+| `gd`           | Go to definition (via LSP)                 |
+| `Ctrl+w v / s` | Split window vertically / horizontally     |
+
+### Vim to Helix Quick Reference
+
+If you know Vim/Neovim, here's how the same tasks work in Helix:
+
+| Task                       | Vim/Neovim                 | Helix Equivalent            | Notes / Nuances in Helix                                                                                                                                   |
+| -------------------------- | -------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Go to top of document      | `gg`                       | `gg`                        | Same as Vim. Also works with a count (e.g., `5gg` for line 5).                                                                                             |
+| Go to bottom of document   | `G`                        | `G`                        | `G` goes to bottom of document (OpenRiot remaps this).                                                                             |
+| Delete character           | `x`                        | `x`                        | Selects entire line in Helix. Use `dl` to delete line, or `d` after selection.                                                      |
+| Delete line                | `dd`                       | `dl`                       | Use `dl` (delete line under cursor).                                                                                               |
+| Go to end of line          | `$`                        | `gl`                        | `gl` = goto line end. Very common.                                                                                                                         |
+| Go to start of line        | `0` or `^`                 | `gh`                        | `gh` = goto home (start of line). Use `gs` if you want the first non-whitespace character (like Vim's `^`).                                                |
+| Copy line (yank line)      | `yy`                       | `yl`                        | `yl` yanks the current line.                                                                                                                               |
+| Paste line                 | `p` (below) or `P` (above) | `p` (after) or `P` (before) | Works similarly, but Helix pastes after/before the current selection (or cursor position). For a full line paste, the behavior is usually what you expect. |
+| Copy text (yank selection) | `y` (after selecting)      | `y`                         | Same letter, but you select first (e.g., `w` for word, `gl` for to end of line, or visual movements).                                                      |
+| Paste text                 | `p` or `P`                 | `p` or `P`                  | Same as above. Helix also supports system clipboard via `<space>p` / `<space>y` (or configure defaults).                                                   |
+
+### Helix on OpenBSD & OpenRiot
+
+Helix works **beautifully** on OpenBSD:
+
+- Excellent performance on ThinkPads and Framework laptops
+- Native OpenBSD packaging (`pkg_add helix`)
+- Full Tree-sitter and LSP support for Go, Rust, Python, Lua, YAML, TOML, and many other languages
+- No plugin manager headaches — everything just works
+- Plays perfectly with i3, Alacritty terminal, and fish shell
+
+**Pro tip:** Helix has one of the best default dark themes available. It looks right at home with OpenRiot's dark aesthetic.
+
+For the complete keymap and configuration options, visit the official documentation:  
+[https://docs.helix-editor.com/](https://docs.helix-editor.com/)
+
+_See the [helix-cheat-sheet](https://github.com/stevenhoy/helix-cheat-sheet) project for a visual keybinding reference._
+
+**Tutorial Video:** [Helix Editor Crash Course](https://www.youtube.com/watch?v=HcuDmSb-JBU)
+
+### AI Integration with OpenRouter
+
+OpenRiot bundles **Crush** for AI-assisted coding. Crush is a modern, lightweight, Go-based terminal AI coding agent with excellent OpenBSD support. It is built automatically during setup and installed to `/usr/local/bin/crush`.
+
+![Crush AI in action](assets/crush.png)
+
+#### Configure Crush
+
+Create `~/.config/crush/config.yaml`:
+
+```yaml
+provider: openrouter
+model: minimax/minimax-m2.7
+api_key: sk-or-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+Replace `sk-or-XXXXXXXX...` with your actual OpenRouter API key from https://openrouter.ai/settings
+
+#### How to Use
+
+Run Crush in a terminal:
+
+```fish
+crush
+```
+
+For a Zed-like experience, run Helix and Crush side-by-side in Zellij:
+
+1. Start Zellij with a vertical split
+2. Left pane: `hx`
+3. Right pane: `crush`
+
+Select code in Helix (`y` to yank), paste into Crush, and ask questions.
 
 ### 🔒 WireGuard VPN
 
