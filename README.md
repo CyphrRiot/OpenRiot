@@ -313,38 +313,6 @@ dd if=install79.img of=/dev/sdX bs=4M status=progress oflag=sync
 
 > ⚠️ Replace `/dev/sdX` with your actual USB device (check with `lsblk` or `dmesg` after inserting).
 
-#### Option C: Ventoy (Best for Testing Multiple ISOs)
-
-Ventoy lets you boot multiple ISOs from one USB drive — no flashing needed, just copy files.
-
-**1. Download Ventoy:**
-
-[Get Ventoy](https://www.ventoy.org)
-
-If on Arch Linux:
-
-```bash
-yay -S ventoy
-```
-
-**2. Create Ventoy USB:**
-```bash
-sudo ventoy
-```
-
-**3. Copy OpenBSD ISO:**
-```bash
-# Just copy the file to the Ventoy partition
-cp install79.img /path/to/ventoy-usb/
-```
-
-**4. Boot:**
-- Select your USB in BIOS boot menu
-- Ventoy shows a menu with available ISOs
-- Select the OpenBSD/OpenRiot ISO
-
-> Ventoy is especially useful if you plan to test multiple BSD/Linux distributions or reinstall frequently.
-
 ### 3. Boot and install OpenBSD
 
 1. Disable Secure Boot, set USB first in boot order
