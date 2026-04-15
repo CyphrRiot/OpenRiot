@@ -36,7 +36,6 @@ func Lock() error {
 
 	if len(matches) > 0 {
 		// Randomly select one
-		rand.Seed(time.Now().UnixNano())
 		lockJpg := matches[rand.Intn(len(matches))]
 
 		// Notify user

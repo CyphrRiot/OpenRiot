@@ -299,19 +299,20 @@ Download: [install79.img](https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/in
 
 ### 2. Create bootable USB
 
-> ⚠️ **Choose your file type:**
+> ⚠️ **Choose your file type and platform:**
 
-**For ISO:**
-```bash
-dd if=install79.iso of=/dev/sdX bs=4M status=progress oflag=sync
-```
-
-**For IMG (recommended):**
+**For Linux:**
 ```bash
 dd if=install79.img of=/dev/sdX bs=4M status=progress oflag=sync
 ```
+(Replace `/dev/sdX` with your actual USB device)
 
-> ⚠️ Replace `/dev/sdX` with your actual USB device (check with `lsblk` or `dmesg` after inserting).
+**For OpenBSD:**
+```bash
+doas dd if=install79.img of=/dev/rsdXc bs=1M status=progress
+```
+(Use raw disk device `/dev/rsdXc`, find with `dmesg | grep ^sd`)
+
 
 ### 3. Boot and install OpenBSD
 
@@ -354,7 +355,7 @@ When OpenBSD boots for the first time:
 1. Log in as your user
 2. Type the following commands:
 ```bash
-doas pkg_add curl
+doas pkg_add -D snapshot curl
 curl -fsSL https://openriot.org/setup.sh | sh
 ```
 
@@ -365,6 +366,22 @@ reboot
 ```
 
 After reboot, log in and type `startx` to start the desktop.
+
+**Configure doas (passwordless sudo for OpenBSD):**
+
+```bash
+doas vi /etc/doas.conf
+# Or create with:
+doas tee /etc/doas.conf << 'EOF'
+# OpenRiot-style: your user + wheel group, no password
+permit nopass $USER
+permit nopass :wheel
+
+# Optional: keep your environment (PATH, etc.)
+permit nopass keepenv $USER
+permit nopass keepenv :wheel
+EOF
+```
 
 ---
 

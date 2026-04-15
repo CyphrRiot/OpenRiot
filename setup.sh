@@ -181,7 +181,7 @@ install_bootstrap_packages() {
         info "git already installed"
     else
         info "Installing git..."
-        doas pkg_add git
+        doas pkg_add -D snapshot git
     fi
     git config --global pull.rebase true
     git config --global init.defaultBranch master
