@@ -284,6 +284,14 @@ func main() {
 		}
 		fmt.Print(windowicon.Get(os.Args[2]))
 	}
+
+	// --all-window-icons - outputs all window class→icon mappings (one i3-msg call)
+	commands["--all-window-icons"] = func() {
+		windows := windowicon.GetAllWindowIcons()
+		for class, icon := range windows {
+			fmt.Printf("%s=%s\n", class, icon)
+		}
+	}
 	// --workspace-switch N - switch to workspace N (requires arg)
 	commands["--workspace-switch"] = func() {
 		if len(os.Args) < 3 {

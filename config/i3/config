@@ -37,10 +37,7 @@ exec --no-startup-id $HOME/.local/share/openriot/install/openriot --wallpaper-lo
 # Compositor - watchdog for crash recovery
 exec --no-startup-id sh -c 'while true; do pgrep picom >/dev/null || picom --config $HOME/.local/share/openriot/config/picom.conf --backend glx; sleep 5; done'
 
-# Notifications
-exec --no-startup-id dunst
-
-# Dunst watchdog - restart if it dies
+# Notifications - watchdog starts dunst on first notification
 exec --no-startup-id sh -c 'while true; do pgrep dunst >/dev/null || nohup /usr/local/bin/dunst >/dev/null 2>&1; sleep 5; done'
 
 # Clipboard manager

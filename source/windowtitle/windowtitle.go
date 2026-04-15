@@ -2,10 +2,12 @@ package windowtitle
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
+	"strconv"
 )
 
-const maxTitleLen = 50
+const maxTitleLen = 42
 
 func Get() string {
 	cmd := exec.Command("i3-msg", "-t", "get_tree")
@@ -61,9 +63,9 @@ func findFocusedTitleInNodes(nodes []i3Node) string {
 
 func formatTitle(title string) string {
 	if len(title) > maxTitleLen {
-		return " " + title[:maxTitleLen-3] + "..."
+		return fmt.Sprintf("%-"+strconv.Itoa(maxTitleLen)+"s", title[:maxTitleLen-3]+"...")
 	}
-	return " " + title
+	return fmt.Sprintf("%-"+strconv.Itoa(maxTitleLen)+"s", title)
 }
 
 type i3Tree struct {

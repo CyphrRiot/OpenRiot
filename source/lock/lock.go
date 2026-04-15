@@ -43,7 +43,7 @@ func Lock() error {
 
 		// Notify user
 		lockIcon := filepath.Join(home, ".local/share/openriot/config/icons/lock.png")
-		exec.Command("/usr/local/bin/notify-send", "-i", lockIcon, "-t", "1500", "Screen Lock", "Screen is locking...").Start()
+		exec.Command("/usr/local/bin/notify-send", "-i", lockIcon, "-t", "2500", "Screen Lock", "Screen is locking...").Start()
 		time.Sleep(500 * time.Millisecond)
 
 		// Get screen resolution

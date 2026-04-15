@@ -1,7 +1,9 @@
 package windowicon
 
 import (
+	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -17,6 +19,68 @@ func Get(class string) string {
 		return icon
 	}
 	return ""
+}
+
+// GetAllMappings returns all window class→icon mappings
+func GetAllMappings() map[string]string {
+	loadMappings()
+	return mappings
+}
+
+// GetAllWindowIcons calls i3-msg once, returns map of class→icon for all windows
+func GetAllWindowIcons() map[string]string {
+	icons := GetAllMappings()
+	result := make(map[string]string)
+
+	cmd := exec.Command("i3-msg", "-t", "get_tree")
+	output, err := cmd.Output()
+	if err != nil {
+		return result
+	}
+
+	var tree i3Tree
+	if err := json.Unmarshal(output, &tree); err != nil {
+		return result
+	}
+
+	classes := make(map[string]bool)
+	collectWindowClasses(tree.Nodes, classes)
+	collectWindowClasses(tree.FloatingNodes, classes)
+
+	for class := range classes {
+		icon := ""
+		if v, ok := icons[strings.ToLower(class)]; ok {
+			icon = v
+		}
+		result[class] = icon
+	}
+	return result
+}
+
+func collectWindowClasses(nodes []i3Node, classes map[string]bool) {
+	for _, n := range nodes {
+		if n.Window != 0 && n.WindowProperties.Class != "" {
+			classes[n.WindowProperties.Class] = true
+		}
+		collectWindowClasses(n.Nodes, classes)
+		collectWindowClasses(n.FloatingNodes, classes)
+	}
+}
+
+type i3Tree struct {
+	Nodes         []i3Node `json:"nodes"`
+	FloatingNodes []i3Node `json:"floating_nodes"`
+}
+
+type i3Node struct {
+	Window          int          `json:"window"`
+	WindowProperties windowProps `json:"window_properties"`
+	Nodes           []i3Node     `json:"nodes"`
+	FloatingNodes   []i3Node     `json:"floating_nodes"`
+}
+
+type windowProps struct {
+	Class string `json:"class"`
 }
 
 func loadMappings() {

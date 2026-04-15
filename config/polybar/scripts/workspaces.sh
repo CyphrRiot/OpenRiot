@@ -3,6 +3,19 @@
 # Format: ● 󰊠 󰈹
 # Usage: workspaces.sh [workspace_num]
 
+# Cache icons - call openriot ONCE to get all window→icon mappings
+ICON_CACHE=""
+update_icon_cache() {
+    ICON_CACHE="$(~/.local/share/openriot/install/openriot --all-window-icons 2>/dev/null)"
+}
+
+# Look up icon from cache (no binary spawn)
+map_icon() {
+    class="$1"
+    # grep for "ClassName=Icon" and extract icon
+    echo "$ICON_CACHE" | grep "^${class}=" | cut -d= -f2
+}
+
 # Get window classes for a workspace
 get_window_classes() {
     ws_num="$1"
@@ -36,12 +49,6 @@ for n in data.get('nodes', []) + data.get('floating_nodes', []):
     for cls in find_windows(n, $ws_num):
         print(cls)
 " 2>/dev/null
-}
-
-# Map window class to icon
-map_icon() {
-    class="$1"
-    ~/.local/share/openriot/install/openriot --window-icon "$class" 2>/dev/null
 }
 
 # Get workspace state
@@ -84,6 +91,8 @@ output_workspace() {
     # Get icons for all windows in this workspace
     icons=""
     for cls in $(get_window_classes "$ws_num"); do
+        # Skip polybar itself
+        [ "$cls" = "Polybar" ] && continue
         icon=$(map_icon "$cls")
         if [ -n "$icon" ]; then
             if [ -n "$icons" ]; then
@@ -125,6 +134,8 @@ output_workspace() {
 }
 
 # Main
+update_icon_cache
+
 if [ -n "$1" ]; then
     # Single workspace requested
     output_workspace "$1"
