@@ -223,12 +223,13 @@ func main() {
 				exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Proton Drive", "Already Synced ✓").Run()
 			} else {
 				exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Proton Drive", "Syncing...").Run()
-				cmd := `echo "Proton Drive is now syncing... be patient..."; rclone bisync ~/ProtonSync proton:ProtonSync --resync --progress; pkill -HUP polybar; printf "\nDone. Press Enter to close..."; read -r ans`
-				exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
+				go func() {
+					cmd := `echo "Proton Drive is now syncing... be patient..."; rclone bisync ~/ProtonSync proton:ProtonSync --resync --progress; printf "\nDone. Press Enter to close..."; read -r ans`
+					exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
+				}()
 			}
 		} else {
-			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "5000", "-u", "critical", "Proton Drive", "Not configured").Run()
-			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "5000", "-u", "critical", "Setup Required", "See OpenRiot.org for setup info").Run()
+			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "5000", "-u", "critical", "Proton Drive", "Not configured\nSee OpenRiot.org for setup info").Run()
 		}
 	}
 	commands["--proton-drive-init"] = func() {

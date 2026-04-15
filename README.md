@@ -1249,13 +1249,30 @@ A pure-Rust Signal messenger TUI — zero Java, zero GTK/libsecret. Built for Op
 | Deselect message | `ESC` |
 | Mouse support | Click Edit field or Channel (not messages) |
 
-### Emoji
+### Reactions
 
-Use GitHub-style shortcodes (`:` + name + `:`) or type the emoji directly:
+React to messages by selecting them (PgUp/PgDn), typing an emoji shortcode, then pressing Tab:
 
-```
-:thumbsup:  :heart:  :+1:  :rocket:  :fire:  :skull:  :tada:  :clap:  :muscle:  :100:
-```
+| Shortcode | Emoji | Meaning |
+|-----------|-------|---------|
+| `:thumbsup:` or `:+1:` | 👍 | Like / Agree |
+| `:heart:` | ❤️ | Love |
+| `:laughing:` or `:joy:` | 😂 | Funny |
+| `:fire:` | 🔥 | Awesome |
+| `:rocket:` | 🚀 | Great idea |
+| `:eyes:` | 👀 | Watching |
+| `:clap:` | 👏 | Well done |
+| `:100:` | 💯 | Perfect |
+| `:ok_hand:` | 👌 | OK |
+| `:thinking:` | 🤔 | Thinking |
+| `:sparkles:` | ✨ | New feature |
+| `:bug:` | 🐛 | Bug |
+| `:wrench:` | 🔧 | Fix |
+| `:memo:` | 📝 | Docs |
+| `:white_check_mark:` | ✅ | Done |
+| `:construction:` | 🚧 | WIP |
+| `:tada:` | 🎉 | Celebration |
+| `:heavy_check_mark:` | ✔️ | Verified |
 
 Or just paste Unicode emoji with `ctrl+Shift+V`.
 
