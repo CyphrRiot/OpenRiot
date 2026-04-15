@@ -1,12 +1,12 @@
 <div align="center">
 
-<img src="OpenRiot.png" alt="OpenRiot" width="200"/>
+<img src="OpenRiot.jpg" alt="OpenRiot" width="200"/>
 
 # :: 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥 ::
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.23-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.24-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -318,14 +318,18 @@ dd if=install79.img of=/dev/sdX bs=4M status=progress oflag=sync
 Ventoy lets you boot multiple ISOs from one USB drive — no flashing needed, just copy files.
 
 **1. Download Ventoy:**
+
+[Get Ventoy](https://www.ventoy.org)
+
+If on Arch Linux:
+
 ```bash
-# Get Ventoy from https://www.ventoy.org
-# Or use the USB installer .img (same method as above)
+yay -S ventoy
 ```
 
 **2. Create Ventoy USB:**
 ```bash
-dd if=ventoy-X.Y.Z.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo ventoy
 ```
 
 **3. Copy OpenBSD ISO:**
@@ -414,7 +418,7 @@ cat ~/.cache/openriot/install.log
 
 ## ⌨️ Master Your OpenRiot Desktop
 
-_This section is being actively documented. For now, the essential bindings are documented in [📝 Using Helix](#using-helix). A full OpenRiot keybindings reference is coming._
+_We use Helix instead of `vi` or `vim`. The essential bindings are documented in [📝 Using Helix](#using-helix). A full OpenRiot keybindings reference is coming._
 
 ### Essential Keybindings
 
@@ -435,13 +439,13 @@ _This section is being actively documented. For now, the essential bindings are 
 | `Super + Shift + E`          | Exit i3                          |
 | `Super + F`                  | File Manager (Thunar)            |
 | `Super + B`                  | Browser (Firefox)                |
-| `Super + O`                  | Open Helix (editor)             |
+| `Super + O`                  | Gnome Text Editor                |
 | `Super + C`                  | Open Crush AI                    |
 | `Super + T`                  | Open system monitor (btop)      |
 | `Super + G`                  | Telegram                         |
+| `Super + S`                  | Signal (gurk CLI)                |
 | `Super + M`                  | Google Messages                  |
 | `Super + X`                  | X (Twitter)                      |
-| `Super + K`                  | Google Keep                      |
 | `Super + W`                  | Next wallpaper                   |
 | `Super + Shift + S`          | Screenshot (region)              |
 | `Super + Shift + V`          | Clipboard manager                 |
@@ -501,31 +505,31 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 
 ![OpenRiot Terminal](assets/terminal.png)
 
-### Polybar Modules
+### Top Menu (Polybar)
 
 Polybar is your status bar. Click on modules for more:
 
-| Module          | Click Action                        |
-| --------------- | ---------------------------------- |
-| Launcher        | Opens app launcher                  |
-| Workspaces 1-4  | Click to switch workspace           |
-| Window Title    | Shows focused window name           |
-| Date            | Click: next wallpaper              |
-| night-light     | Toggle night light (redshift)       |
-| weather         | Shows current temp + conditions (OpenWeatherMap) |
-| crypto          | Shows crypto prices                 |
-| CPU             | Shows CPU usage                     |
-| memory          | Shows memory usage                  |
-| Volume          | Click to toggle mute, scroll adjust |
-| Network         | Click for wifi-menu                 |
-| wireguard       | Toggle VPN connection               |
-| transmission    | Toggle Transmission daemon          |
-| Battery         | Click: battery notification        |
-| OpenRiot Update | Click to check for updates         |
-| Power           | Click for power menu               |
-| Lock            | Click to lock screen               |
+| Module | Click Action |
+| ------ | ------------- |
+| 󰜡 Launcher | Opens app launcher |
+| 󰎤󰎧󰎪󰎭 Workspaces 1-4 | Click to switch workspace |
+| Window Title | Shows focused window name |
+| 󰃭 Date | Click: next wallpaper |
+| 󰌵 night-light | Toggle night light (redshift) |
+| weather | Shows current temp + conditions (OpenWeatherMap) |
+| 󰦝 crypto | Shows crypto prices |
+| 󰢝 CPU | Shows CPU usage |
+| 󰌅 memory | Shows memory usage |
+| 󰕾 Volume | Click to toggle mute, scroll adjust |
+| 󰤨 Network | Click for wifi-menu |
+| 󰅛 wireguard | Toggle VPN connection |
+| 󰐻 transmission | Toggle Transmission daemon |
+| 󱉞 Battery | Click: battery notification |
+| 󰋻 OpenRiot Update | Click to check for updates |
+| 󰐘 Power | Click for power menu |
+| 󰍁 Lock | Click to lock screen |
 
-**Workspace Bar:** Shows all 4 workspaces with indicators and app icons. Example:
+**Workspace Bar:** Shows all 4 workspaces with indicators and app icons.
 
 ```
 ● 󰞷 󰈹   ○   ◉ 󰝰   ○
@@ -547,39 +551,11 @@ Fish comes pre-configured with useful aliases:
 | `vi`  | `hx`      | Open Helix editor              |
 | `vim` | `hx`      | Open Helix editor              |
 
-### lf File Manager Shortcuts
+### File Manager
 
-| Key       | Action                           |
-| --------- | -------------------------------- |
-| `j/k`     | Navigate down/up                 |
-| `h/l`     | Go back / Open file or directory |
-| `gh`      | Go to home `~`                   |
-| `g/`      | Go to root `/`                   |
-| `gg`      | Go to top of listing             |
-| `G`       | Go to bottom of listing          |
-| `a.`      | Toggle hidden files              |
-| `o`       | Open file with default handler   |
-| `<enter>` | Open file (same as `o`)          |
-| `E`       | Edit file in `$EDITOR` (Helix)   |
-| `yy`      | Copy (yank) file path            |
-| `yd`      | Copy directory path to clipboard |
-| `y.`      | Copy filename to clipboard       |
-| `dd`      | Cut / trash file                 |
-| `p`       | Paste                            |
-| `nf`      | New directory                    |
-| `n.`      | New file                         |
-| `r`       | Rename (inline edit)             |
-| `bc`      | Bulk rename selected files       |
-| `za`      | Create archive from selection    |
-| `zx`      | Extract archive                  |
-| `gs`      | Show git status                  |
-| `ai`      | Sort by size                     |
-| `at`      | Sort by size + time              |
-| `an`      | Sort by name                     |
-| `q`       | Quit                             |
-| `Q`       | Quit all lf instances            |
+OpenRiot uses **Thunar** (xfce file manager) as the primary file manager.
 
-**Note:** Press `?` in lf for full help. File previews shown inline (text via bat, images require optional chafa: `doas pkg_add chafa`).
+Optional: **lf** (terminal file manager) is installed as a backup. Press `?` in lf for full help.
 
 ### Tutorial Video
 
@@ -847,21 +823,17 @@ pkg_info -m
 
 ### Updating the System
 
-OpenBSD doesn't use `apt update` or `pacman -Syu`. To update:
-
-1. Download and boot the **new** OpenBSD ISO
-2. Run `Upgrade` instead of `Install`
-3. Your `/home` partition is preserved
-4. All packages are refreshed from the new ISO
-
-For packages between releases:
+OpenBSD doesn't use `apt update` or `pacman -Syu`. Use `pkg_add -u` to update packages:
 
 ```bash
+# Update all packages
+doas pkg_add -u
+
 # Install a new package
-pkg_add <package-name>
+doas pkg_add <package-name>
 
 # Remove a package
-pkg_delete <package-name>
+doas pkg_delete <package-name>
 ```
 
 ### Updating OpenRiot
@@ -876,7 +848,7 @@ OpenRiot upgrades are handled automatically. When a new version is released, Pol
 | **Version available** | Pulls latest from git, re-runs package install, re-deploys configs |
 | **Same version**      | Re-deploys configs only (preserves existing settings)              |
 
-#### Upgrade Paths
+#### 󰋻 Upgrade Paths
 
 **Automatic (Polybar):**
 
@@ -925,7 +897,7 @@ Keybindings are in `~/.config/i3/keybindings.conf`.
 
 Edit this file to customize. After saving, press `Super + Shift + R` to reload i3.
 
-### Polybar Modules
+### Top Menu (Polybar)
 
 Polybar modules are in `~/.config/polybar/config`.
 
@@ -933,24 +905,24 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 
 | Module | Icons | Click Action | Scroll |
 |--------|-------|-------------|--------|
-| **launcher** |  | Open app launcher (Rofi) | - |
-| **workspaces** | 1-4 | Switch to workspace | - |
+| **launcher** | 󰜡 | Open app launcher (Rofi) | - |
+| **workspaces** | 󰎤󰎧󰎪󰎭 | Switch to workspace | - |
 | **window-title** | text | - | - |
-| **date** | text | Next wallpaper | - |
-| **volume** |  muted, 󰕿 low, 󰖀 med, 󰕾 high | Toggle mute | Volume adjust |
-| **network** | 󰤯 disconnected, signal bars | WiFi info | - |
-| **battery** | 󰂄 charging, 󰂂-󰁺 discharge levels | - | - |
-| **crypto** |  | Show crypto prices | - |
-| **night-light** | /󰌵 | Toggle redshift | - |
-| **cpu** | 󰡳/󰡵/󰊚/󰡴 (0-25/50/90%+) | CPU notification | - |
-| **memory** | 󱊔/󱊗/󱊖/󱊕 (0-25/50/90%+) | Memory notification | - |
-| **wireguard** | 󰛳/󰅛/󰱓 | Toggle VPN | - |
-| **openriot-update** | 󰋻 update, 󰚇 up to date | Check for updates | - |
+| **date** | 󰃭 | Next wallpaper | - |
+| **volume** | 󰕾/󰕿 | Toggle mute | Volume adjust |
+| **network** | 󰤨/󰤯 | WiFi info | - |
+| **battery** | 󱉞 | - | - |
+| **crypto** | 󰦝 | Show crypto prices | - |
+| **night-light** | 󰃫/󰌵 | Toggle redshift | - |
+| **cpu** | 󰢝 | CPU notification | - |
+| **memory** | 󰌅 | Memory notification | - |
+| **wireguard** | 󰅛 | Toggle VPN | - |
+| **openriot-update** | 󰋻/󰚇 | Check for updates | - |
 | **weather** | Based on condition code | - | - |
-| **proton-drive** | 󰴋 | Sync Proton Drive | - |
-| **transmission** | 󰐻 active, 󱧝 stopped | Toggle daemon | - |
-| **power** | ⏻ | Open power menu | - |
-| **lock** | 󰌾 | Lock screen | - |
+| **proton-drive** | 󱥾 | Sync Proton Drive | - |
+| **transmission** | 󰐻/󱧝 | Toggle daemon | - |
+| **power** | 󰐘 | Open power menu | - |
+| **lock** | 󰍁 | Lock screen | - |
 
 ### 🌤 Weather Module (Polybar)
 
@@ -1287,23 +1259,6 @@ Use GitHub-style shortcodes (`:` + name + `:`) or type the emoji directly:
 
 Or just paste Unicode emoji with `ctrl+Shift+V`.
 
-### Build / Update
-
-```bash
-cd ~/Code/OpenRiot && ./scripts/gurk.sh
-```
-
-The script applies the OpenBSD SIGSEGV fix patch (notify-rust calls `/proc/self/exe` which doesn't exist on OpenBSD), caches the source at `~/src/gurk-rs`, and installs to `~/.local/bin/gurk`.
-
-### Reset and Re-link
-
-```bash
-rm -rf ~/.config/gurk ~/.local/share/gurk ~/.cache/gurk
-~/.local/bin/gurk --relink
-```
-
-Then scan the QR code again from your phone.
-
 ## 🔧 Troubleshooting
 
 ### Upload Logs for Support
@@ -1352,21 +1307,21 @@ doas vi /etc/myname
 
     OpenRiot uses **ifconfig** for WiFi management on OpenBSD.
 
-    Click the **network icon in Polybar** or run `ifconfig iwn0 up` + `fw_update` to set up WiFi.
+    Click the **network icon in Polybar** or run `ifconfig iwm0 up` + `fw_update` to set up WiFi.
 
     ```bash
     # Connect manually via hostname.if(5):
-    doas vi /etc/hostname.iwn0
+    doas vi /etc/hostname.iwm0
     # Add: nwid "YourNetworkName" wpakey "YourPassword" dhcp
     # Add: inet autoconf
     # Add: mode 11g
-    # Then: doas sh /etc/netstart iwn0
+    # Then: doas sh /etc/netstart iwm0
     ```
 
 4. **After connecting:**
     ```bash
     # Verify connection
-    ifconfig iwn0
+    ifconfig iwm0
     ping -c 3 cdn.openbsd.org
     ```
 

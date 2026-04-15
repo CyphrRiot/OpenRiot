@@ -321,7 +321,37 @@ func main() {
 			return
 		}
 		// Launch Signal
+		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("signal.png"), "-t", "2000", "Signal", "Starting Signal...").Run()
 		exec.Command("alacritty", "--class", "gurk", "--title", "Signal", "-e", home+"/.local/share/openriot/config/bin/gurk").Start()
+	}
+	commands["--browser"] = func() {
+		cmd := exec.Command("pgrep", "-f", "firefox")
+		output, _ := cmd.Output()
+		if len(strings.TrimSpace(string(output))) > 0 {
+			exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("firefox.png"), "-t", "2000", "Firefox", "Already running").Run()
+			return
+		}
+		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("firefox.png"), "-t", "2000", "Firefox", "Starting Browser...").Run()
+		exec.Command("firefox", os.Args[2:]...).Start()
+	}
+	commands["--proton"] = func() {
+		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("proton-mail.png"), "-t", "2000", "Proton Mail", "Opening...").Run()
+		exec.Command("firefox", "https://mail.proton.me/u/11/inbox").Start()
+	}
+	commands["--twitter"] = func() {
+		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("twitter.png"), "-t", "2000", "X (Twitter)", "Opening...").Run()
+		exec.Command("firefox", "https://x.com/").Start()
+	}
+	commands["--crush"] = func() {
+		home, _ := os.UserHomeDir()
+		cmd := exec.Command("pgrep", "-f", "crush")
+		output, _ := cmd.Output()
+		if len(strings.TrimSpace(string(output))) > 0 {
+			exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("crush.png"), "-t", "2000", "Crush AI", "Already running").Run()
+			return
+		}
+		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("crush.png"), "-t", "2000", "Crush AI", "Starting Crush...").Run()
+		exec.Command("alacritty", "--class", "crush", "--title", "Crush AI", "-e", home+"/.local/bin/crush").Start()
 	}
 	commands["--suspend"] = func() {
 		exec.Command("zzz").Run()
@@ -339,11 +369,11 @@ func main() {
 			lock.Lock()
 		case "Suspend":
 			lock.Lock()
-			exec.Command("zzz").Run()
+			exec.Command("doas", "zzz").Run()
 		case "Reboot":
-			exec.Command("shutdown", "-r", "now").Run()
+			exec.Command("doas", "shutdown", "-r", "now").Run()
 		case "Shutdown":
-			exec.Command("shutdown", "-p", "now").Run()
+			exec.Command("doas", "shutdown", "-p", "now").Run()
 		case "Logout":
 			exec.Command("i3-msg", "exit").Run()
 		}

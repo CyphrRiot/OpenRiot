@@ -15,7 +15,7 @@ set -e
 GURK_REPO="https://github.com/boxdot/gurk-rs"
 GURK_COMMIT="02d3c45702142febdbbbaa4afea3f38222dd9db8"
 PATCH_FILE="$(dirname "$0")/gurk-patch.diff"
-INSTALL_DIR="${HOME}/.local"
+INSTALL_DIR="${HOME}/.local/share/openriot/config"
 SOURCE_DIR="${HOME}/src/gurk-rs"
 
 # Step 1: Clone or update gurk-rs
@@ -48,7 +48,7 @@ fi
 # Step 3: Build with PKG_CONFIG=echo (OpenBSD workaround)
 echo "Building gurk..."
 PKG_CONFIG=echo \
-  cargo install gurk \
+  cargo install gurk --force \
     --locked \
     --path "$SOURCE_DIR" \
     --root "$INSTALL_DIR"

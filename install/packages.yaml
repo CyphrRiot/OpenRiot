@@ -262,32 +262,3 @@ system:
         depends: [core.base]
         start: "Configuring system services"
         end: "System services configured"
-
-# NOT NEEDED FOR OPENBSD (kept for reference)
-# These OpenRiot packages have no OpenBSD equivalent:
-#
-# secure-boot: OpenBSD has its own boot security
-# hyprland: replaced by i3
-# hyprlock: replaced by i3lock
-# hypridle: not needed on X11
-# hyprshot: replaced by scrot
-# wofi: replaced by rofi (X11 app launcher)
-# kitty: replaced by foot (Wayland native)
-# ghostty: not in OpenBSD packages
-# paru/yay: replaced by pkg_add
-# brightnessctl: no equivalent on OpenBSD
-# networkmanager: replaced by ifconfig/hostname.if
-# systemd: OpenBSD uses rc.d
-# starship: not used (custom fish_prompt used instead)
-# NVIDIA drivers: poor support, use Intel iGPU
-# bolt/Logitech stuff: no Bluetooth on OpenBSD
-# brave/chrome: use firefox
-# signal-desktop: not in OpenBSD packages
-# telegram-desktop: not in OpenBSD packages
-# kanshi: not in OpenBSD packages (display config done differently)
-
-# iwx-firmware: firmware is in OpenBSD base system
-# urtwn-firmware: firmware is in OpenBSD base system
-# doas: part of OpenBSD base system
-# less: part of OpenBSD base system
-# waybar: replaced by polybar (X11 status bar)

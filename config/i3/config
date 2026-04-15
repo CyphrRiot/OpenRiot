@@ -3,8 +3,8 @@
 set $mod Mod4
 set $terminal alacritty
 set $fileManager thunar
-set $browser $HOME/.local/share/openriot/config/bin/firefox-wrapper.sh
-set $editor hx
+set $browser $HOME/.local/share/openriot/install/openriot --browser
+set $editor gnome-text-editor
 set $menu $HOME/.local/share/openriot/install/openriot --rofi
 
 font pango:FiraCode Nerd Font 11
