@@ -31,8 +31,8 @@ func InstallPackages(packages []string) (int, error) {
 	for _, pkg := range toInstall {
 		fmt.Printf("%s[INFO]%s Installing %s...\n", Blue, Reset, pkg)
 
-		// Use doas for root privileges, -D unsigned to allow unsigned packages
-		cmd := exec.Command("doas", "pkg_add", "-D", "unsigned", pkg)
+		// Use doas for root privileges, -D snapshot to use snapshots
+		cmd := exec.Command("doas", "pkg_add", "-D", "snapshot", pkg)
 		output, err := cmd.CombinedOutput()
 
 		if err != nil {

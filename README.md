@@ -854,7 +854,7 @@ The script automatically detects:
 - Older version → upgrade (git pull + re-run)
 - Same version → config refresh only
 
-All package installation uses `pkg_add -D unsigned` — fresh packages matching the current OpenBSD release are always fetched from the CDN.
+All package installation uses `pkg_add -D snapshot` — fresh packages from OpenBSD snapshots are always fetched from the CDN.
 
 <a id="advanced-usage"></a>
 
@@ -1233,6 +1233,27 @@ A pure-Rust Signal messenger TUI — zero Java, zero GTK/libsecret. Built for Op
 | Open help | `f1` |
 | Deselect message | `ESC` |
 | Mouse support | Click Edit field or Channel (not messages) |
+
+### Configuration
+
+Create or edit `~/.config/gurk/gurk.toml` to customize:
+
+**Enable message editing** (add right above `[keybindings]`):
+```toml
+[keybindings.message_selected]
+e = "edit_message"          # press 'e' after selecting a message
+```
+
+**Popular settings:**
+```toml
+[keybindings.normal]
+ctrl-n = "select_channel next"   # Next channel
+ctrl-p = "select_channel previous" # Previous channel
+
+[keybindings.message_selected]
+r = "react"                  # React to selected message
+c = "copy_message"           # Copy selected message
+```
 
 ### Reactions
 
