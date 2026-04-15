@@ -90,7 +90,8 @@ func getWifiInterface() (string, bool) {
 		if strings.Contains(line, "ieee80211") && current != "ieee80211" {
 			isWifi = true
 		}
-		if isWifi && strings.Contains(line, "join") {
+		// Connected if: join (WPA) or inet (DHCP/static IP assigned)
+		if isWifi && (strings.Contains(line, "join") || strings.Contains(line, "inet ")) {
 			return current, true
 		}
 	}
@@ -118,7 +119,9 @@ func getEthInterface() (string, bool) {
 			hasCarrier = true
 		}
 		if isEth && current != "" && current != "lo0" && current != "ieee80211" {
+			// Connected if: status active OR inet (IP assigned)
 			if strings.Contains(line, "media:") || strings.Contains(line, "status:") || strings.Contains(line, "inet ") {
+				hasCarrier = hasCarrier || strings.Contains(line, "inet ")
 				return current, hasCarrier
 			}
 		}
