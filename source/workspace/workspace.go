@@ -44,6 +44,7 @@ func Switch(target int) {
 
 	// Notify
 	home, _ := os.UserHomeDir()
-	iconPath := filepath.Join(home, ".local/share/openriot/config/icons/workspace.png")
+	iconName := fmt.Sprintf("workspace%d.png", target)
+	iconPath := filepath.Join(home, ".local/share/openriot/config/icons", iconName)
 	exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "1500", "Workspace", fmt.Sprintf("Switched to workspace %d", target)).Start()
 }

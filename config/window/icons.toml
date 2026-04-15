@@ -2,14 +2,14 @@
 # Maps window class names (lowercase) to Nerd Font icons
 
 [terminals]
-alacritty = "󰞷"
+alacritty = ""
 kitty = "󰄛"
 ghostty = "󰊠"
 wezterm = "󰞷"
-konsole = ""
+konsole = ""
 gnome-terminal = "󰒏"
 xfce4-terminal = "󰒏"
-xterm = ""
+xterm = ""
 
 [browsers]
 firefox = "󰈹"
@@ -51,6 +51,7 @@ discord = ""
 vesktop = ""
 slack = "󰔟"
 signal = "󰍡"
+gurk = "󰰢"
 zoom = "󰕧"
 teams = "󰊹"
 thunderbird = "󰊫"

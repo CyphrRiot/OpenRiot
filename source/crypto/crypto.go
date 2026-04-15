@@ -928,10 +928,28 @@ func outputNotify(items []CryptoItem) error {
 	return nil
 }
 
+// getCryptoIcon returns the Nerd Font icon for a given crypto symbol
+func getCryptoIcon(sym string) string {
+	switch sym {
+	case "BTC":
+		return ""
+	case "XMR":
+		return ""
+	case "ZEC":
+		return "󰰷"
+	case "LTC":
+		return "󰩡"
+	case "USD":
+		return ""
+	default:
+		return "󰦝"
+	}
+}
+
 // outputNotifySend sends crypto prices as a dunst notification
 func outputNotifySend(items []CryptoItem) error {
 	home, _ := os.UserHomeDir()
-	iconPath := filepath.Join(home, ".local/share/openriot/config/icons/crypto.png")
+	iconPath := filepath.Join(home, ".local/share/openriot/config/icons/chart.png")
 
 	// Sort items - preserve config order, move USD to end
 	sort.Slice(items, func(i, j int) bool {
@@ -962,7 +980,7 @@ func outputNotifySend(items []CryptoItem) error {
 			glPct := ((item.Price - item.Entry) / item.Entry) * 100
 			pct = fmt.Sprintf("%.2f%%", glPct)
 		}
-		lines = append(lines, fmt.Sprintf("%-5s %6s x $%12s %s %9s", item.Sym, fmt.Sprintf("%.2f", item.Held), formatNumberSimple(item.Price), arrow, pct))
+		lines = append(lines, fmt.Sprintf("%s %-5s %6s x $%10s %s %7s", getCryptoIcon(item.Sym), item.Sym, fmt.Sprintf("%.2f", item.Held), formatNumberSimple(item.Price), arrow, pct))
 	}
 
 	lines = append(lines, "\n󰳽 Click to Close")

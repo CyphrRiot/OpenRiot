@@ -416,8 +416,8 @@ func main() {
 		os.Exit(0)
 	}
 	commands["--cpu-notify"] = func() {
-		cpuPct := polybar.GetCPUPercent()
-		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("cpu.png"), "-t", "1500", "CPU", cpuPct).Start()
+		cpuDetails := polybar.GetCPUDetails()
+		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("cpu.png"), "-t", "5000", "CPU", cpuDetails).Start()
 		os.Exit(0)
 	}
 	commands["--mem-notify"] = func() {
@@ -426,7 +426,7 @@ func main() {
 		os.Exit(0)
 	}
 	commands["--crypto-notify"] = func() {
-		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("crypto.png"), "-t", "0", "-r", "1", "Crypto", "Loading...").Start()
+		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("chart.png"), "-t", "0", "-r", "1", "Crypto", "Loading...").Start()
 		time.Sleep(100 * time.Millisecond)
 		if err := crypto.RunCrypto("NOTIFY_SEND"); err != nil {
 			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)

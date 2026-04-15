@@ -1,0 +1,32 @@
+diff --git a/src/app/message.rs b/src/app/message.rs
+index 8c41284..0974ed0 100644
+--- a/src/app/message.rs
++++ b/src/app/message.rs
+@@ -720,23 +720,10 @@ impl App {
+         attachments
+     }
+ 
+-    fn notify(&self, summary: &str, text: &str) {
+-        if self.config.notifications.enabled
+-            && let Err(e) = notify_rust::Notification::new()
+-                .summary(if self.config.notifications.show_message_chat {
+-                    summary
+-                } else {
+-                    "gurk"
+-                })
+-                .body(if self.config.notifications.show_message_text {
+-                    text
+-                } else {
+-                    "New message!"
+-                })
+-                .show()
+-        {
+-            error!("failed to send notification: {}", e);
+-        }
++    fn notify(&self, _summary: &str, _text: &str) {
++        // notify-rust disabled on OpenBSD (SIGSEGV on /proc/self/exe)
++        // Desktop notifications are not available on OpenBSD.
++        let _ = (_summary, _text);
+     }
+ 
+     fn bell(&self) {

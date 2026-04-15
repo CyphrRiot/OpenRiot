@@ -98,6 +98,22 @@ func GetCPUPercent() string {
 	return getCPUPercent() + "%"
 }
 
+// GetCPUDetails returns detailed CPU info for notifications
+// Format: "CPU in Use: XX%\nProcessors: N\nModel: ..."
+func GetCPUDetails() string {
+	cpuPct := getCPUPercent()
+
+	// Get number of CPUs
+	ncpuOut, _ := exec.Command("/sbin/sysctl", "-n", "hw.ncpu").Output()
+	ncpu := strings.TrimSpace(string(ncpuOut))
+
+	// Get CPU model
+	modelOut, _ := exec.Command("/sbin/sysctl", "-n", "hw.model").Output()
+	model := strings.TrimSpace(string(modelOut))
+
+	return fmt.Sprintf("CPU in Use: %s%%\nProcessors: %s\nModel: %s", cpuPct, ncpu, model)
+}
+
 // GetMemPercent returns memory usage as "XX%" string (for notifications)
 func GetMemPercent() string {
 	return getRAMPercent() + "%"

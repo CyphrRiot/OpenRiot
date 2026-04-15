@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.21-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.22-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -31,6 +31,10 @@ OpenRiot is the answer to every time you've thought "Why can't an OpenBSD instal
 - **🎨 Aesthetics** — Carefully crafted dark themes that work at any hour
 - **💻 Development** — Helix, shell enhancements, crush, and other upgrades
 - **💎 OpenBSD** — The most security-audited OS on the planet
+
+---
+
+![OpenRiot Desktop](assets/screenshot.png)
 
 #### Built on OpenBSD.
 
@@ -64,6 +68,8 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 #### Xenocara's Hardening (OpenBSD's Custom X11 Server)
 
+     "Why it was acceptable to move from Wayland and Sway to a fcking X11 desktop when everyone knows X11 is complete shit."
+
 Xenocara is not vanilla X.Org. It is OpenBSD's integrated, heavily patched build of the X server with these security features:
 
 - **Privilege separation**: The server runs with minimal privileges; input and rendering are isolated.
@@ -75,7 +81,6 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ---
 
-![OpenRiot Desktop](assets/screenshot.png)
 
 ## 📚 Navigate This Guide
 
@@ -1238,6 +1243,66 @@ If both systems edit the same file, rclone creates a conflict file (`.sync_orig`
 - rclone never sees your actual file contents
 - Keep `rclone.conf` permissions at 600
 - Run rclone as your normal user, never root
+
+## 📨 Signal with Gurk
+
+A pure-Rust Signal messenger TUI — zero Java, zero GTK/libsecret. Built for OpenBSD.
+
+### First Run
+
+1. Launch from the app launcher (SUPER+D) or run `~/.local/bin/gurk`
+2. On first launch it will prompt for a passphrase — **select "Store it in config"**, not "prompt" (prompt mode causes issues)
+3. Open Signal on your phone → Linked Devices → add a new linked device → scan the QR code
+4. Wait 2–3 minutes, then press `ctrl+p` to open the channel list
+
+**Note:** Gurk does not remember channels or messages on startup — it starts clean and only updates when you receive messages. If the channel list stays empty, press `ctrl+p` to force the popup, wait 30–60 seconds, or send yourself a test message from your phone.
+
+### Daily Workflow
+
+| What | How |
+|------|-----|
+| Open channel popup | `ctrl+p` (most important key) |
+| Switch channels | `ctrl+j` / `ctrl+k` or Up/Down |
+| Read messages | Scroll with `alt+Up` / `alt+Down` or `PgUp` / `PgDn` |
+| Select a message | `PgUp` / `PgDn` |
+| Reply | Type your message + `Enter` |
+| Open a link | `Enter` with empty input |
+| View attachment | `Enter` on selected message |
+| Multi-line input | `alt+Enter` |
+| Send a file | `alt+Enter` then `file:///home/{user}/{path}` |
+| Attach clipboard image | `alt+Enter` then `file://clip` |
+| React to a message | Select it → type emoji → `tab` |
+| Copy message | `alt+y` |
+| Open help | `f1` |
+| Deselect message | `ESC` |
+| Mouse support | Click Edit field or Channel (not messages) |
+
+### Emoji
+
+Use GitHub-style shortcodes (`:` + name + `:`) or type the emoji directly:
+
+```
+:thumbsup:  :heart:  :+1:  :rocket:  :fire:  :skull:  :tada:  :clap:  :muscle:  :100:
+```
+
+Or just paste Unicode emoji with `ctrl+Shift+V`.
+
+### Build / Update
+
+```bash
+cd ~/Code/OpenRiot && ./scripts/gurk.sh
+```
+
+The script applies the OpenBSD SIGSEGV fix patch (notify-rust calls `/proc/self/exe` which doesn't exist on OpenBSD), caches the source at `~/src/gurk-rs`, and installs to `~/.local/bin/gurk`.
+
+### Reset and Re-link
+
+```bash
+rm -rf ~/.config/gurk ~/.local/share/gurk ~/.cache/gurk
+~/.local/bin/gurk --relink
+```
+
+Then scan the QR code again from your phone.
 
 ## 🔧 Troubleshooting
 
