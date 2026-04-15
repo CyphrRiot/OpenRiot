@@ -68,7 +68,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 #### Xenocara's Hardening (OpenBSD's Custom X11 Server)
 
-     "Why it was acceptable to move from Wayland and Sway to a fcking X11 desktop when everyone knows X11 is complete shit."
+> "Why it is acceptable to move from Wayland and Sway to a fcking X11 desktop when everyone knows X11 is complete shit."
 
 Xenocara is not vanilla X.Org. It is OpenBSD's integrated, heavily patched build of the X server with these security features:
 
