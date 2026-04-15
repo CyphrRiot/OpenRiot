@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -462,4 +463,116 @@ func getProtonDriveTooltip() string {
 		return "Synced"
 	}
 	return "Needs sync"
+}
+
+// Setup detects resolution, generates scaled config, and starts polybar
+func Setup() int {
+	home := os.Getenv("HOME")
+
+	// Get screen resolution
+	res := getResolution()
+	width := parseResolution(res)
+
+	// Determine scale factors based on resolution
+	height, font0, font1, font2, modMargin := getScaleFactors(width)
+
+	// Read template config
+	templatePath := filepath.Join(home, ".local/share/openriot/config/polybar/config.ini")
+	configPath := filepath.Join(home, ".config/polybar/config.ini")
+
+	template, err := os.ReadFile(templatePath)
+	if err != nil {
+		// Fallback: just start polybar normally
+		return startPolybar()
+	}
+
+	// Apply scaling transformations (do larger sizes first to avoid collision)
+	content := string(template)
+	replacements := []struct{ old, new string }{
+		{"height = 26", "height = " + height},
+		{"module-margin = 1", "module-margin = " + modMargin},
+		{"FiraCode Nerd Font:size=15", "FiraCode Nerd Font:" + font1},
+		{"FiraCode Nerd Font:size=11", "FiraCode Nerd Font:" + font0},
+		{"Paper Mono:style=Regular:size=8", "Paper Mono:style=Regular:" + font2},
+	}
+
+	for _, r := range replacements {
+		content = strings.ReplaceAll(content, r.old, r.new)
+	}
+
+	// Write scaled config
+	if err := os.MkdirAll(filepath.Dir(configPath), 0755); err != nil {
+		return startPolybar()
+	}
+	if err := os.WriteFile(configPath, []byte(content), 0644); err != nil {
+		return startPolybar()
+	}
+
+	// Start polybar
+	return startPolybar()
+}
+
+func getResolution() string {
+	cmd := exec.Command("xrandr")
+	output, err := cmd.Output()
+	if err != nil {
+		return "1920"
+	}
+
+	// Find connected display and resolution
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "connected") {
+			// Extract resolution from something like "2560x1440+0+0"
+			re := regexp.MustCompile(`(\d+)x(\d+)`)
+			matches := re.FindStringSubmatch(line)
+			if len(matches) > 1 {
+				return matches[1]
+			}
+		}
+	}
+	return "1920"
+}
+
+func parseResolution(res string) int {
+	var width int
+	_, err := fmt.Sscanf(res, "%d", &width)
+	if err != nil {
+		width = 1920
+	}
+	return width
+}
+
+func getScaleFactors(width int) (height, font0, font1, font2, modMargin string) {
+	switch {
+	case width >= 2560: // 1440p or 4K
+		height = "32"
+		font0 = "size=13"
+		font1 = "size=17"
+		font2 = "size=9"
+		modMargin = "2"
+	case width >= 1920: // 1080p
+		height = "26"
+		font0 = "size=11"
+		font1 = "size=15"
+		font2 = "size=8"
+		modMargin = "1"
+	default: // Below 1080p
+		height = "26"
+		font0 = "size=11"
+		font1 = "size=15"
+		font2 = "size=8"
+		modMargin = "1"
+	}
+	return
+}
+
+func startPolybar() int {
+	cmd := exec.Command("polybar", "main")
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	if err := cmd.Start(); err != nil {
+		return 1
+	}
+	return 0
 }

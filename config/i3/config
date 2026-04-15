@@ -28,8 +28,8 @@ include keybindings.conf
 # AUTOSTART
 # =============================================================================
 
-# Status bar - runs once at i3 start
-exec --no-startup-id sh -c 'sleep 1; polybar main'
+# Status bar - runs once at i3 start (with dynamic scaling)
+exec --no-startup-id $HOME/.local/share/openriot/install/openriot --polybar-setup
 
 # Wallpaper
 exec --no-startup-id $HOME/.local/share/openriot/install/openriot --wallpaper-load

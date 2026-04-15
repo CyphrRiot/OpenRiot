@@ -388,6 +388,9 @@ func main() {
 	commands["--wallpaper-load"] = func() {
 		os.Exit(backgrounds.Load())
 	}
+	commands["--polybar-setup"] = func() {
+		os.Exit(polybar.Setup())
+	}
 	commands["--suspend-if-undocked"] = func() {
 		detect.SuspendIfUndocked()
 	}
