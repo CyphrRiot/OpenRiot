@@ -13,6 +13,9 @@ import (
 func Lock() error {
 	home, _ := os.UserHomeDir()
 
+	// Seed random for lock image selection
+	rand.Seed(time.Now().UnixNano())
+
 	// Check if i3lock is already running
 	if checkLockRunning() {
 		return nil // Already locked, skip

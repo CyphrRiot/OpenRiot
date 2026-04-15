@@ -1,0 +1,6 @@
+#!/bin/sh
+# OpenRiot Xsetup_0 — for xenodm
+# Disable console log window
+
+# Prevent xconsole from showing error dialog
+# (this is what shows the "Console Log" window on errors)

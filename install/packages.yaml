@@ -87,6 +87,8 @@ desktop:
             - pattern: xsession/openriot-xsession
               target: "~/.xsession"
               # Always overwrite - this is a system config, not user customization
+            - pattern: xenodm/Xsetup_0
+              target: "/etc/X11/xenodm/Xsetup_0"
             - pattern: picom.conf
               target: "~/.config/picom.conf"
             - pattern: alacritty/*

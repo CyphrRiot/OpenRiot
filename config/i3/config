@@ -29,7 +29,7 @@ include keybindings.conf
 # =============================================================================
 
 # Status bar - runs once at i3 start
-exec --no-startup-id polybar main
+exec --no-startup-id sh -c 'sleep 1; polybar main'
 
 # Wallpaper
 exec --no-startup-id $HOME/.local/share/openriot/install/openriot --wallpaper-load
