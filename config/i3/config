@@ -40,6 +40,9 @@ exec --no-startup-id picom --config $HOME/.local/share/openriot/config/picom.con
 # Notifications
 exec --no-startup-id dunst
 
+# Dunst watchdog - restart if it dies
+exec --no-startup-id sh -c 'while true; do pgrep dunst >/dev/null || nohup /usr/local/bin/dunst >/dev/null 2>&1; sleep 5; done'
+
 # Clipboard manager
 exec --no-startup-id clipmenud
 
