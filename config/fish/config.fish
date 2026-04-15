@@ -21,7 +21,11 @@ end
 
 # No greeting - use fastfetch instead
 set -g fish_greeting ""
-# Run fastfetch on new shell
+
+# Show motd then fastfetch
+if test -f $HOME/.local/share/openriot/install/motd
+    cat $HOME/.local/share/openriot/install/motd
+end
 fastfetch
 
 # =============================================================================

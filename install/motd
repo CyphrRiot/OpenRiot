@@ -1,11 +1,4 @@
  ▄████▄ ▄▄▄▄  ▄▄▄▄▄ ▄▄  ▄▄ █████▄  ▄▄  ▄▄▄ ▄▄▄▄▄▄
  ██  ██ ██▄█▀ ██▄▄  ███▄██ ██▄▄██▄ ██ ██▀██  ██
  ▀████▀ ██    ██▄▄▄ ██ ▀██ ██   ██ ██ ▀███▀  ██
-
-    Welcome to OpenBSD 7.9 running OpenRiot!
-
-  To upgrade:
-    curl -fsSL https://OpenRiot.org/setup.sh | sh
-
-  For Help:
-    https://OpenRiot.org
+ |  Help or More Information --> OpenRiot.org    |

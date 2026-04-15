@@ -28,8 +28,8 @@ include keybindings.conf
 # AUTOSTART
 # =============================================================================
 
-# Status bar - restarts on i3 reload
-exec_always --no-startup-id sh -c 'pkill polybar; polybar main'
+# Status bar - runs once at i3 start
+exec --no-startup-id polybar main
 
 # Wallpaper
 exec --no-startup-id $HOME/.local/share/openriot/install/openriot --wallpaper-load
