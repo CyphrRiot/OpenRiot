@@ -126,6 +126,21 @@ func List() ([]Notification, error) {
 	return s.Notifications, nil
 }
 
+// dismissWithoutReload removes a notification by ID without reloading state
+func dismissWithoutReload(id int) error {
+	s, err := load()
+	if err != nil {
+		return err
+	}
+	for i, n := range s.Notifications {
+		if n.ID == id {
+			s.Notifications = append(s.Notifications[:i], s.Notifications[i+1:]...)
+			break
+		}
+	}
+	return save(s)
+}
+
 // Status outputs JSON for polybar custom module
 // Skips and auto-dismisses any expired notifications
 func Status() error {
@@ -140,11 +155,29 @@ func Status() error {
 
 	now := time.Now().Unix()
 
+	// First pass: collect expired IDs
+	var expiredIDs []int
+	for _, n := range notes {
+		if n.Expires > 0 && now > n.Expires {
+			expiredIDs = append(expiredIDs, n.ID)
+		}
+	}
+
+	// Dismiss all expired notifications
+	for _, id := range expiredIDs {
+		dismissWithoutReload(id)
+	}
+
+	// Reload to get fresh list after dismissals
+	notes, err = List()
+	if err != nil || len(notes) == 0 {
+		fmt.Println(`{"text": ""}`)
+		return nil
+	}
+
 	// Find first non-expired notification
 	for _, n := range notes {
 		if n.Expires > 0 && now > n.Expires {
-			// Expired - dismiss and check next
-			Dismiss(n.ID)
 			continue
 		}
 		// Found a valid notification - display it

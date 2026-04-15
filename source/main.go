@@ -363,17 +363,22 @@ func main() {
 			return
 		}
 		choice := strings.TrimSpace(string(out))
+		iconPath := paths.GetIconPath("power.png")
 		switch choice {
 		case "Lock":
 			lock.Lock()
 		case "Suspend":
+			exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "2000", "Power", "Suspending...").Run()
 			lock.Lock()
 			exec.Command("doas", "zzz").Run()
 		case "Reboot":
+			exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "3000", "Power", "Rebooting...").Run()
 			exec.Command("doas", "shutdown", "-r", "now").Run()
 		case "Shutdown":
+			exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "5000", "Power", "Shutting down...").Run()
 			exec.Command("doas", "shutdown", "-p", "now").Run()
 		case "Logout":
+			exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "2000", "Power", "Logging out...").Run()
 			exec.Command("i3-msg", "exit").Run()
 		}
 	}

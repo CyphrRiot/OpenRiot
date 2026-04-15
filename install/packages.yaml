@@ -104,10 +104,6 @@ desktop:
               cmd: "rm -f ~/.config/polybar/config"
             - desc: "Remove deprecated polybar scripts"
               cmd: "rm -f ~/.config/polybar/scripts/*.sh"
-            - desc: "Taking dunst behind the barn"
-              cmd: "pkill dunst 2>/dev/null; sleep 1; pkill -9 dunst 2>/dev/null; sleep 1; pgrep -x dunst >/dev/null || nohup /usr/local/bin/dunst >/dev/null 2>&1 &"
-            - desc: "Taking picom for a stroll"
-              cmd: "pkill picom 2>/dev/null; sleep 1; pkill -9 picom 2>/dev/null; sleep 1; pgrep -x picom >/dev/null || nohup /usr/local/bin/picom >/dev/null 2>&1 &"
         depends: [core.base, fonts.fira-code]
         start: "Installing i3 desktop"
         end: "i3 desktop installed"
