@@ -246,8 +246,10 @@ system:
     services:
         type: "Package"
         commands:
-            - desc: "Enable apmd (power management)"
-              cmd: "doas rcctl enable apmd && doas rcctl set apmd flags -A"
+            - desc: "Enable apmd (high performance)"
+              cmd: "doas rcctl enable apmd && doas rcctl set apmd flags -H"
+            - desc: "Disable USB power saving"
+              cmd: "grep -q 'hw.allowpowerdown' /etc/sysctl.conf || echo 'hw.allowpowerdown=0' | doas tee -a /etc/sysctl.conf"
             - desc: "Enable sndiod (audio)"
               cmd: "doas rcctl enable sndiod"
             #- desc: "Enable and start seatd (seat management)"

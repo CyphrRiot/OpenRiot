@@ -983,6 +983,25 @@ func outputNotifySend(items []CryptoItem) error {
 		lines = append(lines, fmt.Sprintf("%s %-5s %6s x $%10s %s %7s", getCryptoIcon(item.Sym), item.Sym, fmt.Sprintf("%.2f", item.Held), formatNumberSimple(item.Price), arrow, pct))
 	}
 
+	// Calculate total portfolio gains
+	var totalValue, totalCost float64
+	for _, item := range items {
+		if item.Sym == "USD" {
+			continue
+		}
+		totalValue += item.Held * item.Price
+		totalCost += item.Held * item.Entry
+	}
+	totalGain := totalValue - totalCost
+	gainArrow := "•"
+	if totalGain > 0 {
+		gainArrow = "▲"
+	} else if totalGain < 0 {
+		gainArrow = "▼"
+	}
+	numStr := strings.TrimPrefix(formatSignedNumber(totalGain), "$ ")
+	lines = append(lines, fmt.Sprintf("┅ Total Gains  %s $%10s", gainArrow, numStr))
+
 	lines = append(lines, "\n󰳽 Click to Close")
 	body := strings.Join(lines, "\n")
 	exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "0", "-r", "1", "Crypto", body).Run()
@@ -1011,4 +1030,14 @@ func formatNumberSimple(v float64) string {
 		return intPart + "." + decPart
 	}
 	return intPart
+}
+
+// formatSignedNumber formats with commas and explicit sign (e.g., 1234.56 -> "$ 1,234.56", -1234.56 -> "-$ 1,234.56")
+func formatSignedNumber(v float64) string {
+	sign := ""
+	if v < 0 {
+		sign = "-"
+		v = -v
+	}
+	return sign + "$ " + formatNumberSimple(v)
 }

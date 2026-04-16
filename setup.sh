@@ -340,13 +340,6 @@ main() {
     run_install_packages
     run_openriot_install
 
-    # Restart polybar if running
-    info "Restarting polybar..."
-    pkill polybar 2>/dev/null || true
-    sleep 1
-    nohup polybar main >/dev/null 2>&1 &
-    success "Polybar restarted"
-
     # Enable xenodm for automatic X11 login on boot
     info "Enabling xenodm (X11 display manager)..."
     if doas rcctl enable xenodm 2>/dev/null; then

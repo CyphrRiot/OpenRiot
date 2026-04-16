@@ -465,7 +465,7 @@ func getProtonDriveTooltip() string {
 	return "Needs sync"
 }
 
-// Setup detects resolution, generates scaled config, and starts polybar
+// Setup generates scaled polybar config (doesn't launch polybar - i3 handles that)
 func Setup() int {
 	home := os.Getenv("HOME")
 
@@ -482,8 +482,7 @@ func Setup() int {
 
 	template, err := os.ReadFile(templatePath)
 	if err != nil {
-		// Fallback: just start polybar normally
-		return startPolybar()
+		return 1
 	}
 
 	// Apply scaling transformations (do larger sizes first to avoid collision)
@@ -502,14 +501,12 @@ func Setup() int {
 
 	// Write scaled config
 	if err := os.MkdirAll(filepath.Dir(configPath), 0755); err != nil {
-		return startPolybar()
+		return 1
 	}
 	if err := os.WriteFile(configPath, []byte(content), 0644); err != nil {
-		return startPolybar()
+		return 1
 	}
-
-	// Start polybar
-	return startPolybar()
+	return 0
 }
 
 func getResolution() string {

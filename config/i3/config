@@ -8,11 +8,14 @@ set $editor gnome-text-editor
 set $menu $HOME/.local/share/openriot/install/openriot --rofi
 
 font pango:FiraCode Nerd Font 11
-default_border pixel 1
-default_floating_border pixel 1
+default_border pixel 2
+default_floating_border pixel 2
 default_orientation horizontal
 hide_edge_borders smart
 smart_gaps on
+
+# Force border on GTK CSD apps
+for_window [class="gnome-text-editor"] border pixel 2
 
 # Colors
 client.focused           #4c7899 #285577 #ffffff
@@ -28,8 +31,10 @@ include keybindings.conf
 # AUTOSTART
 # =============================================================================
 
-# Status bar - runs once at i3 start (with dynamic scaling)
+# Status bar - generate scaled config, then launch polybar
 exec --no-startup-id $HOME/.local/share/openriot/install/openriot --polybar-setup
+exec --no-startup-id polybar main
+exec --no-startup-id sh -c 'sleep 10; while true; do pgrep polybar >/dev/null || polybar main; sleep 5; done'
 
 # Wallpaper
 exec --no-startup-id $HOME/.local/share/openriot/install/openriot --wallpaper-load

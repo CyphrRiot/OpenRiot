@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.29-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.30-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -19,6 +19,7 @@
 
 </div>
 
+---
 OpenRiot is the answer to every time you've thought "Why can't an OpenBSD installation just work correctly and be usable without a hundred hours of fiddling?"
 
 - Read the [original Post on X](https://x.com/CyphrRiot/status/2039409143891837297?s=20)

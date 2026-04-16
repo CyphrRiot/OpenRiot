@@ -26,6 +26,7 @@ import (
 	"openriot/rofi"
 	"openriot/weather"
 	"openriot/workspace"
+	"openriot/workspaceicons"
 	"openriot/wireguard"
 	"openriot/windowicon"
 	"openriot/windowtitle"
@@ -304,6 +305,20 @@ func main() {
 			os.Exit(1)
 		}
 		workspace.Switch(target)
+	}
+
+	// --workspace-icons N - output workspace icons for polybar (requires arg)
+	commands["--workspace-icons"] = func() {
+		if len(os.Args) < 3 {
+			fmt.Fprintln(os.Stderr, "Usage: openriot --workspace-icons <N>")
+			os.Exit(1)
+		}
+		target, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Invalid workspace number")
+			os.Exit(1)
+		}
+		fmt.Print(workspaceicons.Get(target))
 	}
 
 	// Dispatch commands with args
