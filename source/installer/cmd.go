@@ -157,7 +157,7 @@ func RunSyncPackages() {
 	}
 
 	// Write back (preserves formatting)
-	if err := os.WriteFile(configPath, []byte(strings.Join(lines, "\n")), 0644); err != nil {
+	if err := os.WriteFile(configPath, []byte(strings.Join(lines, "\n")), 0600); err != nil {
 		fmt.Fprintf(os.Stderr, "[ERR!] Failed to save config: %v\n", err)
 		os.Exit(1)
 	}

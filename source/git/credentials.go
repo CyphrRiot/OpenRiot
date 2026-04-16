@@ -182,7 +182,7 @@ func saveGitCredentials(homeDir, userName, userEmail string) error {
 	envPath := filepath.Join(dotfilesDir, "user.env")
 	envContent := fmt.Sprintf("GIT_USERNAME=%s\nGIT_EMAIL=%s\n", userName, userEmail)
 
-	if err := os.WriteFile(envPath, []byte(envContent), 0644); err != nil {
+	if err := os.WriteFile(envPath, []byte(envContent), 0600); err != nil {
 		return fmt.Errorf("writing user.env: %w", err)
 	}
 

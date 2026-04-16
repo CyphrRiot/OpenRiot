@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"openriot/paths"
 )
 
 const (
@@ -58,7 +60,7 @@ func getState() int {
 
 func setState(state int) {
 	file := filepath.Join(homeDir, stateFile)
-	os.WriteFile(file, []byte(strconv.Itoa(state)), 0644)
+	os.WriteFile(file, []byte(strconv.Itoa(state)), 0600)
 }
 
 func isRedshiftRunning() bool {
@@ -80,6 +82,5 @@ func startRedshift() {
 }
 
 func notify(message, icon string) {
-	iconPath := filepath.Join(homeDir, ".local/share/openriot/config/icons", icon)
-	exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "3000", "Display", message).Start()
+	exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath(icon), "-t", "3000", "Display", message).Start()
 }

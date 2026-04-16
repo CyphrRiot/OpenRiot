@@ -105,7 +105,7 @@ func RunCrypto(mode string) error {
 	}
 	if len(prevData) > 0 {
 		if data, err := json.Marshal(prevData); err == nil {
-			os.WriteFile(prevFile, data, 0644)
+			os.WriteFile(prevFile, data, 0600)
 		}
 	}
 
@@ -309,7 +309,7 @@ func loadOHLCData(items []CryptoItem, ohlcFile string, apiKey string) {
 		// Save cache only if we got data
 		if len(ohlcCache) > 0 {
 			data, _ := json.Marshal(ohlcCache)
-			os.WriteFile(ohlcFile, data, 0644)
+			os.WriteFile(ohlcFile, data, 0600)
 		}
 	}
 }
@@ -899,7 +899,7 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold i
 		}
 	}
 	data, _ := json.Marshal(prevData)
-	os.WriteFile(prevFile, data, 0644)
+	os.WriteFile(prevFile, data, 0600)
 
 	return nil
 }

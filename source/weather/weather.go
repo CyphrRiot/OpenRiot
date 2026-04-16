@@ -113,7 +113,7 @@ func fetchWeather(cfg Config) (*APIResponse, error) {
 	}{data, time.Now()}
 	if cacheData, err := json.Marshal(cached); err == nil {
 		os.MkdirAll(filepath.Dir(cacheFile), 0755)
-		os.WriteFile(cacheFile, cacheData, 0644)
+		os.WriteFile(cacheFile, cacheData, 0600)
 	}
 
 	return &data, nil

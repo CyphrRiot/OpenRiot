@@ -49,7 +49,7 @@ func logDebugCall() {
 	if os.Getenv("OPENRIOT_DEBUG") != "1" {
 		return
 	}
-	f, err := os.OpenFile("/tmp/openriot_calls.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("/tmp/openriot_calls.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "DEBUG: cannot open log: %v\n", err)
 		return

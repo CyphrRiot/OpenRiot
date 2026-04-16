@@ -503,7 +503,7 @@ func Setup() int {
 	if err := os.MkdirAll(filepath.Dir(configPath), 0755); err != nil {
 		return 1
 	}
-	if err := os.WriteFile(configPath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(configPath, []byte(content), 0600); err != nil {
 		return 1
 	}
 	return 0

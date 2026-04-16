@@ -309,9 +309,6 @@ main() {
     configure_pkg_add
     install_bootstrap_packages
 
-    warn "Killing polybar if necessary..."
-    pkill polybar 2>/dev/null || true
-
     setup_repository
     check_disk_space 1
 

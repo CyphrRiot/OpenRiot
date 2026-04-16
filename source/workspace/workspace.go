@@ -3,9 +3,9 @@ package workspace
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
+
+	"openriot/paths"
 )
 
 func GetCurrent() int {
@@ -43,8 +43,6 @@ func Switch(target int) {
 	cmd.Run()
 
 	// Notify
-	home, _ := os.UserHomeDir()
 	iconName := fmt.Sprintf("workspace%d.png", target)
-	iconPath := filepath.Join(home, ".local/share/openriot/config/icons", iconName)
-	exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "1500", "Workspace", fmt.Sprintf("Switched to workspace %d", target)).Start()
+	exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath(iconName), "-t", "1500", "Workspace", fmt.Sprintf("Switched to workspace %d", target)).Start()
 }

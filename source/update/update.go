@@ -34,7 +34,7 @@ func readCacheVersion() string {
 func writeCacheVersion(version string) error {
 	cachePath := getCachePath()
 	os.MkdirAll(filepath.Dir(cachePath), 0755)
-	return os.WriteFile(cachePath, []byte(version), 0644)
+	return os.WriteFile(cachePath, []byte(version), 0600)
 }
 
 func Get() string {

@@ -82,7 +82,7 @@ func Next() int {
 	next := files[(idx+1)%len(files)]
 
 	_ = os.MkdirAll(filepath.Dir(stateFile), 0o755)
-	_ = os.WriteFile(stateFile, []byte(next+"\n"), 0o644)
+	_ = os.WriteFile(stateFile, []byte(next+"\n"), 0o600)
 
 	_ = exec.Command("pkill", "-x", "feh").Run()
 	time.Sleep(500 * time.Millisecond)

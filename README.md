@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.30-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.31-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -468,6 +468,24 @@ _We use Helix instead of `vi` or `vim`. The essential bindings are documented in
 | `Mute`                 | Toggle mute                      |
 | `Mic Mute`             | Toggle microphone mute           |
 | `Brightness +/-`       | Adjust screen brightness         |
+
+
+### System Hotkeys
+
+Control polybar modules and system features directly from the keyboard.
+
+| Key                    | Action                           |
+| ---------------------- | -------------------------------- |
+| `Super + N`            | Toggle night light (redshift)   |
+| `Super + V`            | Toggle audio mute                |
+| `Super + U`            | Check for OpenRiot updates       |
+| `Super + Y`            | Show crypto prices notification  |
+| `Super + A`            | Show battery status notification |
+| `Super + I`            | Toggle WireGuard VPN             |
+| `Super + J`            | Sync Proton Drive               |
+| `Super + Shift + P`    | Show CPU notification            |
+| `Super + Shift + M`    | Show memory notification         |
+| `Super + Shift + N`    | Show WiFi info                   |
 
 
 ### App Launcher (Rofi)

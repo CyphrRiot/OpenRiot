@@ -109,7 +109,7 @@ func InitLogger() error {
 
 	logPath = filepath.Join(logDir, fmt.Sprintf("openriot-%s.log", time.Now().Format("2006-01-02")))
 
-	f, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}

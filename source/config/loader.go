@@ -222,7 +222,7 @@ func (c *Config) SaveConfig(filename string) error {
 	if err != nil {
 		return fmt.Errorf("marshaling YAML: %w", err)
 	}
-	return os.WriteFile(filename, data, 0644)
+	return os.WriteFile(filename, data, 0600)
 }
 
 // getBaseName extracts base name from package (e.g., "fish-4.6.0" -> "fish")

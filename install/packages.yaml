@@ -209,6 +209,14 @@ source:
         start: "Installing Kora icon theme"
         end: "Kora icon theme installed"
 
+    polybar-scaling:
+        type: "Source"
+        build:
+            - "[ -n \"$DISPLAY\" ] && openriot --polybar-setup || echo '[SKIP] No X11, skipping polybar scaling'"
+        depends: []
+        start: "Scaling polybar config for display"
+        end: "Polybar scaled"
+
 #    stormy:
 #        type: "Source"
 #        build:
