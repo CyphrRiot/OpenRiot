@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
+
+	"openriot/notify"
 )
 
 // Run executes brightness subcommands using OpenBSD's wsconsctl.
@@ -20,12 +21,11 @@ func Run(args []string) int {
 	}
 
 	home := os.Getenv("HOME")
-	iconPath := filepath.Join(home, ".local/share/openriot/config/icons")
-	settingsIcon := filepath.Join(iconPath, "settings.png")
-	notify := func(msg string) {
+	_ = home // used for icon paths
+	showNotify := func(msg string) {
 		// Dismiss any existing notifications, show new one via dunst (auto-expires in 3s)
 		exec.Command("openriot", "--notify-dismiss").Run()
-		exec.Command("/usr/local/bin/notify-send", "-i", settingsIcon, "-t", "3000", "Settings", msg).Start()
+		notify.SendNotify("brightness", "Settings", msg, "normal", 3000, 0)
 	}
 
 	wsconsctl := func(cmd string) error {
@@ -50,14 +50,14 @@ func Run(args []string) int {
 			fmt.Fprintln(os.Stderr, "Error: wsconsctl failed (may require root)")
 			return 1
 		}
-		notify(fmt.Sprintf("%d%%", getBrightness()))
+		showNotify(fmt.Sprintf("%d%%", getBrightness()))
 		return 0
 	case "down":
 		if err := wsconsctl("display.brightness=-10"); err != nil {
 			fmt.Fprintln(os.Stderr, "Error: wsconsctl failed (may require root)")
 			return 1
 		}
-		notify(fmt.Sprintf("%d%%", getBrightness()))
+		showNotify(fmt.Sprintf("%d%%", getBrightness()))
 		return 0
 	case "set":
 		if len(args) < 2 {
@@ -74,7 +74,7 @@ func Run(args []string) int {
 			fmt.Fprintln(os.Stderr, "Error: wsconsctl failed")
 			return 1
 		}
-		notify(fmt.Sprintf("%d%%", val))
+		showNotify(fmt.Sprintf("%d%%", val))
 		return 0
 	case "get":
 		b := getBrightness()

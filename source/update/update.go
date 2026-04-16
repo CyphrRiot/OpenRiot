@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"openriot/notify"
 )
 
 const (
@@ -57,26 +59,20 @@ func Click() error {
 
 	if cached == "" {
 		// No cached version - user needs to wait for next poll
-		home, _ := os.UserHomeDir()
-		iconPath := filepath.Join(home, ".local/share/openriot/config/icons/no-upgrade.png")
-		exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "3000", "Desktop", "Version check in progress...").Run()
+		notify.SendNotify("desktop", "Desktop", "Version check in progress...", "normal", 3000, 0)
 		return nil
 	}
 
 	if compareVersions(local, cached) < 0 {
 		// Update available - notify then launch upgrade confirmation
-		home, _ := os.UserHomeDir()
-		iconPath := filepath.Join(home, ".local/share/openriot/config/icons/upgrade.png")
-		exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "3000", "Desktop", fmt.Sprintf("v%s - Update available!", cached)).Run()
+		notify.SendNotify("upgrade", "Desktop", fmt.Sprintf("v%s - Update available!", cached), "normal", 3000, 0)
 		cmd := `printf "You are about to upgrade OpenRiot... are you sure? [Y/n] "; read -r ans; case "$ans" in [yY]|"") curl -fsSL https://openriot.org/setup.sh | sh ;; *) echo "Canceled."; sleep 1 ;; esac`
 		exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
 		return nil
 	}
 
 	// No update available - show notification
-	home, _ := os.UserHomeDir()
-	iconPath := filepath.Join(home, ".local/share/openriot/config/icons/no-upgrade.png")
-	exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "3000", "Desktop", fmt.Sprintf("v%s - up to date", local)).Run()
+	notify.SendNotify("desktop", "Desktop", fmt.Sprintf("v%s - up to date", local), "normal", 3000, 0)
 	return nil
 }
 

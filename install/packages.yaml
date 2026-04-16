@@ -213,9 +213,10 @@ source:
         type: "Source"
         build:
             - "[ -n \"$DISPLAY\" ] && openriot --polybar-setup || echo '[SKIP] No X11, skipping polybar scaling'"
+            - "[ -n \"$DISPLAY\" ] && openriot --dunst-setup || echo '[SKIP] No X11, skipping dunst scaling'"
         depends: []
-        start: "Scaling polybar config for display"
-        end: "Polybar scaled"
+        start: "Scaling polybar and dunst configs for display"
+        end: "Polybar and dunst scaled"
 
 #    stormy:
 #        type: "Source"

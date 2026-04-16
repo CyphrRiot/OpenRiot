@@ -6,7 +6,6 @@ import (
 	"math"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/user"
 	"path/filepath"
 	"sort"
@@ -14,6 +13,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"openriot/notify"
 )
 
 // Config represents the crypto.toml structure
@@ -948,9 +948,6 @@ func getCryptoIcon(sym string) string {
 
 // outputNotifySend sends crypto prices as a dunst notification
 func outputNotifySend(items []CryptoItem) error {
-	home, _ := os.UserHomeDir()
-	iconPath := filepath.Join(home, ".local/share/openriot/config/icons/chart.png")
-
 	// Sort items - preserve config order, move USD to end
 	sort.Slice(items, func(i, j int) bool {
 		if items[i].Sym == "USD" {
@@ -1004,7 +1001,7 @@ func outputNotifySend(items []CryptoItem) error {
 
 	lines = append(lines, "\n󰳽 Click to Close")
 	body := strings.Join(lines, "\n")
-	exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "0", "-r", "1", "Crypto", body).Run()
+	notify.SendNotify("chart", "Crypto", body, "normal", 0, 1)
 	return nil
 }
 

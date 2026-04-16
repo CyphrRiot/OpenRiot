@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 	"syscall"
+
+	"openriot/notify"
 )
 
 func Lock() error {
@@ -42,8 +44,7 @@ func Lock() error {
 		lockJpg := matches[rand.Intn(len(matches))]
 
 		// Notify user
-		lockIcon := filepath.Join(home, ".local/share/openriot/config/icons/lock.png")
-		exec.Command("/usr/local/bin/notify-send", "-i", lockIcon, "-t", "2500", "Screen Lock", "Screen is locking...").Start()
+		notify.SendNotify("lock", "Screen Lock", "Screen is locking...", "normal", 2500, 0)
 		time.Sleep(500 * time.Millisecond)
 
 		// Get screen resolution

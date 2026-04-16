@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
+
+	"openriot/notify"
 )
 
 // Run executes volume subcommands using OpenBSD's sndioctl.
@@ -18,15 +19,10 @@ func Run(args []string) int {
 	}
 
 		home := os.Getenv("HOME")
-	iconPath := filepath.Join(home, ".local/share/openriot/config/icons")
-	speakerIcon := filepath.Join(iconPath, "speaker.png")
-	speakerMutedIcon := filepath.Join(iconPath, "speaker-muted.png")
-	micIcon := filepath.Join(iconPath, "mic.png")
-	micMutedIcon := filepath.Join(iconPath, "mic-muted.png")
-	notify := func(icon, msg string) {
-		exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "1500", "Settings", msg).Start()
+	_ = home // used for icon paths
+	sendNotify := func(icon, msg string) {
+		notify.SendNotify(icon, "Settings", msg, "normal", 1500, 0)
 	}
-	_ = speakerIcon // used in switch below
 
 	sndioctl := func(cmd string) error {
 		parts := strings.Fields(cmd)
@@ -71,18 +67,18 @@ func Run(args []string) int {
 	case "toggle":
 		sndioctl("output.mute=!")
 		if isMuted() {
-			notify(speakerMutedIcon, "Speaker: Muted")
+			sendNotify("speaker-muted", "Speaker: Muted")
 		} else {
-			notify(speakerIcon, fmt.Sprintf("Speaker: %s%%", toPercent(vol())))
+			sendNotify("speaker", fmt.Sprintf("Speaker: %s%%", toPercent(vol())))
 		}
 		return 0
 	case "inc":
 		sndioctl("output.level=+0.05")
-		notify(speakerIcon, fmt.Sprintf("Speaker: %s%%", toPercent(vol())))
+		sendNotify("speaker", fmt.Sprintf("Speaker: %s%%", toPercent(vol())))
 		return 0
 	case "dec":
 		sndioctl("output.level=-0.05")
-		notify(speakerIcon, fmt.Sprintf("Speaker: %s%%", toPercent(vol())))
+		sendNotify("speaker", fmt.Sprintf("Speaker: %s%%", toPercent(vol())))
 		return 0
 	case "get":
 		fmt.Println(vol())
@@ -90,18 +86,18 @@ func Run(args []string) int {
 	case "mic-toggle":
 		sndioctl("input.mute=!")
 		if micMuted() {
-			notify(micMutedIcon, "Mic: Muted")
+			sendNotify("mic-muted", "Mic: Muted")
 		} else {
-			notify(micIcon, fmt.Sprintf("Mic: %s%%", toPercent(micVol())))
+			sendNotify("mic", fmt.Sprintf("Mic: %s%%", toPercent(micVol())))
 		}
 		return 0
 	case "mic-inc":
 		sndioctl("input.level=+0.05")
-		notify(micIcon, fmt.Sprintf("Mic: %s%%", toPercent(micVol())))
+		sendNotify("mic", fmt.Sprintf("Mic: %s%%", toPercent(micVol())))
 		return 0
 	case "mic-dec":
 		sndioctl("input.level=-0.05")
-		notify(micIcon, fmt.Sprintf("Mic: %s%%", toPercent(micVol())))
+		sendNotify("mic", fmt.Sprintf("Mic: %s%%", toPercent(micVol())))
 		return 0
 	case "mic-get":
 		fmt.Println(micVol())

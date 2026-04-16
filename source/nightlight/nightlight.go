@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"openriot/paths"
+	"openriot/notify"
 )
 
 const (
@@ -38,12 +38,12 @@ func Toggle() error {
 		// Turn off
 		exec.Command("pkill", "redshift").Run()
 		setState(0)
-		notify("Night Light: Off", "nightlight-off.png")
+		sendNotify("Night Light: Off", "nightlight-off")
 	} else {
 		// Turn on
 		startRedshift()
 		setState(1)
-		notify("Night Light: On", "nightlight-on.png")
+		sendNotify("Night Light: On", "nightlight-on")
 	}
 	return nil
 }
@@ -81,6 +81,6 @@ func startRedshift() {
 	exec.Command("sh", "-c", fmt.Sprintf("redshift -l %s:%s -t %s:%s &", defaultLat, defaultLon, tempNight, tempNight)).Run()
 }
 
-func notify(message, icon string) {
-	exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath(icon), "-t", "3000", "Display", message).Start()
+func sendNotify(message, icon string) {
+	notify.SendNotify(icon, "Display", message, "normal", 3000, 0)
 }

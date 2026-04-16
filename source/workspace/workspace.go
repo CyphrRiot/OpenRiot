@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 
-	"openriot/paths"
+	"openriot/notify"
 )
 
 func GetCurrent() int {
@@ -44,5 +44,5 @@ func Switch(target int) {
 
 	// Notify
 	iconName := fmt.Sprintf("workspace%d.png", target)
-	exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath(iconName), "-t", "1500", "Workspace", fmt.Sprintf("Switched to workspace %d", target)).Start()
+	notify.SendNotify(iconName, "Workspace", fmt.Sprintf("Switched to workspace %d", target), "normal", 1500, 0)
 }

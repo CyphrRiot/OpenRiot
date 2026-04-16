@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -213,4 +215,67 @@ func Status() error {
 	// All expired or none exist
 	fmt.Println(`{"text": ""}`)
 	return nil
+}
+
+// Setup scales dunstrc based on screen resolution.
+// If screen width > 1920, uses larger width (500) and font size (12).
+// Otherwise uses defaults from template (400 width, size 10).
+func Setup() int {
+	home := os.Getenv("HOME")
+
+	// Get screen resolution using xrandr
+	width := getScreenWidth()
+
+	// Read template config
+	templatePath := filepath.Join(home, ".local/share/openriot/config/dunst/dunstrc")
+	configPath := filepath.Join(home, ".config/dunst/dunstrc")
+
+	template, err := os.ReadFile(templatePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "dunst setup: cannot read template: %v\n", err)
+		return 1
+	}
+
+	content := string(template)
+
+	// Only scale up for larger screens (>1920)
+	if width > 1920 {
+		content = strings.ReplaceAll(content, "width = 400", "width = 500")
+		content = strings.ReplaceAll(content, "FiraCode Nerd Font 10", "FiraCode Nerd Font 14")
+	}
+
+	// Write scaled config
+	if err := os.MkdirAll(filepath.Dir(configPath), 0755); err != nil {
+		fmt.Fprintf(os.Stderr, "dunst setup: cannot create dir: %v\n", err)
+		return 1
+	}
+	if err := os.WriteFile(configPath, []byte(content), 0600); err != nil {
+		fmt.Fprintf(os.Stderr, "dunst setup: cannot write config: %v\n", err)
+		return 1
+	}
+
+	return 0
+}
+
+// getScreenWidth returns the screen width in pixels using xrandr
+func getScreenWidth() int {
+	cmd := exec.Command("xrandr")
+	output, err := cmd.Output()
+	if err != nil {
+		return 1920 // default to 1080p
+	}
+
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "connected") {
+			re := regexp.MustCompile(`(\d+)x(\d+)`)
+			matches := re.FindStringSubmatch(line)
+			if len(matches) > 1 {
+				var width int
+				fmt.Sscanf(matches[1], "%d", &width)
+				return width
+			}
+		}
+	}
+	return 1920
 }

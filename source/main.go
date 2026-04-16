@@ -20,7 +20,6 @@ import (
 	"openriot/notify"
 	"openriot/network"
 	"openriot/nightlight"
-	"openriot/paths"
 	"openriot/polybar"
 	"openriot/battery"
 	"openriot/rofi"
@@ -66,6 +65,22 @@ func main() {
 		"--version": func() {
 			fmt.Println("openriot", version)
 			os.Exit(0)
+		},
+		"--test-notify": func() {
+			// Usage: --test-notify {icon} {title} {body} {urgency} {timeoutMs} {replaceID}
+			if len(os.Args) < 7 {
+				fmt.Fprintf(os.Stderr, "Usage: --test-notify {icon} {title} {body} {urgency} {timeoutMs} {replaceID}\n")
+				fmt.Fprintf(os.Stderr, "Example: --test-notify chart \"Test\" \"Hello\" normal 3000 0\n")
+				os.Exit(1)
+			}
+			icon := os.Args[2]
+			title := os.Args[3]
+			body := os.Args[4]
+			urgency := os.Args[5]
+			timeout, _ := strconv.Atoi(os.Args[6])
+			replaceID, _ := strconv.Atoi(os.Args[7])
+			notify.SendNotify(icon, title, body, urgency, timeout, replaceID)
+			fmt.Printf("Sent: [%s] %s - %s\n", icon, title, body)
 		},
 		"--install": func() {
 			runInstall()
@@ -177,19 +192,18 @@ func main() {
 		if !network.IsConnected() {
 			icon = "wifi-off.png"
 		}
-		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath(icon), "-t", "5000", "WiFi", details).Start()
+		notify.SendNotify(icon, "WiFi", details, "normal", 5000, 0)
 	}
 	commands["--eth-info"] = func() {
 		details := network.GetEthDetails()
-		icon := "ethernet.png"
-		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath(icon), "-t", "5000", "Ethernet", details).Start()
+		notify.SendNotify("ethernet", "Ethernet", details, "normal", 5000, 0)
 	}
 	commands["--battery"] = func() {
 		fmt.Print(battery.Get())
 	}
 	commands["--battery-notify"] = func() {
 		batteryDetails := battery.GetNotifyDetails()
-		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("battery.png"), "-t", "5000", "Battery", batteryDetails).Start()
+		notify.SendNotify("battery", "Battery", batteryDetails, "normal", 5000, 0)
 		os.Exit(0)
 	}
 	commands["--night-light-status"] = func() {
@@ -217,43 +231,38 @@ func main() {
 	}
 
 	commands["--proton-drive-sync"] = func() {
-		icon := paths.GetIconPath("proton-drive.png")
 		if polybar.IsProtonDriveConfigured() {
 			state := polybar.CheckProtonDriveSyncState()
 			if state == "synced" {
-				exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Proton Drive", "Already Synced ✓").Run()
+				notify.SendNotify("proton-drive", "Proton Drive", "Already Synced ✓", "normal", 2000, 0)
 			} else {
-				exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Proton Drive", "Syncing...").Run()
+				notify.SendNotify("proton-drive", "Proton Drive", "Syncing...", "normal", 2000, 0)
 				cmd := `echo "Proton Drive is now syncing... be patient..."; rclone bisync ~/ProtonSync proton:ProtonSync --resync --progress; printf "\nDone. Press Enter to close..."; read -r ans`
 				exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
 			}
 		} else {
-			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "5000", "-u", "critical", "Proton Drive", "Not configured\nSee OpenRiot.org for setup info").Run()
+			notify.SendNotify("proton-drive", "Proton Drive", "Not configured\nSee OpenRiot.org for setup info", "critical", 5000, 0)
 		}
 	}
 	commands["--proton-drive-init"] = func() {
-		icon := paths.GetIconPath("proton-drive.png")
 		if polybar.IsProtonDriveConfigured() {
 			if err := polybar.InitProtonDriveCache(); err != nil {
 				fmt.Fprintf(os.Stderr, "proton-drive init error: %v\n", err)
-				exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "5000", "-u", "critical", "Proton Drive", "Failed to init cache").Run()
+				notify.SendNotify("proton-drive", "Proton Drive", "Failed to init cache", "critical", 5000, 0)
 			} else {
-				exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Proton Drive", "Cache initialized").Run()
+				notify.SendNotify("proton-drive", "Proton Drive", "Cache initialized", "normal", 2000, 0)
 			}
 		} else {
-			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "5000", "-u", "critical", "Proton Drive", "Not configured").Run()
+			notify.SendNotify("proton-drive", "Proton Drive", "Not configured", "critical", 5000, 0)
 		}
 	}
 	commands["--transmission-toggle"] = func() {
-		var icon string
 		if rofi.IsTransmissionRunning() {
-			icon = paths.GetIconPath("transmission-off.png")
 			exec.Command("pkill", "-INT", "transmission-daemon").Run()
-			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Transmission", "Stopping Transmission...").Run()
+			notify.SendNotify("transmission", "Transmission", "Stopping Transmission...", "normal", 2000, 0)
 		} else {
-			icon = paths.GetIconPath("transmission-on.png")
 			exec.Command("sh", "-c", "mkdir -p ~/.local/share/transmission ~/.config/transmission && transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &").Run()
-			exec.Command("/usr/local/bin/notify-send", "-i", icon, "-t", "2000", "Transmission", "Starting Transmission...").Run()
+			notify.SendNotify("transmission", "Transmission", "Starting Transmission...", "normal", 2000, 0)
 		}
 	}
 	commands["--night-light"] = func() {
@@ -339,29 +348,29 @@ func main() {
 		output, _ := cmd.Output()
 		if len(strings.TrimSpace(string(output))) > 0 {
 			// Already running
-			exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("signal.png"), "-t", "2000", "Signal", "Signal already launched").Run()
+			notify.SendNotify("signal", "Signal", "Signal already launched", "normal", 2000, 0)
 			return
 		}
 		// Launch Signal
-		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("signal.png"), "-t", "2000", "Signal", "Starting Signal...").Run()
+		notify.SendNotify("signal", "Signal", "Starting Signal...", "normal", 2000, 0)
 		exec.Command("alacritty", "--class", "gurk", "--title", "Signal", "-e", home+"/.local/share/openriot/config/bin/gurk").Start()
 	}
 	commands["--browser"] = func() {
 		cmd := exec.Command("pgrep", "-f", "firefox")
 		output, _ := cmd.Output()
 		if len(strings.TrimSpace(string(output))) > 0 {
-			exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("firefox.png"), "-t", "2000", "Firefox", "Already running").Run()
+			notify.SendNotify("firefox", "Firefox", "Already running", "normal", 2000, 0)
 			return
 		}
-		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("firefox.png"), "-t", "2000", "Firefox", "Starting Browser...").Run()
+		notify.SendNotify("firefox", "Firefox", "Starting Browser...", "normal", 2000, 0)
 		exec.Command("firefox", os.Args[2:]...).Start()
 	}
 	commands["--proton"] = func() {
-		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("proton-mail.png"), "-t", "2000", "Proton Mail", "Opening...").Run()
+		notify.SendNotify("proton-mail", "Proton Mail", "Opening...", "normal", 2000, 0)
 		exec.Command("firefox", "https://mail.proton.me/u/11/inbox").Start()
 	}
 	commands["--twitter"] = func() {
-		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("twitter.png"), "-t", "2000", "X (Twitter)", "Opening...").Run()
+		notify.SendNotify("twitter", "X (Twitter)", "Opening...", "normal", 2000, 0)
 		exec.Command("firefox", "https://x.com/").Start()
 	}
 	commands["--crush"] = func() {
@@ -369,10 +378,10 @@ func main() {
 		cmd := exec.Command("pgrep", "-f", "crush")
 		output, _ := cmd.Output()
 		if len(strings.TrimSpace(string(output))) > 0 {
-			exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("crush.png"), "-t", "2000", "Crush AI", "Already running").Run()
+			notify.SendNotify("crush", "Crush AI", "Already running", "normal", 2000, 0)
 			return
 		}
-		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("crush.png"), "-t", "2000", "Crush AI", "Starting Crush...").Run()
+		notify.SendNotify("crush", "Crush AI", "Starting Crush...", "normal", 2000, 0)
 		exec.Command("alacritty", "--class", "crush", "--title", "Crush AI", "-e", home+"/.local/bin/crush").Start()
 	}
 	commands["--suspend"] = func() {
@@ -386,22 +395,21 @@ func main() {
 			return
 		}
 		choice := strings.TrimSpace(string(out))
-		iconPath := paths.GetIconPath("power.png")
 		switch choice {
 		case "Lock":
 			lock.Lock()
 		case "Suspend":
-			exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "2000", "Power", "Suspending...").Run()
+			notify.SendNotify("power", "Power", "Suspending...", "normal", 2000, 0)
 			lock.Lock()
 			exec.Command("doas", "zzz").Run()
 		case "Reboot":
-			exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "3000", "Power", "Rebooting...").Run()
+			notify.SendNotify("power", "Power", "Rebooting...", "normal", 3000, 0)
 			exec.Command("doas", "shutdown", "-r", "now").Run()
 		case "Shutdown":
-			exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "5000", "Power", "Shutting down...").Run()
+			notify.SendNotify("power", "Power", "Shutting down...", "normal", 5000, 0)
 			exec.Command("doas", "shutdown", "-p", "now").Run()
 		case "Logout":
-			exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "2000", "Power", "Logging out...").Run()
+			notify.SendNotify("power", "Power", "Logging out...", "normal", 2000, 0)
 			exec.Command("i3-msg", "exit").Run()
 		}
 	}
@@ -413,6 +421,9 @@ func main() {
 	}
 	commands["--polybar-setup"] = func() {
 		os.Exit(polybar.Setup())
+	}
+	commands["--dunst-setup"] = func() {
+		os.Exit(notify.Setup())
 	}
 	commands["--suspend-if-undocked"] = func() {
 		detect.SuspendIfUndocked()
@@ -489,16 +500,16 @@ func main() {
 	}
 	commands["--cpu-notify"] = func() {
 		cpuDetails := polybar.GetCPUDetails()
-		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("cpu.png"), "-t", "5000", "CPU", cpuDetails).Start()
+		notify.SendNotify("cpu", "CPU", cpuDetails, "normal", 5000, 0)
 		os.Exit(0)
 	}
 	commands["--mem-notify"] = func() {
 		memDetails := polybar.GetMemDetails()
-		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("memory.png"), "-t", "5000", "Memory", memDetails).Start()
+		notify.SendNotify("memory", "Memory", memDetails, "normal", 5000, 0)
 		os.Exit(0)
 	}
 	commands["--crypto-notify"] = func() {
-		exec.Command("/usr/local/bin/notify-send", "-i", paths.GetIconPath("chart.png"), "-t", "0", "-r", "1", "Crypto", "Loading...").Start()
+		notify.SendNotify("chart", "Crypto", "Loading...", "normal", 0, 1)
 		time.Sleep(100 * time.Millisecond)
 		if err := crypto.RunCrypto("NOTIFY_SEND"); err != nil {
 			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)

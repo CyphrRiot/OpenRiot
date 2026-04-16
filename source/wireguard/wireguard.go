@@ -1,10 +1,10 @@
 package wireguard
 
 import (
-	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
+
+	"openriot/notify"
 )
 
 const (
@@ -33,35 +33,21 @@ func Status() string {
 	return "󰅛"
 }
 
-func getHome() string {
-	home, _ := os.UserHomeDir()
-	return home
-}
-
 func Start() error {
-	home := getHome()
-	iconPath := filepath.Join(home, ".local/share/openriot/config/icons")
-	vpnIcon := filepath.Join(iconPath, "vpn.png")
-	exec.Command("/usr/local/bin/notify-send", "-i", vpnIcon, "-u", "normal", "VPN", "Starting WireGuard...").Run()
+	notify.SendNotify("wireguard", "VPN", "Starting WireGuard...", "normal", 3000, 0)
 	cmd := exec.Command("doas", "wg-quick", "up", ConfigPath)
 	return cmd.Run()
 }
 
 func Stop() error {
-	home := getHome()
-	iconPath := filepath.Join(home, ".local/share/openriot/config/icons")
-	vpnIcon := filepath.Join(iconPath, "vpn.png")
-	exec.Command("/usr/local/bin/notify-send", "-i", vpnIcon, "-u", "normal", "VPN", "Stopping WireGuard...").Run()
+	notify.SendNotify("wireguard", "VPN", "Stopping WireGuard...", "normal", 3000, 0)
 	cmd := exec.Command("doas", "wg-quick", "down", ConfigPath)
 	return cmd.Run()
 }
 
 func Toggle() error {
 	if !isConfigured() {
-		home := getHome()
-		iconPath := filepath.Join(home, ".local/share/openriot/config/icons")
-		vpnErrIcon := filepath.Join(iconPath, "vpn-error.png")
-		exec.Command("/usr/local/bin/notify-send", "-i", vpnErrIcon, "-u", "critical", "VPN", "Not configured\nGo to OpenRiot.org\nRead directions.").Run()
+		notify.SendNotify("wireguard", "VPN", "Not configured\nGo to OpenRiot.org\nRead directions.", "critical", 5000, 0)
 		return nil
 	}
 	if isRunning() {

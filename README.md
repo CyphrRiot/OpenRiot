@@ -20,7 +20,12 @@
 </div>
 
 ---
-OpenRiot is the answer to every time you've thought "Why can't an OpenBSD installation just work correctly and be usable without a hundred hours of fiddling?"
+> “I just want OpenBSD to install and actually feel like a usable desktop without 100 hours of pain.”
+So I made it.
+
+A clean, minimal, ridiculously polished i3-based OpenBSD 7.9 setup with fish, Helix, and Polybar — all tuned so things just work. No more config drama, no more obscure package fights, no more “works on Linux” copium.
+
+Install base OpenBSD 7.9 → run one script → get a fast, dark, beautiful desktop that respects OpenBSD’s strengths instead of fighting them and adds all the workflow you need to be productive as a user and a developer.
 
 - Read the [original Post on X](https://x.com/CyphrRiot/status/2039409143891837297?s=20)
 

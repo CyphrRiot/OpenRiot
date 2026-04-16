@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+
+	"openriot/notify"
 )
 
 var homeDir, _ = os.UserHomeDir()
@@ -64,7 +66,6 @@ func Run() error {
 
 	// Send launching/stopping notification
 	go func() {
-		iconPath := filepath.Join(homeDir, ".local/share/openriot/config/icons/applications.png")
 		name := entry.Name
 		msg := "Launching"
 		if strings.Contains(name, "󰭽") {
@@ -73,7 +74,7 @@ func Run() error {
 		} else if strings.Contains(name, "󰅤") {
 			name = "Transmission"
 		}
-		exec.Command("/usr/local/bin/notify-send", "-i", iconPath, "-t", "2000", "Applications", fmt.Sprintf("%s %s...", msg, name)).Run()
+		notify.SendNotify("app", "Applications", fmt.Sprintf("%s %s...", msg, name), "normal", 2000, 0)
 	}()
 
 	// Execute the command
