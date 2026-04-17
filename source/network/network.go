@@ -2,19 +2,32 @@ package network
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
+
+const connectivityFile = "network-online"
 
 func Get() string {
 	return GetWifi()
 }
 
 func GetWifi() string {
+	// Check connectivity on every call
+	CheckConnectivity()
+
 	iface, connected := getWifiInterface()
 	if !connected {
 		return "󰤯"
+	}
+
+	// Connected but no internet
+	if !IsOnline() {
+		return "󱛅"
 	}
 
 	signal := getSignal(iface)
@@ -196,4 +209,62 @@ func extractIP(output string) string {
 		}
 	}
 	return "N/A"
+}
+
+// connectivityPath returns the path to the connectivity state file
+func connectivityPath() string {
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".cache/openriot", connectivityFile)
+}
+
+// IsOnline returns true if we have confirmed internet connectivity
+func IsOnline() bool {
+	path := connectivityPath()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return false
+	}
+	// File contains timestamp of last successful ping
+	timestamp, err := time.Parse(time.RFC3339, strings.TrimSpace(string(data)))
+	if err != nil {
+		return false
+	}
+	// Consider online if ping was within last 90 seconds
+	return time.Since(timestamp) < 90*time.Second
+}
+
+// CheckConnectivity pings 8.8.8.8 and updates the connectivity state
+func CheckConnectivity() {
+	_, connected := getWifiInterface()
+	if !connected {
+		// Not connected at all - clear connectivity
+		os.Remove(connectivityPath())
+		return
+	}
+
+	// Ping with 1 packet, timeout wrapper for 3 second timeout
+	cmd := exec.Command("sh", "-c", "timeout 3 ping -c 1 8.8.8.8 >/dev/null 2>&1")
+	err := cmd.Run()
+
+	if err == nil {
+		// Success - record timestamp
+		home, _ := os.UserHomeDir()
+		dir := filepath.Join(home, ".cache/openriot")
+		os.MkdirAll(dir, 0755)
+		os.WriteFile(connectivityPath(), []byte(time.Now().Format(time.RFC3339)), 0600)
+	} else {
+		// Failed - clear connectivity file
+		os.Remove(connectivityPath())
+	}
+}
+
+// ReconnectWifi restarts the wifi interface to reconnect
+func ReconnectWifi() error {
+	iface, connected := getWifiInterface()
+	if !connected || iface == "" {
+		return fmt.Errorf("no wifi interface found")
+	}
+	// Run netstart for the interface
+	cmd := exec.Command("doas", "sh", "/etc/netstart", iface)
+	return cmd.Run()
 }

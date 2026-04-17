@@ -259,6 +259,8 @@ system:
               cmd: "doas rcctl enable apmd && doas rcctl set apmd flags -H"
             - desc: "Disable USB power saving"
               cmd: "grep -q 'hw.allowpowerdown' /etc/sysctl.conf || echo 'hw.allowpowerdown=0' | doas tee -a /etc/sysctl.conf"
+            - desc: "Disable core dumps"
+              cmd: "grep -q 'kern.coredump=0' /etc/sysctl.conf || echo 'kern.coredump=0' | doas tee -a /etc/sysctl.conf"
             - desc: "Enable sndiod (audio)"
               cmd: "doas rcctl enable sndiod"
             #- desc: "Enable and start seatd (seat management)"

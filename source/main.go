@@ -194,6 +194,20 @@ func main() {
 		}
 		notify.SendNotify(icon, "WiFi", details, "normal", 5000, 0)
 	}
+	commands["--wifi-reconnect"] = func() {
+		if network.IsOnline() {
+			notify.SendNotify("wifi", "WiFi", "Already connected", "normal", 2000, 0)
+			return
+		}
+		if !network.IsConnected() {
+			notify.SendNotify("wifi-off", "WiFi", "Not connected", "normal", 2000, 0)
+			return
+		}
+		notify.SendNotify("wifi", "WiFi", "Reconnecting...", "normal", 3000, 0)
+		if err := network.ReconnectWifi(); err != nil {
+			notify.SendNotify("wifi-off", "WiFi", "Reconnect failed: "+err.Error(), "normal", 5000, 0)
+		}
+	}
 	commands["--eth-info"] = func() {
 		details := network.GetEthDetails()
 		notify.SendNotify("ethernet", "Ethernet", details, "normal", 5000, 0)

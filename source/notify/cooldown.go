@@ -62,6 +62,13 @@ func SendNotify(iconName, title, body, urgency string, timeoutMs, replaceID int)
 	}
 
 	icon := paths.GetIconPath(iconName)
+
+	// Verify icon exists before sending notification
+	if _, err := os.Stat(icon); err != nil {
+		// Fallback to info icon if requested icon doesn't exist
+		icon = filepath.Join(filepath.Dir(icon), "info.png")
+	}
+
 	args := []string{
 		"/usr/local/bin/notify-send",
 		"-i", icon,

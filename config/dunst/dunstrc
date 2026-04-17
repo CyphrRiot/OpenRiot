@@ -9,7 +9,7 @@
     offset = (16, 42)
     scale = 0
     notification_limit = 10
-    progress_bar = true
+    progress_bar = false
     progress_bar_height = 10
     progress_bar_min_width = 150
     progress_bar_max_width = 300
