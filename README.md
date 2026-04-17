@@ -318,7 +318,7 @@ dd if=install79.img of=/dev/sdX bs=4M status=progress oflag=sync
 
 **For OpenBSD:**
 ```bash
-doas dd if=install79.img of=/dev/rsdXc bs=1M status=progress
+doas dd if=install79.img of=/dev/rsdXc bs=1M
 ```
 (Use raw disk device `/dev/rsdXc`, find with `dmesg | grep ^sd`)
 
@@ -1229,6 +1229,8 @@ If both systems edit the same file, rclone creates a conflict file (`.sync_orig`
 - Run rclone as your normal user, never root
 
 ## 📨 Signal with Gurk
+
+**Quick Overview:** [The Ultimate Signal Messenger Terminal Client Guide](https://www.blog.brightcoding.dev/2025/11/30/gurk-the-ultimate-signal-messenger-terminal-client-for-privacy-savvy-power-users-2025-guide/) — great introduction by Bright Coding.
 
 A pure-Rust Signal messenger TUI — zero Java, zero GTK/libsecret. Built for OpenBSD.
 
