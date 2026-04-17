@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="OpenRiot.png" alt="OpenRiot" width="200"/>
+<img src="OpenRiot.jpg" alt="OpenRiot" width="200"/>
 
 # :: 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥 ::
 
