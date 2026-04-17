@@ -6,5 +6,5 @@ configuration {
     display-drun: "Apps";
     display-calc: "Calc";
     terminal: "alacritty";
-    font: "FiraCode Nerd Font 14";
+    font: "FiraCode Nerd Font 18";
 }

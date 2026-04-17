@@ -524,7 +524,7 @@ func main() {
 	}
 	commands["--crypto-notify"] = func() {
 		notify.SendNotify("chart", "Crypto", "Loading...", "normal", 0, 1)
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(1 * time.Second)
 		if err := crypto.RunCrypto("NOTIFY_SEND"); err != nil {
 			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
 		}

@@ -8,7 +8,7 @@
 #
 # Usage: ./gurk.sh
 #
-# The patched binary is installed to ~/.local/bin/gurk
+# The patched binary is installed to ~/.local/share/openriot/config/bin/gurk
 
 set -e
 

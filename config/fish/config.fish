@@ -94,8 +94,8 @@ end
 # On TTY1, xenodm launches ~/.xsession which starts i3. On SSH, you get a shell.
 function fish_right_prompt
     set_color blue
-    printf "%s" (date "+%H:%M:%S")
-    set_color normal
+    # printf "%s" (date "+%H:%M:%S")
+    # set_color normal
 end
 
 # =============================================================================

@@ -1,8 +1,11 @@
 # Build artifacts
-.work/
+Build/work/
+Build/Images/
+Build/repo-cache
 isos/*.iso
 dev
 *.core
+*.img
 
 # Test images (created by make isotest)
 *.qcow2

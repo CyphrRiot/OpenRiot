@@ -13,7 +13,7 @@ OPENBSD_VERSION = 7.9
 # ============================================================
 # Targets
 # ============================================================
-.PHONY: all build linux clean deps test verify release ultra iso isotest binary-push install help
+.PHONY: all build linux clean deps test verify release ultra img isotest binary-push install help
 
 # Build only (no install) - use for testing
 all:
@@ -179,6 +179,21 @@ clean:
 	@rm -f $(SOURCE_DIR)/$(BINARY_NAME)
 	@echo "=== Clean complete ==="
 
+# Custom installer image
+# Requires OpenBSD 7.9 host - cross-compilation not possible for bsd.rd modification
+img:
+	@if [ "$$(uname -s)" != "OpenBSD" ]; then \
+		echo "ERROR: img target requires OpenBSD $(OPENBSD_VERSION)"; \
+		echo "Current: $$(uname -s) $$(uname -r)"; \
+		echo ""; \
+		echo "To build the installer image:"; \
+		echo "  1. Boot into OpenBSD $(OPENBSD_VERSION)"; \
+		echo "  2. cd to this directory"; \
+		echo "  3. ./Build/make-img.sh"; \
+		exit 1; \
+	fi
+	@doas sh -c 'cd Build && ./make-img.sh'
+
 # ISO build - DEPRECATED
 # Custom ISO is no longer needed. Use standard OpenBSD ISO + setup.sh.
 # See README.md for installation instructions.
@@ -217,7 +232,7 @@ help:
 	@echo "  linux             Build for Linux (native)"
 	@echo "  release            Version bump, commit, tag, and push"
 	@echo "  ultra              Maximum-optimized static build with optional UPX"
-	@echo "  iso                Build full bootable ISO"
+	@echo "  img                Build custom OpenBSD installer image (requires OpenBSD host)"
 	@echo "  isotest            Build ISO and run in QEMU"
 	@echo "  deps               Tidy Go module dependencies"
 	@echo "  test               Run Go tests"

@@ -2,7 +2,8 @@
 # Only shows our curated apps - no system clutter
 
 Terminal|alacritty|󰞷
-Firefox|firefox|󰈹
+Firefox|firefox|
+Firefox (Private)|firefox --private-window|
 Telegram|tdesktop.desktop|󰭹
 Helix|alacritty --class helix --title Helix -e hx|
 Text Editor|gnome-text-editor|󰷉

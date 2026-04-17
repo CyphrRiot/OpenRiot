@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.32-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.33-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -22,7 +22,9 @@
 ---
 > “I just want OpenBSD to install and actually feel like a usable desktop without 100 hours of pain.”
 
-So I built it from scratch, using everything I've learned with ArchRiot and decades of experience with OpenBSD and Linux.
+![OpenRiot Desktop](assets/screenshot.png)
+
+---
 
 OpenRiot is a clean, minimal, ridiculously polished i3-based OpenBSD 7.9 setup with fish, Helix, and Polybar — all tuned so things just work. No more config drama, no more obscure package fights, no more “works on Linux” copium.
 
@@ -39,17 +41,12 @@ Install base OpenBSD 7.9 → run one script → get a fast, dark, beautiful desk
 - **💻 Development** — Helix, shell enhancements, crush, and other upgrades
 - **💎 OpenBSD** — The most security-audited OS on the planet
 
----
-
-![OpenRiot Desktop](assets/screenshot.png)
 
 #### Built on OpenBSD.
 
 **Because compromises belong on other operating systems.**
 
-This isn’t shaped by committees, corporate roadmaps, or quarterly deliverables. It’s built and maintained by one person with an obsessive focus on doing it right the first time — because a mediocre computing environment isn’t just inconvenient. It’s an insult to what computers should be.
-
-Built on the same principles as [ArchRiot](https://ArchRiot.org) and by the same creator. If you liked ArchRiot, you'll love OpenRiot.
+Built with the same principles as [ArchRiot](https://ArchRiot.org) and by the same creator. If you liked ArchRiot, you'll love OpenRiot.
 
 ---
 
@@ -319,9 +316,18 @@ dd if=install79.img of=/dev/sdX bs=4M status=progress oflag=sync
 **For OpenBSD:**
 ```bash
 doas dd if=install79.img of=/dev/rsdXc bs=1M
+sync
 ```
 (Use raw disk device `/dev/rsdXc`, find with `dmesg | grep ^sd`)
 
+Or, for progress on OpenBSD
+
+```bash
+dmesg | grep ^sd   # get your usb sdX number
+doas pkg_add pv    # if not installed already
+pv -tpreb install79.img | doas dd of=/dev/rsdXc bs=1M
+sync
+```
 
 ### 3. Boot and install OpenBSD
 

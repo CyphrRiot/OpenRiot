@@ -8,7 +8,7 @@ core:
         packages:
             - rsync-3.4.1
             - bc-gh-7.1.0p0
-            - python-3.13.12
+            - python-3.13.13
             - fastfetch-2.60.0
             - jq-1.8.1
         configs:
@@ -23,12 +23,10 @@ core:
     shell:
         packages:
             - fish-4.6.0
-
             - alacritty-0.16.1
-            - havoc-0.7.0
             - fzf-0.71.0
             - ripgrep-15.1.0
-            - htop-3.4.1
+            - pv-1.10.5
             - btop-1.4.6
             - fd-10.4.2
             - gnupg-2.5.18
@@ -37,7 +35,6 @@ core:
         configs:
             - pattern: fish/*
               preserve_if_exists: [custom_commands.fish, ssh-agent.fish, config.fish]
-
             - pattern: btop/themes/*
             - pattern: btop/btop.conf
         depends: [core.base]
@@ -52,7 +49,6 @@ core:
               cmd: "doas chsh -s /usr/local/bin/fish $(logname)"
             - desc: "Customizing login message"
               cmd: "doas tee /etc/motd < $HOME/.local/share/openriot/install/motd"
-
 desktop:
     i3:
         packages:
@@ -87,8 +83,7 @@ desktop:
             - pattern: xsession/openriot-xsession
               target: "~/.xsession"
               # Always overwrite - this is a system config, not user customization
-            - pattern: xenodm/Xsetup_0
-              target: "/etc/X11/xenodm/Xsetup_0"
+            - cmd: "doas cp $HOME/.local/share/openriot/config/xenodm/Xsetup_0 /etc/X11/xenodm/Xsetup_0"
             - pattern: picom.conf
               target: "~/.config/picom.conf"
             - pattern: alacritty/*
@@ -119,7 +114,6 @@ desktop:
         depends: [desktop.i3]
         start: "Installing i3-auto-layout"
         end: "i3-auto-layout installed"
-
     rofi-calc:
         type: "Source"
         build:
@@ -127,7 +121,6 @@ desktop:
         depends: [desktop.i3]
         start: "Building rofi-calc from source"
         end: "rofi-calc installed"
-
     apps:
         packages:
             - firefox-149.0.2
@@ -169,11 +162,10 @@ desktop:
         commands:
             - desc: "Import gnome-text-editor dconf settings"
               cmd: "[ -n \"$DISPLAY\" ] && dconf load /org/gnome/TextEditor/ < $HOME/.config/openriot/dconf/org.gnome.TextEditor.ini || echo '[SKIP] No X11, skipping dconf'"
-
     media:
         packages:
             - mpv-0.41.0p0
-            - transmission-4.1.1
+            - transmission-4.1.1p0
         configs:
             - pattern: "transmission-daemon/settings.json"
               target: "~/.config/transmission-daemon"
@@ -183,7 +175,6 @@ desktop:
         end: "Media controls installed"
         type: "Package"
         critical: false
-
 source:
     crush:
         type: "Source"
@@ -192,7 +183,6 @@ source:
         depends: []
         start: "Installing crush AI CLI"
         end: "crush installed"
-
     bibata-cursor:
         type: "Source"
         build:
@@ -200,7 +190,6 @@ source:
         depends: [system.tools]
         start: "Installing Bibata-Modern-Ice cursor theme"
         end: "Bibata cursor installed"
-
     kora:
         type: "Source"
         build:
@@ -208,24 +197,15 @@ source:
         depends: [system.tools]
         start: "Installing Kora icon theme"
         end: "Kora icon theme installed"
-
     polybar-scaling:
         type: "Source"
         build:
             - "[ -n \"$DISPLAY\" ] && openriot --polybar-setup || echo '[SKIP] No X11, skipping polybar scaling'"
             - "[ -n \"$DISPLAY\" ] && openriot --dunst-setup || echo '[SKIP] No X11, skipping dunst scaling'"
+            - "[ -n \"$DISPLAY\" ] && (pkill -9 dunst 2>/dev/null || true) && echo '[DONE] Dunst restarted with new config'"
         depends: []
         start: "Scaling polybar and dunst configs for display"
         end: "Polybar and dunst scaled"
-
-#    stormy:
-#        type: "Source"
-#        build:
-#            - "if [ -x /usr/local/bin/stormy ]; then echo '[SKIP] stormy already installed'; else go install github.com/ashish0kumar/stormy@latest && doas mv $HOME/go/bin/stormy /usr/local/bin/stormy && doas chmod +x /usr/local/bin/stormy; fi"
-#        depends: [system.tools]
-#        start: "Installing stormy weather CLI"
-#        end: "stormy installed"
-
 fonts:
     fira-code:
         type: "Source"
@@ -242,16 +222,14 @@ system:
             - zip-3.0p3
             - wget-1.25.0p0
             - unzip-6.0p18
-            - go-1.26.1
+            - go-1.26.2
             - rclone-1.73.4
-            - age-1.3.1
             - wireguard-tools-1.0.20210914p3v0
         depends: [core.base]
         start: "Installing system tools"
         end: "System tools installed"
         type: "Package"
         critical: true
-
     services:
         type: "Package"
         commands:
