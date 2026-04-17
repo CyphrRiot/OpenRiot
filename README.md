@@ -28,7 +28,7 @@ OpenRiot is a clean, minimal, ridiculously polished i3-based OpenBSD 7.9 setup w
 
 Install base OpenBSD 7.9 → run one script → get a fast, dark, beautiful desktop that respects OpenBSD’s strengths instead of fighting them and adds all the workflow you need to be productive as a user and a developer.
 
-- Read the [original Post on X](https://x.com/CyphrRiot/status/2039409143891837297?s=20)
+- Read the [original Post on X](https://x.com/CyphrRiot/status/2043140621398127012?s=20)
 
 ### **Curated to be correct**
 
