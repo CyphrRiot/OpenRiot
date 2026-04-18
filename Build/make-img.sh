@@ -27,13 +27,13 @@ OPENRIOT_TGZ="${WORK_DIR}/openriot.tgz"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+CYAN='\033[1;36m'
+RESET='\033[0m'
 
-log() { echo "${BLUE}[INFO]${NC} $1"; }
-warn() { echo "${YELLOW}[WARN]${NC} $1"; }
-err() { echo "${RED}[ERROR]${NC} $1" >&2; }
-ok() { echo "${GREEN}[DONE]${NC} $1"; }
+log() { echo "${CYAN}[INFO]${RESET} $1"; }
+warn() { echo "${YELLOW}[WARN]${RESET} $1"; }
+err() { echo "${RED}[ERROR]${RESET} $1" >&2; }
+ok() { echo "${GREEN}[DONE]${RESET} $1"; }
 
 # ============================================================
 # Prerequisites Check
@@ -92,7 +92,7 @@ download_packages() {
 
     for pkg in $PACKAGES; do
         PKG_DONE=$((PKG_DONE + 1))
-        printf "\r${BLUE}[INFO]${NC} Downloading package %d/%d: %s" "$PKG_DONE" "$PKG_COUNT" "$pkg"
+        printf "\r${CYAN}[INFO]${RESET} Downloading package %d/%d: %s" "$PKG_DONE" "$PKG_COUNT" "$pkg"
 
         if [ -f "$PKG_DIR/${pkg}.tgz" ]; then
             continue  # Already downloaded
@@ -419,8 +419,8 @@ build_img() {
     # Find currently attached removable drives
     REMOVABLE_DRIVES=""
     for disk in $(sysctl -n hw.disknames 2>/dev/null | tr ',' '\n' | grep -oE '^(sd|wd)[0-9]+'); do
-        vendor_info=$(doas bioctl -q "$disk" 2>/dev/null || echo "")
-        label=$(doas disklabel "$disk" 2>/dev/null)
+        vendor_info=$(doas bioctl -q "$disk" 2>/dev/null || true)
+        label=$(doas disklabel "$disk" 2>/dev/null || true)
         if [ -n "$label" ]; then
             bytes_per_sec=$(echo "$label" | sed -n 's/.*bytes\/sector:[[:space:]]*\([0-9]*\).*/\1/p')
             total_sectors=$(echo "$label" | awk '/^[[:space:]]*c:/ {print $2; exit}')
@@ -442,18 +442,58 @@ ${disk}|${size_gb}|${vendor_info}"
     # Show detected drives
     if [ -n "$REMOVABLE_DRIVES" ]; then
         printf "\n"
-        printf "${YELLOW}[INFO]${NC} Removable drive(s) detected:\n"
-        echo "$REMOVABLE_DRIVES" | while IFS='|' read -r drive size vendor; do
-            if [ -n "$vendor" ]; then
-                vendor_short=$(echo "$vendor" | sed 's/.*<\([^>]*\)>.*/\1/')
-                printf "  /dev/${drive} - %5d GB  (${vendor_short})\n" "$size"
-            else
-                printf "  /dev/${drive} - %5d GB\n" "$size"
+        # Detect root drive by checking which partition is mounted as /
+        ROOT_DRIVE=""
+        for dev in /dev/sd*; do
+            if mount | grep -q "^${dev}a on / "; then
+                ROOT_DRIVE=$(basename "$dev" | sed 's/sd/sd/')
+                break
             fi
         done
-        printf "${YELLOW}[WARN]${NC} THIS WILL ERASE ALL DATA ON THE SELECTED DRIVE.\n"
+
+        # Build display and drive list without subshell issues
+        DRIVE_LIST=""
+        DISPLAY_LINES=""
+        while IFS='|' read -r drive size vendor; do
+            # Determine if root drive, system drive (OpenBSD), or removable
+            drive_short=$(echo "$drive" | sed 's|dev/||')
+            if [ "$drive_short" = "$ROOT_DRIVE" ]; then
+                prefix="${RED}[ROOT]${RESET}"
+                suffix=" [SYSTEM]"
+            elif echo "$vendor" | grep -qi "OPENBSD"; then
+                prefix="${YELLOW}[WARN]${RESET}"
+                suffix=""
+            else
+                prefix="${CYAN}[INFO]${RESET}"
+                suffix=""
+            fi
+            # Remove /dev/ prefix for display
+            if [ -n "$vendor" ]; then
+                vendor_short=$(echo "$vendor" | sed 's/.*<\([^>]*\)>.*/\1/')
+                line="${prefix} ${drive_short} - %5d GB  (${vendor_short})${suffix}"
+            else
+                line="${prefix} ${drive_short} - %5d GB${suffix}"
+            fi
+            DISPLAY_LINES="${DISPLAY_LINES}${line}|${size}|${drive_short}
+"
+            # Build drive list for prompt (exclude root)
+            if [ "$drive_short" != "$ROOT_DRIVE" ]; then
+                if [ -n "$DRIVE_LIST" ]; then
+                    DRIVE_LIST="${DRIVE_LIST}, ${drive_short}"
+                else
+                    DRIVE_LIST="${drive_short}"
+                fi
+            fi
+        done << EOF
+$REMOVABLE_DRIVES
+EOF
+        # Print all display lines
+        printf "%s\n" "$DISPLAY_LINES" | while IFS='|' read -r line size drive_short; do
+            printf "${line}\n" "$size"
+        done
+        printf "${YELLOW}[WARN]${RESET} THIS WILL ERASE ALL DATA ON THE SELECTED DRIVE.\n"
         printf "\n"
-        printf "${BLUE}[ASK ]${NC} Which drive to burn? (or 'n' to skip) "
+        printf "${CYAN}[ASK ]${RESET} Which drive to burn? (${DRIVE_LIST} or 'n' to skip) "
         read BURN_CHOICE
         case "${BURN_CHOICE}" in
             [Nn])

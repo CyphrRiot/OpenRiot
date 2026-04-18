@@ -194,7 +194,7 @@ img:
 		echo "  3. ./Build/make-img.sh"; \
 		exit 1; \
 	fi
-	@doas cd Build \&\& ./make-img.sh
+	@doas ./Build/make-img.sh
 
 # ISO build - DEPRECATED
 # Custom ISO is no longer needed. Use standard OpenBSD ISO + setup.sh.

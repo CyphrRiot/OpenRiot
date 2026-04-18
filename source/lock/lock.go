@@ -44,7 +44,7 @@ func Lock() error {
 		lockJpg := matches[rand.Intn(len(matches))]
 
 		// Notify user
-		notify.SendNotify("lock", "Screen Lock", "Screen is locking...", "normal", 2500, 0)
+		notify.SendNotify("lock", "Screen Lock", "Screen is locking...", "normal", 4000, 0)
 		time.Sleep(500 * time.Millisecond)
 
 		// Get screen resolution
