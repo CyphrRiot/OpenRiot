@@ -118,7 +118,7 @@ desktop:
     rofi-calc:
         type: "Source"
         build:
-            - "if [ -x /usr/local/lib/rofi/librofi-calc.so ]; then echo '[SKIP] rofi-calc already installed'; else rm -rf /tmp/rofi-calc && git clone https://github.com/svenstaro/rofi-calc.git /tmp/rofi-calc && cd /tmp/rofi-calc && meson setup build --prefix=/usr/local && meson compile -C build && doas meson install -C build; fi"
+            - "if [ -x /usr/local/lib/rofi/libcalc.so ]; then echo '[SKIP] rofi-calc already installed'; else rm -rf /tmp/rofi-calc && git clone https://github.com/svenstaro/rofi-calc.git /tmp/rofi-calc && cd /tmp/rofi-calc && meson setup build --prefix=/usr/local && meson compile -C build && doas meson install -C build; fi"
         depends: [desktop.i3]
         start: "Building rofi-calc from source"
         end: "rofi-calc installed"

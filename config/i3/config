@@ -6,7 +6,6 @@ set $terminal alacritty
 set $fileManager thunar
 set $browser $openriot_bin --browser
 set $editor gnome-text-editor
-set $menu $openriot_bin --rofi
 
 font pango:FiraCode Nerd Font 11
 default_border pixel 2
