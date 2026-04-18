@@ -251,3 +251,10 @@ system:
         depends: [core.base]
         start: "Configuring system services"
         end: "System services configured"
+    i3-restart:
+        type: "Source"
+        build:
+            - "[ -n \"$DISPLAY\" ] && i3-msg restart || echo '[SKIP] Not in X11 or i3 not running'"
+        depends: []
+        start: "Restarting i3 window manager"
+        end: "i3 restarted"

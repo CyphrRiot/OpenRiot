@@ -148,18 +148,26 @@ create_site() {
         (cd "$CACHE_DIR" && git fetch --depth 1 origin && git reset --hard origin/main)
         rm -rf "$REPO_DIR"
         mkdir -p "$REPO_DIR"
-        # Copy repo but exclude packages/ (we download fresh each build)
-        cp -r "$CACHE_DIR"/* "$REPO_DIR/"
-        cp -r "$CACHE_DIR"/.[!.]* "$REPO_DIR/" 2>/dev/null || true
+        # Copy repo but exclude packages/ and .git (we download fresh, don't need history)
+        for item in "$CACHE_DIR"/*; do
+            name=$(basename "$item")
+            if [ "$name" != "packages" ] && [ "$name" != ".git" ]; then
+                cp -r "$item" "$REPO_DIR/"
+            fi
+        done
     else
         # Fresh clone
         rm -rf "$REPO_DIR"
         git clone --depth 1 https://github.com/CyphrRiot/OpenRiot "$REPO_DIR"
-        # Cache for next time (exclude packages/)
+        # Cache for next time (exclude packages/ and .git)
         rm -rf "$CACHE_DIR"
         mkdir -p "$CACHE_DIR"
-        cp -r "$REPO_DIR"/* "$CACHE_DIR/"
-        cp -r "$REPO_DIR"/.[!.]* "$CACHE_DIR/" 2>/dev/null || true
+        for item in "$REPO_DIR"/*; do
+            name=$(basename "$item")
+            if [ "$name" != "packages" ] && [ "$name" != ".git" ]; then
+                cp -r "$item" "$CACHE_DIR/"
+            fi
+        done
     fi
 
     # Move install binary to standard location inside repo
@@ -301,9 +309,9 @@ cleanup_mounts() {
 # ============================================================
 expand_img() {
     # Calculate needed size: base image + tarball + 300MB buffer
-    # (base image file size != used space inside fs; 300MB guards against overhead)
+    # IMPORTANT: Use BASE_IMG, not OUTPUT_IMG (which gets modified by truncate)
     TGZ_MB=$(( $(stat -f %z "$OPENRIOT_TGZ" 2>/dev/null || stat -c %s "$OPENRIOT_TGZ") / 1048576 ))
-    BASE_MB=$(( $(stat -f %z "$OUTPUT_IMG" 2>/dev/null || stat -c %s "$OUTPUT_IMG") / 1048576 ))
+    BASE_MB=$(( $(stat -f %z "$BASE_IMG" 2>/dev/null || stat -c %s "$BASE_IMG") / 1048576 ))
     NEEDED_MB=$(( BASE_MB + TGZ_MB + 300 ))
     log "Expanding image to ${NEEDED_MB}MB (${BASE_MB}MB base + ${TGZ_MB}MB tarball + 300MB buffer)..."
 
@@ -411,9 +419,7 @@ build_img() {
     # Find currently attached removable drives
     REMOVABLE_DRIVES=""
     for disk in $(sysctl -n hw.disknames 2>/dev/null | tr ',' '\n' | grep -oE '^(sd|wd)[0-9]+'); do
-        # Get vendor/product info via bioctl
         vendor_info=$(doas bioctl -q "$disk" 2>/dev/null || echo "")
-        # Get size from disklabel
         label=$(doas disklabel "$disk" 2>/dev/null)
         if [ -n "$label" ]; then
             bytes_per_sec=$(echo "$label" | sed -n 's/.*bytes\/sector:[[:space:]]*\([0-9]*\).*/\1/p')
@@ -421,19 +427,21 @@ build_img() {
             if [ -n "$bytes_per_sec" ] && [ -n "$total_sectors" ] && [ "$bytes_per_sec" -gt 0 ]; then
                 total_bytes=$((total_sectors * bytes_per_sec))
                 size_gb=$((total_bytes / 1073741824))
-                if [ -n "$REMOVABLE_DRIVES" ]; then
-                    REMOVABLE_DRIVES="${REMOVABLE_DRIVES}\n${disk}|${size_gb}|${vendor_info}"
-                else
-                    REMOVABLE_DRIVES="${disk}|${size_gb}|${vendor_info}"
+                if [ "$size_gb" -gt 0 ]; then
+                    if [ -n "$REMOVABLE_DRIVES" ]; then
+                        REMOVABLE_DRIVES="${REMOVABLE_DRIVES}
+${disk}|${size_gb}|${vendor_info}"
+                    else
+                        REMOVABLE_DRIVES="${disk}|${size_gb}|${vendor_info}"
+                    fi
                 fi
             fi
         fi
     done
 
-    # Offer to burn if removable drives found
+    # Show detected drives
     if [ -n "$REMOVABLE_DRIVES" ]; then
         printf "\n"
-        printf "${YELLOW}[WARN]${NC} Removable drive(s) detected:\n"
         printf "${YELLOW}[INFO]${NC} Removable drive(s) detected:\n"
         echo "$REMOVABLE_DRIVES" | while IFS='|' read -r drive size vendor; do
             if [ -n "$vendor" ]; then

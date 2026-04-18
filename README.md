@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.37-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.38-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -1383,6 +1383,32 @@ doas vi /etc/myname
     # Verify connection
     ifconfig iwm0
     ping -c 3 cdn.openbsd.org
+    ```
+
+### Mouse freezes or jitters
+
+If the mouse hangs after idle, then jitters/glitches when moved:
+
+1. **Check for USB conflicts:**
+    ```bash
+    # List all USB devices and their controllers
+    usbdevs -v
+
+    # Check if mouse and other devices share the same USB bus
+    dmesg | grep -E '^(uhub|usb).*port'
+
+    # View detailed USB tree
+    usbdevs -d
+    ```
+
+2. **Common fixes:**
+    - Move devices to different USB ports/controllers
+    - Avoid using the same USB hub for mouse + network adapter
+    - Check `dmesg` for USB errors: `dmesg | grep -i usb`
+
+3. **Verify mouse detection:**
+    ```bash
+    wsconsctl -m
     ```
 
 ### i3 won't start
