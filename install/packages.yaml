@@ -60,7 +60,7 @@ desktop:
             - xautolock-2.2
             - polybar-3.7.2
             - rofi-1.7.9.1
-            - scrot-1.12.1
+            - maim-5.8.1p0
             - feh-3.12.1
             - picom-13
             - xclip-0.13p1

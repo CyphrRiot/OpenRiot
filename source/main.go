@@ -23,6 +23,7 @@ import (
 	"openriot/polybar"
 	"openriot/battery"
 	"openriot/rofi"
+	"openriot/screenshot"
 	"openriot/weather"
 	"openriot/workspace"
 	"openriot/workspaceicons"
@@ -437,6 +438,15 @@ func main() {
 	commands["--suspend-if-undocked"] = func() {
 		detect.SuspendIfUndocked()
 	}
+	commands["--screenshot"] = func() {
+		// --screenshot with no args = full screen
+		// --screenshot select = area selection
+		selectArea := len(os.Args) >= 3 && os.Args[2] == "select"
+		if err := screenshot.Run(selectArea); err != nil {
+			fmt.Fprintf(os.Stderr, "Screenshot failed: %v\n", err)
+			os.Exit(1)
+		}
+	}
 
 	// Dispatch Section 5 commands
 	if len(os.Args) >= 2 {
@@ -637,6 +647,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "  --rofi            Show app launcher\n")
 	fmt.Fprintf(os.Stderr, "  --lock            Lock the screen\n")
 	fmt.Fprintf(os.Stderr, "  --suspend         Suspend the system\n")
+	fmt.Fprintf(os.Stderr, "  --screenshot [select]  Take screenshot (use 'select' for area)\n")
 	fmt.Fprintf(os.Stderr, "  --power-menu       Show power menu\n")
 	fmt.Fprintf(os.Stderr, "  --volume <args>    Adjust volume\n")
 	fmt.Fprintf(os.Stderr, "  --brightness <args> Adjust brightness\n")
