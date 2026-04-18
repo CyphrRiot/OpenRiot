@@ -1,11 +1,12 @@
 # OpenRiot i3 Config — OpenBSD X11
 
 set $mod Mod4
+set $openriot_bin $HOME/.local/share/openriot/install/openriot
 set $terminal alacritty
 set $fileManager thunar
-set $browser $HOME/.local/share/openriot/install/openriot --browser
+set $browser $openriot_bin --browser
 set $editor gnome-text-editor
-set $menu $HOME/.local/share/openriot/install/openriot --rofi
+set $menu $openriot_bin --rofi
 
 font pango:FiraCode Nerd Font 11
 default_border pixel 2
@@ -32,14 +33,14 @@ include keybindings.conf
 # =============================================================================
 
 # Status bar - generate scaled config, then launch polybar
-exec --no-startup-id $HOME/.local/share/openriot/install/openriot --polybar-setup
+exec --no-startup-id $openriot_bin --polybar-setup
 exec --no-startup-id polybar main
 exec --no-startup-id sh -c 'sleep 10; while true; do pgrep polybar >/dev/null || polybar main; sleep 5; done'
 
 # Wallpaper
-exec --no-startup-id $HOME/.local/share/openriot/install/openriot --wallpaper-load
+exec --no-startup-id $openriot_bin --wallpaper-load
 
-# Compositor - watchdog for crash recovery
+# Compositor - runs picom synchronously; loop restarts it if it crashes
 exec --no-startup-id sh -c 'while true; do pgrep picom >/dev/null || picom --config $HOME/.local/share/openriot/config/picom.conf --backend glx; sleep 5; done'
 
 # Notifications - watchdog starts dunst on first notification

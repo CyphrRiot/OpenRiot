@@ -3,11 +3,14 @@ package installer
 import (
 	"fmt"
 	"os/exec"
+
+	"openriot/config"
 )
 
-// InstallPackages installs packages using pkg_add with doas
+// InstallPackages installs packages using pkg_add with doas.
+// On snapshot systems, -D snapshot is passed to pkg_add.
 // Returns (failedCount, error)
-func InstallPackages(packages []string) (int, error) {
+func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 	if len(packages) == 0 {
 		return 0, nil
 	}
@@ -25,14 +28,20 @@ func InstallPackages(packages []string) (int, error) {
 		return 0, nil
 	}
 
-	fmt.Printf("%s[INFO]%s Installing %d packages (%d new, %d already installed)...\n", Blue, Reset, len(packages), len(toInstall), len(packages)-len(toInstall))
+	fmt.Printf("%s[INFO]%s Installing %d packages (%d new, %d already installed)...\n", Cyan, Reset, len(packages), len(toInstall), len(packages)-len(toInstall))
 
 	failed := 0
 	for _, pkg := range toInstall {
-		fmt.Printf("%s[INFO]%s Installing %s...\n", Blue, Reset, pkg)
+		fmt.Printf("%s[INFO]%s Installing %s...\n", Cyan, Reset, pkg)
 
-		// Use doas for root privileges, -D snapshot to use snapshots
-		cmd := exec.Command("doas", "pkg_add", "-D", "snapshot", pkg)
+		// Build pkg_add command: use -D snapshot only for snapshot systems
+		installCmd := []string{"doas", "pkg_add"}
+		if cfg.IsSnapshot() {
+			installCmd = append(installCmd, "-D", "snapshot")
+		}
+		installCmd = append(installCmd, pkg)
+
+		cmd := exec.Command(installCmd[0], installCmd[1:]...)
 		output, err := cmd.CombinedOutput()
 
 		if err != nil {

@@ -4,7 +4,6 @@
 # Usage:
 #   curl -fsSL https://openriot.org/setup.sh | sh     # auto-detect
 #   curl -fsSL https://openriot.org/setup.sh | sh -s -- --install   # fresh install
-#   curl -fsSL https://openriot.org/setup.sh | sh -s -- --upgrade   # upgrade
 
 # NOTE: set -e removed - install_packages continues on individual pkg failures
 
@@ -17,9 +16,21 @@ NC='\033[0m' # No Color
 
 # Configuration
 OPENBSD_MIN_VERSION="7.9"
+
+# Target OpenBSD branch: "snapshots" for -current, or release version like "7.9", "8.0"
+OPENBSD_BRANCH="snapshots"
+
+CDN_BRANCH="$OPENBSD_BRANCH"
+if [ "$OPENBSD_BRANCH" = "snapshots" ]; then
+    INSTALLURL="https://cdn.openbsd.org/pub/OpenBSD"
+    PKG_ADD_FLAGS="-D snapshot"
+else
+    INSTALLURL="https://cdn.openbsd.org/pub/OpenBSD"
+    PKG_ADD_FLAGS=""
+fi
+
 REPO_URL="${REPO_URL:-https://github.com/CyphrRiot/OpenRiot}"
 CONFIG_BRANCH="${CONFIG_BRANCH:-main}"
-INSTALLURL="${INSTALLURL:-https://cdn.openbsd.org/pub/OpenBSD}"
 REMOTE_VERSION_URL="${REMOTE_VERSION_URL:-https://openriot.org/VERSION}"
 # Detect actual user home (HOME may be wrong under doas/sudo)
 REAL_USER=$(id -un 2>/dev/null || echo "$USER")
@@ -181,7 +192,7 @@ install_bootstrap_packages() {
         info "git already installed"
     else
         info "Installing git..."
-        doas pkg_add -D snapshot git
+        doas pkg_add $PKG_ADD_FLAGS git
     fi
     git config --global pull.rebase true
     git config --global init.defaultBranch master
@@ -252,9 +263,8 @@ run_install_packages() {
 }
 
 usage() {
-    echo "Usage: setup.sh [--install | --upgrade | --show-log | --share-log | --help]"
+    echo "Usage: setup.sh [--install | --show-log | --share-log | --help]"
     echo "  --install   Fresh install (default)"
-    echo "  --upgrade   Upgrade if newer version available"
     echo "  --show-log  Display the installation log"
     echo "  --share-log Share latest log file at tmpfiles.org"
     echo "  --help      Show this message"
@@ -266,14 +276,12 @@ usage() {
 # -----------------------------------------------------------------------------
 
 main() {
-    MODE="install"
     SPECIAL_MODE=""
 
     # Parse arguments
     for arg in "$@"; do
         case "$arg" in
-            --install) MODE="install" ;;
-            --upgrade) MODE="upgrade" ;;
+            --install) FORCE_INSTALL=1 ;;
             --share-log)
                 SPECIAL_MODE="share-log"
                 share_log "${2:-}"
@@ -319,8 +327,7 @@ main() {
             return
         fi
         info "Installing X11 file sets..."
-        # Using snapshots URL - X11 sets aren't in releases yet for new version
-        AMD64_PATH="https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64"
+        AMD64_PATH="https://cdn.openbsd.org/pub/OpenBSD/${CDN_BRANCH}/amd64"
         cd /tmp
         VER_NUM=$(uname -r | sed 's/\.//' | sed 's/-.*//')
         for set in xbase xfont xserv xshare; do
@@ -334,7 +341,7 @@ main() {
     }
     install_x11_sets
 
-    run_install_packages
+    run_install_packages || { error "Package installation failed"; exit 1; }
     run_openriot_install
 
     # Enable xenodm for automatic X11 login on boot

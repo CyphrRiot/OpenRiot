@@ -246,14 +246,9 @@ func main() {
 
 	commands["--proton-drive-sync"] = func() {
 		if polybar.IsProtonDriveConfigured() {
-			state := polybar.CheckProtonDriveSyncState()
-			if state == "synced" {
-				notify.SendNotify("proton-drive", "Proton Drive", "Already Synced ✓", "normal", 2000, 0)
-			} else {
-				notify.SendNotify("proton-drive", "Proton Drive", "Syncing...", "normal", 2000, 0)
-				cmd := `echo "Proton Drive is now syncing... be patient..."; rclone bisync ~/ProtonSync proton:ProtonSync --resync --progress; printf "\nDone. Press Enter to close..."; read -r ans`
-				exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
-			}
+			notify.SendNotify("proton-drive", "Proton Drive", "Syncing...", "normal", 2000, 0)
+			cmd := `printf "Proton Drive Sync\nFrom: ~/ProtonDrive -> Proton Drive Cloud\n\nWould you like to do a bi-directional Sync or one-way\n  and replace items in the Cloud with local items?\n\n[Y]es for bi-directional sync (or ENTER),\n[O]ne-way for One-Way sync or\n[Q]uit or [N]o ?\n\nChoose your adventure [Y/o/q/n] -> "; read -r ans; case "$ans" in o|O) echo "One-way sync selected..."; rclone copy ~/ProtonSync proton:ProtonSync --progress; printf "\nDone. Press Enter to close..."; read -r ans ;; [yY]|"") echo "Bi-directional sync selected..."; rclone bisync ~/ProtonSync proton:ProtonSync --resync --progress; printf "\nDone. Press Enter to close..."; read -r ans ;; *) echo "Canceled."; sleep 1 ;; esac`
+			exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
 		} else {
 			notify.SendNotify("proton-drive", "Proton Drive", "Not configured\nSee OpenRiot.org for setup info", "critical", 5000, 0)
 		}
@@ -676,19 +671,23 @@ func runInstall() {
 		os.Exit(1)
 	}
 
+	// Step 0: Package installation
+	fmt.Printf("%s[INFO]%s Installing packages...\n", installer.Cyan, installer.Reset)
+	installer.RunInstallPackages()
+
 	// Step 1: Config deployment
 	if err := installer.CopyConfigs(repoDir, cfg, testMode); err != nil {
 		fmt.Printf("%s[WARN]%s  Config deployment skipped: %v\n", installer.Yellow, installer.Reset, err)
 	}
 
 	// Step 2: Command execution
-	fmt.Printf("%s[INFO]%s Running post-install commands...\n", installer.Blue, installer.Reset)
+	fmt.Printf("%s[INFO]%s Running post-install commands...\n", installer.Cyan, installer.Reset)
 	if err := installer.ExecCommands(cfg, testMode); err != nil {
 		fmt.Printf("%s[WARN]%s Some commands failed: %v\n", installer.Yellow, installer.Reset, err)
 	}
 
 	// Step 3: Source builds (crush, wlsunset, bibata-cursor, etc.)
-	fmt.Printf("%s[INFO]%s Running source builds...\n", installer.Blue, installer.Reset)
+	fmt.Printf("%s[INFO]%s Running source builds...\n", installer.Cyan, installer.Reset)
 	if err := installer.SourceBuilds(cfg, testMode); err != nil {
 		fmt.Printf("[WARN] Source builds: %v\n", err)
 	}

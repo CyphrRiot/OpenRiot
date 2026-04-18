@@ -3,6 +3,8 @@
 # Only includes packages that exist in OpenBSD packages/
 # Base system packages (doas, less, man, etc.) are NOT listed
 
+openbsd_version: "snapshots"
+
 core:
     base:
         packages:
@@ -34,7 +36,7 @@ core:
             - ninja-1.11.1p1v1
         configs:
             - pattern: fish/*
-              preserve_if_exists: [custom_commands.fish, ssh-agent.fish, config.fish]
+              preserve_if_exists: [custom_commands.fish, ssh-agent.fish]
             - pattern: btop/themes/*
             - pattern: btop/btop.conf
         depends: [core.base]
@@ -83,7 +85,6 @@ desktop:
             - pattern: xsession/openriot-xsession
               target: "~/.xsession"
               # Always overwrite - this is a system config, not user customization
-            - cmd: "doas cp $HOME/.local/share/openriot/config/xenodm/Xsetup_0 /etc/X11/xenodm/Xsetup_0"
             - pattern: picom.conf
               target: "~/.config/picom.conf"
             - pattern: alacritty/*

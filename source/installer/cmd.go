@@ -50,7 +50,7 @@ func RunInstallPackages() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%s[INFO]%s Installing packages from packages.yaml (safe one-by-one mode)...\n", Blue, Reset)
+	fmt.Printf("%s[INFO]%s Installing packages from packages.yaml (safe one-by-one mode)...\n", Cyan, Reset)
 
 	packages := cfg.GetPackages()
 	if len(packages) == 0 {
@@ -58,7 +58,7 @@ func RunInstallPackages() {
 		os.Exit(1)
 	}
 
-	failed, _ := InstallPackages(packages)
+	failed, _ := InstallPackages(cfg, packages)
 	if failed > 0 {
 		os.Exit(1)
 	}
@@ -66,8 +66,12 @@ func RunInstallPackages() {
 
 // RunCheckPackages verifies packages.yaml versions against installed
 func RunCheckPackages() {
-	// Use repo path (not installed path)
-	configPath := "install/packages.yaml"
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERR!] Could not determine home directory: %v\n", err)
+		os.Exit(1)
+	}
+	configPath := filepath.Join(homeDir, ".local", "share", "openriot", "install", "packages.yaml")
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
@@ -110,8 +114,12 @@ func RunCheckPackages() {
 
 // RunSyncPackages updates packages.yaml to latest installed versions
 func RunSyncPackages() {
-	// Use repo path (not installed path)
-	configPath := "install/packages.yaml"
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERR!] Could not determine home directory: %v\n", err)
+		os.Exit(1)
+	}
+	configPath := filepath.Join(homeDir, ".local", "share", "openriot", "install", "packages.yaml")
 
 	// Get installed packages
 	installed := GetInstalledPackages()
@@ -171,7 +179,10 @@ func GetInstalledPackages() map[string]string {
 	cmd := exec.Command("pkg_info", "-a")
 	output, err := cmd.Output()
 	if err != nil {
-		return nil
+		// Return empty map instead of nil to distinguish from "no packages installed"
+		// Callers check len() == 0 which works for both, but we lose the error context
+		// Use empty map so downstream len() check works consistently
+		return make(map[string]string)
 	}
 
 	packages := make(map[string]string)

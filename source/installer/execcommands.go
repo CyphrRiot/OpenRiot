@@ -22,12 +22,12 @@ func ExecCommands(cfg *config.Config, dryRun bool) error {
 
 			// Log the command
 			if dryRun {
-				fmt.Printf("%s[INFO]%s [DRY RUN] %s\n", Blue, Reset, entry.Desc)
+				fmt.Printf("%s[INFO]%s [DRY RUN] %s\n", Cyan, Reset, entry.Desc)
 				continue
 			}
 
 			// Show command being run
-			fmt.Printf("%s[INFO]%s Running: %s\n", Blue, Reset, entry.Desc)
+			fmt.Printf("%s[INFO]%s Running: %s\n", Cyan, Reset, entry.Desc)
 
 			// Execute the command
 			execCmd := exec.Command("/bin/sh", "-c", entry.Cmd)

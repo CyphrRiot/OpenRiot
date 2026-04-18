@@ -30,7 +30,7 @@ window.thunar {
 /* Thunar sidebar selected items */
 .thunar sidebar row:selected,
 .thunar .sidebar row:selected {
-    background-color: #7aa2f7;
+    background-color: #bb9af7;
     color: #0f1016;
 }
 
@@ -66,7 +66,7 @@ window.thunar {
 
 .thunar headerbar button:active,
 .thunar toolbar button:active {
-    background-color: #7aa2f7;
+    background-color: #bb9af7;
     color: #0f1016;
 }
 
@@ -91,7 +91,7 @@ window.thunar {
 }
 
 .thunar pathbar button:active {
-    background-color: #7aa2f7;
+    background-color: #bb9af7;
     color: #0f1016;
 }
 
@@ -144,7 +144,7 @@ window.thunar {
 
 .thunar menu menuitem:hover,
 .thunar .menu menuitem:hover {
-    background-color: #7aa2f7;
+    background-color: #bb9af7;
     color: #0f1016;
 }
 
@@ -163,7 +163,7 @@ entry {
 }
 
 entry:focus {
-    border-color: #7aa2f7;
+    border-color: #bb9af7;
     box-shadow: 0 0 3px rgba(122, 162, 247, 0.3);
 }
 
@@ -181,7 +181,7 @@ button:hover {
 }
 
 button:active {
-    background-color: #7aa2f7;
+    background-color: #bb9af7;
     color: #0f1016;
 }
 
@@ -195,7 +195,7 @@ tooltip {
 
 /* Progress bars */
 progressbar progress {
-    background-color: #7aa2f7;
+    background-color: #bb9af7;
 }
 
 progressbar trough {
@@ -226,7 +226,7 @@ listview {
 .thunar rubberband,
 rubberband {
     background-color: rgba(122, 162, 247, 0.2);
-    border: 1px solid #7aa2f7;
+    border: 1px solid #bb9af7;
     color: transparent;
 }
 
@@ -245,7 +245,7 @@ iconview .rubberband,
 treeview .rubberband,
 flowbox .rubberband {
     background-color: rgba(122, 162, 247, 0.2);
-    border: 1px solid #7aa2f7;
+    border: 1px solid #bb9af7;
     border-radius: 2px;
     opacity: 0.8;
 }
@@ -257,31 +257,57 @@ selection,
     border: 1px solid rgba(122, 162, 247, 0.6);
 }
 
-/* File browser selection highlighting - use system defaults */
+/* File browser selection highlighting */
 treeview:selected,
 iconview:selected,
 listview row:selected {
-    background-color: @selected_bg_color;
-    color: @selected_fg_color;
+    background-color: #bb9af7;
+    color: #0f1016;
+    border: 2px solid #c0caf5;
+    border-radius: 6px;
 }
 
-/* Thunar specific selection without breaking system highlighting */
+/* Thunar specific selection - full cell highlight for icon view */
 .thunar .view:selected {
-    background-color: @selected_bg_color;
-    color: @selected_fg_color;
+    background-color: #bb9af7;
+    color: #0f1016;
+}
+
+/* Thunar iconview - highlight entire cell including icon */
+.thunar iconview cell:selected,
+.thunar iconview cell:selected:focus {
+    background-color: #bb9af7;
+    background-image: none;
+    color: #0f1016;
+    border: none;
+    border-radius: 6px;
+    padding: 4px;
+    box-shadow: none;
+}
+
+/* Icon image inside selected cell */
+.thunar iconview cell:selected image,
+.thunar iconview cell:selected:focus image {
+    background-color: transparent;
+}
+
+/* Selected items in unfocused windows */
+.thunar .view:selected:backdrop {
+    background-color: #bb9af7;
+    color: #0f1016;
 }
 
 /* Thunar iconview selected items - ensure visible when focused/unfocused */
 .thunar iconview cell:selected,
 .thunar iconview cell:selected:focus {
-    background-color: #7aa2f7;
+    background-color: #bb9af7;
     color: #0f1016;
     text-shadow: none;
 }
 
 /* Selected items in unfocused windows - prevent black icons */
 .thunar iconview:selected:not(:focus) {
-    background-color: #7aa2f7;
+    background-color: #bb9af7;
     color: #0f1016;
 }
 
@@ -293,23 +319,46 @@ listview row:selected {
 
 /* Thunar selection when window is unfocused (backdrop state) */
 .thunar .view:selected:backdrop {
-    background-color: #7aa2f7;
+    background-color: #bb9af7;
     color: #0f1016;
 }
 
 .thunar iconview:selected:backdrop {
-    background-color: #7aa2f7;
+    background-color: #bb9af7;
     color: #0f1016;
 }
 
 .thunar iconview cell:selected:backdrop {
-    background-color: #7aa2f7;
+    background-color: #bb9af7;
+    background-image: none;
 }
-.thunar iconview cell:selected:backdrop * {
-    color: inherit;
-    background-color: transparent;
-    -gtk-icon-source: none;
+
+/* CRITICAL: Prevent black icons when Thunar window loses focus */
+.thunar iconview cell:selected:backdrop image,
+.thunar iconview cell:selected:backdrop image:empty {
     -gtk-icon-effect: none;
-    opacity: 1;
+    filter: none !important;
+    opacity: 1 !important;
+    background-color: transparent;
+}
+
+/* Force icon visibility in backdrop selection */
+window.thunar iconview.view.cell:selected:backdrop {
+    color: #0f1016;
+    background-color: #bb9af7;
+    text-shadow: none;
+    -gtk-icon-effect: none;
+}
+
+window.thunar iconview.view.cell:selected:backdrop image {
+    -gtk-icon-effect: none;
     filter: none;
+    opacity: 1;
+}
+
+/* Fallback for any remaining icon darkening */
+.thunar iconview.view:selected:backdrop image {
+    -gtk-icon-effect: none !important;
+    filter: none !important;
+    opacity: 1 !important;
 }

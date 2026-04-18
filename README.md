@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.33-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-1.34-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -754,7 +754,9 @@ The script automatically detects:
 - Older version → upgrade (git pull + re-run)
 - Same version → config refresh only
 
-All package installation uses `pkg_add -D snapshot` — fresh packages from OpenBSD snapshots are always fetched from the CDN.
+> **Note:** Upgrade also updates OpenBSD packages to the latest stable versions via `pkg_add -u`. This applies to both the Polybar upgrade click and `curl -fsSL https://openriot.org/setup.sh | sh`.
+
+Package installation uses `pkg_add -D snapshot` only when running OpenBSD -current (snapshots). For stable releases (e.g., 7.9, 8.0), packages are fetched from the release CDN without the snapshot flag.
 
 <a id="advanced-usage"></a>
 

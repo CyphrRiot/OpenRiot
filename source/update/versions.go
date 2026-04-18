@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // GetLocalVersion reads the local VERSION file
@@ -25,7 +26,8 @@ func GetLocalVersion() string {
 
 // GetRemoteVersion fetches VERSION from openriot.org
 func GetRemoteVersion() string {
-	resp, err := http.Get("https://openriot.org/VERSION")
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Get("https://openriot.org/VERSION")
 	if err != nil {
 		return "unknown"
 	}

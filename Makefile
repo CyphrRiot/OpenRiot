@@ -53,7 +53,8 @@ linux:
 
 # Release build with versioning
 release:
-	@echo "Building binary..."; make; \
+	@echo "Syncing packages.yaml to latest installed versions..."; ./install/openriot --sync-packages || true; \
+	echo "Building binary..."; make; \
 	OPENRIOT_VERSION=`cat VERSION` && \
 	CURRENT_BRANCH=`git branch --show-current` && \
 	echo "Current version: v$$OPENRIOT_VERSION"; \
@@ -83,13 +84,14 @@ release:
 	if [ -n "$(DRYRUN)" ]; then \
 		echo "=== DRY RUN - No changes made ==="; \
 		echo "Would do:"; \
-		echo "  1. Build binary"; \
-		echo "  2. Update VERSION to $$NEW_VERSION"; \
-		echo "  3. Update README.md badge to v$$NEW_VERSION"; \
-		echo "  4. git add -A (all changes)"; \
-		echo "  5. git commit (opens Helix editor)"; \
-		echo "  6. git tag 'v$$NEW_VERSION'"; \
-		echo "  7. Push (if confirmed)"; \
+		echo "  1. Sync packages.yaml to latest installed"; \
+		echo "  2. Build binary"; \
+		echo "  3. Update VERSION to $$NEW_VERSION"; \
+		echo "  4. Update README.md badge to v$$NEW_VERSION"; \
+		echo "  5. git add -A (all changes)"; \
+		echo "  6. git commit (opens Helix editor)"; \
+		echo "  7. git tag 'v$$NEW_VERSION'"; \
+		echo "  8. Push (if confirmed)"; \
 	else \
 		echo "Updating VERSION..."; \
 		echo $$NEW_VERSION > VERSION; \

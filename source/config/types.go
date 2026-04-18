@@ -1,7 +1,13 @@
 package config
 
+import (
+	"os/exec"
+	"strings"
+)
+
 // Config represents the YAML structure from packages.yaml
 type Config struct {
+	OpenBSDVersion string            `yaml:"openbsd_version"`
 	Core    map[string]Module `yaml:"core"`
 	System  map[string]Module `yaml:"system"`
 	Desktop map[string]Module `yaml:"desktop"`
@@ -35,4 +41,33 @@ type ConfigRule struct {
 	Pattern          string   `yaml:"pattern"`
 	Target           string   `yaml:"target,omitempty"`
 	PreserveIfExists []string `yaml:"preserve_if_exists,omitempty"`
+}
+
+// DetectOpenBSDVersion detects the running OpenBSD version.
+// Returns "snapshots" if running -current/-snap, otherwise returns the version string (e.g., "7.9").
+func DetectOpenBSDVersion() string {
+	cmd := exec.Command("uname", "-r")
+	output, err := cmd.Output()
+	if err != nil {
+		return "snapshots"
+	}
+	version := strings.TrimSpace(string(output))
+	if strings.Contains(version, "current") || strings.Contains(version, "snap") {
+		return "snapshots"
+	}
+	return version
+}
+
+// ResolveOpenBSDVersion returns the configured openbsd_version if set,
+// otherwise detects the running version automatically.
+func (c *Config) ResolveOpenBSDVersion() string {
+	if c.OpenBSDVersion != "" {
+		return c.OpenBSDVersion
+	}
+	return DetectOpenBSDVersion()
+}
+
+// IsSnapshot returns true if the target is the -snapshots repository.
+func (c *Config) IsSnapshot() bool {
+	return c.ResolveOpenBSDVersion() == "snapshots"
 }

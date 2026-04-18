@@ -24,7 +24,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 	configSourceDir := filepath.Join(repoDir, "config")
 	configDir := filepath.Join(homeDir, ".config")
 
-	fmt.Printf("%s[INFO]%s Deploying configuration files...\n", Blue, Reset)
+	fmt.Printf("%s[INFO]%s Deploying configuration files...\n", Cyan, Reset)
 
 	// Create ~/.config if it doesn't exist
 	if err := os.MkdirAll(configDir, 0755); err != nil {
@@ -119,7 +119,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 
 				// Copy file
 				if dryRun {
-					fmt.Printf("%s[INFO]%s [DRY-RUN] Would copy %s -> %s\n", Blue, Reset, relPath, destPath)
+					fmt.Printf("%s[INFO]%s [DRY-RUN] Would copy %s -> %s\n", Cyan, Reset, relPath, destPath)
 				} else if err := copyFilePreserve(srcPath, destPath); err != nil {
 					fmt.Printf("%s[WARN]%s Failed to copy %s: %v\n", Yellow, Reset, srcPath, err)
 					return nil
@@ -174,7 +174,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 
 			// Copy file
 			if dryRun {
-				fmt.Printf("%s[INFO]%s [DRY-RUN] Would copy %s -> %s\n", Blue, Reset, rule.Pattern, destPath)
+				fmt.Printf("%s[INFO]%s [DRY-RUN] Would copy %s -> %s\n", Cyan, Reset, rule.Pattern, destPath)
 			} else if err := copyFilePreserve(srcPath, destPath); err != nil {
 				fmt.Printf("%s[WARN]%s Failed to copy %s: %v\n", Yellow, Reset, rule.Pattern, err)
 				continue

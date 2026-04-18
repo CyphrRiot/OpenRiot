@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -47,7 +46,7 @@ func Get() string {
 		return unknownIcon
 	}
 
-	if compareVersions(local, remote) < 0 {
+	if CompareVersions(local, remote) < 0 {
 		return updateIcon
 	}
 	return noUpdateIcon
@@ -63,7 +62,7 @@ func Click() error {
 		return nil
 	}
 
-	if compareVersions(local, cached) < 0 {
+	if CompareVersions(local, cached) < 0 {
 		// Update available - notify then launch upgrade confirmation
 		notify.SendNotify("upgrade", "Desktop", fmt.Sprintf("v%s - Update available!", cached), "normal", 3000, 0)
 		cmd := `printf "You are about to upgrade OpenRiot... are you sure? [Y/n] "; read -r ans; case "$ans" in [yY]|"") curl -fsSL https://openriot.org/setup.sh | sh ;; *) echo "Canceled."; sleep 1 ;; esac`
@@ -87,7 +86,8 @@ func getLocalVersion() string {
 }
 
 func getRemoteVersion() string {
-	resp, err := http.Get("https://openriot.org/VERSION")
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Get("https://openriot.org/VERSION")
 	if err != nil {
 		return "unknown"
 	}
@@ -107,37 +107,13 @@ func getRemoteVersionWithCache() string {
 	return remote
 }
 
-// compareVersions compares two semantic versions (a vs b)
-// Returns: 1 if a > b, 0 if a == b, -1 if a < b
-func compareVersions(a, b string) int {
-	partsA := strings.Split(a, ".")
-	partsB := strings.Split(b, ".")
-
-	for i := 0; i < 3; i++ {
-		var vA, vB int
-		if i < len(partsA) {
-			vA, _ = strconv.Atoi(partsA[i])
-		}
-		if i < len(partsB) {
-			vB, _ = strconv.Atoi(partsB[i])
-		}
-		if vA > vB {
-			return 1
-		}
-		if vA < vB {
-			return -1
-		}
-	}
-	return 0
-}
-
 // GetWithTimeout returns icon with specified timeout for remote check
 func GetWithTimeout(timeout time.Duration) string {
 	local := getLocalVersion()
 	remote := readCacheVersion()
 
 	if remote != "" {
-		if compareVersions(local, remote) < 0 {
+		if CompareVersions(local, remote) < 0 {
 			return updateIcon
 		}
 		return noUpdateIcon
@@ -152,7 +128,7 @@ func GetWithTimeout(timeout time.Duration) string {
 	case remote := <-done:
 		if local == "unknown" || remote == "unknown" {
 			return unknownIcon
-		} else if compareVersions(local, remote) < 0 {
+		} else if CompareVersions(local, remote) < 0 {
 			return updateIcon
 		} else {
 			return noUpdateIcon
