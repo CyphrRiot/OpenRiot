@@ -98,6 +98,9 @@ download_packages() {
             continue  # Already downloaded
         fi
 
+        # Remove old versions of this package (e.g., tdesktop-6.7.5.tgz before downloading 6.7.6)
+        rm -f "$PKG_DIR"/${pkg}-*.tgz
+
         # Download with retry
         retry=0
         while [ $retry -lt 3 ]; do
@@ -144,14 +147,19 @@ create_site() {
         log "Using cached repo, pulling latest..."
         (cd "$CACHE_DIR" && git fetch --depth 1 origin && git reset --hard origin/main)
         rm -rf "$REPO_DIR"
-        cp -r "$CACHE_DIR" "$REPO_DIR"
+        mkdir -p "$REPO_DIR"
+        # Copy repo but exclude packages/ (we download fresh each build)
+        cp -r "$CACHE_DIR"/* "$REPO_DIR/"
+        cp -r "$CACHE_DIR"/.[!.]* "$REPO_DIR/" 2>/dev/null || true
     else
         # Fresh clone
         rm -rf "$REPO_DIR"
         git clone --depth 1 https://github.com/CyphrRiot/OpenRiot "$REPO_DIR"
-        # Cache for next time
+        # Cache for next time (exclude packages/)
         rm -rf "$CACHE_DIR"
-        cp -r "$REPO_DIR" "$CACHE_DIR"
+        mkdir -p "$CACHE_DIR"
+        cp -r "$REPO_DIR"/* "$CACHE_DIR/"
+        cp -r "$REPO_DIR"/.[!.]* "$CACHE_DIR/" 2>/dev/null || true
     fi
 
     # Move install binary to standard location inside repo
@@ -400,27 +408,62 @@ build_img() {
     ok ""
     ok "Work directory (Build/work/) can be cleaned with './make-img.sh clean'"
 
-    # Offer to burn if sd2 exists
-    if [ -e /dev/rsd2c ]; then
-        DRIVE_INFO=$(dmesg | grep '^sd2 ' | tail -1)
-        DRIVE_PATH=$(echo "$DRIVE_INFO" | cut -d: -f1)
-        DRIVE_DESC=$(echo "$DRIVE_INFO" | cut -d: -f2-)
+    # Find currently attached removable drives
+    REMOVABLE_DRIVES=""
+    for disk in $(sysctl -n hw.disknames 2>/dev/null | tr ',' '\n' | grep -oE '^(sd|wd)[0-9]+'); do
+        # Get vendor/product info via bioctl
+        vendor_info=$(doas bioctl -q "$disk" 2>/dev/null || echo "")
+        # Get size from disklabel
+        label=$(doas disklabel "$disk" 2>/dev/null)
+        if [ -n "$label" ]; then
+            bytes_per_sec=$(echo "$label" | sed -n 's/.*bytes\/sector:[[:space:]]*\([0-9]*\).*/\1/p')
+            total_sectors=$(echo "$label" | awk '/^[[:space:]]*c:/ {print $2; exit}')
+            if [ -n "$bytes_per_sec" ] && [ -n "$total_sectors" ] && [ "$bytes_per_sec" -gt 0 ]; then
+                total_bytes=$((total_sectors * bytes_per_sec))
+                size_gb=$((total_bytes / 1073741824))
+                if [ -n "$REMOVABLE_DRIVES" ]; then
+                    REMOVABLE_DRIVES="${REMOVABLE_DRIVES}\n${disk}|${size_gb}|${vendor_info}"
+                else
+                    REMOVABLE_DRIVES="${disk}|${size_gb}|${vendor_info}"
+                fi
+            fi
+        fi
+    done
+
+    # Offer to burn if removable drives found
+    if [ -n "$REMOVABLE_DRIVES" ]; then
         printf "\n"
-        printf "${YELLOW}[WARN]${NC} Removable drive detected:\n"
-        printf "${YELLOW}[WARN]${NC}   %s\n" "$DRIVE_PATH"
-        printf "${YELLOW}[WARN]${NC}   %s\n" "$DRIVE_DESC"
-        printf "${YELLOW}[WARN]${NC} THIS WILL ERASE /dev/sd2 COMPLETELY.\n"
+        printf "${YELLOW}[WARN]${NC} Removable drive(s) detected:\n"
+        printf "${YELLOW}[INFO]${NC} Removable drive(s) detected:\n"
+        echo "$REMOVABLE_DRIVES" | while IFS='|' read -r drive size vendor; do
+            if [ -n "$vendor" ]; then
+                vendor_short=$(echo "$vendor" | sed 's/.*<\([^>]*\)>.*/\1/')
+                printf "  /dev/${drive} - %5d GB  (${vendor_short})\n" "$size"
+            else
+                printf "  /dev/${drive} - %5d GB\n" "$size"
+            fi
+        done
+        printf "${YELLOW}[WARN]${NC} THIS WILL ERASE ALL DATA ON THE SELECTED DRIVE.\n"
         printf "\n"
-        printf "${BLUE}[ASK ]${NC} Would you like to burn this image? [Y/n] "
-        read BURN_ANSWER
-        case "${BURN_ANSWER:-Y}" in
-            [Yy]|"")
-                ok "Burning to /dev/rsd2c..."
-                cat "$OUTPUT_IMG" | pv -pterb | dd of=/dev/rsd2c bs=1M
-                ok "Burn complete!"
+        printf "${BLUE}[ASK ]${NC} Which drive to burn? (or 'n' to skip) "
+        read BURN_CHOICE
+        case "${BURN_CHOICE}" in
+            [Nn])
+                ok "Skipping burn. Flash Images/openriot.img to USB when ready."
                 ;;
             *)
-                ok "Skipping burn. Flash Images/openriot.img to USB when ready."
+                # Use sd2 as default or parse choice
+                BURN_DEV="/dev/rsd2c"
+                if [ -n "$BURN_CHOICE" ]; then
+                    BURN_DEV="/dev/r${BURN_CHOICE}c"
+                fi
+                if [ -c "$BURN_DEV" ]; then
+                    ok "Burning to $BURN_DEV..."
+                    cat "$OUTPUT_IMG" | pv -pterb | doas dd of="$BURN_DEV" bs=1M
+                    ok "Burn complete!"
+                else
+                    err "Drive $BURN_DEV not found"
+                fi
                 ;;
         esac
     else

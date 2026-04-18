@@ -45,17 +45,21 @@ else
     echo "Patch already applied or not needed"
 fi
 
-# Step 3: Build with PKG_CONFIG=echo (OpenBSD workaround)
-echo "Building gurk..."
+# Step 3: Build with optimizations for smaller binary
+echo "Building gurk with LTO and strip..."
+export CARGO_PROFILE_RELEASE_LTO=thin
+export CARGO_PROFILE_RELEASE_STRIP=debuginfo
 PKG_CONFIG=echo \
   cargo install gurk --force \
     --locked \
     --path "$SOURCE_DIR" \
     --root "$INSTALL_DIR"
 
-# Step 4: Cleanup
-echo "Cleaning up..."
-rm -rf /tmp/gurk-build 2>/dev/null || true
+# Step 4: Strip debug symbols for smaller binary
+echo "Stripping debug symbols..."
+if [ -f "${INSTALL_DIR}/bin/gurk" ]; then
+    strip "${INSTALL_DIR}/bin/gurk" 2>/dev/null || true
+fi
 
 # Step 5: Verify
 if [ -x "${INSTALL_DIR}/bin/gurk" ]; then
