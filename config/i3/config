@@ -52,7 +52,8 @@ exec --no-startup-id clipmenud
 # exec_always --no-startup-id i3-auto-layout
 
 # GTK/XFCE settings daemon
-exec --no-startup-id xfsettingsd
+# DISABLED - was overriding screen saver/DPMS settings causing 10-min timeout
+# exec --no-startup-id xfsettingsd
 
 # =============================================================================
 # BEHAVIOR
