@@ -56,11 +56,11 @@ func Log(status, category, operation, message string) {
 	emoji := ""
 	switch status {
 	case "SUCCESS", "Complete":
-		emoji = "[OK] "
+		emoji = "[DONE] "
 	case "ERROR", "Error":
-		emoji = "[X] "
+		emoji = "[FAIL] "
 	case "WARNING", "Warning":
-		emoji = "[!] "
+		emoji = "[WARN] "
 	case "INFO", "Progress":
 		emoji = "[PACKAGE] "
 	}

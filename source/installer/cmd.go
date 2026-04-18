@@ -14,7 +14,7 @@ import (
 func RunSourceBuilds(testMode bool) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Could not determine home directory: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[FAIL] Could not determine home directory: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -23,7 +23,7 @@ func RunSourceBuilds(testMode bool) {
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Failed to load config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[FAIL] Failed to load config: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -37,7 +37,7 @@ func RunSourceBuilds(testMode bool) {
 func RunInstallPackages() {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Could not determine home directory: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[FAIL] Could not determine home directory: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -46,7 +46,7 @@ func RunInstallPackages() {
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Failed to load config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[FAIL] Failed to load config: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -54,7 +54,7 @@ func RunInstallPackages() {
 
 	packages := cfg.GetPackages()
 	if len(packages) == 0 {
-		fmt.Fprintf(os.Stderr, "%s[ERR!]%s No packages found in packages.yaml\n", Red, Reset)
+		fmt.Fprintf(os.Stderr, "%s[FAIL]%s No packages found in packages.yaml\n", Red, Reset)
 		os.Exit(1)
 	}
 
@@ -64,25 +64,36 @@ func RunInstallPackages() {
 	}
 }
 
+// findPackagesYaml finds packages.yaml: CWD first, then installed location
+func findPackagesYaml() string {
+	homeDir, _ := os.UserHomeDir()
+
+	// 1. Check CWD first
+	cwd, _ := os.Getwd()
+	cwdPackages := filepath.Join(cwd, "install", "packages.yaml")
+	if _, err := os.Stat(cwdPackages); err == nil {
+		return cwdPackages
+	}
+
+	// 2. Fallback to installed location
+	return filepath.Join(homeDir, ".local", "share", "openriot", "install", "packages.yaml")
+}
+
 // RunCheckPackages verifies packages.yaml versions against installed
 func RunCheckPackages() {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Could not determine home directory: %v\n", err)
-		os.Exit(1)
-	}
-	configPath := filepath.Join(homeDir, ".local", "share", "openriot", "install", "packages.yaml")
+	configPath := findPackagesYaml()
+	fmt.Printf("[INFO] Checking: %s\n", configPath)
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Failed to load config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[FAIL] Failed to load config: %v\n", err)
 		os.Exit(1)
 	}
 
 	// Get installed packages from pkg_info -a
 	installed := GetInstalledPackages()
 	if len(installed) == 0 {
-		fmt.Fprintf(os.Stderr, "[ERR!] No packages found from pkg_info\n")
+		fmt.Fprintf(os.Stderr, "[FAIL] No packages found from pkg_info\n")
 		os.Exit(1)
 	}
 
@@ -94,10 +105,10 @@ func RunCheckPackages() {
 		base := GetBaseName(pkg)
 		installedVer, exists := installed[base]
 		if !exists {
-			fmt.Printf("[MISSING] %s (not installed)\n", pkg)
+			fmt.Printf("[MISS] %s (not installed)\n", pkg)
 			mismatches++
 		} else if installedVer != pkg {
-			fmt.Printf("[MISMATCH] %s -> %s\n", pkg, installedVer)
+			fmt.Printf("[WARN] %s -> %s\n", pkg, installedVer)
 			mismatches++
 		}
 	}
@@ -108,30 +119,26 @@ func RunCheckPackages() {
 		os.Exit(1)
 	}
 
-	fmt.Println("[OK] All packages in sync")
+	fmt.Println("[DONE] All packages in sync")
 	os.Exit(0)
 }
 
 // RunSyncPackages updates packages.yaml to latest installed versions
 func RunSyncPackages() {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Could not determine home directory: %v\n", err)
-		os.Exit(1)
-	}
-	configPath := filepath.Join(homeDir, ".local", "share", "openriot", "install", "packages.yaml")
+	configPath := findPackagesYaml()
+	fmt.Printf("[INFO] Updating: %s\n", configPath)
 
 	// Get installed packages
 	installed := GetInstalledPackages()
 	if len(installed) == 0 {
-		fmt.Fprintf(os.Stderr, "[ERR!] No packages found from pkg_info\n")
+		fmt.Fprintf(os.Stderr, "[FAIL] No packages found from pkg_info\n")
 		os.Exit(1)
 	}
 
 	// Read yaml file as text to preserve formatting
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Failed to read config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[FAIL] Failed to read config: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -166,11 +173,11 @@ func RunSyncPackages() {
 
 	// Write back (preserves formatting)
 	if err := os.WriteFile(configPath, []byte(strings.Join(lines, "\n")), 0600); err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Failed to save config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[FAIL] Failed to save config: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("[OK] Updated %d packages in packages.yaml\n", updated)
+	fmt.Printf("[DONE] Updated %d packages in packages.yaml\n", updated)
 	os.Exit(0)
 }
 

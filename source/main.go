@@ -94,12 +94,12 @@ func main() {
 		"--packages": func() {
 			configPath := config.FindConfigFile()
 			if configPath == "" {
-				fmt.Fprintf(os.Stderr, "[ERR!] Could not find packages.yaml\n")
+				fmt.Fprintf(os.Stderr, "[FAIL] Could not find packages.yaml\n")
 				os.Exit(1)
 			}
 			cfg, err := config.LoadConfig(configPath)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[ERR!] Failed to load config: %v\n", err)
+				fmt.Fprintf(os.Stderr, "[FAIL] Failed to load config: %v\n", err)
 				os.Exit(1)
 			}
 			for _, pkg := range cfg.GetPackages() {
@@ -658,7 +658,7 @@ func runInstall() {
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Could not determine home directory: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[FAIL] Could not determine home directory: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -667,7 +667,7 @@ func runInstall() {
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERR!] Failed to load config from %s: %v\n", configPath, err)
+		fmt.Fprintf(os.Stderr, "[FAIL] Failed to load config from %s: %v\n", configPath, err)
 		os.Exit(1)
 	}
 

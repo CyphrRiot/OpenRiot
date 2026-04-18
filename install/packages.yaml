@@ -124,8 +124,8 @@ desktop:
         end: "rofi-calc installed"
     apps:
         packages:
-            - firefox-149.0.2
-            - tdesktop-6.7.5
+            - firefox-149.0.2p0
+            - tdesktop-6.7.6
             - helix-25.07.1
             - lsd-1.1.5p2
             - thunar-4.20.8
