@@ -148,10 +148,10 @@ create_site() {
         (cd "$CACHE_DIR" && git fetch --depth 1 origin && git reset --hard origin/main)
         rm -rf "$REPO_DIR"
         mkdir -p "$REPO_DIR"
-        # Copy repo but exclude packages/ and .git (we download fresh, don't need history)
+        # Copy repo but exclude packages/ (we download fresh)
         for item in "$CACHE_DIR"/*; do
             name=$(basename "$item")
-            if [ "$name" != "packages" ] && [ "$name" != ".git" ]; then
+            if [ "$name" != "packages" ]; then
                 cp -r "$item" "$REPO_DIR/"
             fi
         done
@@ -159,12 +159,12 @@ create_site() {
         # Fresh clone
         rm -rf "$REPO_DIR"
         git clone --depth 1 https://github.com/CyphrRiot/OpenRiot "$REPO_DIR"
-        # Cache for next time (exclude packages/ and .git)
+        # Cache for next time (exclude packages/ only)
         rm -rf "$CACHE_DIR"
         mkdir -p "$CACHE_DIR"
         for item in "$REPO_DIR"/*; do
             name=$(basename "$item")
-            if [ "$name" != "packages" ] && [ "$name" != ".git" ]; then
+            if [ "$name" != "packages" ]; then
                 cp -r "$item" "$CACHE_DIR/"
             fi
         done
