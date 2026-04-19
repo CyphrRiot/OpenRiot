@@ -8,18 +8,21 @@ export LC_CTYPE=en_US.UTF-8
 export XCURSOR_THEME=Bibata-Modern-Ice
 export XCURSOR_SIZE=24
 
+# Force GTK apps to use dark theme
+export GTK_THEME=Adwaita-dark
+
 # Create ~/Screenshots directory if it doesn't exist
 mkdir -p ~/Screenshots
 
 # Load Xresources
 [ -f ~/.Xresources ] && xrdb -merge ~/.Xresources
 
-# Screensaver at 10 min, monitor off at 30 min
-xset s 600
-xset +dpms
+# DPMS: monitor off at 30 min, lock at 10 min
+xset s off
+xset -dpms
 xset dpms 0 0 1800
+xset +dpms
 xautolock -time 10 -locker "$HOME/.local/share/openriot/install/openriot --lock" &
-xset s on
 
 # Start i3
 exec i3

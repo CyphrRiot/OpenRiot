@@ -9,3 +9,6 @@
 # function myfunction
 #     # your code here
 # end
+
+# OpenRiot path abbreviation - type "or" then space to expand
+abbr -a or ~/.local/share/openriot/

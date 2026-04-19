@@ -9,6 +9,9 @@ export PATH="$HOME/.local/share/openriot/install:$PATH"
 export XCURSOR_THEME=Bibata-Modern-Ice
 export XCURSOR_SIZE=24
 
+# Force GTK apps to use dark theme
+export GTK_THEME=Adwaita-dark
+
 # Refresh font/cursor cache
 fc-cache -f 2>/dev/null
 

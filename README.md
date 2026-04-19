@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-1.42-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-2.0-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -413,6 +413,24 @@ If something goes wrong:
 cat ~/.cache/openriot/setup.log
 cat ~/.cache/openriot/install.log
 ```
+
+### WiFi Setup
+
+If you need to configure WiFi on OpenBSD (interface names like `iwx0`, `athn0`, `urtwn0`):
+
+```bash
+# Create hostname file
+doas vi /etc/hostname.iwx0
+
+# Add these lines:
+join "MyNetwork" wpakey "Password"
+autoconf
+
+# Save and exit, then start the interface:
+doas sh /etc/netstart iwx0
+```
+
+---
 
 <a id="master-your-openriot-desktop"></a>
 
@@ -1192,10 +1210,10 @@ mkdir -p ~/ProtonSync
 ### 4. Initial Sync (dry-run first)
 
 ```bash
-rclone bisync ~/ProtonSync proton:ProtonSync --dry-run
+rclone bisync ~/ProtonSync proton:ProtonSync --dry-run --resync
 ```
 
-If output looks correct, remove `--dry-run` to sync.
+If output looks correct, remove `--dry-run --resync` to sync.
 
 ### 5. Set Up Automatic Sync
 

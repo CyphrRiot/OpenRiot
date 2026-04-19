@@ -14,7 +14,7 @@ normal = { family = "FiraCode Nerd Font", style = "Regular" }
 bold = { family = "FiraCode Nerd Font", style = "SemiBold" }
 italic = { family = "FiraCode Nerd Font", style = "Regular" }
 bold_italic = { family = "FiraCode Nerd Font", style = "SemiBold" }
-size = 14.0
+size = 12.0
 
 [colors]
 primary = { background = "#0A0B10", foreground = "#a9b1d6" }

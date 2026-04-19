@@ -111,6 +111,9 @@ end
 # Helix alias
 alias helix='hx'
 
+# Signal Messenger (gurk)
+alias signal '~/.local/share/openriot/config/bin/gurk'
+
 # Directory listing with lsd (better ls)
 alias ls='lsd'
 alias ll='lsd -l'
@@ -135,5 +138,11 @@ end
 set -gx fish_history_size 1000
 
 # =============================================================================
-# Aliases & Functions
+# Abbreviations & Aliases
 # =============================================================================
+
+# OpenRiot path - type "or" then space to expand
+abbr -a -g or --position anywhere --set-cursor='%' ~/.local/share/openriot/
+
+# Signal Messenger
+alias signal '~/.local/share/openriot/config/bin/gurk'

@@ -4,7 +4,7 @@ set $mod Mod4
 set $openriot_bin $HOME/.local/share/openriot/install/openriot
 set $terminal alacritty
 set $fileManager thunar
-set $browser $openriot_bin --browser
+set $browser $HOME/.local/share/openriot/install/openriot --browser
 set $editor gnome-text-editor
 
 font pango:FiraCode Nerd Font 11
