@@ -411,17 +411,38 @@ build_img() {
 
     ok "Image created: $OUTPUT_IMG"
     ok "openriot.tgz injected into image"
+
+    # Generate SHA256 checksum
+    log "Generating SHA256 checksum..."
+    SHA256_FILE="$(dirname "$OUTPUT_IMG")/openriot.sha256"
+    sha256 -q "$OUTPUT_IMG" > "$SHA256_FILE"
+    ok "Checksum: $(cat "$SHA256_FILE")"
+
     ok ""
     ok "Build complete!"
     ok ""
     ok "Work directory (Build/work/) can be cleaned with './make-img.sh clean'"
 
-    # Find currently attached removable drives
+    # Find currently attached drives and detect root
     REMOVABLE_DRIVES=""
+    ROOT_DRIVE=""
     for disk in $(sysctl -n hw.disknames 2>/dev/null | tr ',' '\n' | grep -oE '^(sd|wd)[0-9]+'); do
-        vendor_info=$(doas bioctl -q "$disk" 2>/dev/null || true)
         label=$(doas disklabel "$disk" 2>/dev/null || true)
         if [ -n "$label" ]; then
+            # Detect root drive
+            if mount | grep -q "^/dev/${disk}a on / "; then
+                ROOT_DRIVE="$disk"
+            fi
+
+            # Check for OpenBSD filesystem (4.2BSD/FFS partitions)
+            has_openbsd_fs=$(echo "$label" | grep -c '4.2BSD' || true)
+
+            # Check if part of softraid/crypto (backing drive for encrypted volume)
+            is_softraid=""
+            if doas bioctl "$disk" >/dev/null 2>&1; then
+                is_softraid="1"
+            fi
+
             bytes_per_sec=$(echo "$label" | sed -n 's/.*bytes\/sector:[[:space:]]*\([0-9]*\).*/\1/p')
             total_sectors=$(echo "$label" | awk '/^[[:space:]]*c:/ {print $2; exit}')
             if [ -n "$bytes_per_sec" ] && [ -n "$total_sectors" ] && [ "$bytes_per_sec" -gt 0 ]; then
@@ -430,9 +451,9 @@ build_img() {
                 if [ "$size_gb" -gt 0 ]; then
                     if [ -n "$REMOVABLE_DRIVES" ]; then
                         REMOVABLE_DRIVES="${REMOVABLE_DRIVES}
-${disk}|${size_gb}|${vendor_info}"
+${disk}|${size_gb}|${has_openbsd_fs}|${is_softraid}"
                     else
-                        REMOVABLE_DRIVES="${disk}|${size_gb}|${vendor_info}"
+                        REMOVABLE_DRIVES="${disk}|${size_gb}|${has_openbsd_fs}|${is_softraid}"
                     fi
                 fi
             fi
@@ -442,42 +463,34 @@ ${disk}|${size_gb}|${vendor_info}"
     # Show detected drives
     if [ -n "$REMOVABLE_DRIVES" ]; then
         printf "\n"
-        # Detect root drive by checking which partition is mounted as /
-        ROOT_DRIVE=""
-        for dev in /dev/sd*; do
-            if mount | grep -q "^${dev}a on / "; then
-                ROOT_DRIVE=$(basename "$dev" | sed 's/sd/sd/')
-                break
-            fi
-        done
 
-        # Build display and drive list without subshell issues
+        # Build display and drive list (only ROOT excluded from selection)
         DRIVE_LIST=""
         DISPLAY_LINES=""
-        while IFS='|' read -r drive size vendor; do
-            # Determine if root drive, system drive (OpenBSD), or removable
+        while IFS='|' read -r drive size has_openbsd is_softraid; do
             drive_short=$(echo "$drive" | sed 's|dev/||')
+
+            # Determine tag based on root, OpenBSD filesystem, or softraid
             if [ "$drive_short" = "$ROOT_DRIVE" ]; then
                 prefix="${RED}[ROOT]${RESET}"
                 suffix=" [SYSTEM]"
-            elif echo "$vendor" | grep -qi "OPENBSD"; then
+                exclude="1"
+            elif [ "$has_openbsd" -gt 0 ] || [ "$is_softraid" = "1" ]; then
                 prefix="${YELLOW}[WARN]${RESET}"
-                suffix=""
+                suffix=" [OpenBSD filesystem]"
+                exclude="0"
             else
                 prefix="${CYAN}[INFO]${RESET}"
                 suffix=""
+                exclude="0"
             fi
-            # Remove /dev/ prefix for display
-            if [ -n "$vendor" ]; then
-                vendor_short=$(echo "$vendor" | sed 's/.*<\([^>]*\)>.*/\1/')
-                line="${prefix} ${drive_short} - %5d GB  (${vendor_short})${suffix}"
-            else
-                line="${prefix} ${drive_short} - %5d GB${suffix}"
-            fi
-            DISPLAY_LINES="${DISPLAY_LINES}${line}|${size}|${drive_short}
+
+            line="${prefix} ${drive_short} - %5d GB${suffix}"
+            DISPLAY_LINES="${DISPLAY_LINES}${line}|${size}|${drive_short}|${exclude}
 "
-            # Build drive list for prompt (exclude root)
-            if [ "$drive_short" != "$ROOT_DRIVE" ]; then
+
+            # Build drive list for prompt (exclude ROOT only, WARN still selectable)
+            if [ "$exclude" != "1" ]; then
                 if [ -n "$DRIVE_LIST" ]; then
                     DRIVE_LIST="${DRIVE_LIST}, ${drive_short}"
                 else
@@ -488,30 +501,56 @@ ${disk}|${size_gb}|${vendor_info}"
 $REMOVABLE_DRIVES
 EOF
         # Print all display lines
-        printf "%s\n" "$DISPLAY_LINES" | while IFS='|' read -r line size drive_short; do
+        printf "%s\n" "$DISPLAY_LINES" | while IFS='|' read -r line size drive_short exclude; do
             printf "${line}\n" "$size"
         done
         printf "${YELLOW}[WARN]${RESET} THIS WILL ERASE ALL DATA ON THE SELECTED DRIVE.\n"
         printf "\n"
-        printf "${CYAN}[ASK ]${RESET} Which drive to burn? (${DRIVE_LIST} or 'n' to skip) "
+        printf "${CYAN}[ASK ]${RESET} Which drive to burn? (${DRIVE_LIST} or press Enter to skip) "
         read BURN_CHOICE
+
+        # Default to 'n' if empty (Enter pressed)
+        if [ -z "$BURN_CHOICE" ]; then
+            BURN_CHOICE="n"
+        fi
+
         case "${BURN_CHOICE}" in
             [Nn])
                 ok "Skipping burn. Flash Images/openriot.img to USB when ready."
                 ;;
             *)
-                # Use sd2 as default or parse choice
-                BURN_DEV="/dev/rsd2c"
-                if [ -n "$BURN_CHOICE" ]; then
-                    BURN_DEV="/dev/r${BURN_CHOICE}c"
-                fi
-                if [ -c "$BURN_DEV" ]; then
-                    ok "Burning to $BURN_DEV..."
-                    cat "$OUTPUT_IMG" | pv -pterb | doas dd of="$BURN_DEV" bs=1M
-                    ok "Burn complete!"
-                else
-                    err "Drive $BURN_DEV not found"
-                fi
+                # Find drive size for confirmation
+                DRIVE_SIZE=""
+                while IFS='|' read -r line size drive_short exclude; do
+                    if [ "$drive_short" = "$BURN_CHOICE" ]; then
+                        DRIVE_SIZE="$size"
+                        break
+                    fi
+                done << EOF
+$DISPLAY_LINES
+EOF
+
+                # Confirmation prompt
+                printf "\n"
+                printf "${YELLOW}[WARN]${RESET} You will be erasing ${BURN_CHOICE} (${DRIVE_SIZE} GB).\n"
+                printf "${CYAN}[ASK ]${RESET} Are you sure? [y/N] "
+                read CONFIRM
+
+                case "${CONFIRM}" in
+                    [Yy])
+                        BURN_DEV="/dev/r${BURN_CHOICE}c"
+                        if [ -c "$BURN_DEV" ]; then
+                            ok "Burning to $BURN_DEV..."
+                            cat "$OUTPUT_IMG" | pv -pterb | doas dd of="$BURN_DEV" bs=1M
+                            ok "Burn complete!"
+                        else
+                            err "Drive $BURN_DEV not found"
+                        fi
+                        ;;
+                    *)
+                        ok "Aborted. Flash Images/openriot.img to USB when ready."
+                        ;;
+                esac
                 ;;
         esac
     else

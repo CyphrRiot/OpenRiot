@@ -1429,6 +1429,24 @@ If the mouse hangs after idle, then jitters/glitches when moved:
     wsconsctl -m
     ```
 
+### Firefox can't see Downloads folder
+
+If Firefox shows a blank path instead of `~/Downloads`:
+
+```bash
+# Fix the user-dirs.dirs file
+cat > ~/.config/user-dirs.dirs << 'EOF'
+XDG_DOWNLOAD_DIR="$HOME/Downloads"
+EOF
+
+# Make sure Downloads exists
+mkdir -p ~/Downloads
+
+# Restart Firefox
+pkill -9 firefox
+firefox &
+```
+
 ### i3 won't start
 
 1. **Check for errors:**
