@@ -1,6 +1,6 @@
 #!/bin/sh
 # make-img.sh - Build OpenRiot custom installer image
-# Must be run on OpenBSD 7.9
+# Must be run on OpenBSD (current/snapshots)
 #
 # Usage:
 #   ./make-img.sh              # Full build

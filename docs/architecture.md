@@ -368,10 +368,10 @@ Name|Command|Icon
 
 Example:
 ```
-Terminal|alacritty|󰞷
+Terminal|alacritty|
 Firefox|firefox|󰈹
 Telegram|tdesktop.desktop|󰘦
-Helix|alacritty -e hx|󰛞
+Helix|alacritty -e hx|
 Media Player|mpv --player-operation-mode=pseudo-gui|
 ```
 

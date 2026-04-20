@@ -90,6 +90,11 @@ Build note: Use `PKG_CONFIG=echo` to bypass missing `pkg-config` on OpenBSD.
 | Open link in message | `Enter` (with empty input) |
 | View attachment | `Enter` on selected message |
 | Copy message to clipboard | `alt+y` |
+| Edit selected message | `alt+e` |
+| Copy selected message | `alt+y` |
+| React with 👍 | `ctrl+t` |
+| React with 🔥 | `ctrl+f` |
+| React with 💜 | `ctrl+h` |
 | Open full help screen | `f1` |
 
 ### Multi-line and Attachments

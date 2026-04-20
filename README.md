@@ -524,7 +524,7 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 
 | App              | Icon | Description              |
 | ---------------- | ---- | ------------------------ |
-| Terminal         | 󰞷   | Alacritty terminal       |
+| Terminal         |    | Alacritty terminal       |
 | Firefox          | 󰈹   | Web browser              |
 | Telegram         | 󰭹   | Messaging app            |
 | Helix            |    | Text editor              |
@@ -573,7 +573,7 @@ Polybar is your status bar. Click on modules for more:
 - `●` focused workspace
 - `◉` unfocused with windows
 - `○` empty workspace
-- Icons show running apps: `󰞷` Alacritty, `󰈹` Firefox, `󰝰` Thunar, etc.
+- Icons show running apps: `` Alacritty, `󰈹` Firefox, `󰝰` Thunar, etc.
 
 ## Shell Aliases & Quick Reference
 
@@ -1293,10 +1293,14 @@ A pure-Rust Signal messenger TUI — zero Java, zero GTK/libsecret. Built for Op
 
 Create or edit `~/.config/gurk/gurk.toml` to customize:
 
-**Enable message editing** (add right above `[keybindings]`):
+**Recommended keybindings** (add right above `[keybindings]`):
 ```toml
 [keybindings.message_selected]
-e = "edit_message"          # press 'e' after selecting a message
+alt-e = "edit_message"           # Edit selected message
+alt-y = "copy_message"           # Copy selected message
+ctrl-t = "react :thumbsup:"      # React with 👍
+ctrl-f = "react 🔥"              # React with 🔥
+ctrl+h = "react :purple_heart:" # React with 💜
 ```
 
 **Popular settings:**
@@ -1304,10 +1308,6 @@ e = "edit_message"          # press 'e' after selecting a message
 [keybindings.normal]
 ctrl-n = "select_channel next"   # Next channel
 ctrl-p = "select_channel previous" # Previous channel
-
-[keybindings.message_selected]
-r = "react"                  # React to selected message
-c = "copy_message"           # Copy selected message
 ```
 
 ### Reactions
