@@ -77,6 +77,12 @@
             "keyColor": "magenta",
         },
         {
+            "type": "command",
+            "key": " OpenRiot",
+            "keyColor": "magenta",
+            "text": "cat $HOME/.local/share/openriot/VERSION 2>/dev/null || echo N/A"
+        },
+        {
             "type": "shell",
             "key": " Shell",
             "keyColor": "magenta",

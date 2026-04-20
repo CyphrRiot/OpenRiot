@@ -13,6 +13,7 @@ core:
             - python-3.13.13
             - fastfetch-2.60.0
             - jq-1.8.1
+            - exfat-fuse-1.4.0
         configs:
             - pattern: fastfetch/*
               target: "~/.config/fastfetch"

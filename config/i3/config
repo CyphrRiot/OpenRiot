@@ -71,13 +71,15 @@ floating_modifier Mod4
 for_window [class="^URxvt$" instance="^floating"] floating enable, resize set 900 600, move position center
 
 # Centered floating terminal (Super+Shift+Enter)
-for_window [class="^floating_center"] floating enable, resize set 40% 75%, move position center
+for_window [instance="^floating_center"] floating enable
+for_window [instance="^floating_center"] resize set 50 ppt 75 ppt
+for_window [instance="^floating_center"] move position center
 
 # Transmission
 for_window [class="^Transmission$"] floating enable, resize set 800 600, move position center
 
 # OpenRiot dialogs
-for_window [class="^(openriot_upgrade|OpenRiot Update Available)$"] floating enable, resize set 35% 65%, move position center
+for_window [class="^(openriot_upgrade|OpenRiot Update Available|Proton Sync Update)$"] floating enable, resize set 50% 80%, move position center
 for_window [title="^(OpenRiot Control Panel)$"] floating enable, resize set 900 85%, move position center
 
 # Popups
