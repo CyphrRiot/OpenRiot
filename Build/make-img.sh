@@ -194,50 +194,48 @@ create_site() {
     cat > "$SITE_DIR/install.site" << 'INSTALLSITE'
 #!/bin/sh
 # OpenRiot post-install script
-# Runs during OpenBSD installer (runs in install environment)
-# Only does: extract tarball, install local packages, add welcome message
-# Everything else is handled by setup.sh after install
-
-set -e
-
-PKG_PATH_LOCAL="/openriot/packages/snapshots/amd64"
+# Runs during OpenBSD installer
 
 log() { echo "[OPENRIOT] $*"; }
 
 log "OpenRiot post-install starting"
 
-# STEP 1: Extract openriot.tgz
+# STEP 1: Extract openriot.tgz FIRST
 log "Extracting openriot.tgz..."
 if [ -f /openriot.tgz ]; then
-    tar xzf /openriot.tgz -C / || log "Warning: extraction failed"
+    tar xzf /openriot.tgz -C / 2>&1 || log "Warning: extraction failed"
 else
     log "Warning: openriot.tgz not found"
 fi
 
-# STEP 2: Install packages from local path
+# STEP 2: Configure doas (must happen early so user can sudo)
+log "Configuring doas..."
+echo "permit nopass :wheel" > /etc/doas.conf
+chmod 0440 /etc/doas.conf
+log "doas configured"
+
+# STEP 3: Configure installurl for the NEW installed system
+log "Configuring installurl..."
+echo "https://cdn.openbsd.org/pub/OpenBSD" > /etc/installurl
+log "installurl configured"
+
+# STEP 4: Install packages from local path
+PKG_PATH_LOCAL="/openriot/packages/snapshots/amd64"
 log "Installing packages from local path..."
 if [ -d "$PKG_PATH_LOCAL" ]; then
     for pkg in "$PKG_PATH_LOCAL"/*.tgz; do
         [ -f "$pkg" ] || continue
         pkg_name=$(basename "$pkg" .tgz)
-        # Extract base name (strip version)
         base_pkg=$(echo "$pkg_name" | sed 's/-[0-9].*//')
         log "Installing $base_pkg..."
-        PKG_PATH="$PKG_PATH_LOCAL" pkg_add "$base_pkg" 2>/dev/null || log "Failed: $base_pkg"
+        PKG_PATH="$PKG_PATH_LOCAL" pkg_add "$base_pkg" 2>&1 || log "Failed: $base_pkg"
     done
     log "Package install complete"
 else
     log "Warning: package directory not found"
 fi
 
-# STEP 3: Configure doas (passwordless for wheel group)
-log "Configuring doas..."
-echo "permit nopass :wheel" > /etc/doas.conf
-chmod 0440 /etc/doas.conf
-log "doas configured"
-
-# STEP 4: Move repo to user's .local/share/openriot
-# This prevents setup.sh from having to git clone 100MB from remote
+# STEP 5: Move repo to user's .local/share/openriot
 log "Setting up OpenRiot repo..."
 for homedir in /home/*; do
     [ -d "$homedir" ] || continue
@@ -252,15 +250,24 @@ for homedir in /home/*; do
     fi
 done
 
-# STEP 5: Add welcome message to skel
+# STEP 6: Add welcome message to skel
 log "Adding welcome message..."
+if [ -f /etc/skel/.profile ] && ! grep -q openriot-setup-done /etc/skel/.profile 2>/dev/null; then
+    cat >> /etc/skel/.profile << 'WELCOME'
 
-# Add to ksh profile (default OpenBSD shell)
-printf '\n# OpenRiot first login\nif [ ! -f ~/.openriot-setup-done ]; then\n    echo ""\n    echo "Welcome to OpenRiot"\n    echo ""\n    echo "Make sure you have internet, then run:"\n    echo ""\n    echo "    curl -fsSL https://OpenRiot.org/sh | sh"\n    echo ""\n    touch ~/.openriot-setup-done\nfi\n' >> /etc/skel/.profile
-
-# Add to fish config for fish users (fish might not be installed yet)
-mkdir -p /etc/skel/.config/fish
-printf '\n# OpenRiot first login\nif test ! -f ~/.openriot-setup-done\n    echo ""\n    echo "Welcome to OpenRiot"\n    echo ""\n    echo "Make sure you have internet, then run:"\n    echo ""\n    echo "    curl -fsSL https://OpenRiot.org/sh | sh"\n    echo ""\n    touch ~/.openriot-setup-done\nend\n' >> /etc/skel/.config/fish/config.fish
+# OpenRiot first login
+if [ ! -f ~/.openriot-setup-done ]; then
+    echo ""
+    echo "Welcome to OpenRiot"
+    echo ""
+    echo "Run the following command to complete setup:"
+    echo ""
+    echo "    curl -fsSL https://OpenRiot.org/sh | sh"
+    echo ""
+    touch ~/.openriot-setup-done
+fi
+WELCOME
+fi
 
 log "Post-install complete"
 INSTALLSITE
@@ -281,9 +288,13 @@ Setup a user = ask
 Password for user = ask
 What timezone are you in = US/Pacific
 
-# Use OpenBSD CDN for base sets
-Location of sets = http
-HTTP Server = cdn.openbsd.org
+# Sets come from the install disk (which is already mounted at /)
+Location of sets = disk
+Is the disk partition already mounted? = yes
+Pathname to the sets = /
+
+# Install openriot.tgz from the disk
+install openriot.tgz = yes
 INSTALLCONF
     log "Created install.conf"
 

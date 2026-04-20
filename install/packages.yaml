@@ -242,7 +242,7 @@ system:
             - desc: "Remove old coredump entry (if present)"
               cmd: "doas sed -i '/kern.coredump=0/d' /etc/sysctl.conf"
             - desc: "Disable core dumps"
-              cmd: "grep -q 'kern.nosuidcoredump=0' /etc/sysctl.conf || echo 'kern.nosuidcoredump=0' | doas tee -a /etc/sysctl.conf"
+              cmd: "grep -q 'kern.nosuidcoredump=1' /etc/sysctl.conf || sed -i '/kern.nosuidcoredump=/d' /etc/sysctl.conf; echo 'kern.nosuidcoredump=1' | doas tee -a /etc/sysctl.conf"
             - desc: "Enable sndiod (audio)"
               cmd: "doas rcctl enable sndiod"
             #- desc: "Enable and start seatd (seat management)"
