@@ -30,7 +30,7 @@ core:
             - fzf-0.71.0
             - ripgrep-15.1.0
             - pv-1.10.5
-            - btop-1.4.6
+            - btop-1.4.6p0
             - fd-10.4.2
             - gnupg-2.5.18
             - meson-1.10.2v0

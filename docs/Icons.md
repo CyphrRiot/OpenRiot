@@ -31,7 +31,7 @@ cp output.png ~/.local/share/openriot/config/icons/
 | 󰌵 | Display | Night Light: On | night-light.sh |
 | 󰃫 | Display | Night Light: Off | night-light.sh |
 | 󰜡 | Applications | Launching [name]... | launcher.sh |
-| 󰈹 | Applications | [Firefox title] | firefox-wrapper.sh |
+| 󰈹 | Applications | [Firefox title] | openriot --firefox |
 | 󰤨 | WiFi | Connected to [SSID] | wifi-info.sh |
 | 󰤯 | WiFi | Not connected | wifi-info.sh |
 | 󰤯 | WiFi | No interface found | wifi-info.sh |

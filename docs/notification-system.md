@@ -52,21 +52,23 @@ func SendNotify(iconName, title, body, urgency string, timeoutMs int) error
 
 ## Migration Status
 
+All notification call sites have been migrated to use `notify.SendNotify()`.
+
 ### Completed (use `notify.SendNotify`)
 
-All `main.go` notification calls converted.
+| Module | Location | Status |
+|--------|----------|--------|
+| crypto | `source/crypto/crypto.go:1004` | ✓ Migrated |
+| nightlight | `source/nightlight/nightlight.go:85` | ✓ Migrated |
+| workspace | `source/workspace/workspace.go:47` | ✓ Migrated |
+| update | `source/update/update.go:61,67,74` | ✓ Migrated |
+| lock | `source/lock/lock.go:47` | ✓ Migrated |
+| rofi | `source/rofi/rofi.go` | ✓ Migrated |
+| wireguard | `source/wireguard/wireguard.go` | ✓ Migrated |
+| audio | `source/audio/volume.go:24` | ✓ Migrated |
+| display | `source/display/display.go:28` | ✓ Migrated |
 
-### Remaining (still use raw `exec.Command`)
-
-- `source/crypto/crypto.go:1007` - crypto notification
-- `source/nightlight/nightlight.go:85` - night light toggle
-- `source/workspace/workspace.go:47` - workspace switch
-- `source/update/update.go:62,70,79` - update checks
-- `source/lock/lock.go:46` - screen lock
-- `source/rofi/rofi.go:76` - app launcher
-- `source/wireguard/wireguard.go:45,54,64` - VPN status
-- `source/audio/volume.go:27` - volume changes
-- `source/display/display.go:28` - brightness changes
+**All modules now use centralized notification system with cooldown protection.**
 
 ## Examples
 
