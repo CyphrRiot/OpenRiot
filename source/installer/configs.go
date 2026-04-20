@@ -196,15 +196,26 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 	return nil
 }
 
-// shouldPreserve checks if a file should be preserved based on the preserve list
-func shouldPreserve(filename string, preserveList []string, destPath string) bool {
+// isPreserveFile returns true if filename is in the preserve list
+func isPreserveFile(filename string, preserveList []string) bool {
 	for _, preserve := range preserveList {
 		if preserve == filename {
-			// File is in preserve list - check if it exists at destination
-			if _, err := os.Stat(destPath); err == nil {
-				return true
-			}
+			return true
 		}
+	}
+	return false
+}
+
+// shouldPreserve checks if a file should be preserved based on the preserve list
+// If filename is in preserve list AND file exists at destination → skip (preserve user file)
+// If filename is in preserve list but file doesn't exist → copy (install default)
+func shouldPreserve(filename string, preserveList []string, destPath string) bool {
+	if !isPreserveFile(filename, preserveList) {
+		return false
+	}
+	// File is in preserve list - only skip if it already exists
+	if _, err := os.Stat(destPath); err == nil {
+		return true
 	}
 	return false
 }

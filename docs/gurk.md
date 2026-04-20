@@ -2,16 +2,17 @@
 
 Pure-Rust Signal terminal client with zero Java/GTK dependencies.
 
-## Build
+## Installation
 
-Run the build script from the repo:
+Gurk is **pre-built and included** in the OpenRiot install. During `openriot --install`, the gurk binary is deployed to `~/.local/share/openriot/config/bin/gurk` and symlinked to `~/.local/bin/gurk`. The OpenBSD SIGSEGV fix is already baked in.
 
-```bash
-cd ~/Code/OpenRiot
-./scripts/gurk.sh
-```
+No manual steps needed for normal installation.
 
-This clones gurk-rs, applies the OpenBSD SIGSEGV fix patch, builds, and installs to `~/.local/bin/gurk`. Source is cached at `~/src/gurk-rs` so subsequent builds are fast.
+## Rebuilding from Source
+
+Use `./scripts/gurk.sh` only when you need to rebuild gurk from source (e.g., updating to a new version, or refreshing the pre-built binary for image releases).
+
+Source is cached at `~/src/gurk-rs` so subsequent builds are fast.
 
 ## OpenBSD SIGSEGV Fix
 

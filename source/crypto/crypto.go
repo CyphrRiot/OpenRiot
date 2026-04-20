@@ -997,7 +997,7 @@ func outputNotifySend(items []CryptoItem) error {
 		gainArrow = "▼"
 	}
 	numStr := strings.TrimPrefix(formatSignedNumber(totalGain), "$ ")
-	lines = append(lines, fmt.Sprintf("┅ Total Gains  %s $%10s", gainArrow, numStr))
+	lines = append(lines, fmt.Sprintf("󰪚 Total Gains  %s $%10s", gainArrow, numStr))
 
 	lines = append(lines, "\n󰳽 Click to Close")
 	body := strings.Join(lines, "\n")

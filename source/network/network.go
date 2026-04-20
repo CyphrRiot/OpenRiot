@@ -22,11 +22,25 @@ func GetWifi() string {
 
 	iface, connected := getWifiInterface()
 	if !connected {
+		// Use WasOnline for hysteresis - don't flash "down" for brief hiccups
+		if WasOnline() {
+			signal := getSignal(iface)
+			if signal > 0 {
+				return getWifiIcon(signal)
+			}
+		}
 		return "󰤯"
 	}
 
-	// Connected but no internet
+	// Connected but no internet - use WasOnline for hysteresis
 	if !IsOnline() {
+		if WasOnline() {
+			// Still show signal, internet will come back
+			signal := getSignal(iface)
+			if signal > 0 {
+				return getWifiIcon(signal)
+			}
+		}
 		return "󱛅"
 	}
 
@@ -231,6 +245,22 @@ func IsOnline() bool {
 	}
 	// Consider online if ping was within last 90 seconds
 	return time.Since(timestamp) < 90*time.Second
+}
+
+// WasOnline returns true if we were online recently (5 min grace period)
+// This provides hysteresis - don't show "down" immediately after connectivity loss
+func WasOnline() bool {
+	path := connectivityPath()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return false
+	}
+	timestamp, err := time.Parse(time.RFC3339, strings.TrimSpace(string(data)))
+	if err != nil {
+		return false
+	}
+	// Grace period: still show "online" for 5 minutes after last ping
+	return time.Since(timestamp) < 5*time.Minute
 }
 
 // CheckConnectivity pings 8.8.8.8 and updates the connectivity state
