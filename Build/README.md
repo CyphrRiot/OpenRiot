@@ -1,16 +1,16 @@
 # OpenRiot Image Builder
 
-Builds `openriot.img` - a custom OpenBSD 7.9 installer with OpenRiot configs baked in.
+Builds `openriot.img` - a custom OpenBSD installer with OpenRiot configs baked in.
 
 ## Prerequisites
 
-- OpenBSD 7.9 (required for vnconfig/mount)
+- OpenBSD (current/snapshots)
 - Root access (`doas`)
 - Base image linked: `Images/install79.img`
 
-## Snapshot Build Steps (7.9 pre-release)
+## Snapshot Build Steps
 
-While 7.9 is in development/snapshots, package versions change frequently. Run these before building:
+While using OpenBSD snapshots, package versions change frequently. Run these before building:
 
 ```bash
 # 1. Update system packages to get current versions
@@ -25,7 +25,7 @@ doas ./make-img.sh
 
 This ensures the bundled packages match what actually exists on the CDN.
 
-**After 7.9 stable release**: Skip steps 1-2, packages are frozen by version number.
+**After stable release**: Skip steps 1-2, packages are frozen by version number.
 
 ## Quick Start
 
@@ -37,7 +37,7 @@ mkdir -p Images && ln -sf ~/Code/Images/install79.img Images/install79.img
 doas ./make-img.sh
 
 # 3. Flash to USB
-dd if=Images/openriot.img of=/dev/rsd2c bs=1M
+doas dd if=Images/openriot.img of=/dev/rsd2c bs=1M
 ```
 
 ## What Gets Built

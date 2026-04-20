@@ -213,7 +213,7 @@ Version is in `VERSION` file (e.g., "1.4"). Injected at build time via ldflags:
 # 🛠️ TECHNOLOGY STACK
 
 ## Platform
-- **OpenBSD 7.9+** (x86_64)
+- **OpenBSD** (current/snapshots)
 - **i3** window manager (NOT sway/wayland)
 - **X11** (NOT Wayland)
 - **Minimum resolution: 1920x1080**
