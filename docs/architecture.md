@@ -130,9 +130,8 @@ git add packages.yaml && git push  # Distribute to users
 
 | Flag | Output | Used By |
 |------|--------|---------|
-| `--polybar-metrics` | CPU + RAM % | polybar cpu module |
-| `--polybar-volume` | Volume icon + % | polybar volume module |
-| `--polybar-memory` | RAM icon + % | polybar memory module |
+| `--polybar-metrics` | CPU % | polybar cpu module |
+| `--polybar-memory` | RAM % | polybar memory module |
 | `--wireguard-status` | 󰛳/󰅛/󰱓 | polybar wireguard module |
 
 ## Notification Commands

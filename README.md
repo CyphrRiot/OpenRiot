@@ -554,8 +554,8 @@ Polybar is your status bar. Click on modules for more:
 | 󰌵 night-light | Toggle night light (redshift) |
 | weather | Shows current temp + conditions (OpenWeatherMap) |
 | 󰦝 crypto | Shows crypto prices |
-| 󰢝 CPU | Shows CPU usage |
-| 󰌅 memory | Shows memory usage |
+| 󰡳 CPU | Shows CPU usage |
+| 󰢼 Memory | Shows memory usage |
 | 󰕾 Volume | Click to toggle mute, scroll adjust |
 | 󰤨 Network | Click for wifi-menu |
 | 󰅛 wireguard | Toggle VPN connection |
@@ -590,12 +590,6 @@ Fish comes pre-configured with useful aliases:
 ### File Manager
 
 OpenRiot uses **Thunar** (xfce file manager) as the primary file manager.
-
-Optional: **lf** (terminal file manager) is installed as a backup. Press `?` in lf for full help.
-
-### Tutorial Video
-
-**Tutorial Video:** [How to Set Up and Configure LF (The Best Terminal File Manager)](https://www.youtube.com/watch?v=2oWqD3JCXuI) by Eric Murphy (~16 min)
 
 ### Password Management with Glyphriot
 
