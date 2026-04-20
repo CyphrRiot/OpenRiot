@@ -465,6 +465,38 @@ func getProtonDriveTooltip() string {
 	return "Needs sync"
 }
 
+// GetProtonDriveTooltipText returns a formatted sync status string for notifications
+func GetProtonDriveTooltipText() string {
+	if !isProtonDriveConfigured() {
+		return "Not configured"
+	}
+	state := checkProtonDriveSync()
+	if state == "synced" {
+		return getSyncTime()
+	}
+	return "Needs sync"
+}
+
+// getSyncTime returns the last sync time formatted for display
+func getSyncTime() string {
+	home := os.Getenv("HOME")
+	bisyncDir := home + "/.cache/rclone/bisync"
+
+	// Find path1.lst to get last sync time from mtime
+	matches, _ := filepath.Glob(bisyncDir + "/*path1.lst")
+	if len(matches) == 0 {
+		return "Recently"
+	}
+
+	info, err := os.Stat(matches[0])
+	if err != nil {
+		return "Recently"
+	}
+
+	// Format: "April 20, 09:00 AM"
+	return info.ModTime().Format("January 2, 03:04 PM")
+}
+
 // Setup generates scaled polybar config (doesn't launch polybar - i3 handles that)
 func Setup() int {
 	home := os.Getenv("HOME")

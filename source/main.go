@@ -247,6 +247,11 @@ func main() {
 
 	commands["--proton-drive-sync"] = func() {
 		if polybar.IsProtonDriveConfigured() {
+			state := polybar.CheckProtonDriveSyncState()
+			if state == "synced" {
+				notify.SendNotify("proton-drive", "Proton Drive", "Synchronized: "+polybar.GetProtonDriveTooltipText(), "normal", 5000, 0)
+				return
+			}
 			notify.SendNotify("proton-drive", "Proton Drive", "Syncing...", "normal", 2000, 0)
 			cmd := `printf "Proton Drive Sync\nFrom: ~/ProtonDrive -> Proton Drive Cloud\n\nWould you like to do a bi-directional Sync or one-way\n  and replace items in the Cloud with local items?\n\n[Y]es for bi-directional sync (or ENTER),\n[O]ne-way for One-Way sync or\n[Q]uit or [N]o ?\n\nChoose your adventure [Y/o/q/n] -> "; read -r ans; case "$ans" in o|O) echo "One-way sync selected..."; rclone copy ~/ProtonSync proton:ProtonSync --progress; printf "\nDone. Press Enter to close..."; read -r ans ;; [yY]|"") echo "Bi-directional sync selected..."; rclone bisync ~/ProtonSync proton:ProtonSync --resync --progress; printf "\nDone. Press Enter to close..."; read -r ans ;; *) echo "Canceled."; sleep 1 ;; esac`
 			exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
