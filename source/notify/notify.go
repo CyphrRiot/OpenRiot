@@ -218,7 +218,7 @@ func Status() error {
 }
 
 // Setup scales dunstrc based on screen resolution.
-// If screen width > 1920, uses larger width (500) and font size (12).
+// If screen width > 1920, uses width 450 and font size 11 (mild increase).
 // Otherwise uses defaults from template (400 width, size 10).
 func Setup() int {
 	home := os.Getenv("HOME")
@@ -238,10 +238,10 @@ func Setup() int {
 
 	content := string(template)
 
-	// Only scale up for larger screens (>1920)
+	// Scale for larger screens
 	if width > 1920 {
-		content = strings.ReplaceAll(content, "width = 400", "width = 500")
-		content = strings.ReplaceAll(content, "FiraCode Nerd Font 10", "FiraCode Nerd Font 14")
+		content = strings.ReplaceAll(content, "width = 400", "width = 450")
+		content = strings.ReplaceAll(content, "FiraCode Nerd Font 10", "FiraCode Nerd Font 11")
 	}
 
 	// Write scaled config
