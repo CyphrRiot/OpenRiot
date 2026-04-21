@@ -18,6 +18,9 @@ fc-cache -f 2>/dev/null
 # Load Xresources
 [ -f ~/.Xresources ] && xrdb -merge ~/.Xresources
 
+# Kill xconsole (annoying full-screen console on OpenBSD login)
+pkill -f xconsole 2>/dev/null || true
+
 # Screensaver at 10 min, monitor off at 30 min
 xset s 600
 xset +dpms

@@ -13,6 +13,8 @@ default_floating_border pixel 2
 default_orientation horizontal
 hide_edge_borders smart
 smart_gaps on
+gaps inner 0
+gaps outer 0
 
 # Force border on GTK CSD apps
 for_window [class="gnome-text-editor"] border pixel 2
