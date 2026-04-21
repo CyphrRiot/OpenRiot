@@ -446,12 +446,12 @@ build_img() {
                 ROOT_DRIVE="$disk"
             fi
 
-            # Check for OpenBSD filesystem (4.2BSD/FFS partitions)
-            has_openbsd_fs=$(echo "$label" | grep -c '4.2BSD' || true)
+            # Check for OpenBSD filesystem (4.2BSD/FFS partitions) OR softraid (RAID type)
+            has_openbsd_fs=$(echo "$label" | grep -cE '(4\.2BSD|RAID)' || true)
 
-            # Check if part of softraid/crypto (backing drive for encrypted volume)
+            # Check if part of softraid/crypto (only if has OpenBSD partitions)
             is_softraid=""
-            if doas bioctl "$disk" >/dev/null 2>&1; then
+            if [ "$has_openbsd" -gt 0 ] && doas bioctl "$disk" >/dev/null 2>&1; then
                 is_softraid="1"
             fi
 
@@ -482,15 +482,17 @@ ${disk}|${size_gb}|${has_openbsd_fs}|${is_softraid}"
         while IFS='|' read -r drive size has_openbsd is_softraid; do
             drive_short=$(echo "$drive" | sed 's|dev/||')
 
-            # Determine tag based on root, OpenBSD filesystem, or softraid
-            if [ "$drive_short" = "$ROOT_DRIVE" ]; then
+            # Determine tag based on OpenBSD presence and disk role
+            # Any disk with OpenBSD filesystem = ROOT (exclude from selection)
+            # This prevents accidentally wiping boot/root or data disks with OpenBSD
+            if [ "$has_openbsd" -gt 0 ]; then
                 prefix="${RED}[ROOT]${RESET}"
-                suffix=" [SYSTEM]"
-                exclude="1"
-            elif [ "$has_openbsd" -gt 0 ] || [ "$is_softraid" = "1" ]; then
-                prefix="${YELLOW}[WARN]${RESET}"
                 suffix=" [OpenBSD filesystem]"
-                exclude="0"
+                exclude="1"
+            elif [ "$is_softraid" = "1" ]; then
+                prefix="${YELLOW}[WARN]${RESET}"
+                suffix=" [Softraid]"
+                exclude="1"
             else
                 prefix="${CYAN}[INFO]${RESET}"
                 suffix=""
