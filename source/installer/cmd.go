@@ -35,6 +35,9 @@ func RunSourceBuilds(testMode bool) {
 
 // RunInstallPackages installs packages from packages.yaml (used by setup.sh)
 func RunInstallPackages() {
+	// Setup fastest mirror if not already configured
+	SetupMirror()
+
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "[FAIL] Could not determine home directory: %v\n", err)
@@ -219,4 +222,29 @@ func GetBaseName(pkg string) string {
 		return pkg[:idx]
 	}
 	return pkg
+}
+
+// RunMirrors tests mirror connectivity and shows results
+func RunMirrors() {
+	fmt.Printf("%s[INFO]%s Testing mirrors...\n", Cyan, Reset)
+
+	mirror, latency, err := SelectFastestMirror()
+	if err != nil {
+		fmt.Printf("%s[FAIL]%s No mirrors responded: %v\n", Red, Reset, err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("%s[DONE]%s Fastest mirror: %s (%dms)\n", Green, Reset, mirror, latency.Milliseconds())
+
+	if HasInstallurl() {
+		current := GetInstallurl()
+		fmt.Printf("[INFO] Current /etc/installurl: %s\n", current)
+		if current == mirror {
+			fmt.Printf("[INFO] Already using fastest mirror\n")
+		} else {
+			fmt.Printf("[WARN] Different from detected fastest. Run as root to update.\n")
+		}
+	} else {
+		fmt.Printf("[INFO] No /etc/installurl found. Run as root to create.\n")
+	}
 }

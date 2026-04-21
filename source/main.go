@@ -114,6 +114,9 @@ func main() {
 		"--sync-packages": func() {
 			installer.RunSyncPackages()
 		},
+		"--mirrors": func() {
+			installer.RunMirrors()
+		},
 		"--version-check": func() {
 			localVer := update.GetLocalVersion()
 			remoteVer := update.GetRemoteVersion()
@@ -649,6 +652,9 @@ func main() {
 	fmt.Fprintf(os.Stderr, "  --install-packages Install packages from packages.yaml\n")
 	fmt.Fprintf(os.Stderr, "  --source-builds    Build software from source\n")
 	fmt.Fprintf(os.Stderr, "  --packages         List packages from packages.yaml\n")
+	fmt.Fprintf(os.Stderr, "  --check-packages   Verify installed packages match yaml\n")
+	fmt.Fprintf(os.Stderr, "  --sync-packages    Update packages.yaml to installed versions\n")
+	fmt.Fprintf(os.Stderr, "  --mirrors          Detect and show fastest OpenBSD mirror\n")
 	fmt.Fprintf(os.Stderr, "  --rofi            Show app launcher\n")
 	fmt.Fprintf(os.Stderr, "  --lock            Lock the screen\n")
 	fmt.Fprintf(os.Stderr, "  --suspend         Suspend the system\n")
