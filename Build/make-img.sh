@@ -92,8 +92,41 @@ download_packages() {
         exit 1
     fi
 
-    # Download each package
+    # Clean old packages no longer in list or in exceptions
     PKG_DIR="$WORK_DIR/packages/snapshots/amd64"
+    if [ -d "$PKG_DIR" ]; then
+        log "Cleaning stale packages..."
+        for tgz in "$PKG_DIR"/*.tgz; do
+            [ -f "$tgz" ] || continue
+            pkg_name=$(basename "$tgz" .tgz)
+            base_pkg=$(echo "$pkg_name" | sed 's/-[0-9].*//')
+
+            # Check if package is in current list
+            in_list=0
+            for pkg in $PACKAGES; do
+                pkg_base=$(echo "$pkg" | sed 's/-[0-9].*//')
+                if [ "$base_pkg" = "$pkg_base" ]; then
+                    in_list=1
+                    break
+                fi
+            done
+
+            # Check if package is in exceptions
+            is_excluded=0
+            for excl in $EXCEPTIONS; do
+                if [ "$base_pkg" = "$excl" ]; then
+                    is_excluded=1
+                    break
+                fi
+            done
+
+            if [ "$in_list" = "0" ] || [ "$is_excluded" = "1" ]; then
+                rm -f "$tgz"
+            fi
+        done
+    fi
+
+    # Download each package
     PKG_COUNT=$(echo "$PACKAGES" | wc -l)
     PKG_DONE=0
 
