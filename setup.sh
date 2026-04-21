@@ -357,8 +357,8 @@ main() {
     echo "+------------------------------------------------------------+"
     printf "|  OpenRiot v%s Installation Complete                       |\n" "$banner_ver"
     echo "|                                                            |"
-    echo '|  Run "startx" from TTY1 to start the desktop.              |'
     echo "|  xenodm will start X11 automatically on next boot.         |"
+    echo "|                                                            |"
     echo "+------------------------------------------------------------+"
     echo ""
     echo "Press any key to continue..."
