@@ -7,6 +7,9 @@ dev
 *.core
 *.img
 
+# External source builds
+src/
+
 # Test images (created by make isotest)
 *.qcow2
 

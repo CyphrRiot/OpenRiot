@@ -18,6 +18,12 @@ PATCH_FILE="$(dirname "$0")/gurk-patch.diff"
 INSTALL_DIR="${HOME}/.local/share/openriot/config"
 SOURCE_DIR="${HOME}/src/gurk-rs"
 
+# Step 0: Install Rust if cargo is missing
+if ! command -v cargo >/dev/null 2>&1; then
+    echo "Installing Rust via pkg_add..."
+    doas pkg_add rust
+fi
+
 # Step 1: Clone or update gurk-rs
 echo "Cloning/updating gurk-rs..."
 if [ -d "$SOURCE_DIR" ]; then
@@ -26,13 +32,12 @@ if [ -d "$SOURCE_DIR" ]; then
         echo "Source already at correct commit ($GURK_COMMIT), using existing checkout"
     else
         echo "Updating from $CURRENT_COMMIT to $GURK_COMMIT..."
-        rm -rf "$SOURCE_DIR"
-        git clone --depth=1 "$GURK_REPO" "$SOURCE_DIR"
+        git -C "$SOURCE_DIR" fetch origin "$GURK_COMMIT"
         git -C "$SOURCE_DIR" checkout "$GURK_COMMIT"
     fi
 else
     mkdir -p "$(dirname "$SOURCE_DIR")"
-    git clone --depth=1 "$GURK_REPO" "$SOURCE_DIR"
+    git clone "$GURK_REPO" "$SOURCE_DIR"
     git -C "$SOURCE_DIR" checkout "$GURK_COMMIT"
 fi
 
