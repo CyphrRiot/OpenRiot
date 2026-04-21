@@ -18,6 +18,7 @@ gaps outer 0
 
 # Force border on GTK CSD apps
 for_window [class="gnome-text-editor"] border pixel 2
+for_window [class="^(libreoffice|LibreOffice)$"] border pixel 1
 
 # Kill OpenBSD xconsole window on login
 for_window [class="^XConsole$"] kill

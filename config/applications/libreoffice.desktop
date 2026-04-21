@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Name=Word Processor
+GenericName=Word Processor
+Comment=Full-featured office productivity suite
+Icon=libreoffice-oowriter
+Exec=libreoffice --writer %F
+Terminal=false
+Type=Application
+Categories=Office;WordProcessor;TextEditor;
+Keywords=word;processor;document;libreoffice;office;text;writer;
+MimeType=application/msword;application/vnd.openxmlformats-officedocument.wordprocessingml.document;application/rtf;text/rtf;text/plain;

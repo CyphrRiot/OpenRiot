@@ -54,7 +54,6 @@ linux:
 # Release build with versioning
 release:
 	@echo "Syncing packages.yaml to latest installed versions..."; ./install/openriot --sync-packages || true; \
-	echo "Building binary..."; make; \
 	OPENRIOT_VERSION=`cat VERSION` && \
 	CURRENT_BRANCH=`git branch --show-current` && \
 	echo "Current version: v$$OPENRIOT_VERSION"; \
@@ -85,8 +84,8 @@ release:
 		echo "=== DRY RUN - No changes made ==="; \
 		echo "Would do:"; \
 		echo "  1. Sync packages.yaml to latest installed"; \
-		echo "  2. Build binary"; \
-		echo "  3. Update VERSION to $$NEW_VERSION"; \
+		echo "  2. Update VERSION to $$NEW_VERSION"; \
+		echo "  3. Build binary with new version"; \
 		echo "  4. Update README.md badge to v$$NEW_VERSION"; \
 		echo "  5. git add -A (all changes)"; \
 		echo "  6. git commit (opens Helix editor)"; \
@@ -95,6 +94,7 @@ release:
 	else \
 		echo "Updating VERSION..."; \
 		echo $$NEW_VERSION > VERSION; \
+		echo "Building binary with v$$NEW_VERSION..."; make; \
 		echo "Updating README badge..."; \
 		sed -i "s/version-[0-9.]*/version-$$NEW_VERSION/" README.md; \
 		echo "Committing..."; \

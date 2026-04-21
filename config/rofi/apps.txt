@@ -14,6 +14,6 @@ Signal|alacritty --class gurk --title Signal -e $HOME/.local/share/openriot/conf
 System Monitor|alacritty --class btop --title "System Monitor" -e btop|󰍹
 Telegram|tdesktop.desktop|󰭹
 Transmission|transmission-dynamic|󰇚
-Word Processor|abiword|󰈙
+Word Processor|libreoffice --writer|󰈙
 Crush AI|alacritty --class crush --title "Crush AI" -e crush|󰚩
 Settings|xfce4-settings-manager|󰒓

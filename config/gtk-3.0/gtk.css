@@ -314,7 +314,6 @@ listview row:selected {
 /* Ensure icons in selections stay visible */
 .thunar iconview cell:selected image,
 .thunar iconview cell:selected:backdrop image {
-    filter: none;
 }
 
 /* Thunar selection when window is unfocused (backdrop state) */
@@ -334,11 +333,9 @@ listview row:selected {
 }
 
 /* CRITICAL: Prevent black icons when Thunar window loses focus */
-.thunar iconview cell:selected:backdrop image,
-.thunar iconview cell:selected:backdrop image:empty {
+.thunar iconview cell:selected:backdrop image {
     -gtk-icon-effect: none;
-    filter: none !important;
-    opacity: 1 !important;
+    opacity: 1;
     background-color: transparent;
 }
 
@@ -352,13 +349,11 @@ window.thunar iconview.view.cell:selected:backdrop {
 
 window.thunar iconview.view.cell:selected:backdrop image {
     -gtk-icon-effect: none;
-    filter: none;
     opacity: 1;
 }
 
 /* Fallback for any remaining icon darkening */
 .thunar iconview.view:selected:backdrop image {
-    -gtk-icon-effect: none !important;
-    filter: none !important;
-    opacity: 1 !important;
+    -gtk-icon-effect: none;
+    opacity: 1;
 }

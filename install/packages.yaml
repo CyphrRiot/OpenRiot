@@ -137,7 +137,7 @@ desktop:
             - gnome-themes-extra-3.28p7
             - papirus-icon-theme-20250501p1
             - lf-41
-            - abiword-3.0.9pre20260116
+            - libreoffice-26.2.2.2v0
             - gnome-text-editor-49.1
         configs:
             - pattern: gtk-3.0/*
