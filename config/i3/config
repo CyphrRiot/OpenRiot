@@ -19,6 +19,10 @@ gaps outer 0
 # Force border on GTK CSD apps
 for_window [class="gnome-text-editor"] border pixel 2
 
+# Kill OpenBSD xconsole window on login
+for_window [class="^XConsole$"] kill
+for_window [class="^xconsole$"] kill
+
 # Colors
 client.focused           #4c7899 #285577 #ffffff
 client.focused_inactive  #333333 #333333 #ffffff
