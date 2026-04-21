@@ -255,7 +255,6 @@ system:
             - zip-3.0p3
             - wget-1.25.0p0
             - unzip-6.0p18
-            - go-1.26.2
             - rclone-1.73.4
             - wireguard-tools-1.0.20210914p3v0
         depends: [core.base]

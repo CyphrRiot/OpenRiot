@@ -1,0 +1,7 @@
+# Packages to exclude from installer image
+# These are downloaded from snapshots but NOT included in the image
+# Reason: user install only, not needed for offline installer
+exclude:
+  - abiword
+  - btop
+  - go

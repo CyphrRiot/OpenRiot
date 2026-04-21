@@ -72,6 +72,13 @@ download_packages() {
 
     mkdir -p "$WORK_DIR/packages/snapshots/amd64"
 
+    # Load exceptions (packages to exclude from image)
+    EXCEPTIONS=""
+    if [ -f "${SCRIPT_DIR}/exceptions.yaml" ]; then
+        EXCEPTIONS=$(grep "^  - " "${SCRIPT_DIR}/exceptions.yaml" 2>/dev/null | sed 's/^  - //' | tr '\n' ' ')
+        log "Exceptions loaded: $EXCEPTIONS"
+    fi
+
     # Get package list from openriot binary
     OPENRIOT_BIN="${SCRIPT_DIR}/../install/openriot"
     if [ ! -x "$OPENRIOT_BIN" ]; then
@@ -91,6 +98,19 @@ download_packages() {
     PKG_DONE=0
 
     for pkg in $PACKAGES; do
+        # Check if package is in exceptions list
+        PKG_BASE=$(echo "$pkg" | sed 's/-[0-9].*//')
+        skip=0
+        for excl in $EXCEPTIONS; do
+            if [ "$PKG_BASE" = "$excl" ]; then
+                skip=1
+                break
+            fi
+        done
+        if [ "$skip" = "1" ]; then
+            continue  # Skip this package
+        fi
+
         PKG_DONE=$((PKG_DONE + 1))
         printf "\r${CYAN}[INFO]${RESET} Downloading package %d/%d: %s" "$PKG_DONE" "$PKG_COUNT" "$pkg"
 
@@ -130,6 +150,11 @@ create_site() {
 
     mkdir -p "$WORK_DIR"
     SITE_DIR="${WORK_DIR}/site"
+
+    # Clean old site content (packages from previous runs persist!)
+    rm -rf "$SITE_DIR/openriot"
+    # Remove old tarball so it gets rebuilt (packages are downloaded fresh)
+    rm -f "$OPENRIOT_TGZ"
 
     # Copy MOTD only (minimal - setup.sh handles everything else)
     if [ -f "${SCRIPT_DIR}/../install/motd" ]; then
@@ -176,15 +201,10 @@ create_site() {
         cp "${SCRIPT_DIR}/../install/openriot" "$REPO_DIR/install/"
     fi
 
-    # Download and bundle packages
+    # Download packages (kept separate from tarball for size optimization)
     download_packages
-    mkdir -p "$SITE_DIR/openriot/packages/snapshots/amd64"
-    if [ -d "$WORK_DIR/packages/snapshots/amd64" ]; then
-        cp "$WORK_DIR/packages/snapshots/amd64"/*.tgz "$SITE_DIR/openriot/packages/snapshots/amd64/" 2>/dev/null || true
-        log "Added packages to tarball"
-    fi
 
-    # Move repo into tarball structure
+    # Move repo into tarball structure (NO packages in tarball)
     mkdir -p "$SITE_DIR/openriot"
     rm -rf "$SITE_DIR/openriot/repo"
     mv "$REPO_DIR" "$SITE_DIR/openriot/repo"
@@ -319,14 +339,9 @@ cleanup_mounts() {
 # Expand Image
 # ============================================================
 expand_img() {
-    # Calculate needed size: base image + tarball + 300MB buffer
-    # IMPORTANT: Use BASE_IMG, not OUTPUT_IMG (which gets modified by truncate)
-    TGZ_MB=$(( $(stat -f %z "$OPENRIOT_TGZ" 2>/dev/null || stat -c %s "$OPENRIOT_TGZ") / 1048576 ))
-    BASE_MB=$(( $(stat -f %z "$BASE_IMG" 2>/dev/null || stat -c %s "$BASE_IMG") / 1048576 ))
-    NEEDED_MB=$(( BASE_MB + TGZ_MB + 300 ))
-    log "Expanding image to ${NEEDED_MB}MB (${BASE_MB}MB base + ${TGZ_MB}MB tarball + 300MB buffer)..."
-
-    truncate -s "${NEEDED_MB}M" "$OUTPUT_IMG"
+    # Create a fixed 2GB image (handles up to ~1.7GB of content)
+    log "Expanding image to 2GB..."
+    truncate -s 2G "$OUTPUT_IMG"
 
     # Cleanup
     cleanup_mounts
@@ -335,26 +350,16 @@ expand_img() {
     vnconfig -u vnd0 2>/dev/null || true
     vnconfig vnd0 "$OUTPUT_IMG"
 
-    # Get current info - use exact field positions
+    # Get current info
     ROOT_START=$(disklabel vnd0 | grep '^  a:' | awk '{print $3}')
     ROOT_FSTYPE=$(disklabel vnd0 | grep '^  a:' | awk '{print $4}')
+    TOTAL_SEC=$(($(stat -f %z "$OUTPUT_IMG") / 512))
 
-    # Total sectors is on a line like "total sectors: 4194304"
-    TOTAL_SEC=$(disklabel vnd0 | grep -E '^total sectors:' | awk '{print $3}')
-
-    # Fallback: use cylinder calculation
-    if [ -z "$TOTAL_SEC" ]; then
-        CYLINDERS=$(disklabel vnd0 | grep '^cylinders:' | awk '{print $2}')
-        SECTORS_PER=$(disklabel vnd0 | grep '^sectors/cylinder:' | awk '{print $2}')
-        TOTAL_SEC=$((CYLINDERS * SECTORS_PER))
-    fi
-
-    # New size: fill to 95% of disk (leave buffer)
-    NEW_SIZE=$((TOTAL_SEC * 95 / 100 - ROOT_START))
+    # Fill partition
+    NEW_SIZE=$((TOTAL_SEC - ROOT_START))
 
     log "total=$TOTAL_SEC start=$ROOT_START new_size=$NEW_SIZE"
 
-    # Create full prototype file
     cat > /tmp/newlabel.txt << PROTOTYPE
 # /dev/rvnd0c:
 type: vnd
@@ -377,12 +382,41 @@ total sectors: $TOTAL_SEC
 PROTOTYPE
 
     disklabel -R vnd0 /tmp/newlabel.txt
-
-    # Grow filesystem
     growfs -y /dev/vnd0a
 
     vnconfig -u vnd0
-    ok "Image expanded"
+    ok "Image expanded to 2GB"
+}
+
+# ============================================================
+# Shrink Image
+# ============================================================
+shrink_img() {
+    log "Shrinking image to fit content..."
+
+    vnconfig -u vnd0 2>/dev/null || true
+    vnconfig vnd0 "$OUTPUT_IMG"
+
+    # Get filesystem usage
+    DF_OUTPUT=$(df -k /dev/vnd0a | tail -1)
+    USED_KB=$(echo "$DF_OUTPUT" | awk '{print $3}')
+
+    # Calculate needed size: used space + 10% buffer + space for filesystem metadata
+    NEEDED_KB=$((USED_KB * 110 / 100 + 32768))
+
+    # Convert to MB and align to 4MB
+    NEEDED_MB=$(( (NEEDED_KB + 4095) / 4096 * 4))
+
+    # Minimum 1GB
+    [ "$NEEDED_MB" -lt 1024 ] && NEEDED_MB=1024
+
+    log "Shrinking to ${NEEDED_MB}MB (used: ${USED_KB}KB)..."
+
+    vnconfig -u vnd0
+
+    truncate -s "${NEEDED_MB}M" "$OUTPUT_IMG"
+
+    ok "Image shrunk to ${NEEDED_MB}MB"
 }
 
 # Build Final Image
@@ -390,7 +424,10 @@ PROTOTYPE
 build_img() {
     log "Building final image..."
 
-    mkdir -p "$WORK_DIR"
+    mkdir -p "$(dirname "$OUTPUT_IMG")"
+
+    # Remove old image - we build fresh from base
+    rm -f "$OUTPUT_IMG"
 
     # Copy base image FIRST (so we don't modify source)
     log "Copying base image..."
@@ -417,8 +454,19 @@ build_img() {
     log "Injecting openriot.tgz..."
     cp "$OPENRIOT_TGZ" /mnt/openriot.tgz
 
+    # Copy packages separately (not in tarball for size optimization)
+    log "Injecting packages..."
+    mkdir -p /mnt/openriot/packages/snapshots/amd64
+    if [ -d "$WORK_DIR/packages/snapshots/amd64" ]; then
+        cp "$WORK_DIR/packages/snapshots/amd64"/*.tgz /mnt/openriot/packages/snapshots/amd64/
+        log "Packages injected ($(du -sh "$WORK_DIR/packages/snapshots/amd64" | cut -f1))"
+    fi
+
     umount /mnt
     vnconfig -u vnd0
+
+    # Shrink image to fit actual content
+    shrink_img
 
     ok "Image created: $OUTPUT_IMG"
     ok "openriot.tgz injected into image"
