@@ -396,6 +396,8 @@ doas pkg_add -D snapshot curl
 curl -fsSL https://openriot.org/setup.sh | sh
 ```
 
+> **🌍 Auto Mirror Selection:** OpenRiot automatically detects and uses the fastest OpenBSD mirror during installation — no manual configuration needed. Run `openriot --mirrors` anytime to check or update your mirror selection.
+
 The desktop will start automatically after setup completes. No need to run `startx`.
 
 ---
@@ -1466,16 +1468,22 @@ If `pkg_add` fails:
 
     ```bash
     cat /etc/installurl
-    # Should show: https://cdn.openbsd.org/pub/OpenBSD
+    # Should show a mirror URL
     ```
 
-2. **Set it if missing:**
+2. **Auto-select fastest mirror:**
 
     ```bash
-    echo "https://cdn.openbsd.org/pub/OpenBSD" | doas tee /etc/installurl
+    doas openriot --mirrors
     ```
 
-3. **Try again:**
+3. **Or set it manually:**
+
+    ```bash
+    echo https://cdn.openbsd.org/pub/OpenBSD | doas tee /etc/installurl
+    ```
+
+4. **Try again:**
     ```bash
     pkg_add -v <package-name>
     ```
