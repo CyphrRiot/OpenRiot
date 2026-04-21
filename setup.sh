@@ -355,6 +355,7 @@ main() {
     # This is properly formatted. Need the variable for version fixed
     echo ""
     echo "+------------------------------------------------------------+"
+    echo "|                                                            |"
     printf "|  OpenRiot v%s Installation Complete                       |\n" "$banner_ver"
     echo "|                                                            |"
     echo "|  xenodm will start X11 automatically on next boot.         |"
