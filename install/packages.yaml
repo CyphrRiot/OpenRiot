@@ -223,7 +223,7 @@ fonts:
             - |
                 if [ -f ~/.config/gurk/gurk.toml ]; then
                     if ! grep -q 'message_selected' ~/.config/gurk/gurk.toml; then
-                        awk '/^\[keybindings\]$/ && !done { print "[keybindings.message_selected]"; print "alt-e = \"edit_message\""; print "alt-y = \"copy_message\""; print "ctrl-t = \"react :thumbsup:\""; print "ctrl-f = \"react 🔥\""; print "ctrl+h = \"react :purple_heart:\""; print ""; done=1 } 1' ~/.config/gurk/gurk.toml > /tmp/gurk.toml.new && mv /tmp/gurk.toml.new ~/.config/gurk/gurk.toml
+                        awk '/^\[keybindings\]$/ && !done { print "[keybindings.message_selected]"; print "alt-e = \"edit_message\""; print "alt-y = \"copy_message\""; print "ctrl-t = \"react :thumbsup:\""; print "ctrl-f = \"react 🔥\""; print "ctrl-h = \"react :purple_heart:\""; print ""; done=1 } 1' ~/.config/gurk/gurk.toml > /tmp/gurk.toml.new && mv /tmp/gurk.toml.new ~/.config/gurk/gurk.toml
                         echo '[DONE] Added gurk message_selected keybindings'
                     else
                         echo '[SKIP] gurk message_selected keybinding already exists'

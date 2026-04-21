@@ -64,14 +64,14 @@ func Click() error {
 
 	if CompareVersions(local, cached) < 0 {
 		// Update available - notify then launch upgrade confirmation
-		notify.SendNotify("upgrade", "Desktop", fmt.Sprintf("v%s - Update available!", cached), "normal", 3000, 0)
+		notify.SendNotify("upgrade", "OpenRiot Update", fmt.Sprintf("v%s - Update available!", cached), "normal", 3000, 0)
 		cmd := fmt.Sprintf(`printf "You are about to upgrade OpenRiot v%s... are you sure? [Y/n] "; read -r ans; case "$ans" in [yY]|"") curl -fsSL https://openriot.org/setup.sh | sh ;; *) echo "Canceled."; sleep 1 ;; esac`, cached)
 		exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
 		return nil
 	}
 
 	// No update available - show notification
-	notify.SendNotify("desktop", "Desktop", fmt.Sprintf("v%s - up to date", local), "normal", 3000, 0)
+	notify.SendNotify("desktop", "OpenRiot Update", fmt.Sprintf("v%s - up to date", local), "normal", 3000, 0)
 	return nil
 }
 

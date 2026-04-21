@@ -254,15 +254,20 @@ func Setup() int {
 		return 1
 	}
 
+	fmt.Println("[DONE] Dunst scaled. Run `Super+Shift+R` to apply changes.")
 	return 0
 }
 
 // getScreenWidth returns the screen width in pixels using xrandr
 func getScreenWidth() int {
+	if os.Getenv("DISPLAY") == "" {
+		return 1920
+	}
+
 	cmd := exec.Command("xrandr")
 	output, err := cmd.Output()
 	if err != nil {
-		return 1920 // default to 1080p
+		return 1920
 	}
 
 	lines := strings.Split(string(output), "\n")

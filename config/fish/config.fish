@@ -144,5 +144,11 @@ set -gx fish_history_size 1000
 # OpenRiot path - type "or" then space to expand
 abbr -a -g or --position anywhere --set-cursor='%' ~/.local/share/openriot/
 
+# Create the function properly
+abbr -a -g !! --position anywhere 'commandline -t -- (history | head -n 1)'
+
+# Ctrl+O for !! (escape doesn't work well with !!)
+bind \co 'commandline -i (history | head -1)'
+
 # Signal Messenger
 alias signal '~/.local/share/openriot/config/bin/gurk'

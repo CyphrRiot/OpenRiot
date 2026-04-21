@@ -538,10 +538,15 @@ func Setup() int {
 	if err := os.WriteFile(configPath, []byte(content), 0600); err != nil {
 		return 1
 	}
+	fmt.Println("[DONE] Polybar scaled. Run `Super+Shift+R` to apply changes.")
 	return 0
 }
 
 func getResolution() string {
+	if os.Getenv("DISPLAY") == "" {
+		return "1920"
+	}
+
 	cmd := exec.Command("xrandr")
 	output, err := cmd.Output()
 	if err != nil {

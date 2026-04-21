@@ -143,7 +143,7 @@ func getEthInterface() (string, bool) {
 			isEth = true
 		}
 		if isEth && strings.Contains(line, "status: active") {
-			hasCarrier = true
+			return current, true
 		}
 		if isEth && current != "" && current != "lo0" && current != "ieee80211" {
 			// Connected if: status active OR inet (IP assigned)

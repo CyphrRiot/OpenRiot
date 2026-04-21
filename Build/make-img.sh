@@ -440,8 +440,9 @@ build_img() {
     for disk in $(sysctl -n hw.disknames 2>/dev/null | tr ',' '\n' | grep -oE '^(sd|wd)[0-9]+'); do
         label=$(doas disklabel "$disk" 2>/dev/null || true)
         if [ -n "$label" ]; then
-            # Detect root drive
-            if mount | grep -q "^/dev/${disk}a on / "; then
+            # Detect root drive - check if any partition of this disk is mounted
+            is_mounted=$(mount | grep -c "^/dev/${disk}" || true)
+            if [ "$is_mounted" -gt 0 ]; then
                 ROOT_DRIVE="$disk"
             fi
 
