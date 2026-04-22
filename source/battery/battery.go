@@ -76,23 +76,12 @@ func Get() string {
 	return fmt.Sprintf("%s %d%%", icon, percent)
 }
 
-func getBatteryStatus() (int, int) {
-	percent, ac, _ := getFullStatus()
-	return percent, ac
-}
-
 func getBatteryIcon(percent, ac int) string {
 	// Arrays indexed by (percent-1)/10 = 0-8
 	batteryIcons := []string{"󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂"}
 	chargingIcons := []string{"󰢜", "󰢜", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋"}
 
-	idx := (percent - 1) / 10
-	if idx < 0 {
-		idx = 0
-	}
-	if idx > 8 {
-		idx = 8
-	}
+	idx := max(0, min((percent-1)/10, 8))
 
 	if ac == 1 {
 		if percent >= 100 {

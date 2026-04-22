@@ -228,7 +228,6 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@echo "  (default)         Build openriot binary (cross-compiled for OpenBSD)"
-	@echo "  (default)         Build openriot binary (cross-compiled for OpenBSD)"
 	@echo "  install           Build + copy to ~/.local/share/openriot/install/"
 	@echo "  build             FAIL - use 'make' or 'make install'"
 	@echo "  linux             Build for Linux (native)"

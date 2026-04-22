@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"gopkg.in/yaml.v3"
 )
@@ -98,14 +99,7 @@ func validateModuleCategory(category string, modules map[string]Module) error {
 
 		// Validate type is one of the allowed values
 		validTypes := []string{"Package", "Git", "System", "File", "Source"}
-		typeValid := false
-		for _, validType := range validTypes {
-			if module.Type == validType {
-				typeValid = true
-				break
-			}
-		}
-		if !typeValid {
+		if !slices.Contains(validTypes, module.Type) {
 			return fmt.Errorf("module %s has invalid type '%s', must be one of: %v", fullName, module.Type, validTypes)
 		}
 	}

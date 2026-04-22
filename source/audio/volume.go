@@ -18,9 +18,7 @@ func Run(args []string) int {
 		return 1
 	}
 
-		home := os.Getenv("HOME")
-	_ = home // used for icon paths
-	sendNotify := func(icon, msg string) {
+		sendNotify := func(icon, msg string) {
 		notify.SendNotify(icon, "Settings", msg, "normal", 1500, 0)
 	}
 

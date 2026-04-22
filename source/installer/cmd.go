@@ -71,15 +71,15 @@ func RunInstallPackages() {
 func findPackagesYaml() string {
 	homeDir, _ := os.UserHomeDir()
 
-	// 1. Check CWD first
-	cwd, _ := os.Getwd()
-	cwdPackages := filepath.Join(cwd, "install", "packages.yaml")
-	if _, err := os.Stat(cwdPackages); err == nil {
-		return cwdPackages
+	// 1. Check installed location first
+	installedPath := filepath.Join(homeDir, ".local", "share", "openriot", "install", "packages.yaml")
+	if _, err := os.Stat(installedPath); err == nil {
+		return installedPath
 	}
 
-	// 2. Fallback to installed location
-	return filepath.Join(homeDir, ".local", "share", "openriot", "install", "packages.yaml")
+	// 2. Fallback to CWD (for development)
+	cwd, _ := os.Getwd()
+	return filepath.Join(cwd, "install", "packages.yaml")
 }
 
 // RunCheckPackages verifies packages.yaml versions against installed

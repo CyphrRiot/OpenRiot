@@ -195,9 +195,10 @@ func Status() error {
 
 		// Urgency icon
 		icon := "[BELL]" // normal
-		if n.Urgency == "critical" {
+		switch n.Urgency {
+		case "critical":
 			icon = "" // critical
-		} else if n.Urgency == "low" {
+		case "low":
 			icon = "[!]" // warning/low
 		}
 

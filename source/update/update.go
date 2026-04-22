@@ -13,6 +13,8 @@ import (
 	"openriot/notify"
 )
 
+var home, _ = os.UserHomeDir()
+
 const (
 	updateIcon   = "󰋻" // Update available
 	noUpdateIcon = "󰚇" // Up to date
@@ -20,7 +22,6 @@ const (
 )
 
 func getCachePath() string {
-	home, _ := os.UserHomeDir()
 	return filepath.Join(home, ".cache/openriot/remote.version")
 }
 
@@ -41,11 +42,13 @@ func writeCacheVersion(version string) error {
 func Get() string {
 	local := getLocalVersion()
 	remote := getRemoteVersionWithCache()
+	return iconForComparison(local, remote)
+}
 
+func iconForComparison(local, remote string) string {
 	if local == "unknown" || remote == "unknown" {
 		return unknownIcon
 	}
-
 	if CompareVersions(local, remote) < 0 {
 		return updateIcon
 	}
@@ -76,7 +79,6 @@ func Click() error {
 }
 
 func getLocalVersion() string {
-	home, _ := os.UserHomeDir()
 	path := filepath.Join(home, ".local/share/openriot/VERSION")
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -126,13 +128,7 @@ func GetWithTimeout(timeout time.Duration) string {
 
 	select {
 	case remote := <-done:
-		if local == "unknown" || remote == "unknown" {
-			return unknownIcon
-		} else if CompareVersions(local, remote) < 0 {
-			return updateIcon
-		} else {
-			return noUpdateIcon
-		}
+		return iconForComparison(local, remote)
 	case <-time.After(timeout):
 		return noUpdateIcon
 	}

@@ -98,7 +98,7 @@ func loadMappings() {
 		filepath.Join(homeDir, "Code/OpenRiot/config/window/icons.toml"),
 	}
 
-	var data map[string]interface{}
+	var data map[string]any
 	for _, path := range locations {
 		if _, err := toml.DecodeFile(path, &data); err == nil {
 			break
@@ -109,9 +109,9 @@ func loadMappings() {
 	flattenMaps(data)
 }
 
-func flattenMaps(data map[string]interface{}) {
+func flattenMaps(data map[string]any) {
 	for _, sectionData := range data {
-		if sm, ok := sectionData.(map[string]interface{}); ok {
+		if sm, ok := sectionData.(map[string]any); ok {
 			for k, v := range sm {
 				if str, ok := v.(string); ok {
 					mappings[strings.ToLower(k)] = str

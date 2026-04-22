@@ -36,7 +36,7 @@ func Run() error {
 	// Build rofi input: "Icon Name" per line
 	var rofiInput bytes.Buffer
 	for _, entry := range entries {
-		rofiInput.WriteString(fmt.Sprintf("%s  %s\n", entry.Icon, entry.Name))
+		fmt.Fprintf(&rofiInput, "%s  %s\n", entry.Icon, entry.Name)
 	}
 
 	// Run rofi
@@ -184,9 +184,9 @@ func getDesktopExec(desktopFile string) (string, error) {
 	}
 
 	for _, line := range strings.Split(string(data), "\n") {
-		if strings.HasPrefix(line, "Exec=") {
-			return strings.TrimPrefix(line, "Exec="), nil
-		}
+		if after, ok := strings.CutPrefix(line, "Exec="); ok {
+		return after, nil
+	}
 	}
 	return "", fmt.Errorf("no Exec= line found in %s", desktopFile)
 }

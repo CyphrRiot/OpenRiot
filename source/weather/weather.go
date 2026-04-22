@@ -13,6 +13,7 @@ import (
 )
 
 var homeDir, _ = os.UserHomeDir()
+var cachedConfig *Config
 
 const (
 	apiURL   = "https://api.openweathermap.org/data/2.5/weather"
@@ -60,12 +61,12 @@ func loadConfig() Config {
 	cfg := Config{Units: "imperial", APIKey: apiKey}
 	for _, line := range strings.Split(string(data), "\n") {
 		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "location=") {
-			cfg.Location = strings.TrimPrefix(line, "location=")
-		} else if strings.HasPrefix(line, "units=") {
-			cfg.Units = strings.TrimPrefix(line, "units=")
-		} else if strings.HasPrefix(line, "api=") {
-			cfg.APIKey = strings.TrimPrefix(line, "api=")
+		if after, ok := strings.CutPrefix(line, "location="); ok {
+			cfg.Location = after
+		} else if after, ok := strings.CutPrefix(line, "units="); ok {
+			cfg.Units = after
+		} else if after, ok := strings.CutPrefix(line, "api="); ok {
+			cfg.APIKey = after
 		}
 	}
 	return cfg
@@ -161,12 +162,9 @@ func formatTemp(temp float64, units string) string {
 }
 
 func getUnits() string {
-	cfgFile := filepath.Join(homeDir, ".config/weather.cfg")
-	data, _ := os.ReadFile(cfgFile)
-	for _, line := range strings.Split(string(data), "\n") {
-		if strings.HasPrefix(line, "units=") {
-			return strings.TrimPrefix(line, "units=")
-		}
+	if cachedConfig == nil {
+		cfg := loadConfig()
+		cachedConfig = &cfg
 	}
-	return "imperial"
+	return cachedConfig.Units
 }

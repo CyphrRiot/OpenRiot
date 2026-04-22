@@ -75,21 +75,6 @@ func GetRAM() string {
 	}
 }
 
-func getRAM() string {
-	ram := getRAMPercentInt()
-	// 0-25%: 󰢿, 25-50%: 󰢼, 50-75%: 󰢽, 75-100%: 󰢾
-	switch {
-	case ram >= 75:
-		return "󰢾"
-	case ram >= 50:
-		return "󰢽"
-	case ram >= 25:
-		return "󰢼"
-	default:
-		return "󰢿"
-	}
-}
-
 func getRAMPercent() string {
 	return strconv.Itoa(getRAMPercentInt())
 }

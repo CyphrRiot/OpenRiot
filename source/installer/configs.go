@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"openriot/config"
@@ -198,12 +199,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 
 // isPreserveFile returns true if filename is in the preserve list
 func isPreserveFile(filename string, preserveList []string) bool {
-	for _, preserve := range preserveList {
-		if preserve == filename {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(preserveList, filename)
 }
 
 // shouldPreserve checks if a file should be preserved based on the preserve list

@@ -20,8 +20,6 @@ func Run(args []string) int {
 		return 1
 	}
 
-	home := os.Getenv("HOME")
-	_ = home // used for icon paths
 	showNotify := func(msg string) {
 		// Dismiss any existing notifications, show new one via dunst (auto-expires in 3s)
 		exec.Command("openriot", "--notify-dismiss").Run()

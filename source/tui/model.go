@@ -310,10 +310,10 @@ func (m *InstallModel) View() string {
 			bannerStyle := lipgloss.NewStyle().Foreground(successColor).Bold(true)
 			s.WriteString(bannerStyle.Render("[PARTY] Installation completed!") + "\n\n")
 		}
-		s.WriteString(fmt.Sprintf("\n\n%s  %s  %s",
+		fmt.Fprintf(&s, "\n\n%s  %s  %s",
 			promptStyle.Render(m.confirmPrompt),
 			buttonRow,
-			helpStyle.Render("( -> to select, Enter to confirm)")))
+			helpStyle.Render("( -> to select, Enter to confirm)"))
 	} else if m.inputMode != "" {
 		s.WriteString("\n\n" + m.inputPrompt + m.inputValue + "_")
 	} else {

@@ -6,7 +6,6 @@ import (
 	"math"
 	"net/http"
 	"os"
-	"os/user"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -15,6 +14,8 @@ import (
 	"github.com/BurntSushi/toml"
 	"openriot/notify"
 )
+
+var homeDir, _ = os.UserHomeDir()
 
 // Config represents the crypto.toml structure
 type Config struct {
@@ -97,7 +98,7 @@ func RunCrypto(mode string) error {
 	// Save current as prev BEFORE fetching new prices
 	prevData := make(map[string]float64)
 	for sym, data := range curPrices {
-		if dataMap, ok := data.(map[string]interface{}); ok {
+		if dataMap, ok := data.(map[string]any); ok {
 			if usd, ok := dataMap["usd"].(float64); ok {
 				prevData[sym] = usd
 			}
@@ -117,7 +118,7 @@ func RunCrypto(mode string) error {
 
 	// Update items with prices
 	for i := range items {
-		if curData, ok := curPrices[items[i].CoinID].(map[string]interface{}); ok {
+		if curData, ok := curPrices[items[i].CoinID].(map[string]any); ok {
 			if usd, ok := curData["usd"].(float64); ok {
 				items[i].Price = usd
 			}
@@ -186,12 +187,7 @@ func RunCrypto(mode string) error {
 }
 
 func loadCryptoConfig() (*Config, error) {
-	usr, err := user.Current()
-	if err != nil {
-		return nil, err
-	}
-
-	configPath := filepath.Join(usr.HomeDir, ".config", "crypto.toml")
+	configPath := filepath.Join(homeDir, ".config", "crypto.toml")
 
 	// Default config with default pairs - used when config file doesn't exist
 	config := &Config{
@@ -205,7 +201,7 @@ func loadCryptoConfig() (*Config, error) {
 		},
 	}
 
-	_, err = toml.DecodeFile(configPath, config)
+	_, err := toml.DecodeFile(configPath, config)
 	if err != nil {
 		// Return default config if file doesn't exist
 		if os.IsNotExist(err) {
@@ -218,8 +214,7 @@ func loadCryptoConfig() (*Config, error) {
 }
 
 func getCacheDir() string {
-	usr, _ := user.Current()
-	cacheDir := filepath.Join(usr.HomeDir, ".cache")
+	cacheDir := filepath.Join(homeDir, ".cache")
 	os.MkdirAll(cacheDir, 0755)
 	return cacheDir
 }
@@ -243,7 +238,7 @@ func fetchPrices(ids []string, curFile string, apiKey string) {
 	}
 	defer resp.Body.Close()
 
-	var data map[string]interface{}
+	var data map[string]any
 	if json.NewDecoder(resp.Body).Decode(&data) == nil {
 		tmp := curFile + ".tmp"
 		f, _ := os.Create(tmp)
@@ -253,12 +248,12 @@ func fetchPrices(ids []string, curFile string, apiKey string) {
 	}
 }
 
-func loadJSON(path string) map[string]interface{} {
+func loadJSON(path string) map[string]any {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil
 	}
-	var result map[string]interface{}
+	var result map[string]any
 	json.Unmarshal(data, &result)
 	return result
 }
@@ -280,7 +275,7 @@ func loadOHLCData(items []CryptoItem, ohlcFile string, apiKey string) {
 		// Load from cache
 		raw := loadJSON(ohlcFile)
 		for k, v := range raw {
-			if arr, ok := v.([]interface{}); ok {
+			if arr, ok := v.([]any); ok {
 				prices := make([]float64, len(arr))
 				for j, p := range arr {
 					if f, ok := p.(float64); ok {
@@ -330,15 +325,15 @@ func fetchOHLC(coinID string, days int, apiKey string) []float64 {
 	}
 	defer resp.Body.Close()
 
-	var data map[string]interface{}
+	var data map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 		return nil
 	}
 
-	if prices, ok := data["prices"].([]interface{}); ok {
+	if prices, ok := data["prices"].([]any); ok {
 		result := make([]float64, len(prices))
 		for i, p := range prices {
-			if arr, ok := p.([]interface{}); ok && len(arr) > 1 {
+			if arr, ok := p.([]any); ok && len(arr) > 1 {
 				if f, ok := arr[1].(float64); ok {
 					result[i] = f
 				}
@@ -444,8 +439,8 @@ func coinIsConcentrated(sym string, items []CryptoItem) bool {
 	return false
 }
 
-// checkConcentration checks if a coin exceeds 35% of portfolio value
-func checkConcentration(sym string, held, price float64, items []CryptoItem) string {
+// checkConcentration checks if a coin exceeds 50% of portfolio value
+func checkConcentration(held, price float64, items []CryptoItem) string {
 	if held <= 0 || price <= 0 {
 		return ""
 	}
@@ -456,8 +451,8 @@ func checkConcentration(sym string, held, price float64, items []CryptoItem) str
 			totalValue += it.Held * it.Price
 		}
 	}
-	if totalValue > 0 && (coinValue/totalValue) > 0.35 {
-		return ""
+	if totalValue > 0 && (coinValue/totalValue) > 0.50 {
+		return "⚠"
 	}
 	return ""
 }
@@ -836,7 +831,7 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold i
 		}
 
 		// Check concentration
-		concStr := checkConcentration(item.Sym, item.Held, item.Price, items)
+		concStr := checkConcentration(item.Held, item.Price, items)
 		if concStr != "" {
 			symStr = item.Sym + concStr
 		}

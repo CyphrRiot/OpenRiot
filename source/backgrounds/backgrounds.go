@@ -11,10 +11,11 @@ import (
 	"time"
 )
 
+var home, _ = os.UserHomeDir()
+
 
 // Load restores the last saved wallpaper or falls back to default.
 func Load() int {
-	home := os.Getenv("HOME")
 	stateFile := filepath.Join(home, ".config", "openriot", ".current-background")
 	bgsDir := filepath.Join(home, ".local", "share", "openriot", "backgrounds")
 	defaultBg := filepath.Join(bgsDir, "riot_00.jpg")
@@ -38,7 +39,6 @@ func Load() int {
 
 // Next cycles to the next wallpaper and restarts feh.
 func Next() int {
-	home := os.Getenv("HOME")
 	bgsDir := filepath.Join(home, ".local", "share", "openriot", "backgrounds")
 	stateFile := filepath.Join(home, ".config", "openriot", ".current-background")
 

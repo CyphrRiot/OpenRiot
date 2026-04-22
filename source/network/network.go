@@ -172,13 +172,7 @@ func getSignal(iface string) int {
 }
 
 func getWifiIcon(signal int) string {
-	percent := (signal + 100) * 100 / 70
-	if percent > 100 {
-		percent = 100
-	}
-	if percent < 0 {
-		percent = 0
-	}
+	percent := max(0, min((signal+100)*100/70, 100))
 
 	if percent >= 70 {
 		return "󰤨"
