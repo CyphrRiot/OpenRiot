@@ -73,7 +73,7 @@ desktop:
             - ImageMagick-6.9.13.43
             - dunst-1.13.1
             - clipmenu-6.2.0
-            - clipnotify-1.0.2
+            # - clipnotify-1.0.2  # Optional: for clipboard change detection scripts
             - libqalculate-5.8.0p1
             - redshift-1.12p11
             - noto-emoji-2.051v0
