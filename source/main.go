@@ -348,6 +348,30 @@ func main() {
 		fmt.Print(workspaceicons.Get(target))
 	}
 
+	// Check if any audio is playing via sndio (OpenBSD) or PulseAudio (Linux)
+	hasAudioPlaying := func() bool {
+		// Try OpenBSD sndio first
+		cmd := exec.Command("sndioctl", "-n")
+		output, err := cmd.Output()
+		if err == nil {
+			// Check for active audio (apps with level > 0)
+			lines := strings.Split(string(output), "\n")
+			for _, line := range lines {
+				if strings.HasPrefix(line, "app/") && strings.Contains(line, ".level=") {
+					// Found an app with audio level - something is playing
+					return true
+				}
+			}
+		}
+		// Fallback to PulseAudio (Linux)
+		cmd = exec.Command("pactl", "list", "sink-inputs")
+		output, err = cmd.Output()
+		if err == nil && strings.Contains(string(output), "State: RUNNING") {
+			return true
+		}
+		return false
+	}
+
 	// Dispatch commands with args
 	if len(os.Args) >= 2 {
 		if fn, ok := commands[os.Args[1]]; ok {
@@ -358,6 +382,21 @@ func main() {
 
 	// Section 5: Volume, brightness, lock, power menu
 	commands["--lock"] = func() {
+		lock.Lock()
+	}
+	commands["--smart-lock"] = func() {
+		// Skip lock if audio is playing
+		if hasAudioPlaying() {
+			return
+		}
+		// Skip lock if media players are running
+		players := []string{"firefox", "mpv", "vlc", "mplayer", "chrome", "chromium"}
+		for _, p := range players {
+			cmd := exec.Command("pgrep", "-x", p)
+			if output, _ := cmd.Output(); len(strings.TrimSpace(string(output))) > 0 {
+				return
+			}
+		}
 		lock.Lock()
 	}
 	commands["--signal-launch"] = func() {
@@ -657,6 +696,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "  --mirrors          Detect and show fastest OpenBSD mirror\n")
 	fmt.Fprintf(os.Stderr, "  --rofi            Show app launcher\n")
 	fmt.Fprintf(os.Stderr, "  --lock            Lock the screen\n")
+	fmt.Fprintf(os.Stderr, "  --smart-lock      Lock only if no audio playing\n")
 	fmt.Fprintf(os.Stderr, "  --suspend         Suspend the system\n")
 	fmt.Fprintf(os.Stderr, "  --screenshot [select]  Take screenshot (use 'select' for area)\n")
 	fmt.Fprintf(os.Stderr, "  --power-menu       Show power menu\n")

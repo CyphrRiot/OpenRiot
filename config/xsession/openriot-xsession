@@ -25,7 +25,7 @@ xset s off
 xset -dpms
 xset dpms 0 0 1800
 xset +dpms
-xautolock -time 10 -locker "$HOME/.local/share/openriot/config/bin/smart-lock" &
+xautolock -time 10 -locker "$HOME/.local/share/openriot/install/openriot --smart-lock" &
 
 # Start i3
 exec i3

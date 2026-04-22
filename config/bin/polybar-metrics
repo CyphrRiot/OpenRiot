@@ -1,3 +1,0 @@
-#!/bin/sh
-# Output CPU/RAM metrics for polybar (called every 60s)
-exec $HOME/.local/share/openriot/install/openriot --polybar-metrics
