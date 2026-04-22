@@ -156,3 +156,8 @@ bind \co 'commandline -i (history | head -1)'
 
 # Signal Messenger
 alias signal '~/.local/share/openriot/config/bin/gurk'
+
+# Fix Firefux
+set -x MOZ_ENABLE_WAYLAND 0 # Force X11 (sometimes helps clipboard)
+set -x MOZ_DISABLE_CONTENT_SANDBOX 1
+set -x MOZ_USE_XINPUT2 0
