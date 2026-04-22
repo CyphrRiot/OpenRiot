@@ -74,7 +74,6 @@ desktop:
             - dunst-1.13.1
             - clipmenu-6.2.0
             - clipnotify-1.0.2
-            - dmenu-5.4
             - libqalculate-5.8.0p1
             - redshift-1.12p11
             - noto-emoji-2.051v0
