@@ -133,9 +133,13 @@ end
 # =============================================================================
 # History Configuration
 # =============================================================================
+set -x FISH_HISTORY_SAVE 1
+set -x FISH_HISTORY_LIMIT 5000 # optional: limit history size
 
-# Limit history size to prevent corruption
-set -gx fish_history_size 1000
+# Save history more safely
+function __save_history --on-event fish_postexec
+    history save
+end
 
 # =============================================================================
 # Abbreviations & Aliases

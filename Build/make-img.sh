@@ -24,11 +24,11 @@ WORK_DIR="${WORK_DIR:-$(pwd)/work}"
 OPENRIOT_TGZ="${WORK_DIR}/openriot.tgz"
 
 # Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[1;36m'
-RESET='\033[0m'
+RED=$(printf '\033[0;31m')
+GREEN=$(printf '\033[0;32m')
+YELLOW=$(printf '\033[1;33m')
+CYAN=$(printf '\033[1;36m')
+RESET=$(printf '\033[0m')
 
 log() { echo "${CYAN}[INFO]${RESET} $1"; }
 warn() { echo "${YELLOW}[WARN]${RESET} $1"; }
@@ -516,19 +516,27 @@ build_img() {
     ok "Work directory (Build/work/) can be cleaned with './make-img.sh clean'"
 
     # Find currently attached drives and detect root
-    REMOVABLE_DRIVES=""
     ROOT_DRIVE=""
+
+    # Root drive from dmesg
+    root_dev=$(dmesg 2>/dev/null | grep "^root on " | head -1 | sed 's/.*on \([a-z]*[0-9]*\)[a-z].*/\1/')
+    [ -n "$root_dev" ] && ROOT_DRIVE=$(echo "$root_dev" | sed 's/[0-9]*//')
+
+    # Removable drives from dmesg
+    REMOVABLE_LIST=""
+    for disk in $(dmesg 2>/dev/null | grep "removable" | grep -oE 'sd[0-9]+' | sort -u); do
+        REMOVABLE_LIST="${REMOVABLE_LIST}${REMOVABLE_LIST:+ }$disk"
+    done
+
+    # Protected drives: root + drives with RAID partitions (softraid parents)
+    PROTECTED="$ROOT_DRIVE"
+
     for disk in $(sysctl -n hw.disknames 2>/dev/null | tr ',' '\n' | grep -oE '^(sd|wd)[0-9]+'); do
         label=$(doas disklabel "$disk" 2>/dev/null || true)
         if [ -n "$label" ]; then
-            # Check for OpenBSD filesystem (4.2BSD/FFS partitions) OR softraid (RAID type)
-            has_openbsd_fs=$(echo "$label" | grep -cE '(4\.2BSD|RAID)' || true)
-
-            # Check if part of softraid/crypto
-            is_softraid=""
-            if doas bioctl "$disk" >/dev/null 2>&1; then
-                is_softraid="1"
-            fi
+            # Check for RAID partitions (softraid parent)
+            has_raid=$(echo "$label" | grep -cE '^  [a-z]:.*RAID' || true)
+            [ "$has_raid" -gt 0 ] && PROTECTED="${PROTECTED}${PROTECTED:+ }$disk"
 
             bytes_per_sec=$(echo "$label" | sed -n 's/.*bytes\/sector:[[:space:]]*\([0-9]*\).*/\1/p')
             total_sectors=$(echo "$label" | awk '/^[[:space:]]*c:/ {print $2; exit}')
@@ -536,24 +544,16 @@ build_img() {
                 total_bytes=$((total_sectors * bytes_per_sec))
                 size_gb=$((total_bytes / 1073741824))
                 if [ "$size_gb" -gt 0 ]; then
-                    if [ -n "$REMOVABLE_DRIVES" ]; then
-                        REMOVABLE_DRIVES="${REMOVABLE_DRIVES}
-${disk}|${size_gb}|${has_openbsd_fs}|${is_softraid}"
-                    else
-                        REMOVABLE_DRIVES="${disk}|${size_gb}|${has_openbsd_fs}|${is_softraid}"
-                    fi
+                    # Check if removable
+                    is_removable=""
+                    for rem in $REMOVABLE_LIST; do
+                        [ "$disk" = "$rem" ] && is_removable="1" && break
+                    done
+
+                    REMOVABLE_DRIVES="${REMOVABLE_DRIVES}${REMOVABLE_DRIVES:+
+}${disk}|${size_gb}|${is_removable}"
                 fi
             fi
-        fi
-    done
-
-    # Detect actual root drive (boot device) - more reliable than mount check
-    ROOT_DRIVE=""
-    root_dev=$(sysctl -n kern.rootdev 2>/dev/null | sed 's/.*sd/sd/; s/[a-z].*//')
-    for disk in $(sysctl -n hw.disknames 2>/dev/null | tr ',' '\n' | grep -oE '^(sd|wd)[0-9]+'); do
-        if echo "$root_dev" | grep -q "^${disk}"; then
-            ROOT_DRIVE="$disk"
-            break
         fi
     done
 
@@ -564,25 +564,28 @@ ${disk}|${size_gb}|${has_openbsd_fs}|${is_softraid}"
         # Build display and drive list
         DRIVE_LIST=""
         DISPLAY_LINES=""
-        while IFS='|' read -r drive size has_openbsd is_softraid; do
+        while IFS='|' read -r drive size is_removable; do
             drive_short=$(echo "$drive" | sed 's|dev/||')
 
-            # Determine tag based on actual root vs removable
-            # ROOT = the actual boot drive (protect from overwrite)
-            # WARN = removable drive with content (USB stick - OK to overwrite)
-            # INFO = empty/fresh drive (OK to overwrite)
-            if [ "$drive" = "$ROOT_DRIVE" ]; then
-                prefix="${RED}[ROOT]${RESET}"
-                suffix=" [boot drive]"
+            # Check if protected
+            is_protected=""
+            for prot in $PROTECTED; do
+                [ "$drive" = "$prot" ] && is_protected="1" && break
+            done
+
+            if [ "$is_protected" = "1" ]; then
+                if [ "$drive" = "$ROOT_DRIVE" ]; then
+                    prefix="${RED}[ROOT]${RESET}"
+                    suffix=" [OpenBSD Encrypted]"
+                else
+                    prefix="${RED}[ROOT]${RESET}"
+                    suffix=" [OpenBSD]"
+                fi
                 exclude="1"
-            elif [ "$has_openbsd" -gt 0 ]; then
+            elif [ "$is_removable" = "1" ]; then
                 prefix="${YELLOW}[WARN]${RESET}"
-                suffix=" [removable]"
+                suffix=" [Removable USB]"
                 exclude="0"
-            elif [ "$is_softraid" = "1" ]; then
-                prefix="${YELLOW}[WARN]${RESET}"
-                suffix=" [softraid]"
-                exclude="1"
             else
                 prefix="${CYAN}[INFO]${RESET}"
                 suffix=""
@@ -608,6 +611,10 @@ EOF
         printf "%s\n" "$DISPLAY_LINES" | while IFS='|' read -r line size drive_short exclude; do
             printf "${line}\n" "$size"
         done
+
+        if [ -n "$DRIVE_LIST" ]; then
+            printf "${GREEN}[DONE]${RESET} Available for burn: %s\n" "$DRIVE_LIST"
+        fi
 
         # Only prompt for burn if there are eligible drives
         if [ -n "$DRIVE_LIST" ]; then
