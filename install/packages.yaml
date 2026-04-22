@@ -9,10 +9,8 @@ core:
     base:
         packages:
             - rsync-3.4.1
-            - bc-gh-7.1.0p0
             - python-3.13.13
             - fastfetch-2.60.0
-            - jq-1.8.1
             - exfat-fuse-1.4.0
             - xz-5.8.3
             - zip-3.0p3
@@ -32,11 +30,9 @@ core:
             - fish-4.6.0
             - bash-5.3.9
             - alacritty-0.16.1
-            - fzf-0.71.0
             - ripgrep-15.1.0
             - pv-1.10.5
             - btop-1.4.6p0
-            - fd-10.4.2
             - gnupg-2.5.18
             - meson-1.10.2v0
             - ninja-1.11.1p1v1
