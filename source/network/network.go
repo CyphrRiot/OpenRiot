@@ -145,12 +145,12 @@ func getEthInterface() (string, bool) {
 		if isEth && strings.Contains(line, "status: active") {
 			return current, true
 		}
-		if isEth && current != "" && current != "lo0" && current != "ieee80211" {
+		// Only check fallback on status: lines AFTER "status: active" check
+		// This prevents returning false on media: line before we see status:
+		if isEth && current != "" && current != "lo0" && current != "ieee80211" && strings.Contains(line, "status:") {
 			// Connected if: status active OR inet (IP assigned)
-			if strings.Contains(line, "media:") || strings.Contains(line, "status:") || strings.Contains(line, "inet ") {
-				hasCarrier = hasCarrier || strings.Contains(line, "inet ")
-				return current, hasCarrier
-			}
+			hasCarrier = hasCarrier || strings.Contains(line, "inet ")
+			return current, hasCarrier
 		}
 	}
 	return "", false

@@ -13,7 +13,7 @@ OPENBSD_VERSION = 7.9
 # ============================================================
 # Targets
 # ============================================================
-.PHONY: all build linux clean deps test verify release ultra img isotest binary-push install help
+.PHONY: all build linux clean deps test verify release ultra img isotest binary-push install help test-img
 
 # Build only (no install) - use for testing
 all:
@@ -169,6 +169,11 @@ test:
 	@echo "=== Running tests ==="
 	@cd $(SOURCE_DIR) && go test ./...
 
+# Imaging module tests
+test-img:
+	@echo "=== Running imaging tests ==="
+	@cd $(SOURCE_DIR) && go test -v ./imaging/...
+
 # Verify build
 verify: all
 	@$(INSTALL_DIR)/$(BINARY_NAME) --version
@@ -237,6 +242,7 @@ help:
 	@echo "  isotest            Build ISO and run in QEMU"
 	@echo "  deps               Tidy Go module dependencies"
 	@echo "  test               Run Go tests"
+	@echo "  test-img           Run imaging module tests"
 	@echo "  verify             Build and smoke-test the binary"
 	@echo "  clean              Remove build artifacts"
 	@echo "  binary-push        Build + strip history + commit + force-push binary"
