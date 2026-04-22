@@ -81,6 +81,7 @@ desktop:
             - dmenu-5.4
             - libqalculate-5.8.0p1
             - redshift-1.12p11
+            - noto-emoji-2.051v0
         configs:
             - pattern: i3/*
             - pattern: polybar/*
@@ -233,17 +234,7 @@ fonts:
     gurk-keybindings:
         type: "Source"
         build:
-            - |
-                if [ -f ~/.config/gurk/gurk.toml ]; then
-                    if ! grep -q 'message_selected' ~/.config/gurk/gurk.toml; then
-                        awk '/^\[keybindings\]$/ && !done { print "[keybindings.message_selected]"; print "alt-e = \"edit_message\""; print "alt-y = \"copy_message\""; print "ctrl-t = \"react :thumbsup:\""; print "ctrl-f = \"react 🔥\""; print "ctrl-h = \"react :purple_heart:\""; print ""; done=1 } 1' ~/.config/gurk/gurk.toml > /tmp/gurk.toml.new && mv /tmp/gurk.toml.new ~/.config/gurk/gurk.toml
-                        echo '[DONE] Added gurk message_selected keybindings'
-                    else
-                        echo '[SKIP] gurk message_selected keybinding already exists'
-                    fi
-                else
-                    echo '[SKIP] ~/.config/gurk/gurk.toml not found'
-                fi
+            - "if [ -f ~/.config/gurk/gurk.toml ]; then if ! grep -q '\\[keybindings.message_selected\\]' ~/.config/gurk/gurk.toml; then printf '\\n[keybindings.message_selected]\\nalt-e = \"edit_message\"\\nalt-y = \"copy_message selected\"\\nctrl-t = \"react :thumbsup:\"\\nctrl-f = \"react 🔥\"\\nctrl-h = \"react :purple_heart:\"\\n' >> ~/.config/gurk/gurk.toml && echo '[DONE] Added gurk keybindings'; else echo '[SKIP] gurk keybindings already exist'; fi; else echo '[SKIP] ~/.config/gurk/gurk.toml not found'; fi"
         depends: []
         start: "Configuring gurk keybindings"
         end: "gurk keybindings configured"
