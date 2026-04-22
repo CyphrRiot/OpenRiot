@@ -14,10 +14,6 @@ core:
             - fastfetch-2.60.0
             - jq-1.8.1
             - exfat-fuse-1.4.0
-            - deno-2.6.6
-            - p7zip-17.06
-            - subversion-1.14.5p2
-            - webkitgtk60-2.52.3
             - xz-5.8.3
             - zip-3.0p3
             - unzip-6.0p18
@@ -141,7 +137,6 @@ desktop:
             - lsd-1.1.5p2
             - thunar-4.20.8
             - thunar-archive-0.6.0
-            - thunar-vcs-0.4.0
             - tumbler-4.20.1p0
             - xfce4-settings-4.20.4
             - gnome-themes-extra-3.28p7
@@ -182,7 +177,6 @@ desktop:
             - ffmpeg-8.0.1p1v1
             - ffmpegthumbnailer-2.2.2p0
             - yt-dlp-2026.03.17
-            - pulseaudio-17.0p3
         configs:
             - pattern: "transmission-daemon/settings.json"
               target: "~/.config/transmission-daemon"
@@ -242,10 +236,6 @@ fonts:
 system:
     tools:
         packages:
-            - xz-5.8.3
-            - zip-3.0p3
-            - wget-1.25.0p0
-            - unzip-6.0p18
             - rclone-1.73.4
             - wireguard-tools-1.0.20210914p3v0
         depends: [core.base]
