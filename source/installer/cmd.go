@@ -65,6 +65,15 @@ func RunInstallPackages() {
 	if failed > 0 {
 		os.Exit(1)
 	}
+
+	fmt.Printf("%s[INFO]%s Updating all packages and dependencies to latest...\n", Cyan, Reset)
+	cmd := exec.Command("doas", "pkg_add", "-u")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("%s[WARN]%s Some packages failed to update: %v\n", Yellow, Reset, err)
+	}
+	fmt.Printf("%s[DONE]%s Package update complete.\n", Green, Reset)
 }
 
 // findPackagesYaml finds packages.yaml: CWD first, then installed location
