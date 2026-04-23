@@ -77,7 +77,7 @@ function fish_prompt
     set -l host (hostname -s)
     set_color bb9af7
     echo -n ' '
-    set_color 9f83d2
+    set_color 846fb2
     printf "%s " $host
     set_color 7dcfff
     printf "%s" (string replace $HOME "~" (pwd))
