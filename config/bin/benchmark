@@ -1,0 +1,173 @@
+#!/bin/ksh
+# =============================================================================
+# OpenBSD System Benchmark Script
+# Location: ~/.local/bin/benchmark
+# Usage: benchmark (run on AC power)
+# =============================================================================
+
+set -e
+
+# ----------------------------- Configuration -----------------------------
+BENCH_DIR=${HOME}/.benchmark
+FILEIO_SIZE=4G
+RUNTIME=60
+THREADS=$(sysctl -n hw.ncpu)
+HOSTNAME=$(hostname | cut -d. -f1)
+START_TIME=$(date)
+
+# Find next log file number
+LOG_NUM=0
+while [ -f ${BENCH_DIR}/${HOSTNAME}-$(date +%Y%m%d)-${LOG_NUM}.log ]; do
+    LOG_NUM=$((LOG_NUM + 1))
+done
+SUMMARY_FILE=${BENCH_DIR}/${HOSTNAME}-$(date +%Y%m%d)-${LOG_NUM}.log
+
+# ----------------------------- System Specs -----------------------------
+CPU_MODEL=$(sysctl -n hw.model)
+RAM_GB=$(( $(sysctl -n hw.physmem) / 1024 / 1024 / 1024 ))
+DISK_NAMES=$(sysctl -n hw.disknames)
+KERNEL=$(uname -r)
+OS_VERSION=$(uname -v)
+
+echo "=== OpenBSD Benchmark Suite ==="
+echo "Start time: $(date)"
+echo "Threads: ${THREADS} | FileIO size: ${FILEIO_SIZE}"
+echo "------------------------------------------------------------"
+
+# ----------------------------- Prerequisites -----------------------------
+if ! command -v sysbench >/dev/null 2>&1; then
+    echo "ERROR: sysbench not found. Install with: doas pkg_add sysbench"
+    exit 1
+fi
+
+mkdir -p ${BENCH_DIR}
+cd ${BENCH_DIR}
+
+# ----------------------------- System Snapshot Before -----------------------------
+echo
+echo "=== SYSTEM SNAPSHOT BEFORE ==="
+echo "CPU temperature and sensors:"
+sysctl hw.sensors | grep -E 'temp|cpu|fan'
+echo "Battery and power:"
+apm
+echo "Disks:"
+sysctl hw.disknames
+echo "------------------------------------------------------------"
+
+# ----------------------------- 1. CPU Benchmark -----------------------------
+echo
+echo "=== CPU TEST sysbench ==="
+CPU_OUT=$(sysbench --test=cpu --cpu-max-prime=20000 --num-threads=${THREADS} --max-time=${RUNTIME} run 2>&1)
+echo "${CPU_OUT}"
+CPU_TIME=$(echo "${CPU_OUT}" | grep "total time:" | tail -1 | awk '{print $3}' | tr -d 's')
+
+# ----------------------------- 2. Memory Benchmark -----------------------------
+echo
+echo "=== MEMORY TEST sysbench ==="
+MEM_OUT=$(sysbench --test=memory --num-threads=${THREADS} --max-time=${RUNTIME} run 2>&1)
+echo "${MEM_OUT}"
+MEM_OPS=$(echo "${MEM_OUT}" | grep -o '[0-9.]* ops/sec' | awk '{print $1}')
+MEM_MB=$(echo "${MEM_OUT}" | grep -o '[0-9.]* MB/sec' | awk '{print $1}')
+
+# ----------------------------- 3. File I/O Benchmark -----------------------------
+echo
+echo "=== FILE I/O TEST sysbench ==="
+
+if [ ! -f testfile0 ]; then
+    echo "Preparing test files..."
+    sysbench --test=fileio --file-total-size=${FILEIO_SIZE} --file-test-mode=rndrw prepare
+fi
+
+IO_OUT=$(sysbench --test=fileio --file-total-size=${FILEIO_SIZE} --file-test-mode=rndrw --num-threads=4 --max-time=${RUNTIME} run 2>&1)
+echo "${IO_OUT}"
+IO_RATE=$(echo "${IO_OUT}" | grep "Requests/sec" | awk '{print $1}')
+
+# ----------------------------- 4. dd Sequential Test -----------------------------
+echo
+echo "=== dd SEQUENTIAL TEST ==="
+echo "Writing 2 GB..."
+DD_WRITE=$(dd if=/dev/zero of=ddtest bs=64M count=32 2>&1 | tail -1 | sed 's/.*(//;s/ bytes\/sec.*//')
+echo "Reading 2 GB..."
+DD_READ=$(dd if=ddtest of=/dev/null bs=64M count=32 2>&1 | tail -1 | sed 's/.*(//;s/ bytes\/sec.*//')
+
+# ----------------------------- Cleanup -----------------------------
+echo
+echo "=== CLEANUP ==="
+rm -f ddtest testfile* *.log 2>/dev/null || true
+sysbench --test=fileio --file-total-size=${FILEIO_SIZE} cleanup 2>/dev/null || true
+
+# ----------------------------- System Snapshot After -----------------------------
+echo
+echo "=== SYSTEM SNAPSHOT AFTER ==="
+echo "CPU temperature and sensors:"
+sysctl hw.sensors | grep -E 'temp|cpu|fan'
+echo "Battery and power:"
+apm
+echo "------------------------------------------------------------"
+
+# ----------------------------- Summary -----------------------------
+echo
+echo "=============================================================="
+echo "                         RESULTS SUMMARY"
+echo "=============================================================="
+printf "| %-17s | %-40s |\n" "Test" "Result"
+printf "|%-19s|%-42s|\n" "-------------------" "----------------------------------------|"
+printf "| %-17s | %-40s |\n" "CPU (prime 20k)" "${CPU_TIME}s @ ${THREADS} threads"
+printf "| %-17s | %-40s |\n" "Memory throughput" "${MEM_OPS} ops/sec (${MEM_MB} MB/s)"
+printf "| %-17s | %-40s |\n" "FileIO (4k rnd)" "${IO_RATE} req/s"
+printf "| %-17s | %-40s |\n" "dd seq write" "$((DD_WRITE / 1024 / 1024)) MB/s"
+printf "| %-17s | %-40s |\n" "dd seq read" "$((DD_READ / 1024 / 1024)) MB/s"
+echo "=============================================================="
+echo
+echo "=== BENCHMARK COMPLETE ==="
+echo "End time: $(date)"
+echo "Tip: Run on AC power with hw.perfpolicy=high for max scores."
+
+# ----------------------------- Write Summary File -----------------------------
+echo "Writing summary to: ${SUMMARY_FILE}"
+cat > ${SUMMARY_FILE} << 'EOF'
+# OpenBSD Benchmark Results
+# Generated: $(date)
+# System: ${HOSTNAME}
+
+================================================================================
+SYSTEM SPECS
+================================================================================
+Hostname:       ${HOSTNAME}
+CPU Model:      ${CPU_MODEL}
+CPU Cores:      ${THREADS}
+RAM:            ${RAM_GB} GB
+Kernel:         ${KERNEL}
+OS Version:     ${OS_VERSION}
+Disks:          ${DISK_NAMES}
+
+================================================================================
+BENCHMARK RESULTS
+================================================================================
+Test:           CPU (prime 20k)
+Threads:        ${THREADS}
+Total Time:     ${CPU_TIME}s
+
+Test:           Memory throughput
+Ops/sec:        ${MEM_OPS}
+MB/sec:         ${MEM_MB}
+
+Test:           FileIO (4k random)
+Requests/sec:   ${IO_RATE}
+
+Test:           dd sequential write
+Speed:          $((DD_WRITE / 1024 / 1024)) MB/s
+
+Test:           dd sequential read
+Speed:          $((DD_READ / 1024 / 1024)) MB/s
+
+================================================================================
+FULL OUTPUT
+================================================================================
+${CPU_OUT}
+
+${MEM_OUT}
+
+${IO_OUT}
+EOF
+echo "Summary saved to: ${SUMMARY_FILE}"

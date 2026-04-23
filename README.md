@@ -1488,4 +1488,15 @@ If `pkg_add` fails:
     pkg_add -v <package-name>
     ```
 
+### System Benchmark
+
+Run `benchmark` to test CPU, memory, and disk performance. Requires `sysbench`:
+
+```bash
+doas pkg_add sysbench
+benchmark
+```
+
+Results go to `~/.benchmark/<hostname>-YYYYMMDD-N.log` with full system specs.
+
 > "You are absolutely deluded, if not stupid, if you think that a worldwide collection of software engineers who can't write operating systems or applications without security holes, can then turn around and suddenly write virtualization layers without security holes." — Theo de Raadt

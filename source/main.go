@@ -68,21 +68,24 @@ func main() {
 			fmt.Println("openriot", version)
 			os.Exit(0)
 		},
-		"--test-notify": func() {
-			// Usage: --test-notify {icon} {title} {body} {urgency} {timeoutMs} {replaceID}
-			if len(os.Args) < 7 {
-				fmt.Fprintf(os.Stderr, "Usage: --test-notify {icon} {title} {body} {urgency} {timeoutMs} {replaceID}\n")
-				fmt.Fprintf(os.Stderr, "Example: --test-notify chart \"Test\" \"Hello\" normal 3000 0\n")
+		"--notify": func() {
+			// Usage: --notify {icon} {title} {body} [urgency] [timeoutMs]
+			if len(os.Args) < 5 {
+				fmt.Fprintf(os.Stderr, "Usage: --notify {icon} {title} {body} [urgency] [timeoutMs]\n")
 				os.Exit(1)
 			}
 			icon := os.Args[2]
 			title := os.Args[3]
 			body := os.Args[4]
-			urgency := os.Args[5]
-			timeout, _ := strconv.Atoi(os.Args[6])
-			replaceID, _ := strconv.Atoi(os.Args[7])
-			notify.SendNotify(icon, title, body, urgency, timeout, replaceID)
-			fmt.Printf("Sent: [%s] %s - %s\n", icon, title, body)
+			urgency := "normal"
+			if len(os.Args) > 5 {
+				urgency = os.Args[5]
+			}
+			timeout := 3000
+			if len(os.Args) > 6 {
+				timeout, _ = strconv.Atoi(os.Args[6])
+			}
+			notify.SendNotify(icon, title, body, urgency, timeout, 0)
 		},
 		"--install": func() {
 			runInstall()
