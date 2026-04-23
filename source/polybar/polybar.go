@@ -40,7 +40,8 @@ func getCPUPercent() string {
 }
 
 func getCPUPercentInt() int {
-	out, err := exec.Command("/usr/bin/vmstat", "1", "1").Output()
+	// Use 2 samples - first one is often stale, last is current
+	out, err := exec.Command("/usr/bin/vmstat", "1", "2").Output()
 	if err != nil {
 		return 0
 	}
@@ -48,6 +49,7 @@ func getCPUPercentInt() int {
 	if len(lines) < 2 {
 		return 0
 	}
+	// Get the LAST line (most recent sample)
 	fields := strings.Fields(lines[len(lines)-1])
 	if len(fields) > 0 {
 		idle, err := strconv.ParseFloat(fields[len(fields)-1], 64)
