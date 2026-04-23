@@ -196,10 +196,10 @@ img:
 		echo "To build the installer image:"; \
 		echo "  1. Boot into OpenBSD $(OPENBSD_VERSION)"; \
 		echo "  2. cd to this directory"; \
-		echo "  3. ./Build/make-img.sh"; \
+		echo "  3. doas make img"; \
 		exit 1; \
 	fi
-	@doas ./Build/make-img.sh
+	@doas ./install/openriot --make-image
 
 # ISO build - DEPRECATED
 # Custom ISO is no longer needed. Use standard OpenBSD ISO + setup.sh.

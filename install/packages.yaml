@@ -126,7 +126,7 @@ desktop:
         end: "rofi-calc installed"
     apps:
         packages:
-            - firefox-149.0.2p0
+            - firefox-150.0
             - tdesktop-6.7.6
             - helix-25.07.1
             - lsd-1.1.5p2
@@ -192,7 +192,7 @@ source:
     bibata-cursor:
         type: "Source"
         build:
-            - "if [ -d \"/usr/local/share/icons/Bibata-Modern-Ice\" ]; then echo '[SKIP] Bibata cursor already installed'; else doas sh -c 'cp -r $HOME/.local/share/openriot/assets/cursors/Bibata-Modern-Ice /usr/local/share/icons/'; fi"
+            - "if [ -d \"/usr/local/share/icons/Bibata-Modern-Ice\" ]; then echo '[SKIP] Bibata cursor already installed'; elif [ -d \"$HOME/.local/share/openriot/assets/cursors/Bibata-Modern-Ice\" ]; then doas cp -r \"$HOME/.local/share/openriot/assets/cursors/Bibata-Modern-Ice\" /usr/local/share/icons/ && echo '[DONE] Bibata cursor installed'; else echo '[SKIP] Bibata source not found (run setup.sh first)'; fi"
         depends: []
         start: "Installing Bibata-Modern-Ice cursor theme"
         end: "Bibata cursor installed"
@@ -231,7 +231,7 @@ fonts:
 system:
     tools:
         packages:
-            - rclone-1.73.4
+            - rclone-1.73.5
             - wireguard-tools-1.0.20210914p3v0
         depends: [core.base]
         start: "Installing system tools"
@@ -255,6 +255,8 @@ system:
             #  cmd: "doas rcctl enable seatd && doas rcctl start seatd"
             - desc: "Create WireGuard config directory"
               cmd: "doas mkdir -p /etc/wireguard && doas chmod 700 /etc/wireguard"
+            - desc: "Update all system firmware"
+              cmd: "doas fw_update -a"
             # - desc: "Install Atheros AR9271 WiFi firmware (if adapter present)"
             #  cmd: "if [ -d /etc/firmware ] && ! [ -f /etc/firmware/athn-open-ar9271 ]; then fw_update -v athn 2>/dev/null || (cd /etc/firmware && ftp -o athn-ucode.tgz https://firmware.openbsd.org/firmware/$(uname -r)/athn-ucode.tgz 2>/dev/null && tar -xzf athn-ucode.tgz && rm -f athn-ucode.tgz); fi"
         depends: [core.base]

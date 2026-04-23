@@ -188,7 +188,7 @@ func (c *Config) SyncPackages(installed map[string]string) int {
 	syncModuleMap := func(modules map[string]Module) {
 		for name := range modules {
 			for i, pkg := range modules[name].Packages {
-				base := getBaseName(pkg)
+				base := GetBaseName(pkg)
 				if installedVer, exists := installed[base]; exists {
 					if installedVer != pkg {
 						modules[name].Packages[i] = installedVer
@@ -219,8 +219,8 @@ func (c *Config) SaveConfig(filename string) error {
 	return os.WriteFile(filename, data, 0600)
 }
 
-// getBaseName extracts base name from package (e.g., "fish-4.6.0" -> "fish")
-func getBaseName(pkg string) string {
+// GetBaseName extracts base name from package (e.g., "fish-4.6.0" -> "fish")
+func GetBaseName(pkg string) string {
 	for i := len(pkg) - 1; i >= 0; i-- {
 		if pkg[i] == '-' {
 			return pkg[:i]

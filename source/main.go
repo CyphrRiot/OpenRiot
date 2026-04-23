@@ -15,6 +15,7 @@ import (
 	"openriot/crypto"
 	"openriot/detect"
 	"openriot/display"
+	"openriot/imaging"
 	"openriot/installer"
 	"openriot/lock"
 	"openriot/notify"
@@ -129,6 +130,9 @@ func main() {
 			}
 			fmt.Printf("Current: %s\n", localVer)
 			os.Exit(1)
+		},
+		"--make-image": func() {
+			imaging.RunMakeImage(os.Args[2:])
 		},
 	}
 

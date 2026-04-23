@@ -451,7 +451,7 @@ func checkConcentration(held, price float64, items []CryptoItem) string {
 			totalValue += it.Held * it.Price
 		}
 	}
-	if totalValue > 0 && (coinValue/totalValue) > 0.50 {
+	if totalValue > 0 && (coinValue/totalValue) > 0.75 {
 		return "⚠"
 	}
 	return ""
