@@ -341,7 +341,7 @@ main() {
     }
     install_x11_sets
 
-    run_install_packages || { error "Package installation failed"; exit 1; }
+    run_install_packages
     run_openriot_install
 
     # Enable xenodm for automatic X11 login on boot

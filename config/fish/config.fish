@@ -22,11 +22,13 @@ end
 # No greeting - use fastfetch instead
 set -g fish_greeting ""
 
-# Show motd then fastfetch
-if test -f $HOME/.local/share/openriot/install/motd
-    cat $HOME/.local/share/openriot/install/motd
+# Show motd then fastfetch (interactive shells only - skip SSH/rsync)
+if status is-interactive
+    if test -f $HOME/.local/share/openriot/install/motd
+        cat $HOME/.local/share/openriot/install/motd
+    end
+    fastfetch
 end
-fastfetch
 
 # =============================================================================
 # Path Configuration
