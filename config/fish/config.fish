@@ -74,10 +74,10 @@ set -g __fish_git_prompt_char_upstream_equal ""
 
 function fish_prompt
     set -l last_status $status
-    set -l host (hostname -s)
+    set -l host (hostname -s 2>/dev/null || echo "unknown")
     set_color bb9af7
-    echo -n ' '
-    set_color 846fb2
+    echo -n '  '
+    set_color 705e97
     printf "%s " $host
     set_color 7dcfff
     printf "%s" (string replace $HOME "~" (pwd))
@@ -98,9 +98,8 @@ end
 # fish is a login shell — it should NEVER exec i3, or SSH sessions die.
 # On TTY1, xenodm launches ~/.xsession which starts i3. On SSH, you get a shell.
 function fish_right_prompt
-    set_color blue
+    # Disabled - uncomment to enable
     # printf "%s" (date "+%H:%M:%S")
-    # set_color normal
 end
 
 # =============================================================================
@@ -126,9 +125,6 @@ alias la='lsd -la'
 
 # more sucks without this
 alias more='more -e'
-
-# OpenBSD-specific aliases
-alias doas='doas'
 
 # Disk usage - show top 10 largest items by size
 function dum

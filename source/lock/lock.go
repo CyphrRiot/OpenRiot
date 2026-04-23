@@ -36,6 +36,11 @@ func Lock() error {
 		}
 	}
 
+	if len(matches) == 0 {
+		// No lock images found
+		notify.SendNotify("lock", "Screen Lock", "No lock images found", "normal", 4000, 0)
+	}
+
 	if len(matches) > 0 {
 		// Randomly select one
 		lockJpg := matches[rand.Intn(len(matches))]
@@ -61,7 +66,12 @@ func Lock() error {
 			cmd.Stdin = nil
 			cmd.Stdout = nil
 			cmd.Stderr = nil
-			cmd.Run() // Wait for unlock before cleanup
+			err := cmd.Start()
+			if err != nil {
+				notify.SendNotify("lock", "Screen Lock", "Lock failed: i3lock error", "critical", 5000, 0)
+				return err
+			}
+			cmd.Wait()
 			os.Remove(lockPng)
 			return nil
 		}
@@ -73,7 +83,11 @@ func Lock() error {
 	cmd.Stdin = nil
 	cmd.Stdout = nil
 	cmd.Stderr = nil
-	return cmd.Start()
+	err := cmd.Start()
+	if err != nil {
+		notify.SendNotify("lock", "Screen Lock", "Lock failed: i3lock error", "critical", 5000, 0)
+	}
+	return err
 }
 
 func getResolution() string {
