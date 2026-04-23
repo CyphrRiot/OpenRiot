@@ -72,8 +72,7 @@ func Get() string {
 		return "" // No battery info
 	}
 
-	icon := getBatteryIcon(percent, ac)
-	return fmt.Sprintf("%s %d%%", icon, percent)
+	return getBatteryIcon(percent, ac)
 }
 
 func getBatteryIcon(percent, ac int) string {

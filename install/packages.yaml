@@ -133,6 +133,7 @@ desktop:
             - thunar-4.20.8
             - thunar-archive-0.6.0
             - tumbler-4.20.1p0
+            - xfconf-4.18.3
             - xfce4-settings-4.20.4
             - gnome-themes-extra-3.28p7
             - papirus-icon-theme-20250501p1

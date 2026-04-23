@@ -41,6 +41,8 @@ include keybindings.conf
 # Status bar - generate scaled config, then launch polybar (delay for Xorg readiness)
 exec --no-startup-id $openriot_bin --polybar-setup
 exec --no-startup-id sh -c 'sleep 3; polybar main'
+# Restart polybar after startup to ensure icons/fonts are loaded
+exec --no-startup-id sh -c 'sleep 8; polybar-msg cmd restart'
 exec --no-startup-id sh -c 'sleep 10; while true; do pgrep polybar >/dev/null || polybar main; sleep 5; done'
 
 # Wallpaper
@@ -61,6 +63,9 @@ exec --no-startup-id clipmenud
 # GTK/XFCE settings daemon
 # DISABLED - was overriding screen saver/DPMS settings causing 10-min timeout
 # exec --no-startup-id xfsettingsd
+
+# XFCE config daemon (needed for xfce4-settings-manager)
+exec --no-startup-id /usr/local/lib/xfce4/xfconf/xfconfd
 
 # =============================================================================
 # BEHAVIOR
