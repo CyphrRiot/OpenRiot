@@ -722,6 +722,7 @@ func main() {
 
 
 // runInstall handles the --install command (runs as USER, no TTY/PTY needed)
+// NOTE: Package installation is handled separately via --install-packages
 func runInstall() {
 	fmt.Println("[INFO] OpenRiot installer starting...")
 
@@ -740,9 +741,8 @@ func runInstall() {
 		os.Exit(1)
 	}
 
-	// Step 0: Package installation
-	fmt.Printf("%s[INFO]%s Installing packages...\n", installer.Cyan, installer.Reset)
-	installer.RunInstallPackages()
+	// Step 0: Package installation - SKIPPED (use --install-packages separately)
+	// This avoids running pkg_add -u twice when called from setup.sh
 
 	// Step 1: Config deployment
 	if err := installer.CopyConfigs(repoDir, cfg, testMode); err != nil {
