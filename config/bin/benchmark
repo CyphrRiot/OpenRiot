@@ -125,7 +125,7 @@ echo "Tip: Run on AC power with hw.perfpolicy=high for max scores."
 
 # ----------------------------- Write Summary File -----------------------------
 echo "Writing summary to: ${SUMMARY_FILE}"
-cat > ${SUMMARY_FILE} << 'EOF'
+cat > ${SUMMARY_FILE} << EOF
 # OpenBSD Benchmark Results
 # Generated: $(date)
 # System: ${HOSTNAME}
