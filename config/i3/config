@@ -38,9 +38,9 @@ include keybindings.conf
 # AUTOSTART
 # =============================================================================
 
-# Status bar - generate scaled config, then launch polybar
+# Status bar - generate scaled config, then launch polybar (delay for Xorg readiness)
 exec --no-startup-id $openriot_bin --polybar-setup
-exec --no-startup-id polybar main
+exec --no-startup-id sh -c 'sleep 3; polybar main'
 exec --no-startup-id sh -c 'sleep 10; while true; do pgrep polybar >/dev/null || polybar main; sleep 5; done'
 
 # Wallpaper
