@@ -67,7 +67,11 @@ func RunInstallPackages() {
 	}
 
 	fmt.Printf("%s[INFO]%s Updating all packages and dependencies to latest...\n", Cyan, Reset)
-	cmd := exec.Command("doas", "pkg_add", "-u")
+	updateCmd := []string{"doas", "pkg_add", "-u"}
+	if cfg.IsSnapshot() {
+		updateCmd = append(updateCmd, "-D", "snapshot")
+	}
+	cmd := exec.Command(updateCmd[0], updateCmd[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {

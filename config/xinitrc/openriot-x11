@@ -22,9 +22,11 @@ fc-cache -f 2>/dev/null
 pkill -f xconsole 2>/dev/null || true
 
 # Screensaver at 10 min, monitor off at 30 min
-xset s 600
-xset +dpms
+xset s off
+xset -dpms
 xset dpms 0 0 1800
+xset +dpms
+xautolock -time 10 -locker "$HOME/.local/share/openriot/install/openriot --smart-lock" &
 
 # Start i3 (or fallback)
 exec i3
