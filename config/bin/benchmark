@@ -34,6 +34,12 @@ echo "Start time: $(date)"
 echo "Threads: ${THREADS} | FileIO size: ${FILEIO_SIZE}"
 echo "------------------------------------------------------------"
 
+# ----------------------------- Performance Mode -----------------------------
+echo "Setting high performance mode..."
+ORIG_PERF=$(sysctl -n hw.perfpolicy)
+doas sysctl hw.perfpolicy=high
+PERF_CHANGED=1
+
 # ----------------------------- Prerequisites -----------------------------
 if ! command -v sysbench >/dev/null 2>&1; then
     echo "ERROR: sysbench not found. Install with: doas pkg_add sysbench"
@@ -121,6 +127,11 @@ echo "=============================================================="
 echo
 echo "=== BENCHMARK COMPLETE ==="
 echo "End time: $(date)"
+
+# Restore original performance policy
+echo "Restoring performance mode to: ${ORIG_PERF}"
+doas sysctl hw.perfpolicy=${ORIG_PERF}
+
 echo "Tip: Run on AC power with hw.perfpolicy=high for max scores."
 
 # ----------------------------- Write Summary File -----------------------------

@@ -3,3 +3,6 @@
 Xcursor.theme: Bibata-Modern-Ice
 Xcursor.size: 24
 Xcursor.theme_core: true
+
+! Force 96 DPI (fixes notification scaling on HiDPI screens like T14 1920x1080)
+Xft.dpi: 96

@@ -74,8 +74,11 @@ set -g __fish_git_prompt_char_upstream_equal ""
 
 function fish_prompt
     set -l last_status $status
+    set -l host (hostname -s)
     set_color bb9af7
     echo -n ' '
+    set_color 9f83d2
+    printf "%s " $host
     set_color 7dcfff
     printf "%s" (string replace $HOME "~" (pwd))
     if command git rev-parse --git-dir >/dev/null 2>&1
@@ -136,12 +139,13 @@ end
 # History Configuration
 # =============================================================================
 set -x FISH_HISTORY_SAVE 1
-set -x FISH_HISTORY_LIMIT 5000 # optional: limit history size
+set -x FISH_HISTORY_LIMIT 5000
 
-# Save history more safely
-function __save_history --on-event fish_postexec
-    history save
-end
+# NOTE: Don't manually save history on every command - fish auto-saves.
+# Manual save causes race conditions and file corruption.
+# function __save_history --on-event fish_postexec
+#     history save
+# end
 
 # =============================================================================
 # Abbreviations & Aliases
