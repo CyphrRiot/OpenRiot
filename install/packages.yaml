@@ -95,6 +95,8 @@ desktop:
             - pattern: lf/*
             - pattern: bin/*
               target: "~/.local/bin"
+            - pattern: user-dirs.dirs
+              target: "~/.config/user-dirs.dirs"
         commands:
             - desc: "Make all scripts executable"
               cmd: "find ~/.local/share/openriot/config -name \"*.sh\" -exec chmod +x {} \\; 2>/dev/null || true"
