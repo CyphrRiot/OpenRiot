@@ -20,6 +20,9 @@ type Config struct {
 	// Computed paths
 	OpenriotBin string // Path to openriot binary
 	OpenriotTgz string // Path to output tarball
+
+	// Image size (calculated after content injection)
+	UsedKB int // Used space in KB after injection
 }
 
 // LoadConfig loads imaging config from flags/env

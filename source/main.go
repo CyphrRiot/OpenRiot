@@ -18,6 +18,7 @@ import (
 	"openriot/imaging"
 	"openriot/installer"
 	"openriot/lock"
+	"openriot/logger"
 	"openriot/notify"
 	"openriot/network"
 	"openriot/nightlight"
@@ -724,11 +725,11 @@ func main() {
 // runInstall handles the --install command (runs as USER, no TTY/PTY needed)
 // NOTE: Package installation is handled separately via --install-packages
 func runInstall() {
-	fmt.Println("[INFO] OpenRiot installer starting...")
+	logger.Info("OpenRiot installer starting...")
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[FAIL] Could not determine home directory: %v\n", err)
+		logger.Fail(fmt.Sprintf("Could not determine home directory: %v", err))
 		os.Exit(1)
 	}
 
@@ -737,7 +738,7 @@ func runInstall() {
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[FAIL] Failed to load config from %s: %v\n", configPath, err)
+		logger.Fail(fmt.Sprintf("Failed to load config from %s: %v", configPath, err))
 		os.Exit(1)
 	}
 
@@ -746,19 +747,19 @@ func runInstall() {
 
 	// Step 1: Config deployment
 	if err := installer.CopyConfigs(repoDir, cfg, testMode); err != nil {
-		fmt.Printf("%s[WARN]%s  Config deployment skipped: %v\n", installer.Yellow, installer.Reset, err)
+		logger.Warn(fmt.Sprintf("Config deployment skipped: %v", err))
 	}
 
 	// Step 2: Command execution
-	fmt.Printf("%s[INFO]%s Running post-install commands...\n", installer.Cyan, installer.Reset)
+	logger.Info("Running post-install commands...")
 	if err := installer.ExecCommands(cfg, testMode); err != nil {
-		fmt.Printf("%s[WARN]%s Some commands failed: %v\n", installer.Yellow, installer.Reset, err)
+		logger.Warn(fmt.Sprintf("Some commands failed: %v", err))
 	}
 
 	// Step 3: Source builds (crush, wlsunset, bibata-cursor, etc.)
-	fmt.Printf("%s[INFO]%s Running source builds...\n", installer.Cyan, installer.Reset)
+	logger.Info("Running source builds...")
 	if err := installer.SourceBuilds(cfg, testMode); err != nil {
-		fmt.Printf("[WARN] Source builds: %v\n", err)
+		logger.Warn(fmt.Sprintf("Source builds: %v", err))
 	}
 
 	// Source builds handled above, setup.sh shows completion box

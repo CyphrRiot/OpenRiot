@@ -5,6 +5,7 @@ import (
 	"os/exec"
 
 	"openriot/config"
+	"openriot/logger"
 )
 
 // InstallPackages installs packages using pkg_add with doas.
@@ -25,16 +26,16 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 	}
 
 	if len(toInstall) == 0 {
-		fmt.Printf("%s[DONE]%s All packages already installed\n", Green, Reset)
+		logger.Done("All packages already installed")
 		return 0, nil
 	}
 
-	fmt.Printf("%s[INFO]%s Installing %d packages (%d new, %d already installed)...\n", Cyan, Reset, len(packages), len(toInstall), len(packages)-len(toInstall))
+	logger.Info(fmt.Sprintf("Installing %d packages (%d new, %d already installed)...", len(packages), len(toInstall), len(packages)-len(toInstall)))
 
 	failed := 0
 	for _, pkg := range toInstall {
 		installName := pkg
-		fmt.Printf("%s[INFO]%s Installing %s...\n", Cyan, Reset, pkg)
+		logger.Info(fmt.Sprintf("Installing %s...", pkg))
 
 
 		// Build pkg_add command: use -D snapshot only for snapshot systems
@@ -56,12 +57,12 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 			// Retry with base name (without version) on failure
 			base := config.GetBaseName(pkg)
 			if base != pkg {
-				fmt.Printf("%s[INFO]%s Retrying %s with latest version...\n", Cyan, Reset, base)
+				logger.Info(fmt.Sprintf("Retrying %s with latest version...", base))
 				installCmd[len(installCmd)-1] = base
 				cmd = exec.Command(installCmd[0], installCmd[1:]...)
 				output, err = cmd.CombinedOutput()
 				if err == nil {
-					fmt.Printf("%s[DONE]%s %s installed (latest version)\n", Green, Reset, base)
+					logger.Done(fmt.Sprintf("%s installed (latest version)", base))
 					continue
 				}
 				outputStr = string(output)
@@ -69,18 +70,18 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 					outputStr = outputStr[:300] + "..."
 				}
 			}
-			fmt.Printf("%s[WARN]%s Failed to install %s:\n    %s\n", Yellow, Reset, pkg, outputStr)
+			logger.Warn(fmt.Sprintf("Failed to install %s:\n    %s", pkg, outputStr))
 			failed++
 		} else {
-			fmt.Printf("%s[DONE]%s %s installed\n", Green, Reset, pkg)
+			logger.Done(fmt.Sprintf("%s installed", pkg))
 		}
 	}
 
 	if failed > 0 {
-		fmt.Printf("%s[WARN]%s %d packages failed to install.\n", Yellow, Reset, failed)
-		fmt.Printf("%s[WARN]%s You can install remaining ones manually: doas pkg_add <package>\n", Yellow, Reset)
+		logger.Warn(fmt.Sprintf("%d packages failed to install.", failed))
+		logger.Warn("You can install remaining ones manually: doas pkg_add <package>")
 	} else {
-		fmt.Printf("%s[DONE]%s All packages installed\n", Green, Reset)
+		logger.Done("All packages installed")
 	}
 
 	return failed, nil

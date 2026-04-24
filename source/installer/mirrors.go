@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"openriot/logger"
 )
 
 // Mirror represents an OpenBSD mirror
@@ -139,20 +141,20 @@ func SetupMirror() {
 		return
 	}
 
-	fmt.Printf("%s[INFO]%s Detecting fastest mirror...\n", Cyan, Reset)
+	logger.Info("Detecting fastest mirror...")
 
 	mirror, latency, err := SelectFastestMirror()
 	if err != nil {
-		fmt.Printf("%s[WARN]%s Mirror detection failed, using CDN: %v\n", Yellow, Reset, err)
+		logger.Warn(fmt.Sprintf("Mirror detection failed, using CDN: %v", err))
 		mirror = DefaultMirrors[0].URL
 		latency = 0
 	}
 
 	if err := WriteInstallurl(mirror); err != nil {
-		fmt.Printf("%s[WARN]%s Failed to write installurl: %v\n", Yellow, Reset, err)
+		logger.Warn(fmt.Sprintf("Failed to write installurl: %v", err))
 		return
 	}
 
 	latencyMs := latency.Milliseconds()
-	fmt.Printf("%s[DONE]%s Using %s (%dms)\n", Green, Reset, mirror, latencyMs)
+	logger.Done(fmt.Sprintf("Using %s (%dms)", mirror, latencyMs))
 }

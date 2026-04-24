@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"openriot/installer"
+	"openriot/logger"
 )
 
 // Drive represents a detected drive
@@ -165,7 +166,7 @@ func getDiskInfo(device string) (int, bool, error) {
 // PromptBurn asks user to select a drive and burns image
 func PromptBurn(cfg *Config, drives []Drive) error {
 	if cfg.NoBurn {
-		log("Skipping burn (--no-burn flag)")
+		logger.Info("Skipping burn (--no-burn flag)")
 		return nil
 	}
 
@@ -178,7 +179,7 @@ func PromptBurn(cfg *Config, drives []Drive) error {
 	}
 
 	if len(eligible) == 0 {
-		log("No eligible drives for burning")
+		logger.Info("No eligible drives for burning")
 		return nil
 	}
 
@@ -219,7 +220,7 @@ func PromptBurn(cfg *Config, drives []Drive) error {
 	input = strings.TrimSpace(input)
 
 	if input == "" {
-		log("Skipped. Flash %s to USB when ready.", cfg.OutputImg)
+		logger.Info(fmt.Sprintf("Skipped. Flash %s to USB when ready.", cfg.OutputImg))
 		return nil
 	}
 
@@ -235,17 +236,17 @@ func PromptBurn(cfg *Config, drives []Drive) error {
 	}
 
 	if !found {
-		log("Invalid selection: %s", input)
+		logger.Info(fmt.Sprintf("Invalid selection: %s", input))
 		return nil
 	}
 
 	// Confirmation
-	fmt.Printf("\nYou will be erasing %s (%d GB). Are you sure? [y/N] ", selected.Device, selected.SizeGB)
+	fmt.Printf("\n%s[ASK ]%s You will be erasing %s (%d GB). Are you sure? [y/N] ", installer.Cyan, installer.Reset, selected.Device, selected.SizeGB)
 	input, _ = reader.ReadString('\n')
 	input = strings.TrimSpace(input)
 
 	if strings.ToLower(input) != "y" {
-		log("Aborted. Flash %s to USB when ready.", cfg.OutputImg)
+		logger.Info(fmt.Sprintf("Aborted. Flash %s to USB when ready.", cfg.OutputImg))
 		return nil
 	}
 
@@ -255,7 +256,7 @@ func PromptBurn(cfg *Config, drives []Drive) error {
 
 // burnImage writes image to specified drive
 func burnImage(device, imagePath string) error {
-	log("Burning to /dev/r%s...", device)
+	logger.Info(fmt.Sprintf("Burning to /dev/r%s...", device))
 
 	drivePath := fmt.Sprintf("/dev/r%sc", device)
 
@@ -284,7 +285,7 @@ func burnImage(device, imagePath string) error {
 
 // Cleanup removes work directory
 func Cleanup(cfg *Config) error {
-	log("Cleaning up...")
+	logger.Info("Cleaning up...")
 
 	// Unmount just in case
 	exec.Command("umount", "/mnt").Run()
@@ -299,7 +300,7 @@ func Cleanup(cfg *Config) error {
 		}
 	}
 
-	log("Cleanup complete")
+	logger.Done("Cleanup complete")
 	return nil
 }
 

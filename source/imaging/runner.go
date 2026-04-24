@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"openriot/installer"
+	"openriot/logger"
 )
 
 // Mode represents the imaging mode
@@ -45,8 +46,8 @@ func RunMakeImage(args []string) {
 
 	// Print header
 	version := GetOpenriotVersion()
-	log("OpenRiot Image Builder v%s", version)
-	log("Building for OpenBSD %s", cfg.Version)
+	logger.Info(fmt.Sprintf("OpenRiot Image Builder v%s", version))
+	logger.Info(fmt.Sprintf("Building for OpenBSD %s", cfg.Version))
 
 	// Check prerequisites
 	if err := CheckPrereqs(cfg); err != nil {
@@ -66,7 +67,7 @@ func RunMakeImage(args []string) {
 }
 
 func runFullBuild(cfg *Config) {
-	log("Mode: Full build (site + image)")
+	logger.Info("Mode: Full build (site + image)")
 
 	// Check root for imaging operations
 	if err := MustRunAsRoot(); err != nil {
@@ -76,28 +77,28 @@ func runFullBuild(cfg *Config) {
 	}
 
 	// Step 1: Download packages
-	log("Downloading packages...")
+	logger.Info("Downloading packages...")
 	if err := DownloadPackages(cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Download failed: %v\n", installer.Red, installer.Reset, err)
 		os.Exit(1)
 	}
 
 	// Step 2: Create site tarball
-	log("Creating site tarball...")
+	logger.Info("Creating site tarball...")
 	if err := CreateSite(cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Site creation failed: %v\n", installer.Red, installer.Reset, err)
 		os.Exit(1)
 	}
 
 	// Step 3: Build image
-	log("Building image...")
+	logger.Info("Building image...")
 	if err := BuildImage(cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Build failed: %v\n", installer.Red, installer.Reset, err)
 		os.Exit(1)
 	}
 
 	// Step 4: Detect drives and offer burn
-	log("Detecting drives...")
+	logger.Info("Detecting drives...")
 	drives, err := DetectDrives()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s[WARN]%s Drive detection failed: %v\n", installer.Yellow, installer.Reset, err)
@@ -105,31 +106,31 @@ func runFullBuild(cfg *Config) {
 		PromptBurn(cfg, drives)
 	}
 
-	fmt.Printf("%s[DONE]%s Build complete!\n", installer.Green, installer.Reset)
+	logger.Done("Build complete!")
 }
 
 func runSiteOnly(cfg *Config) {
-	log("Mode: Site only (tarball)")
+	logger.Info("Mode: Site only (tarball)")
 
 	// Download packages
-	log("Downloading packages...")
+	logger.Info("Downloading packages...")
 	if err := DownloadPackages(cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Download failed: %v\n", installer.Red, installer.Reset, err)
 		os.Exit(1)
 	}
 
 	// Create tarball
-	log("Creating site tarball...")
+	logger.Info("Creating site tarball...")
 	if err := CreateSite(cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Site creation failed: %v\n", installer.Red, installer.Reset, err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("%s[DONE]%s Site tarball created: %s\n", installer.Green, installer.Reset, cfg.OpenriotTgz)
+	logger.Done(fmt.Sprintf("Site tarball created: %s", cfg.OpenriotTgz))
 }
 
 func runClean(cfg *Config) {
-	log("Mode: Clean")
+	logger.Info("Mode: Clean")
 
 	if err := Cleanup(cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Cleanup failed: %v\n", installer.Red, installer.Reset, err)
@@ -139,7 +140,7 @@ func runClean(cfg *Config) {
 	// Also clean repo cache
 	repoCache := getBuildDir() + "/repo-cache"
 	if err := os.RemoveAll(repoCache); err == nil {
-		log("Repo cache cleaned")
+		logger.Done("Repo cache cleaned")
 	}
 
 	fmt.Printf("%s[DONE]%s Cleanup complete\n", installer.Green, installer.Reset)

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"openriot/installer"
+	"openriot/logger"
 )
 
 // BuildImage creates the final installer image
@@ -19,13 +20,13 @@ func BuildImage(cfg *Config) error {
 		return err
 	}
 
-	log("Building final image...")
+	logger.Info("Building final image...")
 
 	// Clean up any leftover mounts first
 	cleanupMounts()
 
 	// Copy base image first (so we don't modify source)
-	log("Copying base image...")
+	logger.Info("Copying base image...")
 	if err := copyFile(cfg.BaseImg, cfg.OutputImg); err != nil {
 		return fmt.Errorf("copy base: %w", err)
 	}
@@ -50,7 +51,7 @@ func BuildImage(cfg *Config) error {
 		return fmt.Errorf("checksum: %w", err)
 	}
 
-	log("Image created: %s", cfg.OutputImg)
+	logger.Info(fmt.Sprintf("Image created: %s", cfg.OutputImg))
 	return nil
 }
 
@@ -63,7 +64,7 @@ func cleanupMounts() {
 
 // expandImage creates a 2GB image from base and expands partition
 func expandImage(cfg *Config) error {
-	log("Expanding image to 2GB...")
+	logger.Info("Expanding image to 2GB...")
 
 	outputImg := cfg.OutputImg
 
@@ -91,7 +92,7 @@ func expandImage(cfg *Config) error {
 	totalSec := getImageSize(outputImg)
 	newSize := totalSec - rootStart
 
-	log("total=%d start=%d new_size=%d", totalSec, rootStart, newSize)
+	logger.Info(fmt.Sprintf("total=%d start=%d new_size=%d", totalSec, rootStart, newSize))
 
 	// Create new disklabel
 	if err := writeDisklabel(rootStart, fstype, totalSec); err != nil {
@@ -107,7 +108,7 @@ func expandImage(cfg *Config) error {
 	// Release vnd
 	exec.Command("vnconfig", "-u", "vnd0").Run()
 
-	log("Image expanded to 2GB")
+	logger.Info("Image expanded to 2GB")
 	return nil
 }
 
@@ -178,7 +179,7 @@ total sectors: %d
 
 // injectContent mounts the image and copies tarball + packages
 func injectContent(cfg *Config) error {
-	log("Mounting image...")
+	logger.Info("Mounting image...")
 
 	// Configure vnd
 	cmd := exec.Command("vnconfig", "vnd0", cfg.OutputImg)
@@ -187,18 +188,18 @@ func injectContent(cfg *Config) error {
 	}
 
 	// Run fsck
-	log("Running fsck...")
+	logger.Info("Running fsck...")
 	exec.Command("fsck", "-y", "/dev/vnd0a").Run()
 
 	// Mount
-	log("Mounting...")
+	logger.Info("Mounting...")
 	cmd = exec.Command("mount", "/dev/vnd0a", "/mnt")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("mount: %w\n%s", err, out)
 	}
 
 	// Inject tarball
-	log("Injecting openriot.tgz...")
+	logger.Info("Injecting openriot.tgz...")
 	tgzSrc := cfg.OpenriotTgz
 	tgzDst := "/mnt/openriot.tgz"
 	if err := copyFile(tgzSrc, tgzDst); err != nil {
@@ -206,7 +207,7 @@ func injectContent(cfg *Config) error {
 	}
 
 	// Inject packages
-	log("Injecting packages...")
+	logger.Info("Injecting packages...")
 	pkgSrcDir := filepath.Join(cfg.WorkDir, "packages", "snapshots", "amd64")
 	pkgDstDir := "/mnt/openriot/packages/snapshots/amd64"
 	os.MkdirAll(pkgDstDir, 0755)
@@ -232,7 +233,7 @@ func injectContent(cfg *Config) error {
 			dst := filepath.Join(pkgDstDir, entry.Name())
 			if err := copyFile(src, dst); err != nil {
 				fmt.Println()
-				log("Failed to copy %s: %v", entry.Name(), err)
+				logger.Warn(fmt.Sprintf("Failed to copy %s: %v", entry.Name(), err))
 			}
 		}
 	}
@@ -243,7 +244,7 @@ func injectContent(cfg *Config) error {
 	exec.Command("umount", "/mnt").Run()
 	exec.Command("vnconfig", "-u", "vnd0").Run()
 
-	log("Content injected")
+	logger.Info("Content injected")
 	return nil
 }
 
@@ -258,7 +259,7 @@ func copyFile(src, dst string) error {
 
 // shrinkImage reduces image to minimum size + buffer
 func shrinkImage(cfg *Config) error {
-	log("Shrinking image to fit content...")
+	logger.Info("Shrinking image to fit content...")
 
 	// Configure vnd
 	cmd := exec.Command("vnconfig", "vnd0", cfg.OutputImg)
@@ -284,7 +285,7 @@ func shrinkImage(cfg *Config) error {
 		neededMB = 1024
 	}
 
-	log("Shrinking to %dMB (used: %dKB)...", neededMB, usedKB)
+	logger.Info(fmt.Sprintf("Shrinking to %dMB (used: %dKB)...", neededMB, usedKB))
 
 	// Release vnd
 	exec.Command("vnconfig", "-u", "vnd0").Run()
@@ -295,7 +296,7 @@ func shrinkImage(cfg *Config) error {
 		return fmt.Errorf("truncate: %w\n%s", err, out)
 	}
 
-	log("Image shrunk to %dMB", neededMB)
+	logger.Info(fmt.Sprintf("Image shrunk to %dMB", neededMB))
 	return nil
 }
 
@@ -311,10 +312,4 @@ func generateChecksum(cfg *Config) error {
 
 	hash := strings.TrimSpace(string(out))
 	return os.WriteFile(shaPath, []byte(hash+"\n"), 0644)
-}
-
-// log prints a formatted message (like the shell script's log function)
-func log(format string, args ...interface{}) {
-	msg := fmt.Sprintf(format, args...)
-	fmt.Printf("%s[INFO]%s %s\n", installer.Cyan, installer.Reset, msg)
 }

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"openriot/config"
+	"openriot/logger"
 )
 
 // RunSourceBuilds runs only the source builds phase (used by setup.sh)
@@ -28,9 +29,9 @@ func RunSourceBuilds(testMode bool) {
 	}
 
 	if err := SourceBuilds(cfg, testMode); err != nil {
-		fmt.Printf("[WARN] Source builds: %v\n", err)
+		logger.Warn(fmt.Sprintf("Source builds: %v", err))
 	}
-	fmt.Println("[INFO] Source builds complete!")
+	logger.Info("Source builds complete!")
 }
 
 // RunInstallPackages installs packages from packages.yaml (used by setup.sh)
@@ -53,11 +54,11 @@ func RunInstallPackages() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%s[INFO]%s Installing packages from packages.yaml (safe one-by-one mode)...\n", Cyan, Reset)
+	logger.Info("Installing packages from packages.yaml (safe one-by-one mode)...")
 
 	packages := cfg.GetPackages()
 	if len(packages) == 0 {
-		fmt.Fprintf(os.Stderr, "%s[FAIL]%s No packages found in packages.yaml\n", Red, Reset)
+		logger.Fail(fmt.Sprintf("No packages found in packages.yaml"))
 		os.Exit(1)
 	}
 
@@ -66,7 +67,7 @@ func RunInstallPackages() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%s[INFO]%s Updating all packages and dependencies to latest...\n", Cyan, Reset)
+	logger.Info("Updating all packages and dependencies to latest...")
 	updateCmd := []string{"doas", "pkg_add", "-u"}
 	if cfg.IsSnapshot() {
 		updateCmd = append(updateCmd, "-D", "snapshot")
@@ -75,9 +76,9 @@ func RunInstallPackages() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("%s[WARN]%s Some packages failed to update: %v\n", Yellow, Reset, err)
+		logger.Warn(fmt.Sprintf("Some packages failed to update: %v", err))
 	}
-	fmt.Printf("%s[DONE]%s Package update complete.\n", Green, Reset)
+	logger.Done("Package update complete.")
 }
 
 // findPackagesYaml finds packages.yaml: CWD first, then installed location
@@ -98,7 +99,7 @@ func findPackagesYaml() string {
 // RunCheckPackages verifies packages.yaml versions against installed
 func RunCheckPackages() {
 	configPath := findPackagesYaml()
-	fmt.Printf("[INFO] Checking: %s\n", configPath)
+	logger.Info(fmt.Sprintf("Checking: %s", configPath))
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
@@ -121,28 +122,28 @@ func RunCheckPackages() {
 		base := GetBaseName(pkg)
 		installedVer, exists := installed[base]
 		if !exists {
-			fmt.Printf("[MISS] %s (not installed)\n", pkg)
+			logger.Info(fmt.Sprintf("[MISS] %s (not installed)", pkg))
 			mismatches++
 		} else if installedVer != pkg {
-			fmt.Printf("[WARN] %s -> %s\n", pkg, installedVer)
+			logger.Warn(fmt.Sprintf("%s -> %s", pkg, installedVer))
 			mismatches++
 		}
 	}
 
 	if mismatches > 0 {
-		fmt.Printf("\n[WARN] %d package version mismatches found\n", mismatches)
-		fmt.Printf("[INFO] Run 'openriot --sync-packages' to update packages.yaml\n")
+		logger.Warn(fmt.Sprintf("%d package version mismatches found", mismatches))
+		logger.Info("Run 'openriot --sync-packages' to update packages.yaml")
 		os.Exit(1)
 	}
 
-	fmt.Println("[DONE] All packages in sync")
+	logger.Done("All packages in sync")
 	os.Exit(0)
 }
 
 // RunSyncPackages updates packages.yaml to latest installed versions
 func RunSyncPackages() {
 	configPath := findPackagesYaml()
-	fmt.Printf("[INFO] Updating: %s\n", configPath)
+	logger.Info(fmt.Sprintf("Updating: %s", configPath))
 
 	// Get installed packages
 	installed := GetInstalledPackages()
@@ -154,7 +155,7 @@ func RunSyncPackages() {
 	// Read yaml file as text to preserve formatting
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[FAIL] Failed to read config: %v\n", err)
+		logger.Fail(fmt.Sprintf("Failed to read config: %v", err))
 		os.Exit(1)
 	}
 
@@ -193,7 +194,7 @@ func RunSyncPackages() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("[DONE] Updated %d packages in packages.yaml\n", updated)
+	logger.Done(fmt.Sprintf("Updated %d packages in packages.yaml", updated))
 	os.Exit(0)
 }
 
@@ -239,25 +240,25 @@ func GetBaseName(pkg string) string {
 
 // RunMirrors tests mirror connectivity and shows results
 func RunMirrors() {
-	fmt.Printf("%s[INFO]%s Testing mirrors...\n", Cyan, Reset)
+	logger.Info("Testing mirrors...")
 
 	mirror, latency, err := SelectFastestMirror()
 	if err != nil {
-		fmt.Printf("%s[FAIL]%s No mirrors responded: %v\n", Red, Reset, err)
+		logger.Fail(fmt.Sprintf("No mirrors responded: %v", err))
 		os.Exit(1)
 	}
 
-	fmt.Printf("%s[DONE]%s Fastest mirror: %s (%dms)\n", Green, Reset, mirror, latency.Milliseconds())
+	logger.Done(fmt.Sprintf("Fastest mirror: %s (%dms)", mirror, latency.Milliseconds()))
 
 	if HasInstallurl() {
 		current := GetInstallurl()
-		fmt.Printf("[INFO] Current /etc/installurl: %s\n", current)
+		logger.Info(fmt.Sprintf("Current /etc/installurl: %s", current))
 		if current == mirror {
-			fmt.Printf("[INFO] Already using fastest mirror\n")
+			logger.Info("Already using fastest mirror")
 		} else {
-			fmt.Printf("[WARN] Different from detected fastest. Run as root to update.\n")
+			logger.Warn("Different from detected fastest. Run as root to update.")
 		}
 	} else {
-		fmt.Printf("[INFO] No /etc/installurl found. Run as root to create.\n")
+		logger.Info("No /etc/installurl found. Run as root to create.")
 	}
 }

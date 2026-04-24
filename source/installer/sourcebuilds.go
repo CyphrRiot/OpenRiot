@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"openriot/config"
+	"openriot/logger"
 )
 
 // SourceBuilds executes all source build commands from modules with type "Source".
@@ -41,15 +42,15 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 			}
 
 			if testMode {
-				fmt.Printf("%s[INFO]%s [DRY-RUN] %s\n", Cyan, Reset, desc)
+				logger.Info(fmt.Sprintf("[DRY-RUN] %s", desc))
 				continue
 			}
 
-			fmt.Printf("%s[INFO]%s %s...\n", Cyan, Reset, desc)
+			logger.Info(fmt.Sprintf("%s...", desc))
 			c := exec.Command("/bin/sh", "-c", cmd)
 			output, err := c.CombinedOutput()
 			if err != nil {
-				fmt.Printf("%s[WARN]%s %s failed: %v\n", Yellow, Reset, desc, err)
+				logger.Warn(fmt.Sprintf("%s failed: %v", desc, err))
 				continue
 			}
 
@@ -57,7 +58,7 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 			if strings.Contains(outputStr, "[SKIP]") {
 				continue
 			}
-			fmt.Printf("%s[DONE]%s %s\n", Green, Reset, module.End)
+			logger.Done(module.End)
 		}
 	}
 	return nil
