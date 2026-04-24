@@ -2,10 +2,12 @@ package windowtitle
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
+	"unicode"
 )
 
-const maxTitleLen = 42
+const maxTitleLen = 36
 
 func Get() string {
 	cmd := exec.Command("i3-msg", "-t", "get_tree")
@@ -60,10 +62,38 @@ func findFocusedTitleInNodes(nodes []i3Node) string {
 }
 
 func formatTitle(title string) string {
-	if len(title) > maxTitleLen {
-		return title[:maxTitleLen-3] + "..."
+	title = stripEmojis(title)
+	runes := []rune(title)
+	if len(runes) > maxTitleLen {
+		return fmt.Sprintf("%-33s", string(runes[:33])) + "..."
 	}
-	return title
+	return fmt.Sprintf("%-36s", string(runes))
+}
+
+// stripEmojis removes emojis and problematic unicode from title
+func stripEmojis(s string) string {
+	runes := []rune(s)
+	var cleaned []rune
+	for _, r := range runes {
+		// Skip emoji ranges (U+1F300 to U+1F9FF)
+		if r >= 0x1F300 && r <= 0x1F9FF {
+			continue
+		}
+		// Skip emoji modifiers and other problematic ranges
+		if r >= 0x2600 && r <= 0x26FF { // Miscellaneous symbols
+			continue
+		}
+		// Keep printable ASCII and common unicode (letters, numbers, basic punctuation)
+		if r >= 32 && r <= 126 {
+			cleaned = append(cleaned, r)
+		} else if r > 127 && r < 0x11000 {
+			// Keep other printable unicode (letters, etc)
+			if unicode.IsLetter(r) || unicode.IsNumber(r) || unicode.IsPunct(r) || unicode.IsSpace(r) {
+				cleaned = append(cleaned, r)
+			}
+		}
+	}
+	return string(cleaned)
 }
 
 type i3Tree struct {

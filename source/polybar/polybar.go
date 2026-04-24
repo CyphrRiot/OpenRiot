@@ -493,7 +493,7 @@ func Setup() int {
 	width := parseResolution(res)
 
 	// Determine scale factors based on resolution
-	height, font0, font1, font2, modMargin := getScaleFactors(width)
+	height, font0, font1, modMargin := getScaleFactors(width)
 
 	// Read template config
 	templatePath := filepath.Join(home, ".local/share/openriot/config/polybar/config.ini")
@@ -509,9 +509,8 @@ func Setup() int {
 	replacements := []struct{ old, new string }{
 		{"height = 26", "height = " + height},
 		{"module-margin = 1", "module-margin = " + modMargin},
-		{"FiraCode Nerd Font:size=15", "FiraCode Nerd Font:" + font1},
-		{"FiraCode Nerd Font:size=11", "FiraCode Nerd Font:" + font0},
-		{"Paper Mono:style=Regular:size=8", "Paper Mono:style=Regular:" + font2},
+		{"Hurmit Nerd Font:size=20", "Hurmit Nerd Font:" + font1},
+		{"Hurmit Nerd Font:size=11", "Hurmit Nerd Font:" + font0},
 	}
 
 	for _, r := range replacements {
@@ -564,25 +563,22 @@ func parseResolution(res string) int {
 	return width
 }
 
-func getScaleFactors(width int) (height, font0, font1, font2, modMargin string) {
+func getScaleFactors(width int) (height, font0, font1, modMargin string) {
 	switch {
 	case width >= 2560: // 1440p or 4K
 		height = "32"
 		font0 = "size=13"
 		font1 = "size=17"
-		font2 = "size=9"
 		modMargin = "2"
 	case width >= 1920: // 1080p
 		height = "26"
 		font0 = "size=11"
 		font1 = "size=15"
-		font2 = "size=8"
 		modMargin = "1"
 	default: // Below 1080p
 		height = "26"
 		font0 = "size=11"
 		font1 = "size=15"
-		font2 = "size=8"
 		modMargin = "1"
 	}
 	return
