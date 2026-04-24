@@ -16,7 +16,7 @@ GURK_REPO="https://github.com/boxdot/gurk-rs"
 GURK_COMMIT="02d3c45702142febdbbbaa4afea3f38222dd9db8"
 PATCH_FILE="$(dirname "$0")/gurk-patch.diff"
 INSTALL_DIR="${HOME}/.local/share/openriot/config"
-SOURCE_DIR="${HOME}/src/gurk-rs"
+SOURCE_DIR="${HOME}/Code/gurk/gurk-rs"
 
 # Step 0: Install Rust if cargo is missing
 if ! command -v cargo >/dev/null 2>&1; then
