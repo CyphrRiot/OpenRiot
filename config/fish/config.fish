@@ -107,6 +107,11 @@ function fish_right_prompt
     # printf "%s" (date "+%H:%M:%S")
 end
 
+# Control terminal title (for polybar window-title)
+function fish_title
+    printf '%s' (string replace $HOME "~" (pwd))
+end
+
 # =============================================================================
 # Aliases & Functions
 # =============================================================================

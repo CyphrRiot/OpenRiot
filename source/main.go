@@ -425,6 +425,11 @@ func main() {
 		fmt.Print(workspaceicons.Get(target))
 	}
 
+	// --workspace-icons-all - output all workspace icons with single i3 call (optimized)
+	commands["--workspace-icons-all"] = func() {
+		fmt.Print(workspaceicons.GetAll())
+	}
+
 	// Check if any audio is playing via sndio (OpenBSD) or PulseAudio (Linux)
 	hasAudioPlaying := func() bool {
 		// Try OpenBSD sndio first
