@@ -467,6 +467,7 @@ _We use Helix instead of `vi` or `vim`. The essential bindings are documented in
 | `Super + M`                  | Google Messages                  |
 | `Super + X`                  | X (Twitter)                      |
 | `Super + W`                  | Next wallpaper                   |
+| `Super + Shift + W`          | Previous wallpaper               |
 | `Super + Shift + S`          | Screenshot (region)              |
 | `Super + Shift + V`          | Clipboard manager                 |
 | `Alt + Tab`                  | Cycle windows                    |
