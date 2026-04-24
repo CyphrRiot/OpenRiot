@@ -221,7 +221,7 @@ func GetAll() string {
 		results = append(results, fmt.Sprintf("%%{A:$HOME/.local/share/openriot/install/openriot --workspace-switch %d:}%s%%{A}", wsNum, content))
 	}
 
-	return strings.Join(results, "   ")
+	return strings.Join(results, "  ")
 }
 
 func getFullTree() *i3Tree {
