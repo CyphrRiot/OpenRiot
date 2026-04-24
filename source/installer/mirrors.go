@@ -114,9 +114,14 @@ func pingMirror(url string) (time.Duration, error) {
 	return latency, nil
 }
 
-// WriteInstallurl writes the mirror URL to /etc/installurl
+// WriteInstallurl writes the mirror URL to /etc/installurl and /etc/pkg_add.conf
 func WriteInstallurl(mirrorURL string) error {
-	return os.WriteFile(installurlPath, []byte(mirrorURL+"\n"), 0644)
+	if err := os.WriteFile(installurlPath, []byte(mirrorURL+"\n"), 0644); err != nil {
+		return err
+	}
+	// Also write to pkg_add.conf for pkg_add to use
+	pkgAddConf := "/etc/pkg_add.conf"
+	return os.WriteFile(pkgAddConf, []byte("installpath = "+mirrorURL+"\n"), 0644)
 }
 
 // HasInstallurl returns true if /etc/installurl already exists
