@@ -20,6 +20,14 @@ core:
             - pattern: fastfetch/*
               target: "~/.config/fastfetch"
         depends: []
+        build:
+            - |
+                desc: "Create XDG user directories if missing"
+                cmd: |
+                    for dir in Documents Downloads Music Pictures Videos Code Screenshots; do
+                        mkdir -p "$HOME/$dir"
+                    done
+                    echo "[DONE] XDG directories ensured"
         start: "Installing base tools"
         end: "Base tools installed"
         type: "Package"
@@ -188,9 +196,29 @@ source:
     crush:
         type: "Source"
         build:
-            - "if [ -x /usr/local/bin/crush ]; then echo '[SKIP] crush already installed'; else curl -fsSL 'https://github.com/charmbracelet/crush/releases/download/v0.61.1/crush_0.61.1_Openbsd_x86_64.tar.gz' -o /tmp/crush.tar.gz && tar -xzf /tmp/crush.tar.gz -C /tmp && doas mv /tmp/crush_0.61.1_Openbsd_x86_64/crush /usr/local/bin/crush && doas chmod +x /usr/local/bin/crush && mkdir -p $HOME/.config/fish/completions && cp /tmp/crush_0.61.1_Openbsd_x86_64/completions/crush.fish $HOME/.config/fish/completions/ && rm -rf /tmp/crush.tar.gz /tmp/crush_0.61.1_Openbsd_x86_64; fi"
+            - |
+                desc: "Install/upgrade Crush AI CLI (auto-detects latest version)"
+                cmd: |
+                    # Get latest version from GitHub API
+                    LATEST=$(curl -fsSL https://api.github.com/repos/charmbracelet/crush/releases/latest | grep '"tag_name"' | sed 's/.*v\\([^"]*\\).*/\\1/')
+                    CURRENT=$(crush --version 2>/dev/null | sed 's/.*v\([0-9.]*\).*/\1/' || echo "0")
+                    
+                    # Compare versions (handle 0.61.1 vs 0.62.0 format)
+                    if [ "$(printf '%s\\n' "$CURRENT" "$LATEST" | sort -V | head -n1)" != "$LATEST" ] && [ -n "$LATEST" ]; then
+                        echo "[INFO] Upgrading Crush: v$CURRENT -> v$LATEST"
+                        curl -fsSL "https://github.com/charmbracelet/crush/releases/download/v${LATEST}/crush_${LATEST}_Openbsd_x86_64.tar.gz" -o /tmp/crush.tar.gz
+                        tar -xzf /tmp/crush.tar.gz -C /tmp
+                        doas mv /tmp/crush_${LATEST}_Openbsd_x86_64/crush /usr/local/bin/crush
+                        doas chmod +x /usr/local/bin/crush
+                        mkdir -p "$HOME/.config/fish/completions"
+                        cp /tmp/crush_${LATEST}_Openbsd_x86_64/completions/crush.fish "$HOME/.config/fish/completions/"
+                        rm -rf /tmp/crush.tar.gz /tmp/crush_${LATEST}_Openbsd_x86_64
+                        echo "[DONE] Crush upgraded to v$LATEST"
+                    else
+                        echo "[SKIP] Crush v$CURRENT is up to date"
+                    fi
         depends: []
-        start: "Installing crush AI CLI"
+        start: "Installing/upgrading Crush AI CLI"
         end: "crush installed"
     bibata-cursor:
         type: "Source"

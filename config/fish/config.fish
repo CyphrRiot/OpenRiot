@@ -43,6 +43,7 @@ fish_add_path --prepend $HOME/.local/share/openriot/install
 
 # Go workspace
 set -gx GOPATH "$HOME/.go"
+set -gx GOMODCACHE "$HOME/.go/pkg/mod"
 fish_add_path $GOPATH/bin
 
 # OpenBSD paths
