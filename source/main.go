@@ -69,25 +69,6 @@ func main() {
 			fmt.Println("openriot", version)
 			os.Exit(0)
 		},
-		"--notify": func() {
-			// Usage: --notify {icon} {title} {body} [urgency] [timeoutMs]
-			if len(os.Args) < 5 {
-				fmt.Fprintf(os.Stderr, "Usage: --notify {icon} {title} {body} [urgency] [timeoutMs]\n")
-				os.Exit(1)
-			}
-			icon := os.Args[2]
-			title := os.Args[3]
-			body := os.Args[4]
-			urgency := "normal"
-			if len(os.Args) > 5 {
-				urgency = os.Args[5]
-			}
-			timeout := 3000
-			if len(os.Args) > 6 {
-				timeout, _ = strconv.Atoi(os.Args[6])
-			}
-			notify.SendNotify(icon, title, body, urgency, timeout, 0)
-		},
 		"--install": func() {
 			runInstall()
 		},
@@ -140,6 +121,91 @@ func main() {
 		},
 		"--make-image": func() {
 			imaging.RunMakeImage(os.Args[2:])
+		},
+		"--volume": func() {
+			os.Exit(audio.Run(os.Args[2:]))
+		},
+		"--brightness": func() {
+			os.Exit(display.Run(os.Args[2:]))
+		},
+		"--notify": func() {
+			title, body, urgency, iconPath := "", "", "normal", ""
+			expiresIn := 0
+			for i := 2; i < len(os.Args); i++ {
+				if os.Args[i] == "--urgency" && i+1 < len(os.Args) {
+					urgency = os.Args[i+1]
+				} else if os.Args[i] == "--expires-in" && i+1 < len(os.Args) {
+					fmt.Sscanf(os.Args[i+1], "%d", &expiresIn)
+				} else if os.Args[i] == "--icon" && i+1 < len(os.Args) {
+					iconPath = os.Args[i+1]
+				} else if title == "" {
+					title = os.Args[i]
+				} else if body == "" {
+					body = os.Args[i]
+				}
+			}
+			if title == "" {
+				fmt.Fprintln(os.Stderr, "Usage: openriot --notify \"title\" \"body\" [--urgency normal] [--expires-in seconds] [--icon path]")
+				os.Exit(1)
+			}
+			args := []string{"/usr/local/bin/notify-send"}
+			if iconPath != "" {
+				args = append(args, "-i", iconPath)
+			}
+			if urgency != "normal" {
+				args = append(args, "-u", urgency)
+			}
+			if expiresIn > 0 {
+				args = append(args, "-t", fmt.Sprintf("%d", expiresIn*1000))
+			}
+			args = append(args, title)
+			if body != "" {
+				args = append(args, body)
+			}
+			cmd := exec.Command(args[0], args[1:]...)
+			cmd.Run()
+			var expiresAt int64
+			if expiresIn > 0 {
+				expiresAt = time.Now().Unix() + int64(expiresIn)
+			}
+			notify.Add(title, body, urgency, expiresAt)
+			os.Exit(0)
+		},
+		"--crypto": func() {
+			mode := "BTC"
+			if len(os.Args) >= 3 {
+				mode = os.Args[2]
+			}
+			if err := crypto.RunCrypto(mode); err != nil {
+				fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		},
+		"--share-log": func() {
+			filename := "setup.log"
+			if len(os.Args) >= 3 {
+				filename = os.Args[2]
+			}
+			if err := installer.ShareLog(filename); err != nil {
+				fmt.Fprintf(os.Stderr, "share-log error: %v\n", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		},
+		"--make-icon": func() {
+			if len(os.Args) < 4 {
+				fmt.Fprintf(os.Stderr, "Usage: openriot --make-icon <name> <symbol>\n")
+				os.Exit(1)
+			}
+			name := os.Args[2]
+			symbol := os.Args[3]
+			if err := installer.MakeIcon(name, symbol); err != nil {
+				fmt.Fprintf(os.Stderr, "make-icon error: %v\n", err)
+				os.Exit(1)
+			}
+			fmt.Printf("Icon created: %s.png\n", name)
+			os.Exit(0)
 		},
 	}
 
@@ -514,14 +580,6 @@ func main() {
 		}
 	}
 
-	// Commands with args (volume, brightness)
-	if len(os.Args) >= 2 && os.Args[1] == "--volume" {
-		os.Exit(audio.Run(os.Args[2:]))
-	}
-	if len(os.Args) >= 2 && os.Args[1] == "--brightness" {
-		os.Exit(display.Run(os.Args[2:]))
-	}
-
 	// Section 6: Notify, polybar metrics, crypto commands
 	commands["--notify-dismiss"] = func() {
 		id := 0
@@ -607,91 +665,6 @@ func main() {
 			fn()
 			return
 		}
-	}
-
-	// Commands with args (keep as if-statements)
-	// --notify "title" "body" [--urgency...] [--expires-in...] [--icon...]
-	if len(os.Args) >= 2 && os.Args[1] == "--notify" {
-		title, body, urgency, iconPath := "", "", "normal", ""
-		expiresIn := 0
-		for i := 2; i < len(os.Args); i++ {
-			if os.Args[i] == "--urgency" && i+1 < len(os.Args) {
-				urgency = os.Args[i+1]
-			} else if os.Args[i] == "--expires-in" && i+1 < len(os.Args) {
-				fmt.Sscanf(os.Args[i+1], "%d", &expiresIn)
-			} else if os.Args[i] == "--icon" && i+1 < len(os.Args) {
-				iconPath = os.Args[i+1]
-			} else if title == "" {
-				title = os.Args[i]
-			} else if body == "" {
-				body = os.Args[i]
-			}
-		}
-		if title == "" {
-			fmt.Fprintln(os.Stderr, "Usage: openriot --notify \"title\" \"body\" [--urgency normal] [--expires-in seconds] [--icon path]")
-			os.Exit(1)
-		}
-		args := []string{"/usr/local/bin/notify-send"}
-		if iconPath != "" {
-			args = append(args, "-i", iconPath)
-		}
-		if urgency != "normal" {
-			args = append(args, "-u", urgency)
-		}
-		if expiresIn > 0 {
-			args = append(args, "-t", fmt.Sprintf("%d", expiresIn*1000))
-		}
-		args = append(args, title)
-		if body != "" {
-			args = append(args, body)
-		}
-		cmd := exec.Command(args[0], args[1:]...)
-		cmd.Run()
-		var expiresAt int64
-		if expiresIn > 0 {
-			expiresAt = time.Now().Unix() + int64(expiresIn)
-		}
-		notify.Add(title, body, urgency, expiresAt)
-		os.Exit(0)
-	}
-	// --crypto [BTC|ETH]
-	if len(os.Args) >= 2 && os.Args[1] == "--crypto" {
-		mode := "BTC"
-		if len(os.Args) >= 3 {
-			mode = os.Args[2]
-		}
-		if err := crypto.RunCrypto(mode); err != nil {
-			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-	// --share-log [filename]
-	if len(os.Args) >= 2 && os.Args[1] == "--share-log" {
-		filename := "setup.log"
-		if len(os.Args) >= 3 {
-			filename = os.Args[2]
-		}
-		if err := installer.ShareLog(filename); err != nil {
-			fmt.Fprintf(os.Stderr, "share-log error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-	// --make-icon <name> <symbol>
-	if len(os.Args) >= 2 && os.Args[1] == "--make-icon" {
-		if len(os.Args) < 4 {
-			fmt.Fprintf(os.Stderr, "Usage: openriot --make-icon <name> <symbol>\n")
-			os.Exit(1)
-		}
-		name := os.Args[2]
-		symbol := os.Args[3]
-		if err := installer.MakeIcon(name, symbol); err != nil {
-			fmt.Fprintf(os.Stderr, "make-icon error: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("Icon created: %s.png\n", name)
-		os.Exit(0)
 	}
 
 	// No command or unknown command
