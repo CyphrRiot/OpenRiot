@@ -1,9 +1,15 @@
 # XDG User Directories
 # This file defines the standard XDG user directories for the desktop environment.
 # See https://wiki.archlinux.org/title/XDG_user_directories
+#
+# Mapping non-standard folders to XDG types for custom icons:
+# - Code uses Templates icon
+# - Screenshots uses Desktop icon
 
 XDG_DOCUMENTS_DIR="$HOME/Documents"
 XDG_DOWNLOAD_DIR="$HOME/Downloads"
 XDG_MUSIC_DIR="$HOME/Music"
 XDG_PICTURES_DIR="$HOME/Pictures"
 XDG_VIDEOS_DIR="$HOME/Videos"
+XDG_TEMPLATES_DIR="$HOME/Code"
+XDG_DESKTOP_DIR="$HOME/Screenshots"
