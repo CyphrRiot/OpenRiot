@@ -206,6 +206,14 @@ install_bootstrap_packages() {
 setup_repository() {
     info "Setting up repository..."
 
+    # Clean corrupt .git if config is missing/broken
+    if [ -d "$INSTALL_DIR/.git" ] && [ -f "$INSTALL_DIR/.git/config" ]; then
+        if ! grep -q "remote" "$INSTALL_DIR/.git/config" 2>/dev/null; then
+            info "Removing corrupt git config..."
+            doas rm -rf "$INSTALL_DIR/.git"
+        fi
+    fi
+
     # Always deploy repo: fresh clone if no INSTALL_DIR or --install requested
     if [ ! -d "$INSTALL_DIR" ] || [ "$FORCE_INSTALL" = "1" ]; then
         # Fresh install or forced reinstall - reclone to get latest packages.yaml
