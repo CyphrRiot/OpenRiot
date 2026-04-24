@@ -11,6 +11,9 @@ export XCURSOR_SIZE=24
 # Force GTK apps to use dark theme
 export GTK_THEME=Adwaita-dark
 
+# Refresh font cache
+fc-cache -f 2>/dev/null
+
 # Create ~/Screenshots directory if it doesn't exist
 mkdir -p ~/Screenshots
 
