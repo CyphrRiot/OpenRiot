@@ -280,10 +280,7 @@ func shrinkImage(cfg *Config) error {
 
 	// Calculate needed size: used + 10% buffer + 32MB
 	neededKB := usedKB*110/100 + 32768
-	neededMB := (neededKB + 4095) / 4096 * 4
-	if neededMB < 1024 {
-		neededMB = 1024
-	}
+	neededMB := max(1024, (neededKB+4095)/4096*4)
 
 	logger.Info(fmt.Sprintf("Shrinking to %dMB (used: %dKB)...", neededMB, usedKB))
 

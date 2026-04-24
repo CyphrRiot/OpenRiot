@@ -50,9 +50,8 @@ func LoadExceptions() (map[string]bool, error) {
 	// Parse: look for lines starting with "  - "
 	for _, line := range strings.Split(string(data), "\n") {
 		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "- ") {
-			pkg := strings.TrimPrefix(line, "- ")
-			pkg = strings.Trim(pkg, "\"") // Remove quotes if present
+		if after, ok := strings.CutPrefix(line, "- "); ok {
+			pkg := strings.Trim(after, "\"") // Remove quotes if present
 			exceptions[pkg] = true
 		}
 	}

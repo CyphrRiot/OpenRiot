@@ -1285,6 +1285,8 @@ A pure-Rust Signal messenger TUI — zero Java, zero GTK/libsecret. Built for Op
 | Deselect message | `ESC` |
 | Mouse support | Click Edit field or Channel (not messages) |
 
+Gurk supports the same emojis as Github. It's a little daunting at first, but here's a pretty comprehensive (and searchable) [Emoji Cheat Sheet](https://phw198.github.io/github-emoji-cheatsheet/) that makes it much easier.
+
 ### Configuration
 
 Create or edit `~/.config/gurk/gurk.toml` to customize:
