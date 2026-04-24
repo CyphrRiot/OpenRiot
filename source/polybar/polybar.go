@@ -246,9 +246,9 @@ func IsProtonDriveConfigured() bool {
 }
 
 func isProtonDriveConfigured() bool {
-	// Check for ~/ProtonSync folder
+	// Check for ~/Documents/ProtonSync folder
 	home := os.Getenv("HOME")
-	syncFolder := home + "/ProtonSync"
+	syncFolder := home + "/Documents/ProtonSync"
 	if _, err := os.Stat(syncFolder); err != nil {
 		return false
 	}
@@ -303,9 +303,9 @@ func checkProtonDriveSync() string {
 	// Check if any local file was modified after last bisync run
 	content1, _ := os.ReadFile(path1)
 	lines1 := strings.Split(string(content1), "\n")
-	localFiles := getLocalFileList(home + "/ProtonSync")
+	localFiles := getLocalFileList(home + "/Documents/ProtonSync")
 	for _, name := range localFiles {
-		localPath := home + "/ProtonSync/" + name
+		localPath := home + "/Documents/ProtonSync/" + name
 		localMtime := getFileMtime(localPath)
 		cachedMtime := getCachedMtime(name, lines1[1:])
 		if cachedMtime.IsZero() || localMtime.After(cachedMtime) {
@@ -434,7 +434,7 @@ func cacheFilesExist(path1, path2 string) bool {
 func InitProtonDriveCache() error {
 	home := os.Getenv("HOME")
 	cmd := exec.Command("rclone", "bisync",
-		home+"/ProtonSync",
+		home+"/Documents/ProtonSync",
 		"proton:ProtonSync",
 		"--dry-run",
 		"--work-dir", home+"/.cache/rclone/bisync")

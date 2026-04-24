@@ -44,7 +44,7 @@ Click action - reads state, performs appropriate action.
 
 **Sync command:**
 ```bash
-alacritty -e sh -c "rclone bisync ~/ProtonSync proton:ProtonSync --progress --work-dir ~/.cache/rclone/bisync; echo 'Press enter to close...'; read"
+alacritty -e sh -c "rclone bisync ~/Documents/ProtonSync proton:ProtonSync --progress --work-dir ~/.cache/rclone/bisync; echo 'Press enter to close...'; read"
 ```
 
 ---
@@ -54,8 +54,8 @@ alacritty -e sh -c "rclone bisync ~/ProtonSync proton:ProtonSync --progress --wo
 ```
 isProtonDriveConfigured() = false → "not-configured"
 isProtonDriveConfigured() = true:
-  ├─ Check ~/.cache/rclone/bisync/home_{username}_ProtonSync..proton_ProtonSync.path1.lst
-  ├─ Check ~/.cache/rclone/bisync/home_{username}_ProtonSync..proton_ProtonSync.path2.lst
+  ├─ Check ~/.cache/rclone/bisync/home_{username}_Documents_ProtonSync..proton_ProtonSync.path1.lst
+  ├─ Check ~/.cache/rclone/bisync/home_{username}_Documents_ProtonSync..proton_ProtonSync.path2.lst
   ├─ If either missing OR files differ → "needs-sync"
   └─ If both exist AND identical → "synced"
 ```
@@ -65,8 +65,8 @@ isProtonDriveConfigured() = true:
 func isProtonDriveConfigured() bool {
     home := os.Getenv("HOME")
     
-    // Check for ~/ProtonSync folder
-    syncFolder := home + "/ProtonSync"
+    // Check for ~/Documents/ProtonSync folder
+    syncFolder := home + "/Documents/ProtonSync"
     if _, err := os.Stat(syncFolder); err != nil {
         return false
     }
@@ -87,8 +87,8 @@ func checkProtonDriveSync() string {
     home := os.Getenv("HOME")
     bisyncDir := home + "/.cache/rclone/bisync"
     
-    path1 := bisyncDir + "/home_{username}_ProtonSync..proton_ProtonSync.path1.lst"
-    path2 := bisyncDir + "/home_{username}_ProtonSync..proton_ProtonSync.path2.lst"
+    path1 := bisyncDir + "/home_{username}_Documents_ProtonSync..proton_ProtonSync.path1.lst"
+    path2 := bisyncDir + "/home_{username}_Documents_ProtonSync..proton_ProtonSync.path2.lst"
     
     // Check both files exist
     if _, err := os.Stat(path1); os.IsNotExist(err) {

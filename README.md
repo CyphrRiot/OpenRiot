@@ -1200,13 +1200,13 @@ rclone config
 ### 3. Create Local Sync Folder
 
 ```bash
-mkdir -p ~/ProtonSync
+mkdir -p ~/Documents/ProtonSync
 ```
 
 ### 4. Initial Sync (dry-run first)
 
 ```bash
-rclone bisync ~/ProtonSync proton:ProtonSync --dry-run --resync
+rclone bisync ~/Documents/ProtonSync proton:ProtonSync --dry-run --resync
 ```
 
 If output looks correct, remove `--dry-run --resync` to sync.
@@ -1220,7 +1220,7 @@ doas crontab -e
 
 Add this line (replace `username` with your actual username):
 ```cron
-*/15 * * * * /usr/local/bin/rclone bisync /home/username/ProtonSync proton:ProtonSync --fast-list >> /var/log/rclone.log 2>&1
+*/15 * * * * /usr/local/bin/rclone bisync /home/username/Documents/ProtonSync proton:ProtonSync --fast-list >> /var/log/rclone.log 2>&1
 ```
 
 ### 6. Secure Your Config
