@@ -102,3 +102,68 @@ func Next() int {
 	fmt.Println("Warning: feh may not have started")
 	return 0
 }
+
+// Prev cycles to the previous wallpaper and restarts feh.
+func Prev() int {
+	bgsDir := filepath.Join(home, ".local", "share", "openriot", "backgrounds")
+	stateFile := filepath.Join(home, ".config", "openriot", ".current-background")
+
+	entries, err := os.ReadDir(bgsDir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Backgrounds directory not found: %s\n", bgsDir)
+		return 1
+	}
+
+	var files []string
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		name := e.Name()
+		lower := strings.ToLower(name)
+		if strings.HasSuffix(lower, ".jpg") || strings.HasSuffix(lower, ".jpeg") ||
+			strings.HasSuffix(lower, ".png") || strings.HasSuffix(lower, ".webp") {
+			files = append(files, filepath.Join(bgsDir, name))
+		}
+	}
+	if len(files) == 0 {
+		fmt.Fprintf(os.Stderr, "No background images found in %s\n", bgsDir)
+		return 1
+	}
+	sort.Strings(files)
+
+	current := ""
+	if b, err := os.ReadFile(stateFile); err == nil {
+		current = strings.TrimSpace(string(b))
+	}
+
+	idx := 0
+	for i, f := range files {
+		if f == current {
+			idx = i
+			break
+		}
+	}
+	prev := files[(idx-1+len(files))%len(files)]
+
+	_ = os.MkdirAll(filepath.Dir(stateFile), 0o755)
+	_ = os.WriteFile(stateFile, []byte(prev+"\n"), 0o600)
+
+	_ = exec.Command("pkill", "-x", "feh").Run()
+	time.Sleep(500 * time.Millisecond)
+
+	cmd := exec.Command("feh", "--bg-fill", prev)
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	cmd.Stdin = nil
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	_ = cmd.Start()
+
+	time.Sleep(1 * time.Second)
+	if exec.Command("pgrep", "-x", "feh").Run() == nil {
+		fmt.Printf("Switched to: %s\n", filepath.Base(prev))
+		return 0
+	}
+	fmt.Println("Warning: feh may not have started")
+	return 0
+}

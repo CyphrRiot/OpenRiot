@@ -555,6 +555,9 @@ func main() {
 	commands["--wallpaper-next"] = func() {
 		os.Exit(backgrounds.Next())
 	}
+	commands["--wallpaper-prev"] = func() {
+		os.Exit(backgrounds.Prev())
+	}
 	commands["--wallpaper-load"] = func() {
 		os.Exit(backgrounds.Load())
 	}
