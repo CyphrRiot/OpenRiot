@@ -54,7 +54,7 @@ config/polybar/*     → ~/.config/polybar/config.ini (config only)
 config/polybar/scripts/* → ~/.local/share/openriot/config/polybar/scripts/
 config/bin/*         → ~/.local/share/openriot/config/bin/
 config/rofi/*        → ~/.config/rofi/
-config/fonts/*       → ~/.local/share/fonts/
+assets/fonts/*       → ~/.local/share/fonts/
 config/Xresources    → ~/.Xresources
 config/xsession/*    → ~/.xsession (ALWAYS overwrite)
 config/picom.conf   → ~/.config/picom.conf

@@ -34,8 +34,12 @@ func ShareLog(filename string) error {
 
 // MakeIcon generates a PNG icon from a Nerd Font symbol
 func MakeIcon(name, symbol string) error {
-	home := os.Getenv("HOME")
-	font := filepath.Join(home, ".local/share/fonts/FiraCode/FiraCodeNerdFont-Regular.ttf")
+	ex, err := os.Executable()
+if err != nil {
+	return fmt.Errorf("finding executable: %w", err)
+}
+font := filepath.Join(filepath.Dir(ex), "assets/fonts/FiraCodeNerdFont-Regular.ttf")
+	home, _ := os.UserHomeDir()
 	iconDir := filepath.Join(home, ".local/share/openriot/config/icons")
 
 	// Ensure icon directory exists
@@ -49,8 +53,9 @@ func MakeIcon(name, symbol string) error {
 		"-fill", "white",
 		"-font", font,
 		"-pointsize", "32",
+		"-gravity", "center",
 		"label:"+symbol,
-		"-resize", "48x48",
+		"-extent", "48x48",
 		output)
 	return cmd.Run()
 }

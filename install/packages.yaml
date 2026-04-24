@@ -86,8 +86,6 @@ desktop:
             - pattern: polybar/*
             - pattern: rofi/*
             - pattern: dunst/*
-            - pattern: fonts/*
-              target: "~/.local/share/fonts"
             - pattern: Xresources
               target: "~/.Xresources"
             - pattern: xinitrc/openriot-x11
@@ -114,7 +112,7 @@ desktop:
               cmd: "rm -f ~/.config/polybar/config"
             - desc: "Remove deprecated polybar scripts"
               cmd: "rm -f ~/.config/polybar/scripts/*.sh"
-        depends: [core.base, fonts.fira-code]
+        depends: [core.base, fonts.all]
         start: "Installing i3 desktop"
         end: "i3 desktop installed"
         type: "Package"
@@ -210,7 +208,7 @@ source:
     kora:
         type: "Source"
         build:
-            - "if [ -d \"$HOME/.local/share/icons/kora\" ]; then echo '[SKIP] Kora icon theme already installed'; else rm -rf /tmp/kora && git clone https://github.com/bikass/kora.git /tmp/kora && mkdir -p $HOME/.local/share/icons && cp -rf /tmp/kora/kora $HOME/.local/share/icons/ && rm -rf /tmp/kora && echo '[DONE] Kora icon theme installed (run fc-cache to complete setup)'; fi"
+            - "if [ -d \"$HOME/.local/share/icons/kora\" ]; then echo '[SKIP] Kora icon theme already installed'; else rm -rf /tmp/kora && git clone https://github.com/bikass/kora.git /tmp/kora && mkdir -p $HOME/.local/share/icons && cp -rf /tmp/kora/kora $HOME/.local/share/icons/ && rm -rf /tmp/kora && echo '[DONE] Kora icon theme installed'; fi"
         depends: [system.tools]
         start: "Installing Kora icon theme"
         end: "Kora icon theme installed"
@@ -224,13 +222,13 @@ source:
         start: "Scaling polybar and dunst configs for display"
         end: "Polybar and dunst scaled"
 fonts:
-    fira-code:
+    all:
         type: "Source"
         build:
-            - "if [ -d \"$HOME/.local/share/fonts/FiraCode\" ]; then echo '[SKIP] FiraCode already installed'; else mkdir -p $HOME/.local/share/fonts && cp -r $HOME/.local/share/openriot/assets/fonts/* $HOME/.local/share/fonts/ && echo '[DONE] FiraCode Nerd Font installed (run fc-cache to complete setup)'; fi"
+            - "if ls $HOME/.local/share/fonts/FiraCodeNerdFont-Regular.ttf >/dev/null 2>&1; then echo '[SKIP] Fonts already installed'; else mkdir -p $HOME/.local/share/fonts && cp -r $HOME/.local/share/openriot/assets/fonts/* $HOME/.local/share/fonts/ && fc-cache -f ~/.local/share/fonts && echo '[DONE] Nerd Fonts installed'; fi"
         depends: []
-        start: "Installing FiraCode Nerd Font"
-        end: "FiraCode Nerd Font installed"
+        start: "Installing Nerd Fonts"
+        end: "Nerd Fonts installed"
     gurk-keybindings:
         type: "Source"
         build:
