@@ -11,6 +11,7 @@ import (
 
 	"openriot/audio"
 	"openriot/backgrounds"
+	"openriot/battery"
 	"openriot/config"
 	"openriot/crypto"
 	"openriot/detect"
@@ -19,20 +20,19 @@ import (
 	"openriot/installer"
 	"openriot/lock"
 	"openriot/logger"
-	"openriot/notify"
 	"openriot/network"
 	"openriot/nightlight"
+	"openriot/notify"
 	"openriot/polybar"
-	"openriot/battery"
 	"openriot/rofi"
 	"openriot/screenshot"
+	"openriot/update"
 	"openriot/weather"
-	"openriot/workspace"
-	"openriot/workspaceicons"
-	"openriot/wireguard"
 	"openriot/windowicon"
 	"openriot/windowtitle"
-	"openriot/update"
+	"openriot/wireguard"
+	"openriot/workspace"
+	"openriot/workspaceicons"
 )
 
 // Injected at build time via Makefile ldflags:
@@ -121,6 +121,9 @@ func main() {
 		},
 		"--mirrors": func() {
 			installer.RunMirrors()
+		},
+		"--crush-upgrade": func() {
+			installer.NewCrushUpgrade().Run()
 		},
 		"--version-check": func() {
 			localVer := update.GetLocalVersion()
@@ -702,25 +705,24 @@ func main() {
 	fmt.Fprintf(os.Stderr, "  --check-packages   Verify installed packages match yaml\n")
 	fmt.Fprintf(os.Stderr, "  --sync-packages    Update packages.yaml to installed versions\n")
 	fmt.Fprintf(os.Stderr, "  --mirrors          Detect and show fastest OpenBSD mirror\n")
-	fmt.Fprintf(os.Stderr, "  --rofi            Show app launcher\n")
-	fmt.Fprintf(os.Stderr, "  --lock            Lock the screen\n")
-	fmt.Fprintf(os.Stderr, "  --smart-lock      Lock only if no audio playing\n")
-	fmt.Fprintf(os.Stderr, "  --suspend         Suspend the system\n")
+	fmt.Fprintf(os.Stderr, "  --crush-upgrade    Upgrade crush CLI to latest version\n")
+	fmt.Fprintf(os.Stderr, "  --rofi             Show app launcher\n")
+	fmt.Fprintf(os.Stderr, "  --lock             Lock the screen\n")
+	fmt.Fprintf(os.Stderr, "  --smart-lock       Lock only if no audio playing\n")
+	fmt.Fprintf(os.Stderr, "  --suspend          Suspend the system\n")
 	fmt.Fprintf(os.Stderr, "  --screenshot [select]  Take screenshot (use 'select' for area)\n")
 	fmt.Fprintf(os.Stderr, "  --power-menu       Show power menu\n")
 	fmt.Fprintf(os.Stderr, "  --volume <args>    Adjust volume\n")
 	fmt.Fprintf(os.Stderr, "  --brightness <args> Adjust brightness\n")
 	fmt.Fprintf(os.Stderr, "  --notify \"title\" \"body\" Send notification\n")
-	fmt.Fprintf(os.Stderr, "  --polybar-metrics    Show CPU/RAM for polybar\n")
-	fmt.Fprintf(os.Stderr, "  --polybar-volume    Show volume for polybar\n")
+	fmt.Fprintf(os.Stderr, "  --polybar-metrics  Show CPU/RAM for polybar\n")
+	fmt.Fprintf(os.Stderr, "  --polybar-volume   Show volume for polybar\n")
 	fmt.Fprintf(os.Stderr, "  --crypto [BTC|ETH] Show crypto prices\n")
 	fmt.Fprintf(os.Stderr, "  --share-log [file] Upload log to ix.io for sharing\n")
 	fmt.Fprintf(os.Stderr, "  --make-icon <name> <symbol> Generate icon PNG\n")
-	fmt.Fprintf(os.Stderr, "  --version         Show version\n")
+	fmt.Fprintf(os.Stderr, "  --version          Show version\n")
 	os.Exit(1)
 }
-
-
 
 // runInstall handles the --install command (runs as USER, no TTY/PTY needed)
 // NOTE: Package installation is handled separately via --install-packages
