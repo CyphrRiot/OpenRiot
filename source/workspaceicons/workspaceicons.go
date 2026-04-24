@@ -165,7 +165,7 @@ func getIndicator(state string, hasApps bool) string {
 // GetAll returns icons for workspaces 1-4 with a single i3-msg call each.
 // Output uses polybar click markup for workspace switching:
 //   %{A:openriot --workspace-switch N:}content%{A}
-// Each workspace separated by space.
+// Each workspace is fixed-width: indicator + 5 icon slots (padded with spaces)
 func GetAll() string {
 	// Single i3-msg call for all workspace windows
 	windowIcons := windowicon.GetAllWindowIcons()
@@ -173,18 +173,31 @@ func GetAll() string {
 	workspaces := getAllWorkspaces()
 
 	var results []string
-	for wsNum := 1; wsNum <= 4; wsNum++ {
+	for wsNum := 1; wsNum <= 3; wsNum++ {
 		// Get windows for this workspace from cached tree
 		classes := findWindowsInWorkspaceFromTree(tree.Nodes, wsNum)
 		// Get workspace state from cached workspaces
 		state := getStateFromWorkspaces(workspaces, wsNum)
 
-		// Build icons for this workspace
+		// Build icons for this workspace from window classes (max 5)
 		var icons []string
 		for _, cls := range classes {
 			if icon, ok := windowIcons[cls]; ok {
 				icons = append(icons, icon)
 			}
+		}
+		if len(icons) > 5 {
+			icons = icons[:5]
+		}
+
+		// Build fixed-width content: indicator + ALWAYS 5 icon slots
+		allSlots := make([]string, 0, 5)
+		for _, icon := range icons {
+			allSlots = append(allSlots, icon)
+		}
+		// Pad to exactly 5 slots with Nerd Font blank icon
+		for len(allSlots) < 5 {
+			allSlots = append(allSlots, "\uec03")
 		}
 
 		// Determine indicator
@@ -192,11 +205,9 @@ func GetAll() string {
 
 		// If unfocused with icons, dim them
 		if state == "unfocused" && len(icons) > 0 {
-			var dimmed []string
-			for _, icon := range icons {
-				dimmed = append(dimmed, fmt.Sprintf("%%{T0}%%{F#565f89}%s%%{F-}%%{T-}", icon))
+			for i := 0; i < len(icons); i++ {
+				allSlots[i] = fmt.Sprintf("%%{T0}%%{F#565f89}%s%%{F-}%%{T-}", icons[i])
 			}
-			icons = dimmed
 		}
 
 		// If unfocused, dim indicator
@@ -204,13 +215,7 @@ func GetAll() string {
 			indicator = fmt.Sprintf("%%{F#565f89}%s%%{F-}", indicator)
 		}
 
-		// Build output for this workspace with click wrapper
-		var content string
-		if len(icons) > 0 {
-			content = fmt.Sprintf("%s %s", indicator, strings.Join(icons, " "))
-		} else {
-			content = indicator
-		}
+		content := fmt.Sprintf("%s %s", indicator, strings.Join(allSlots, " "))
 
 		// Wrap with polybar click action
 		results = append(results, fmt.Sprintf("%%{A:$HOME/.local/share/openriot/install/openriot --workspace-switch %d:}%s%%{A}", wsNum, content))
