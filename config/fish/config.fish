@@ -41,6 +41,10 @@ fish_add_path --prepend $HOME/.local/share/openriot/config/bin
 # Add OpenRiot binary to PATH (for CLI commands)
 fish_add_path --prepend $HOME/.local/share/openriot/install
 
+# Go workspace
+set -gx GOPATH "$HOME/.go"
+fish_add_path $GOPATH/bin
+
 # OpenBSD paths
 fish_add_path --prepend /usr/local/bin
 fish_add_path --prepend /usr/bin
