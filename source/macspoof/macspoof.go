@@ -107,9 +107,9 @@ func EnableRandomMAC(iface string) error {
 		return fmt.Errorf("interface %s has no hostname file", iface)
 	}
 
-	// Simple shell command: append if not already there
+	// Simple shell command: prepend if not already there
 	cmd := exec.Command("doas", "sh", "-c",
-		fmt.Sprintf(`grep -q "^lladdr random$" %s || echo "lladdr random" >> %s`, hostnameFile, hostnameFile))
+		fmt.Sprintf(`grep -q "^lladdr random$" %s && exit; (echo "lladdr random"; cat %s) > /tmp/hostname.tmp && mv /tmp/hostname.tmp %s`, hostnameFile, hostnameFile, hostnameFile))
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to enable random MAC: %w", err)
 	}
