@@ -19,27 +19,28 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 		}
 
 		anySucceeded := false
-		for _, cmdEntry := range module.Build {
-			// Parse the build entry (either simple string or desc/cmd)
+		for _, rawEntry := range module.Build {
+			// Parse the build entry (either simple string or desc/cmd map)
 			var cmd string
 			var desc string
-			if strings.Contains(cmdEntry, "\n") || strings.HasPrefix(cmdEntry, "desc:") {
-				// It's a structured entry (desc/cmd format)
-				parts := strings.SplitN(cmdEntry, "\n", 2)
-				for _, part := range parts {
-					if strings.HasPrefix(part, "cmd:") {
-						cmd = strings.TrimPrefix(strings.TrimSpace(part), "cmd:")
-					}
-					if strings.HasPrefix(part, "desc:") {
-						desc = strings.TrimPrefix(strings.TrimSpace(part), "desc:")
-					}
+
+			switch v := rawEntry.(type) {
+			case string:
+				cmd = v
+				desc = module.Start
+			case map[string]any:
+				if d, ok := v["desc"].(string); ok {
+					desc = d
+				}
+				if c, ok := v["cmd"].(string); ok {
+					cmd = c
 				}
 				if cmd == "" {
-					cmd = cmdEntry
+					cmd = desc
 				}
-			} else {
-				cmd = cmdEntry
-				desc = module.Start
+			default:
+				logger.Warn(fmt.Sprintf("Unknown build entry type: %T", rawEntry))
+				continue
 			}
 
 			if testMode {

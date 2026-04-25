@@ -33,7 +33,7 @@ type Module struct {
 	End      string        `yaml:"end"`
 	Type     string        `yaml:"type"`
 	Critical bool          `yaml:"critical,omitempty"`
-	Build    []string      `yaml:"build,omitempty"`
+	Build    []any           `yaml:"build,omitempty"`
 }
 
 // ConfigRule represents a configuration copying rule
