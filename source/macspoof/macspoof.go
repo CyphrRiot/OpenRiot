@@ -104,39 +104,14 @@ func EnableRandomMAC(iface string) error {
 
 	// Check if file exists
 	if _, err := os.Stat(hostnameFile); os.IsNotExist(err) {
-		return fmt.Errorf("interface %s has no hostname file at %s", iface, hostnameFile)
+		return fmt.Errorf("interface %s has no hostname file", iface)
 	}
 
-	// Read current content
-	content, err := os.ReadFile(hostnameFile)
-	if err != nil {
-		return fmt.Errorf("failed to read %s: %w", hostnameFile, err)
-	}
-
-	// Check if already configured
-	if strings.Contains(string(content), "lladdr random") {
-		return fmt.Errorf("already configured for %s", iface)
-	}
-
-	// Check if any lladdr is configured
-	if strings.Contains(string(content), "lladdr ") {
-		return fmt.Errorf("custom lladdr already set for %s (remove existing lladdr first)", iface)
-	}
-
-	// Create backup
-	backup := hostnameFile + ".bak"
-	if err := os.WriteFile(backup, content, 0644); err != nil {
-		return fmt.Errorf("failed to create backup: %w", err)
-	}
-
-	// Prepend lladdr random to the content
-	newContent := "lladdr random\n" + string(content)
-
-	// Write new content using doas tee
-	cmd := exec.Command("doas", "tee", hostnameFile)
-	cmd.Stdin = strings.NewReader(newContent)
+	// Simple shell command: append if not already there
+	cmd := exec.Command("doas", "sh", "-c",
+		fmt.Sprintf(`grep -q "^lladdr random$" %s || echo "lladdr random" >> %s`, hostnameFile, hostnameFile))
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to update %s: %w", hostnameFile, err)
+		return fmt.Errorf("failed to enable random MAC: %w", err)
 	}
 
 	return nil
@@ -146,34 +121,10 @@ func EnableRandomMAC(iface string) error {
 func DisableRandomMAC(iface string) error {
 	hostnameFile := "/etc/hostname." + iface
 
-	content, err := os.ReadFile(hostnameFile)
-	if err != nil {
-		return fmt.Errorf("failed to read %s: %w", hostnameFile, err)
-	}
-
-	lines := strings.Split(string(content), "\n")
-	var newLines []string
-	removed := false
-
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if trimmed == "lladdr random" && !removed {
-			removed = true
-			continue // Skip this line
-		}
-		newLines = append(newLines, line)
-	}
-
-	if !removed {
-		return fmt.Errorf("no lladdr random found in %s", hostnameFile)
-	}
-
-	// Write back using doas tee
-	newContent := strings.Join(newLines, "\n")
-	cmd := exec.Command("doas", "tee", hostnameFile)
-	cmd.Stdin = strings.NewReader(newContent)
+	// Simple shell command: remove line if it exists
+	cmd := exec.Command("doas", "sed", "-i", "/^lladdr random$/d", hostnameFile)
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to update %s: %w", hostnameFile, err)
+		return fmt.Errorf("failed to disable random MAC: %w", err)
 	}
 
 	return nil
@@ -287,8 +238,8 @@ func runEnable() error {
 
 	enabled := 0
 	for _, iface := range interfaces {
-		// Check if hostname file exists first
-		if _, err := os.Stat("/etc/hostname." + iface.Name); os.IsNotExist(err) {
+		// Check if hostname file exists (or is accessible)
+		if _, err := os.Stat("/etc/hostname." + iface.Name); err != nil {
 			fmt.Printf("[SKIP] %s: no hostname file\n", iface.Name)
 			continue
 		}
@@ -305,7 +256,7 @@ func runEnable() error {
 	}
 
 	if enabled == 0 {
-		fmt.Println("No interfaces configured (already set or no hostname files)")
+		fmt.Println("No interfaces configured (no hostname files)")
 		return nil
 	}
 
