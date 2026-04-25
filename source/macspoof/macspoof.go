@@ -132,14 +132,9 @@ func EnableRandomMAC(iface string) error {
 	// Prepend lladdr random to the content
 	newContent := "lladdr random\n" + string(content)
 
-	// Write new content using doas
-	tmpFile := "/tmp/hostname." + iface + ".tmp"
-	if err := os.WriteFile(tmpFile, []byte(newContent), 0644); err != nil {
-		return fmt.Errorf("failed to write temp file: %w", err)
-	}
-
-	// Move temp file to actual location using doas
-	cmd := exec.Command("doas", "mv", tmpFile, hostnameFile)
+	// Write new content using doas tee
+	cmd := exec.Command("doas", "tee", hostnameFile)
+	cmd.Stdin = strings.NewReader(newContent)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to update %s: %w", hostnameFile, err)
 	}
@@ -173,14 +168,10 @@ func DisableRandomMAC(iface string) error {
 		return fmt.Errorf("no lladdr random found in %s", hostnameFile)
 	}
 
-	// Write back using doas
-	tmpFile := "/tmp/hostname." + iface + ".tmp"
+	// Write back using doas tee
 	newContent := strings.Join(newLines, "\n")
-	if err := os.WriteFile(tmpFile, []byte(newContent), 0644); err != nil {
-		return fmt.Errorf("failed to write temp file: %w", err)
-	}
-
-	cmd := exec.Command("doas", "mv", tmpFile, hostnameFile)
+	cmd := exec.Command("doas", "tee", hostnameFile)
+	cmd.Stdin = strings.NewReader(newContent)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to update %s: %w", hostnameFile, err)
 	}

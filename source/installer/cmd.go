@@ -54,7 +54,7 @@ func RunInstallPackages() {
 		os.Exit(1)
 	}
 
-	logger.Info("Installing packages from packages.yaml (safe one-by-one mode)...")
+	logger.Info("Installing packages (safe one-by-one mode)...")
 
 	packages := cfg.GetPackages()
 	if len(packages) == 0 {
