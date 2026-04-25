@@ -163,7 +163,7 @@ desktop:
         type: "Package"
         critical: false
         commands:
-            - desc: "Import gnome-text-editor dconf settings (requires X11)"
+            - desc: "Import dconf settings (requires X11)"
               cmd: "[ -n \"$DISPLAY\" ] && dconf load /org/gnome/TextEditor/ < $HOME/.config/openriot/dconf/org.gnome.TextEditor.ini || echo '[SKIP] No X11, skipping dconf'"
     media:
         packages:
@@ -263,7 +263,7 @@ system:
             #  cmd: "doas rcctl enable seatd && doas rcctl start seatd"
             - desc: "Create WireGuard config directory"
               cmd: "doas mkdir -p /etc/wireguard && doas chmod 700 /etc/wireguard"
-            - desc: "Update all system firmware (may take several minutes)"
+            - desc: "Update firmware (may take several minutes)"
               cmd: "doas fw_update -a"
             # - desc: "Install Atheros AR9271 WiFi firmware (if adapter present)"
             #  cmd: "if [ -d /etc/firmware ] && ! [ -f /etc/firmware/athn-open-ar9271 ]; then fw_update -v athn 2>/dev/null || (cd /etc/firmware && ftp -o athn-ucode.tgz https://firmware.openbsd.org/firmware/$(uname -r)/athn-ucode.tgz 2>/dev/null && tar -xzf athn-ucode.tgz && rm -f athn-ucode.tgz); fi"
