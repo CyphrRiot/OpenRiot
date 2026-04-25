@@ -297,8 +297,7 @@ func runEnable() error {
 	enabled := 0
 	for _, iface := range interfaces {
 		if err := EnableRandomMAC(iface.Name); err != nil {
-			fmt.Printf("[WARN] %s: %v\n", iface.Name, err)
-			continue
+			return fmt.Errorf("%s: %v", iface.Name, err)
 		}
 		fmt.Printf("[OK] %s: random MAC enabled\n", iface.Name)
 		enabled++
