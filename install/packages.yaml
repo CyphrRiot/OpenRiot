@@ -241,7 +241,7 @@ system:
     mac-spoof:
         type: "Source"
         build:
-            - "$HOME/.local/share/openriot/install/openriot --random-mac enable 2>/dev/null || true"
+            - "$HOME/.local/share/openriot/install/openriot --random-mac enable"
         depends: [core.base]
         start: "Configuring MAC address randomization"
         end: "MAC randomization configured"
