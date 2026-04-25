@@ -243,6 +243,14 @@ func runEnable() error {
 			fmt.Printf("[SKIP] %s: no hostname file\n", iface.Name)
 			continue
 		}
+
+		// Check if already enabled
+		hasRandom, _ := getHostnameConfig(iface.Name)
+		if hasRandom {
+			fmt.Printf("[SKIP] %s: random MAC already enabled\n", iface.Name)
+			continue
+		}
+
 		if err := EnableRandomMAC(iface.Name); err != nil {
 			return fmt.Errorf("%s: %v", iface.Name, err)
 		}
