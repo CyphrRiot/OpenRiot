@@ -67,19 +67,7 @@ func RunInstallPackages() {
 		os.Exit(1)
 	}
 
-	logger.Info("Updating all packages and dependencies to latest...")
-	logger.Info("This may take several minutes for large packages...")
-	updateCmd := []string{"doas", "pkg_add", "-u"}
-	if cfg.IsSnapshot() {
-		updateCmd = append(updateCmd, "-D", "snapshot")
-	}
-	cmd := exec.Command(updateCmd[0], updateCmd[1:]...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		logger.Warn(fmt.Sprintf("Some packages failed to update: %v", err))
-	}
-	logger.Done("Package update complete.")
+	logger.Done("Package installation complete.")
 }
 
 // findPackagesYaml finds packages.yaml: CWD first, then installed location
