@@ -51,7 +51,7 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 			c := exec.Command("/bin/sh", "-c", cmd)
 			output, err := c.CombinedOutput()
 			if err != nil {
-				logger.Warn(fmt.Sprintf("%s failed: %v", desc, err))
+				logger.Warn(fmt.Sprintf("%s failed: %v\n%s", desc, err, string(output)))
 				continue
 			}
 
