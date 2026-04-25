@@ -6,9 +6,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 	"syscall"
+	"time"
 
+	"openriot/macspoof"
 	"openriot/notify"
 )
 
@@ -23,8 +24,15 @@ func Lock() error {
 	// Find random lock image
 	lockDir := filepath.Join(home, ".local/share/openriot/Locked")
 
-	// Look for locked_*.jpg in Locked directory
-	matches, _ := filepath.Glob(filepath.Join(lockDir, "locked_*.jpg"))
+	// Check if stealth mode is enabled
+	var matches []string
+	if macspoof.IsStealthEnabled() {
+		// Look for stealth_*.jpg in Locked directory
+		matches, _ = filepath.Glob(filepath.Join(lockDir, "stealth_*.jpg"))
+	} else {
+		// Look for locked_*.jpg in Locked directory
+		matches, _ = filepath.Glob(filepath.Join(lockDir, "locked_*.jpg"))
+	}
 	if len(matches) == 0 {
 		// Fallback to old locked.jpg
 		lockJpg := filepath.Join(home, ".local/share/openriot/assets/locked.jpg")
