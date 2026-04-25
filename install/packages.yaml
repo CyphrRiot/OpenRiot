@@ -206,9 +206,12 @@ source:
     polybar-scaling:
         type: "Source"
         build:
-            - "[ -n \"$DISPLAY\" ] && $HOME/.local/share/openriot/install/openriot --polybar-setup || echo '[SKIP] No X11, skipping polybar scaling'"
-            - "[ -n \"$DISPLAY\" ] && $HOME/.local/share/openriot/install/openriot --dunst-setup || echo '[SKIP] No X11, skipping dunst scaling'"
-            - "[ -n \"$DISPLAY\" ] && (pkill -9 dunst 2>/dev/null || true) && echo '[DONE] Dunst restarted with new config'"
+            - desc: "Scaling polybar for display"
+              cmd: "[ -n \"$DISPLAY\" ] && $HOME/.local/share/openriot/install/openriot --polybar-setup || echo '[SKIP] No X11, skipping polybar'"
+            - desc: "Scaling dunst for display"
+              cmd: "[ -n \"$DISPLAY\" ] && $HOME/.local/share/openriot/install/openriot --dunst-setup || echo '[SKIP] No X11, skipping dunst'"
+            - desc: "Restarting dunst with new config"
+              cmd: "[ -n \"$DISPLAY\" ] && (pkill -9 dunst 2>/dev/null || true) && echo '[DONE] Dunst restarted with new config'"
         depends: []
         start: "Scaling polybar and dunst configs for display"
         end: "Polybar and dunst scaled"
