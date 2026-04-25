@@ -119,7 +119,7 @@ desktop:
     rofi-calc:
         type: "Source"
         build:
-            - "openriot --install-rofi-calc"
+            - "$HOME/.local/share/openriot/install/openriot --install-rofi-calc"
         depends: [desktop.i3]
         start: "Building rofi-calc from source"
         end: "rofi-calc installed"
@@ -185,29 +185,29 @@ source:
     crush:
         type: "Source"
         build:
-            - "openriot --crush-upgrade"
+            - "$HOME/.local/share/openriot/install/openriot --crush-upgrade"
         depends: []
         start: "Installing/upgrading Crush AI CLI"
         end: "crush installed"
     bibata-cursor:
         type: "Source"
         build:
-            - "openriot --install-asset bibata"
+            - "$HOME/.local/share/openriot/install/openriot --install-asset bibata"
         depends: []
         start: "Installing Bibata-Modern-Ice cursor theme"
         end: "Bibata cursor installed"
     kora:
         type: "Source"
         build:
-            - "openriot --install-asset kora"
+            - "$HOME/.local/share/openriot/install/openriot --install-asset kora"
         depends: []
         start: "Installing Kora icon theme"
         end: "Kora icon theme installed"
     polybar-scaling:
         type: "Source"
         build:
-            - "[ -n \"$DISPLAY\" ] && openriot --polybar-setup || echo '[SKIP] No X11, skipping polybar scaling'"
-            - "[ -n \"$DISPLAY\" ] && openriot --dunst-setup || echo '[SKIP] No X11, skipping dunst scaling'"
+            - "[ -n \"$DISPLAY\" ] && $HOME/.local/share/openriot/install/openriot --polybar-setup || echo '[SKIP] No X11, skipping polybar scaling'"
+            - "[ -n \"$DISPLAY\" ] && $HOME/.local/share/openriot/install/openriot --dunst-setup || echo '[SKIP] No X11, skipping dunst scaling'"
             - "[ -n \"$DISPLAY\" ] && (pkill -9 dunst 2>/dev/null || true) && echo '[DONE] Dunst restarted with new config'"
         depends: []
         start: "Scaling polybar and dunst configs for display"
@@ -216,14 +216,14 @@ fonts:
     all:
         type: "Source"
         build:
-            - "openriot --install-fonts"
+            - "$HOME/.local/share/openriot/install/openriot --install-fonts"
         depends: []
         start: "Installing Nerd Fonts"
         end: "Nerd Fonts installed"
     gurk-keybindings:
         type: "Source"
         build:
-            - "openriot --gurk-setup"
+            - "$HOME/.local/share/openriot/install/openriot --gurk-setup"
         depends: []
         start: "Configuring gurk keybindings"
         end: "gurk keybindings configured"
@@ -241,7 +241,7 @@ system:
     mac-spoof:
         type: "Source"
         build:
-            - "openriot --random-mac enable 2>/dev/null || true"
+            - "$HOME/.local/share/openriot/install/openriot --random-mac enable 2>/dev/null || true"
         depends: [core.base]
         start: "Configuring MAC address randomization"
         end: "MAC randomization configured"
