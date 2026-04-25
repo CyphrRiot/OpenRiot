@@ -287,6 +287,11 @@ func runEnable() error {
 
 	enabled := 0
 	for _, iface := range interfaces {
+		// Check if hostname file exists first
+		if _, err := os.Stat("/etc/hostname." + iface.Name); os.IsNotExist(err) {
+			fmt.Printf("[SKIP] %s: no hostname file\n", iface.Name)
+			continue
+		}
 		if err := EnableRandomMAC(iface.Name); err != nil {
 			return fmt.Errorf("%s: %v", iface.Name, err)
 		}
