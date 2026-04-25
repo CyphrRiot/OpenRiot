@@ -75,8 +75,15 @@ func GetWifiDetails() string {
 
 	ap := extractAP(details)
 	ip := extractIP(details)
+	mac := extractMAC(details)
+	randomized := isMACRandomized(iface)
 
-	return fmt.Sprintf("AP: %s\nIP: %s\nInterface: %s", ap, ip, iface)
+	macInfo := fmt.Sprintf("MAC: %s", mac)
+	if randomized {
+		macInfo += " [RANDOMIZED]"
+	}
+
+	return fmt.Sprintf("AP: %s\nIP: %s\nInterface: %s\n%s", ap, ip, iface, macInfo)
 }
 
 func GetEthDetails() string {
@@ -92,8 +99,40 @@ func GetEthDetails() string {
 	cmd := exec.Command("/sbin/ifconfig", iface)
 	output, _ := cmd.Output()
 	ip := extractIP(string(output))
+	mac := extractMAC(string(output))
+	randomized := isMACRandomized(iface)
 
-	return fmt.Sprintf("IP: %s\nInterface: %s", ip, iface)
+	macInfo := fmt.Sprintf("MAC: %s", mac)
+	if randomized {
+		macInfo += " [RANDOMIZED]"
+	}
+
+	return fmt.Sprintf("IP: %s\nInterface: %s\n%s", ip, iface, macInfo)
+}
+
+// extractMAC extracts the MAC address from ifconfig output
+func extractMAC(output string) string {
+	lines := strings.Split(output, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "lladdr") {
+			parts := strings.Fields(line)
+			for i, p := range parts {
+				if p == "lladdr" && i+1 < len(parts) {
+					return parts[i+1]
+				}
+			}
+		}
+	}
+	return "N/A"
+}
+
+// isMACRandomized checks if lladdr random is configured in hostname file
+func isMACRandomized(iface string) bool {
+	content, err := os.ReadFile("/etc/hostname." + iface)
+	if err != nil {
+		return false
+	}
+	return strings.Contains(string(content), "lladdr random")
 }
 
 // IsConnected returns true if wifi is connected

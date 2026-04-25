@@ -241,7 +241,10 @@ func fetchPrices(ids []string, curFile string, apiKey string) {
 	var data map[string]any
 	if json.NewDecoder(resp.Body).Decode(&data) == nil {
 		tmp := curFile + ".tmp"
-		f, _ := os.Create(tmp)
+		f, err := os.Create(tmp)
+		if err != nil {
+			return
+		}
 		json.NewEncoder(f).Encode(data)
 		f.Close()
 		os.Rename(tmp, curFile)

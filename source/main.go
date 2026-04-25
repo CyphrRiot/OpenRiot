@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"openriot/assets"
 	"openriot/audio"
 	"openriot/backgrounds"
 	"openriot/battery"
@@ -16,15 +17,19 @@ import (
 	"openriot/crypto"
 	"openriot/detect"
 	"openriot/display"
+	"openriot/fonts"
+	"openriot/gurk"
 	"openriot/imaging"
 	"openriot/installer"
 	"openriot/lock"
 	"openriot/logger"
+	"openriot/macspoof"
 	"openriot/network"
 	"openriot/nightlight"
 	"openriot/notify"
 	"openriot/polybar"
 	"openriot/rofi"
+	"openriot/roficalc"
 	"openriot/screenshot"
 	"openriot/update"
 	"openriot/weather"
@@ -103,8 +108,38 @@ func main() {
 		"--mirrors": func() {
 			installer.RunMirrors()
 		},
+		"--random-mac": func() {
+			if err := macspoof.Run(os.Args[2:]); err != nil {
+				fmt.Fprintf(os.Stderr, "random-mac error: %v\n", err)
+				os.Exit(1)
+			}
+		},
 		"--crush-upgrade": func() {
 			installer.NewCrushUpgrade().Run()
+		},
+		"--gurk-setup": func() {
+			if err := gurk.Run(); err != nil {
+				fmt.Fprintf(os.Stderr, "gurk-setup error: %v\n", err)
+				os.Exit(1)
+			}
+		},
+		"--install-asset": func() {
+			if err := assets.Run(os.Args[2:]); err != nil {
+				fmt.Fprintf(os.Stderr, "install-asset error: %v\n", err)
+				os.Exit(1)
+			}
+		},
+		"--install-fonts": func() {
+			if err := fonts.Run(); err != nil {
+				fmt.Fprintf(os.Stderr, "install-fonts error: %v\n", err)
+				os.Exit(1)
+			}
+		},
+		"--install-rofi-calc": func() {
+			if err := roficalc.Run(); err != nil {
+				fmt.Fprintf(os.Stderr, "install-rofi-calc error: %v\n", err)
+				os.Exit(1)
+			}
 		},
 		"--version-check": func() {
 			localVer := update.GetLocalVersion()
@@ -686,6 +721,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "  --check-packages   Verify installed packages match yaml\n")
 	fmt.Fprintf(os.Stderr, "  --sync-packages    Update packages.yaml to installed versions\n")
 	fmt.Fprintf(os.Stderr, "  --mirrors          Detect and show fastest OpenBSD mirror\n")
+	fmt.Fprintf(os.Stderr, "  --random-mac <subcommand>  Manage MAC address randomization\n")
 	fmt.Fprintf(os.Stderr, "  --crush-upgrade    Upgrade crush CLI to latest version\n")
 	fmt.Fprintf(os.Stderr, "  --rofi             Show app launcher\n")
 	fmt.Fprintf(os.Stderr, "  --lock             Lock the screen\n")

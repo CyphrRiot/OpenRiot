@@ -106,8 +106,6 @@ desktop:
         commands:
             - desc: "Make all scripts executable"
               cmd: "find ~/.local/share/openriot/config -name \"*.sh\" -exec chmod +x {} \\; 2>/dev/null || true"
-            - desc: "Installing autotiling for i3"
-              cmd: "if command -v autotiling >/dev/null 2>&1; then echo '[SKIP] autotiling already installed'; elif pip3 install --quiet autotiling 2>&1 | grep -q 'Requirement already satisfied'; then echo '[SKIP] autotiling already installed'; elif pip3 install --quiet autotiling --break-system-packages 2>/dev/null || pip3 install --quiet autotiling 2>/dev/null; then echo '[SKIP] autotiling installed'; else echo '[WARN] autotiling install failed, tiling will be manual'; fi"
             - desc: "Remove deprecated polybar config"
               cmd: "rm -f ~/.config/polybar/config"
             - desc: "Remove deprecated polybar scripts"
@@ -118,17 +116,10 @@ desktop:
         type: "Package"
         critical: true
 
-    i3-auto-layout:
-        type: "Source"
-        build:
-            - "if [ -x /usr/local/bin/i3-auto-layout ]; then echo '[SKIP] i3-auto-layout already installed'; else curl -fsSL https://github.com/chmln/i3-auto-layout/releases/download/v0.2/i3-auto-layout -o /tmp/i3-auto-layout && doas mv /tmp/i3-auto-layout /usr/local/bin/i3-auto-layout && doas chmod +x /usr/local/bin/i3-auto-layout; fi"
-        depends: [desktop.i3]
-        start: "Installing i3-auto-layout"
-        end: "i3-auto-layout installed"
     rofi-calc:
         type: "Source"
         build:
-            - "if [ -x /usr/local/lib/rofi/libcalc.so ]; then echo '[SKIP] rofi-calc already installed'; else rm -rf /tmp/rofi-calc && git clone https://github.com/svenstaro/rofi-calc.git /tmp/rofi-calc && cd /tmp/rofi-calc && meson setup build --prefix=/usr/local && meson compile -C build && doas meson install -C build; fi"
+            - "openriot --install-rofi-calc"
         depends: [desktop.i3]
         start: "Building rofi-calc from source"
         end: "rofi-calc installed"
@@ -201,15 +192,15 @@ source:
     bibata-cursor:
         type: "Source"
         build:
-            - "if [ -d \"/usr/local/share/icons/Bibata-Modern-Ice\" ]; then echo '[SKIP] Bibata cursor already installed'; elif [ -d \"$HOME/.local/share/openriot/assets/cursors/Bibata-Modern-Ice\" ]; then doas cp -r \"$HOME/.local/share/openriot/assets/cursors/Bibata-Modern-Ice\" /usr/local/share/icons/ && echo '[DONE] Bibata cursor installed'; else echo '[SKIP] Bibata source not found (run setup.sh first)'; fi"
+            - "openriot --install-asset bibata"
         depends: []
         start: "Installing Bibata-Modern-Ice cursor theme"
         end: "Bibata cursor installed"
     kora:
         type: "Source"
         build:
-            - "if [ -d \"$HOME/.local/share/icons/kora\" ]; then echo '[SKIP] Kora icon theme already installed'; else rm -rf /tmp/kora && git clone https://github.com/bikass/kora.git /tmp/kora && mkdir -p $HOME/.local/share/icons && cp -rf /tmp/kora/kora $HOME/.local/share/icons/ && rm -rf /tmp/kora && echo '[DONE] Kora icon theme installed'; fi"
-        depends: [system.tools]
+            - "openriot --install-asset kora"
+        depends: []
         start: "Installing Kora icon theme"
         end: "Kora icon theme installed"
     polybar-scaling:
@@ -225,14 +216,14 @@ fonts:
     all:
         type: "Source"
         build:
-            - "if ls $HOME/.local/share/fonts/FiraCodeNerdFont-Regular.ttf >/dev/null 2>&1; then echo '[SKIP] Fonts already installed'; else mkdir -p $HOME/.local/share/fonts && cp -r $HOME/.local/share/openriot/assets/fonts/* $HOME/.local/share/fonts/ && fc-cache -f ~/.local/share/fonts && echo '[DONE] Nerd Fonts installed'; fi"
+            - "openriot --install-fonts"
         depends: []
         start: "Installing Nerd Fonts"
         end: "Nerd Fonts installed"
     gurk-keybindings:
         type: "Source"
         build:
-            - "if [ -f ~/.config/gurk/gurk.toml ]; then if ! grep -q '\\[keybindings.message_selected\\]' ~/.config/gurk/gurk.toml; then printf '\\n[keybindings.message_selected]\\nalt-e = \"edit_message\"\\nalt-y = \"copy_message selected\"\\nctrl-t = \"react :thumbsup:\"\\nctrl-f = \"react 🔥\"\\nctrl-h = \"react :purple_heart:\"\\n' >> ~/.config/gurk/gurk.toml && echo '[DONE] Added gurk keybindings'; else echo '[SKIP] gurk keybindings already exist'; fi; else echo '[SKIP] ~/.config/gurk/gurk.toml not found'; fi"
+            - "openriot --gurk-setup"
         depends: []
         start: "Configuring gurk keybindings"
         end: "gurk keybindings configured"
@@ -247,6 +238,13 @@ system:
         end: "System tools installed"
         type: "Package"
         critical: true
+    mac-spoof:
+        type: "Source"
+        build:
+            - "openriot --random-mac enable 2>/dev/null || true"
+        depends: [core.base]
+        start: "Configuring MAC address randomization"
+        end: "MAC randomization configured"
     services:
         type: "Package"
         commands:
@@ -262,7 +260,7 @@ system:
             #  cmd: "doas rcctl enable seatd && doas rcctl start seatd"
             - desc: "Create WireGuard config directory"
               cmd: "doas mkdir -p /etc/wireguard && doas chmod 700 /etc/wireguard"
-            - desc: "Update all system firmware"
+            - desc: "Update all system firmware (may take several minutes)"
               cmd: "doas fw_update -a"
             # - desc: "Install Atheros AR9271 WiFi firmware (if adapter present)"
             #  cmd: "if [ -d /etc/firmware ] && ! [ -f /etc/firmware/athn-open-ar9271 ]; then fw_update -v athn 2>/dev/null || (cd /etc/firmware && ftp -o athn-ucode.tgz https://firmware.openbsd.org/firmware/$(uname -r)/athn-ucode.tgz 2>/dev/null && tar -xzf athn-ucode.tgz && rm -f athn-ucode.tgz); fi"

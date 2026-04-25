@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-3.0-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-3.1-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -34,7 +34,7 @@ Install base OpenBSD 7.9 → run one script → get a fast, dark, beautiful desk
 
 ### **Curated to be correct**
 
-- **🪟 i3 Tiling** — X11-native tiling that actually gets it right
+- **🪟 i3 Tiling** — X11-native tiling that actually gets it right ([tutorial](https://www.youtube.com/watch?v=Wx0eNaGzAZU))
 - **⚡ Robust Binary** — Atomic operations, run-time, rollbacks, no dependency hell
 - **🛡️ Privacy** — Zero telemetry, tracking, data harvesting, or ID requirements
 - **🎨 Aesthetics** — Carefully crafted dark themes that work at any hour
@@ -484,7 +484,7 @@ _We use Helix instead of `vi` or `vim`. The essential bindings are documented in
 | `Super + Tab`                | Focus next window                |
 | `Super + Shift + Tab`        | Focus previous window             |
 | `Super + Arrow keys`         | Focus window direction           |
-| `Super + Ctrl + Arrow`       | Move window                      |
+| `Super + Shift + Arrow`     | Move window to direction        |
 | `Super + button4/5`         | Scroll workspaces                |
 | `Print`                     | Screenshot (window)              |
 | `Shift + Print`             | Screenshot (fullscreen)          |

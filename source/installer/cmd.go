@@ -58,7 +58,7 @@ func RunInstallPackages() {
 
 	packages := cfg.GetPackages()
 	if len(packages) == 0 {
-		logger.Fail(fmt.Sprintf("No packages found in packages.yaml"))
+		logger.Fail("No packages found in packages.yaml")
 		os.Exit(1)
 	}
 
