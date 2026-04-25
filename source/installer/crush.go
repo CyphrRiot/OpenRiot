@@ -50,7 +50,7 @@ func (c *CrushUpgrade) Run() {
 		os.Exit(1)
 	}
 
-	logger.Done(fmt.Sprintf("Crush upgraded to v%s", latestVer))
+	logger.Done(fmt.Sprintf("Crush upgraded: v%s → v%s", currentVer, latestVer))
 	os.Exit(0)
 }
 

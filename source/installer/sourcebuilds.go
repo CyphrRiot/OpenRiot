@@ -18,6 +18,7 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 			continue
 		}
 
+		anySucceeded := false
 		for _, cmdEntry := range module.Build {
 			// Parse the build entry (either simple string or desc/cmd)
 			var cmd string
@@ -58,6 +59,11 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 			if strings.Contains(outputStr, "[SKIP]") {
 				continue
 			}
+			anySucceeded = true
+		}
+
+		// Log end message once per module, not per command
+		if anySucceeded || testMode {
 			logger.Done(module.End)
 		}
 	}
