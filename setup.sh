@@ -214,30 +214,22 @@ setup_repository() {
         fi
     fi
 
-    # Always deploy repo: fresh clone if no INSTALL_DIR or --install requested
-    if [ ! -d "$INSTALL_DIR" ] || [ "$FORCE_INSTALL" = "1" ]; then
-        # Fresh install or forced reinstall - reclone to get latest packages.yaml
-        if [ -d "$INSTALL_DIR" ]; then
-            info "Removing old install and recloning..."
-            doas rm -rf "$INSTALL_DIR"
-        fi
+    # Fresh install: clone with depth=1 (zero history)
+    if [ ! -d "$INSTALL_DIR/.git" ]; then
         mkdir -p "$(dirname "$INSTALL_DIR")" || { error "Cannot create directory"; exit 1; }
         git clone --depth 1 -b "$CONFIG_BRANCH" "$REPO_URL" "$INSTALL_DIR" || { error "Git clone failed"; exit 1; }
         success "OpenRiot deployed to $INSTALL_DIR"
         return
     fi
 
-    # Always pull latest commits to pick up bug fixes and config changes
-    if [ -d "$INSTALL_DIR/.git" ]; then
-        (
-            cd "$INSTALL_DIR" || exit 1
-            git fetch --depth 1 origin || true
-            LOCAL_AHEAD=$(git rev-list --count HEAD..origin/"$CONFIG_BRANCH" 2>/dev/null || echo 0)
-            if [ "$LOCAL_AHEAD" -gt 0 ]; then
-                git reset --hard origin/"$CONFIG_BRANCH" || { error "Git reset failed"; exit 1; }
-            fi
-        )
-    fi
+    # Existing install: let git do the work (fetch + reset + clean replaces all files)
+    (
+        cd "$INSTALL_DIR" || exit 1
+        git fetch --depth 1 origin || true
+        git reset --hard origin/"$CONFIG_BRANCH" || { error "Git reset failed"; exit 1; }
+        git clean -fd
+    )
+    success "OpenRiot updated to latest"
 }
 
 # -----------------------------------------------------------------------------
