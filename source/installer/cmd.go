@@ -68,6 +68,7 @@ func RunInstallPackages() {
 	}
 
 	logger.Info("Updating all packages and dependencies to latest...")
+	logger.Info("This may take several minutes for large packages...")
 	updateCmd := []string{"doas", "pkg_add", "-u"}
 	if cfg.IsSnapshot() {
 		updateCmd = append(updateCmd, "-D", "snapshot")
