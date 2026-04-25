@@ -291,6 +291,20 @@ listview row:selected {
     background-color: transparent;
 }
 
+/* FIX: Folder icons specifically */
+.thunar iconview cell:selected:backdrop image,
+.thunar .standard-view cell:selected:backdrop image {
+    background-color: #bb9af7;
+    background-image: none;
+    -gtk-icon-effect: none;
+}
+
+/* Target the icon color directly for backdrop state */
+.thunar iconview cell:selected:backdrop image,
+.thunar .standard-view cell:selected:backdrop image {
+    color: #c792ea;
+}
+
 /* Selected items in unfocused windows */
 .thunar .view:selected:backdrop {
     background-color: #bb9af7;
@@ -356,4 +370,31 @@ window.thunar iconview.view.cell:selected:backdrop image {
 .thunar iconview.view:selected:backdrop image {
     -gtk-icon-effect: none;
     opacity: 1;
+}
+
+/* FIX: Selected folder icon turning black when window loses focus */
+/* Use .standard-view - Thunar's container for icon/list views */
+.thunar .standard-view .view:selected:backdrop image,
+.thunar .standard-view:backdrop .view:selected image,
+.thunar .standard-view iconview.view:selected:backdrop image,
+.thunar .standard-view:backdrop iconview.view:selected image {
+    -gtk-icon-effect: none;
+    filter: none;
+    opacity: 1;
+}
+
+/* FIX: Kora icons - folders rendered as symbolic */
+.thunar .standard-view .view:selected:backdrop image.symbolic,
+.thunar .standard-view .view:selected:backdrop GtkImage {
+    -gtk-icon-rendering: antialiasing;
+    color: inherit;
+    opacity: 1;
+    filter: none;
+}
+
+/* More aggressive fix - target all possible text elements in selection backdrop */
+window.thunar > .view.cell:selected:backdrop,
+window.thunar iconview.cell:selected:backdrop {
+    color: #0f1016 !important;
+    text-shadow: none;
 }
