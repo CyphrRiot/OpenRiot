@@ -80,7 +80,7 @@ func GetWifiDetails() string {
 
 	macInfo := fmt.Sprintf("MAC: %s", mac)
 	if randomized {
-		macInfo += " [RANDOMIZED]"
+		macInfo += " [Stealth]"
 	}
 
 	return fmt.Sprintf("AP: %s\nIP: %s\nInterface: %s\n%s", ap, ip, iface, macInfo)
@@ -104,7 +104,7 @@ func GetEthDetails() string {
 
 	macInfo := fmt.Sprintf("MAC: %s", mac)
 	if randomized {
-		macInfo += " [RANDOMIZED]"
+		macInfo += " [Stealth]"
 	}
 
 	return fmt.Sprintf("IP: %s\nInterface: %s\n%s", ip, iface, macInfo)

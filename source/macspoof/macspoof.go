@@ -244,7 +244,7 @@ func runShow() error {
 
 		status := ""
 		if hasRandom {
-			status = " [RANDOMIZED]"
+			status = " [Stealth]"
 		}
 
 		mac := iface.MAC
