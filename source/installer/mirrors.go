@@ -139,10 +139,20 @@ func GetInstallurl() string {
 	return strings.TrimSpace(string(data))
 }
 
+// hasHardcodedCDN returns true if /etc/pkg_add.conf contains the hardcoded CDN
+func hasHardcodedCDN() bool {
+	data, err := os.ReadFile("/etc/pkg_add.conf")
+	if err != nil {
+		return false
+	}
+	return strings.Contains(string(data), "cdn.openbsd.org")
+}
+
 // SetupMirror runs mirror detection and writes /etc/installurl if needed
 // Called before package installation to ensure fastest mirror is used
 func SetupMirror() {
-	if HasInstallurl() {
+	// Check both installurl and pkg_add.conf
+	if HasInstallurl() && !hasHardcodedCDN() {
 		return
 	}
 
