@@ -66,7 +66,7 @@ func formatTime(minutes int) string {
 func Get() string {
 	percent, ac, _ := getFullStatus()
 	if percent == 255 {
-		return "󱉞" // No battery
+		return "" // No battery = no icon in polybar
 	}
 	if percent == 0 {
 		return "" // No battery info

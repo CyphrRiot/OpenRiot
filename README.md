@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-3.1-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-3.2-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -95,6 +95,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 - [🧰 Advanced Usage](#advanced-usage)
     - [🔄 Environment Variables](#environment-variables)
     - [⌨️ Keybindings Customization](#keybindings-customization)
+    - [🔒 MAC Address Randomization](#mac-address-randomization)
     - [📊 Polybar Modules](#polybar-modules)
     - [🌤 Weather Module](#-weather-module-polybar)
     - [🔐 Crypto Config](#-crypto-config)
@@ -550,23 +551,25 @@ Polybar is your status bar. Click on modules for more:
 
 | Module | Click Action |
 | ------ | ------------- |
-| 󰜡 Launcher | Opens app launcher |
+| 󰟠 Launcher | Opens app launcher |
 | 󰎤󰎧󰎪󰎭 Workspaces 1-4 | Click to switch workspace |
 | Window Title | Shows focused window name |
-| 󰃭 Date | Click: next wallpaper |
-| 󰌵 night-light | Toggle night light (redshift) |
+| 󰃭 Date | Shows date/time |
+| 󰝴/󱊨 Stealth | Toggle MAC randomization |
 | weather | Shows current temp + conditions (OpenWeatherMap) |
-| 󰦝 crypto | Shows crypto prices |
-| 󰡳 CPU | Shows CPU usage |
-| 󰢼 Memory | Shows memory usage |
-| 󰕾 Volume | Click to toggle mute, scroll adjust |
-| 󰤨 Network | Click for wifi-menu |
-| 󰅛 wireguard | Toggle VPN connection |
-| 󰐻 transmission | Toggle Transmission daemon |
-| 󱉞 Battery | Click: battery notification |
-| 󰋻 OpenRiot Update | Click to check for updates |
-| 󰐘 Power | Click for power menu |
-| 󰍁 Lock | Click to lock screen |
+|  crypto | Shows crypto prices |
+| 󰢝 CPU | Shows CPU usage |
+| 󰌅 Memory | Shows memory usage |
+| 󰕾/󰖀/󰕿/ Volume | Click to toggle mute, scroll adjust |
+| 󰤨/󰤯/󱛅 WiFi | Click for wifi-menu |
+| 󰈀 Ethernet | Click for ethernet info |
+| 󰛳/󰅛/󰱓 WireGuard | Toggle VPN connection |
+| 󰃫/󰌵 Night Light | Toggle night light (redshift) |
+| 󱥾/󰴋/ Proton Drive | Sync Proton Drive |
+| 󱧝/󰐻 Transmission | Toggle Transmission daemon |
+| 󰋻/󰚇 OpenRiot Update | Click to check for updates |
+| ⏻ Power | Click for power menu |
+| 󰌾 Lock | Click to lock screen |
 
 **Workspace Bar:** Shows all 4 workspaces with indicators and app icons.
 
@@ -799,32 +802,78 @@ Keybindings are in `~/.config/i3/keybindings.conf`.
 
 Edit this file to customize. After saving, press `Super + Shift + R` to reload i3.
 
+<a id="mac-address-randomization"></a>
+
+### 🔒 MAC Address Randomization
+
+OpenRiot includes automatic MAC address randomization for network interfaces. This prevents network operators and observers from tracking your device across different networks by using a randomly generated MAC address on each connection.
+
+![Stealth Mode](assets/stealth.png)
+
+#### How It Works
+
+The system uses `ifconfig` to spoof MAC addresses on both WiFi and Ethernet interfaces. Each time you connect to a network, a new random MAC is generated, making device fingerprinting significantly more difficult.
+
+#### Enable/Disable
+
+```bash
+openriot --random-mac enable    # Enable MAC randomization
+openriot --random-mac disable   # Disable (use real MAC)
+openriot --random-mac show      # Check current status
+```
+
+#### Privacy Benefits
+
+- **Network Tracking Prevention** — Your real MAC is never exposed on public networks
+- **[Stealth]** — The polybar network module shows `[Stealth]` when enabled
+- **Automatic** — Takes effect on every connection
+
+#### Compatibility
+
+Works with all supported network interfaces in OpenRiot. Some networks with MAC authentication (captive portals, corporate 802.1X) may require disabling randomization.
+
 ### Top Menu (Polybar)
 
 Polybar modules are in `~/.config/polybar/config`.
 
 Each module is a custom script that outputs icon + info for display. Modules update automatically and respond to clicks.
 
-| Module | Icons | Click Action | Scroll |
-|--------|-------|-------------|--------|
-| **launcher** | 󰜡 | Open app launcher (Rofi) | - |
-| **workspaces** | 󰎤󰎧󰎪󰎭 | Switch to workspace | - |
-| **window-title** | text | - | - |
-| **date** | 󰃭 | Next wallpaper | - |
-| **volume** | 󰕾/󰕿 | Toggle mute | Volume adjust |
-| **network** | 󰤨/󰤯 | WiFi info | - |
-| **battery** | 󱉞 | - | - |
-| **crypto** | 󰦝 | Show crypto prices | - |
-| **night-light** | 󰃫/󰌵 | Toggle redshift | - |
-| **cpu** | 󰢝 | CPU notification | - |
-| **memory** | 󰌅 | Memory notification | - |
-| **wireguard** | 󰅛 | Toggle VPN | - |
-| **openriot-update** | 󰋻/󰚇 | Check for updates | - |
-| **weather** | Based on condition code | - | - |
-| **proton-drive** | 󱥾 | Sync Proton Drive | - |
-| **transmission** | 󰐻/󱧝 | Toggle daemon | - |
-| **power** | 󰐘 | Open power menu | - |
-| **lock** | 󰍁 | Lock screen | - |
+| Module | Icon | States | Click Action | Scroll |
+|--------|------|-------|-------------|--------|
+| **launcher** | 󰟠 | - | Open app launcher (Rofi) | - |
+| **workspaces** | 󰎤󰎧󰎪󰎭 | - | Switch to workspace | - |
+| **window-title** | text | - | - | - |
+| **date** | 󰃭 | - | Show date/time | - |
+| **stealth** | 󰝴 | ON | Toggle MAC randomization | - |
+| | 󱊨 | OFF | | |
+| **network-wifi** | 󰤨 | Connected | WiFi info | - |
+| | 󰤯 | No signal | | |
+| | 󱛅 | No internet | | |
+| **network-eth** | 󰈀 | Connected | Ethernet info | - |
+| **wireguard** | 󰛳 | Not configured | Toggle VPN | - |
+| | 󰅛 | Disconnected | | |
+| | 󰱓 | Connected | | |
+| **volume** | 󰕾 | High (67%+) | Toggle mute | Volume adjust |
+| | 󰖀 | Medium (34-66%) | | |
+| | 󰕿 | Low | | |
+| |  | Muted | | |
+| **battery** | 󰁺-󰂂 | Discharging | Battery notification | - |
+| | 󰢜-󰂋 | Charging | | |
+| **crypto** |  | - | Show crypto prices | - |
+| **night-light** | 󰃫 | OFF | Toggle redshift | - |
+| | 󰌵 | ON | | |
+| **cpu** | 󰢝 | - | CPU notification | - |
+| **memory** | 󰌅 | - | Memory notification | - |
+| **proton-drive** | 󱥾 | Synced | Sync Proton Drive | - |
+| | 󰴋 | Syncing | | |
+| |  | Not configured | | |
+| **transmission** | 󱧝 | Running | Toggle daemon | - |
+| | 󰐻 | Stopped | | |
+| **openriot-update** | 󰋻 | Update available | Check for updates | - |
+| | 󰚇 | Up to date | | |
+| **weather** | varies | - | - | - |
+| **power** | ⏻ | - | Open power menu | - |
+| **lock** | 󰌾 | - | Lock screen | - |
 
 ### 🌤 Weather Module (Polybar)
 
@@ -1144,8 +1193,8 @@ No authentication required by default.
 
 | Icon | Meaning |
 ---------------|
-| 󰅤 | Transmission stopped |
-| 󰭽 | Transmission running |
+| 󰐻 | Transmission stopped |
+| 󱧝 | Transmission running |
 
 Click the icon to toggle. Notifications confirm state changes.
 

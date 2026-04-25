@@ -264,6 +264,26 @@ func main() {
 		fmt.Print(wireguard.Status())
 	}
 
+	// --stealth-status - for polybar
+	commands["--stealth-status"] = func() {
+		fmt.Print(macspoof.StealthStatus())
+	}
+
+	// --stealth - toggle stealth mode
+	commands["--stealth"] = func() {
+		notify.SendNotify("stealth", "Stealth", " Restarting Networking Services", "normal", 5000, 0)
+		if err := macspoof.StealthToggle(); err != nil {
+			notify.SendNotify("stealth", "Stealth", "Failed: "+err.Error(), "critical", 5000, 0)
+			os.Exit(1)
+		}
+		enabled := macspoof.IsStealthEnabled()
+		if enabled {
+			notify.SendNotify("stealth", "Stealth", "Enabled [Stealth]", "normal", 3000, 0)
+		} else {
+			notify.SendNotify("stealth", "Stealth", "Disabled", "normal", 3000, 0)
+		}
+	}
+
 	// --update-status - outputs update icon for polybar
 	commands["--update-status"] = func() {
 		fmt.Print(update.Get())

@@ -197,6 +197,37 @@ func ApplyMAC(iface string) error {
 	return nil
 }
 
+// IsStealthEnabled checks if any interface has random MAC configured
+func IsStealthEnabled() bool {
+	interfaces, err := GetNetworkInterfaces()
+	if err != nil || len(interfaces) == 0 {
+		return false
+	}
+	for _, iface := range interfaces {
+		hasRandom, _ := getHostnameConfig(iface.Name)
+		if hasRandom {
+			return true
+		}
+	}
+	return false
+}
+
+// StealthStatus returns the appropriate icon for polybar
+func StealthStatus() string {
+	if IsStealthEnabled() {
+		return "󰝴" // Stealth ON
+	}
+	return "󱊨" // Stealth OFF
+}
+
+// StealthToggle enables or disables stealth mode
+func StealthToggle() error {
+	if IsStealthEnabled() {
+		return runDisable()
+	}
+	return runEnable()
+}
+
 // Run is the main entry point for the --random-mac command
 func Run(args []string) error {
 	if len(args) == 0 {
