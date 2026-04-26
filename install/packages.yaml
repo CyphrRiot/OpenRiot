@@ -20,14 +20,13 @@ core:
             - pattern: fastfetch/*
               target: "~/.config/fastfetch"
         depends: []
-        build:
-            - |
-                desc: "Create XDG user directories if missing"
-                cmd: |
-                    for dir in Documents Downloads Music Pictures Videos Code Screenshots; do
-                        mkdir -p "$HOME/$dir"
-                    done
-                    echo "[DONE] XDG directories ensured"
+        commands:
+            - desc: "Create XDG user directories if missing"
+              cmd: |
+                  for dir in Documents Downloads Music Pictures Videos Code Screenshots; do
+                      mkdir -p "$HOME/$dir"
+                  done
+                  echo "[DONE] XDG directories ensured"
         start: "Installing base tools"
         end: "Base tools installed"
         type: "Package"
@@ -165,6 +164,7 @@ desktop:
         commands:
             - desc: "Import dconf settings (requires X11)"
               cmd: "[ -n \"$DISPLAY\" ] && dconf load /org/gnome/TextEditor/ < $HOME/.config/openriot/dconf/org.gnome.TextEditor.ini || echo '[SKIP] No X11, skipping dconf'"
+media:
     media:
         packages:
             - mpv-0.41.0p0
@@ -181,6 +181,7 @@ desktop:
         end: "Media controls installed"
         type: "Package"
         critical: false
+
 source:
     crush:
         type: "Source"

@@ -36,21 +36,15 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 	// Track stats per category
 	categoryStats := make(map[string]int)
 
-	// Collect all config rules from all modules
-	var allRules []config.ConfigRule
+	// Collect all config rules from all modules (dependency-resolved order)
+	refs, err := cfg.GetAllModulesOrdered()
+	if err != nil {
+		return fmt.Errorf("resolving module dependencies: %w", err)
+	}
 
-	// Get all modules from all categories
-	for _, module := range cfg.Core {
-		allRules = append(allRules, module.Configs...)
-	}
-	for _, module := range cfg.Desktop {
-		allRules = append(allRules, module.Configs...)
-	}
-	for _, module := range cfg.System {
-		allRules = append(allRules, module.Configs...)
-	}
-	for _, module := range cfg.Source {
-		allRules = append(allRules, module.Configs...)
+	var allRules []config.ConfigRule
+	for _, ref := range refs {
+		allRules = append(allRules, ref.Module.Configs...)
 	}
 
 	// Process each config rule
@@ -178,7 +172,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 			if dryRun {
 				logger.Info(fmt.Sprintf("[DRY-RUN] Would copy %s -> %s", rule.Pattern, destPath))
 			} else if err := copyFilePreserve(srcPath, destPath); err != nil {
-				fmt.Printf("%s[WARN]%s Failed to copy %s: %v\n", Yellow, Reset, rule.Pattern, err)
+				logger.Warn(fmt.Sprintf("Failed to copy %s: %v", rule.Pattern, err))
 				continue
 			} else {
 				// Get category from pattern (e.g., "i3/config" -> "i3")

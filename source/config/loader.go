@@ -149,6 +149,78 @@ func (c *Config) GetAllModules() []Module {
 	return modules
 }
 
+// ModuleRef ties a Module to its category.name identifier.
+type ModuleRef struct {
+	Category string
+	Name     string
+	Module   Module
+}
+
+// GetAllModulesOrdered returns all modules in dependency order (topological sort).
+// Prerequisite modules always come before their dependents.
+func (c *Config) GetAllModulesOrdered() ([]ModuleRef, error) {
+	var refs []ModuleRef
+	idToIndex := make(map[string]int)
+
+	addCategory := func(cat string, mods map[string]Module) {
+		for name, mod := range mods {
+			id := cat + "." + name
+			idToIndex[id] = len(refs)
+			refs = append(refs, ModuleRef{Category: cat, Name: name, Module: mod})
+		}
+	}
+
+	addCategory("core", c.Core)
+	addCategory("system", c.System)
+	addCategory("desktop", c.Desktop)
+	addCategory("media", c.Media)
+	addCategory("fonts", c.Fonts)
+	addCategory("themes", c.Themes)
+	addCategory("source", c.Source)
+
+	n := len(refs)
+	adj := make([][]int, n)
+	inDegree := make([]int, n)
+
+	for i, ref := range refs {
+		for _, dep := range ref.Module.Depends {
+			j, ok := idToIndex[dep]
+			if !ok {
+				return nil, fmt.Errorf("module %s.%s depends on unknown %s",
+					ref.Category, ref.Name, dep)
+			}
+			adj[j] = append(adj[j], i)
+			inDegree[i]++
+		}
+	}
+
+	var queue []int
+	for i, d := range inDegree {
+		if d == 0 {
+			queue = append(queue, i)
+		}
+	}
+
+	var ordered []ModuleRef
+	for len(queue) > 0 {
+		i := queue[0]
+		queue = queue[1:]
+		ordered = append(ordered, refs[i])
+		for _, j := range adj[i] {
+			inDegree[j]--
+			if inDegree[j] == 0 {
+				queue = append(queue, j)
+			}
+		}
+	}
+
+	if len(ordered) != n {
+		return nil, fmt.Errorf("circular dependency detected in modules")
+	}
+
+	return ordered, nil
+}
+
 // GetPackages returns all unique packages from all modules
 func (c *Config) GetPackages() []string {
 	seen := make(map[string]bool)

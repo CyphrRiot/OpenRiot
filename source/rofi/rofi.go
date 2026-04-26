@@ -74,7 +74,7 @@ func Run() error {
 		} else if strings.Contains(name, "󰅤") {
 			name = "Transmission"
 		}
-		notify.SendNotify("app", "Applications", fmt.Sprintf("%s %s...", msg, name), "normal", 2000, 0)
+		notify.SendNotify("applications", "Applications", fmt.Sprintf("%s %s...", msg, name), "normal", 2000, 0)
 	}()
 
 	// Execute the command

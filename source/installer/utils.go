@@ -32,13 +32,42 @@ func ShareLog(filename string) error {
 	return nil
 }
 
+// findFontPath locates the FiraCode Nerd Font in multiple locations
+func findFontPath() string {
+	// 1. Bundled font relative to binary (production: install/openriot -> ../assets/fonts/)
+	if ex, err := os.Executable(); err == nil {
+		bundled := filepath.Join(filepath.Dir(ex), "..", "assets", "fonts", "FiraCodeNerdFont-Regular.ttf")
+		if _, err := os.Stat(bundled); err == nil {
+			return bundled
+		}
+	}
+
+	// 2. Same-directory assets (development fallback)
+	if ex, err := os.Executable(); err == nil {
+		sameDir := filepath.Join(filepath.Dir(ex), "assets", "fonts", "FiraCodeNerdFont-Regular.ttf")
+		if _, err := os.Stat(sameDir); err == nil {
+			return sameDir
+		}
+	}
+
+	// 3. User's local font installation
+	if home, err := os.UserHomeDir(); err == nil {
+		local := filepath.Join(home, ".local", "share", "fonts", "FiraCode", "FiraCodeNerdFont-Regular.ttf")
+		if _, err := os.Stat(local); err == nil {
+			return local
+		}
+	}
+
+	return ""
+}
+
 // MakeIcon generates a PNG icon from a Nerd Font symbol
 func MakeIcon(name, symbol string) error {
-	ex, err := os.Executable()
-if err != nil {
-	return fmt.Errorf("finding executable: %w", err)
-}
-font := filepath.Join(filepath.Dir(ex), "assets/fonts/FiraCodeNerdFont-Regular.ttf")
+	font := findFontPath()
+	if font == "" {
+		return fmt.Errorf("FiraCode Nerd Font not found (checked bundled assets and ~/.local/share/fonts/FiraCode/)")
+	}
+
 	home, _ := os.UserHomeDir()
 	iconDir := filepath.Join(home, ".local/share/openriot/config/icons")
 

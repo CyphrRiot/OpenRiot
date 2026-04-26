@@ -68,8 +68,48 @@ func logDebugCall() {
 func main() {
 	logDebugCall()
 
-	// Command map for CLI dispatcher
-	commands := map[string]func(){
+	// Handle --test/-t flag first (affects other commands)
+	for _, arg := range os.Args[1:] {
+		if arg == "--test" || arg == "-t" {
+			testMode = true
+		}
+	}
+
+	commands := initCommands()
+
+	if len(os.Args) >= 2 {
+		if fn, ok := commands[os.Args[1]]; ok {
+			fn()
+			return
+		}
+	}
+
+	printUsage()
+}
+
+// hasAudioPlaying checks if any audio is playing via sndio (OpenBSD) or PulseAudio (Linux)
+func hasAudioPlaying() bool {
+	cmd := exec.Command("sndioctl", "-n")
+	output, err := cmd.Output()
+	if err == nil {
+		lines := strings.Split(string(output), "\n")
+		for _, line := range lines {
+			if strings.HasPrefix(line, "app/") && strings.Contains(line, ".level=") {
+				return true
+			}
+		}
+	}
+	cmd = exec.Command("pactl", "list", "sink-inputs")
+	output, err = cmd.Output()
+	if err == nil && strings.Contains(string(output), "State: RUNNING") {
+		return true
+	}
+	return false
+}
+
+func initCommands() map[string]func() {
+	return map[string]func(){
+		// Version & install
 		"--version": func() {
 			fmt.Println("openriot", version)
 			os.Exit(0)
@@ -77,6 +117,8 @@ func main() {
 		"--install": func() {
 			runInstall()
 		},
+
+		// Package management
 		"--source-builds": func() {
 			installer.RunSourceBuilds(testMode)
 		},
@@ -105,9 +147,37 @@ func main() {
 		"--sync-packages": func() {
 			installer.RunSyncPackages()
 		},
+		"--check-dependencies": func() {
+			configPath := config.FindConfigFile()
+			if configPath == "" {
+				fmt.Fprintf(os.Stderr, "[FAIL] Could not find packages.yaml\n")
+				os.Exit(1)
+			}
+			cfg, err := config.LoadConfig(configPath)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "[FAIL] Failed to load config: %v\n", err)
+				os.Exit(1)
+			}
+			refs, err := cfg.GetAllModulesOrdered()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "[FAIL] Dependency error: %v\n", err)
+				os.Exit(1)
+			}
+			fmt.Println("Dependency order:")
+			for i, ref := range refs {
+				deps := ""
+				if len(ref.Module.Depends) > 0 {
+					deps = fmt.Sprintf("  (depends on: %s)", strings.Join(ref.Module.Depends, ", "))
+				}
+				fmt.Printf("  %d. %s.%s%s\n", i+1, ref.Category, ref.Name, deps)
+			}
+			os.Exit(0)
+		},
 		"--mirrors": func() {
 			installer.RunMirrors()
 		},
+
+		// Tools & upgrades
 		"--random-mac": func() {
 			if err := macspoof.Run(os.Args[2:]); err != nil {
 				fmt.Fprintf(os.Stderr, "random-mac error: %v\n", err)
@@ -141,6 +211,8 @@ func main() {
 				os.Exit(1)
 			}
 		},
+
+		// Version check & imaging
 		"--version-check": func() {
 			localVer := update.GetLocalVersion()
 			remoteVer := update.GetRemoteVersion()
@@ -157,6 +229,8 @@ func main() {
 		"--make-image": func() {
 			imaging.RunMakeImage(os.Args[2:])
 		},
+
+		// System controls
 		"--volume": func() {
 			os.Exit(audio.Run(os.Args[2:]))
 		},
@@ -242,495 +316,384 @@ func main() {
 			fmt.Printf("Icon created: %s.png\n", name)
 			os.Exit(0)
 		},
-	}
 
-	// Handle --test/-t flag first (affects other commands)
-	for _, arg := range os.Args[1:] {
-		if arg == "--test" || arg == "-t" {
-			testMode = true
-		}
-	}
+		// Polybar status
+		"--wireguard-status": func() {
+			fmt.Print(wireguard.Status())
+		},
+		"--stealth-status": func() {
+			fmt.Print(macspoof.StealthStatus())
+		},
+		"--stealth": func() {
+			notify.SendNotify("stealth", "Stealth", " Restarting Networking Services", "normal", 5000, 0)
+			if err := macspoof.StealthToggle(); err != nil {
+				notify.SendNotify("stealth", "Stealth", "Failed: "+err.Error(), "critical", 5000, 0)
+				os.Exit(1)
+			}
+			enabled := macspoof.IsStealthEnabled()
+			if enabled {
+				notify.SendNotify("stealth", "Stealth", "Enabled [Stealth]", "normal", 3000, 0)
+			} else {
+				notify.SendNotify("stealth", "Stealth", "Disabled", "normal", 3000, 0)
+			}
+		},
+		"--update-status": func() {
+			fmt.Print(update.Get())
+		},
+		"--update": func() {
+			update.Click()
+		},
+		"--rofi": func() {
+			if err := rofi.Run(); err != nil {
+				fmt.Fprintf(os.Stderr, "rofi error: %v\n", err)
+				os.Exit(1)
+			}
+		},
+		"--weather": func() {
+			fmt.Print(weather.Get())
+		},
 
-	// Dispatch command from map
-	if len(os.Args) >= 2 {
-		if fn, ok := commands[os.Args[1]]; ok {
-			fn()
-			return
-		}
-	}
-
-	// --wireguard-status - for polybar
-	commands["--wireguard-status"] = func() {
-		fmt.Print(wireguard.Status())
-	}
-
-	// --stealth-status - for polybar
-	commands["--stealth-status"] = func() {
-		fmt.Print(macspoof.StealthStatus())
-	}
-
-	// --stealth - toggle stealth mode
-	commands["--stealth"] = func() {
-		notify.SendNotify("stealth", "Stealth", " Restarting Networking Services", "normal", 5000, 0)
-		if err := macspoof.StealthToggle(); err != nil {
-			notify.SendNotify("stealth", "Stealth", "Failed: "+err.Error(), "critical", 5000, 0)
-			os.Exit(1)
-		}
-		enabled := macspoof.IsStealthEnabled()
-		if enabled {
-			notify.SendNotify("stealth", "Stealth", "Enabled [Stealth]", "normal", 3000, 0)
-		} else {
-			notify.SendNotify("stealth", "Stealth", "Disabled", "normal", 3000, 0)
-		}
-	}
-
-	// --update-status - outputs update icon for polybar
-	commands["--update-status"] = func() {
-		fmt.Print(update.Get())
-	}
-
-	// --update - handle update click
-	commands["--update"] = func() {
-		update.Click()
-	}
-
-	// --rofi - app launcher
-	commands["--rofi"] = func() {
-		if err := rofi.Run(); err != nil {
-			fmt.Fprintf(os.Stderr, "rofi error: %v\n", err)
-			os.Exit(1)
-		}
-	}
-
-	// --weather - outputs weather icon + temp for polybar
-	commands["--weather"] = func() {
-		fmt.Print(weather.Get())
-	}
-
-	// Dispatch Section 2 commands
-	if len(os.Args) >= 2 {
-		if fn, ok := commands[os.Args[1]]; ok {
-			fn()
-			return
-		}
-	}
-
-	// Section 3: Network, battery, and status commands
-	commands["--network-wifi"] = func() {
-		fmt.Print(network.GetWifi())
-	}
-	commands["--network-eth"] = func() {
-		fmt.Print(network.GetEth())
-	}
-	commands["--wifi-info"] = func() {
-		details := network.GetWifiDetails()
-		icon := "wifi.png"
-		if !network.IsConnected() {
-			icon = "wifi-off.png"
-		}
-		notify.SendNotify(icon, "WiFi", details, "normal", 5000, 0)
-	}
-	commands["--wifi-reconnect"] = func() {
-		if network.IsOnline() {
-			notify.SendNotify("wifi", "WiFi", "Already connected", "normal", 2000, 0)
-			return
-		}
-		if !network.IsConnected() {
-			notify.SendNotify("wifi-off", "WiFi", "Not connected", "normal", 2000, 0)
-			return
-		}
-		notify.SendNotify("wifi", "WiFi", "Reconnecting...", "normal", 3000, 0)
-		if err := network.ReconnectWifi(); err != nil {
-			notify.SendNotify("wifi-off", "WiFi", "Reconnect failed: "+err.Error(), "normal", 5000, 0)
-		}
-	}
-	commands["--eth-info"] = func() {
-		details := network.GetEthDetails()
-		notify.SendNotify("ethernet", "Ethernet", details, "normal", 5000, 0)
-	}
-	commands["--battery"] = func() {
-		fmt.Print(battery.Get())
-	}
-	commands["--battery-notify"] = func() {
-		batteryDetails := battery.GetNotifyDetails()
-		notify.SendNotify("battery", "Battery", batteryDetails, "normal", 5000, 0)
-		os.Exit(0)
-	}
-	commands["--night-light-status"] = func() {
-		fmt.Print(nightlight.Get())
-	}
-	commands["--polybar-transmission"] = func() {
-		if rofi.IsTransmissionRunning() {
-			fmt.Print("󰐻")
-		} else {
-			fmt.Print("󱧝")
-		}
-	}
-	commands["--polybar-proton-drive"] = func() {
-		if err := polybar.RunProtonDrive(); err != nil {
-			fmt.Fprintf(os.Stderr, "polybar proton-drive error: %v\n", err)
-		}
-	}
-
-	// Dispatch Section 3 commands
-	if len(os.Args) >= 2 {
-		if fn, ok := commands[os.Args[1]]; ok {
-			fn()
-			return
-		}
-	}
-
-	commands["--proton-drive-sync"] = func() {
-		if polybar.IsProtonDriveConfigured() {
-			state := polybar.CheckProtonDriveSyncState()
-			if state == "synced" {
-				notify.SendNotify("proton-drive", "Proton Drive", "Synchronized: "+polybar.GetProtonDriveTooltipText(), "normal", 5000, 0)
+		// Network & battery
+		"--network-wifi": func() {
+			fmt.Print(network.GetWifi())
+		},
+		"--network-eth": func() {
+			fmt.Print(network.GetEth())
+		},
+		"--wifi-info": func() {
+			details := network.GetWifiDetails()
+			icon := "wifi.png"
+			if !network.IsConnected() {
+				icon = "wifi-off.png"
+			}
+			notify.SendNotify(icon, "WiFi", details, "normal", 5000, 0)
+		},
+		"--wifi-reconnect": func() {
+			if network.IsOnline() {
+				notify.SendNotify("wifi", "WiFi", "Already connected", "normal", 2000, 0)
 				return
 			}
-			notify.SendNotify("proton-drive", "Proton Drive", "Syncing...", "normal", 2000, 0)
-			cmd := `printf "Proton Drive Sync\nFrom: ~/Documents/ProtonSync -> Proton Drive Cloud\n\nWould you like to do a bi-directional Sync or one-way\n  and replace items in the Cloud with local items?\n\n[Y]es for bi-directional sync (or ENTER),\n[O]ne-way for One-Way sync or\n[Q]uit or [N]o ?\n\nChoose your adventure [Y/o/q/n] -> "; read -r ans; case "$ans" in o|O) echo "One-way sync selected..."; rclone copy ~/Documents/ProtonSync proton:ProtonSync --progress; printf "\nDone. Press Enter to close..."; read -r ans ;; [yY]|"") echo "Bi-directional sync selected..."; rclone bisync ~/Documents/ProtonSync proton:ProtonSync --resync --progress; printf "\nDone. Press Enter to close..."; read -r ans ;; *) echo "Canceled."; sleep 1 ;; esac`
-			exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
-		} else {
-			notify.SendNotify("proton-drive", "Proton Drive", "Not configured\nSee OpenRiot.org for setup info", "critical", 5000, 0)
-		}
-	}
-	commands["--proton-drive-init"] = func() {
-		if polybar.IsProtonDriveConfigured() {
-			if err := polybar.InitProtonDriveCache(); err != nil {
-				fmt.Fprintf(os.Stderr, "proton-drive init error: %v\n", err)
-				notify.SendNotify("proton-drive", "Proton Drive", "Failed to init cache", "critical", 5000, 0)
-			} else {
-				notify.SendNotify("proton-drive", "Proton Drive", "Cache initialized", "normal", 2000, 0)
+			if !network.IsConnected() {
+				notify.SendNotify("wifi-off", "WiFi", "Not connected", "normal", 2000, 0)
+				return
 			}
-		} else {
-			notify.SendNotify("proton-drive", "Proton Drive", "Not configured", "critical", 5000, 0)
-		}
-	}
-	commands["--transmission-toggle"] = func() {
-		if rofi.IsTransmissionRunning() {
-			exec.Command("pkill", "-INT", "transmission-daemon").Run()
-			notify.SendNotify("transmission", "Transmission", "Stopping Transmission...", "normal", 2000, 0)
-		} else {
-			exec.Command("sh", "-c", "mkdir -p ~/.local/share/transmission ~/.config/transmission && transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &").Run()
-			notify.SendNotify("transmission", "Transmission", "Starting Transmission...", "normal", 2000, 0)
-		}
-	}
-	commands["--night-light"] = func() {
-		nightlight.Toggle()
-	}
-	commands["--window-title"] = func() {
-		fmt.Print(windowtitle.Get())
-	}
-	commands["--wireguard"] = func() {
-		if err := wireguard.Toggle(); err != nil {
-			fmt.Fprintf(os.Stderr, "WireGuard error: %v\n", err)
-			os.Exit(1)
-		}
-	}
+			notify.SendNotify("wifi", "WiFi", "Reconnecting...", "normal", 3000, 0)
+			if err := network.ReconnectWifi(); err != nil {
+				notify.SendNotify("wifi-off", "WiFi", "Reconnect failed: "+err.Error(), "normal", 5000, 0)
+			}
+		},
+		"--eth-info": func() {
+			details := network.GetEthDetails()
+			notify.SendNotify("ethernet", "Ethernet", details, "normal", 5000, 0)
+		},
+		"--battery": func() {
+			fmt.Print(battery.Get())
+		},
+		"--battery-notify": func() {
+			batteryDetails := battery.GetNotifyDetails()
+			notify.SendNotify("battery", "Battery", batteryDetails, "normal", 5000, 0)
+			os.Exit(0)
+		},
+		"--night-light-status": func() {
+			fmt.Print(nightlight.Get())
+		},
+		"--polybar-transmission": func() {
+			if rofi.IsTransmissionRunning() {
+				fmt.Print("󰐻")
+			} else {
+				fmt.Print("󱧝")
+			}
+		},
+		"--polybar-proton-drive": func() {
+			if err := polybar.RunProtonDrive(); err != nil {
+				fmt.Fprintf(os.Stderr, "polybar proton-drive error: %v\n", err)
+			}
+		},
 
-	// Dispatch Section 4 commands
-	if len(os.Args) >= 2 {
-		if fn, ok := commands[os.Args[1]]; ok {
-			fn()
-			return
-		}
-	}
+		// Drive & sync
+		"--proton-drive-sync": func() {
+			if polybar.IsProtonDriveConfigured() {
+				state := polybar.CheckProtonDriveSyncState()
+				if state == "synced" {
+					notify.SendNotify("proton-drive", "Proton Drive", "Synchronized: "+polybar.GetProtonDriveTooltipText(), "normal", 5000, 0)
+					return
+				}
+				notify.SendNotify("proton-drive", "Proton Drive", "Syncing...", "normal", 2000, 0)
+				cmd := `printf "Proton Drive Sync\nFrom: ~/Documents/ProtonSync -> Proton Drive Cloud\n\nWould you like to do a bi-directional Sync or one-way\n  and replace items in the Cloud with local items?\n\n[Y]es for bi-directional sync (or ENTER),\n[O]ne-way for One-Way sync or\n[Q]uit or [N]o ?\n\nChoose your adventure [Y/o/q/n] -> "; read -r ans; case "$ans" in o|O) echo "One-way sync selected..."; rclone copy ~/Documents/ProtonSync proton:ProtonSync --progress; printf "\nDone. Press Enter to close..."; read -r ans ;; [yY]|"") echo "Bi-directional sync selected..."; rclone bisync ~/Documents/ProtonSync proton:ProtonSync --resync --progress; printf "\nDone. Press Enter to close..."; read -r ans ;; *) echo "Canceled."; sleep 1 ;; esac`
+				exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
+			} else {
+				notify.SendNotify("proton-drive", "Proton Drive", "Not configured\nSee OpenRiot.org for setup info", "critical", 5000, 0)
+			}
+		},
+		"--proton-drive-init": func() {
+			if polybar.IsProtonDriveConfigured() {
+				if err := polybar.InitProtonDriveCache(); err != nil {
+					fmt.Fprintf(os.Stderr, "proton-drive init error: %v\n", err)
+					notify.SendNotify("proton-drive", "Proton Drive", "Failed to init cache", "critical", 5000, 0)
+				} else {
+					notify.SendNotify("proton-drive", "Proton Drive", "Cache initialized", "normal", 2000, 0)
+				}
+			} else {
+				notify.SendNotify("proton-drive", "Proton Drive", "Not configured", "critical", 5000, 0)
+			}
+		},
+		"--transmission-toggle": func() {
+			if rofi.IsTransmissionRunning() {
+				exec.Command("pkill", "-INT", "transmission-daemon").Run()
+				notify.SendNotify("transmission", "Transmission", "Stopping Transmission...", "normal", 2000, 0)
+			} else {
+				exec.Command("sh", "-c", "mkdir -p ~/.local/share/transmission ~/.config/transmission && transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &").Run()
+				notify.SendNotify("transmission", "Transmission", "Starting Transmission...", "normal", 2000, 0)
+			}
+		},
+		"--night-light": func() {
+			nightlight.Toggle()
+		},
+		"--window-title": func() {
+			fmt.Print(windowtitle.Get())
+		},
+		"--wireguard": func() {
+			if err := wireguard.Toggle(); err != nil {
+				fmt.Fprintf(os.Stderr, "WireGuard error: %v\n", err)
+				os.Exit(1)
+			}
+		},
 
-	// --window-icon <class> - outputs icon for window class (requires arg)
-	commands["--window-icon"] = func() {
-		if len(os.Args) < 3 {
-			fmt.Fprintln(os.Stderr, "Usage: openriot --window-icon <class>")
-			os.Exit(1)
-		}
-		fmt.Print(windowicon.Get(os.Args[2]))
-	}
+		// Window & workspace
+		"--window-icon": func() {
+			if len(os.Args) < 3 {
+				fmt.Fprintln(os.Stderr, "Usage: openriot --window-icon <class>")
+				os.Exit(1)
+			}
+			fmt.Print(windowicon.Get(os.Args[2]))
+		},
+		"--all-window-icons": func() {
+			windows := windowicon.GetAllWindowIcons()
+			for class, icon := range windows {
+				fmt.Printf("%s=%s\n", class, icon)
+			}
+		},
+		"--workspace-switch": func() {
+			if len(os.Args) < 3 {
+				fmt.Fprintln(os.Stderr, "Usage: openriot --workspace-switch <N>")
+				os.Exit(1)
+			}
+			target, err := strconv.Atoi(os.Args[2])
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Invalid workspace number")
+				os.Exit(1)
+			}
+			workspace.Switch(target)
+		},
+		"--workspace-icons": func() {
+			if len(os.Args) < 3 {
+				fmt.Fprintln(os.Stderr, "Usage: openriot --workspace-icons <N>")
+				os.Exit(1)
+			}
+			target, err := strconv.Atoi(os.Args[2])
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Invalid workspace number")
+				os.Exit(1)
+			}
+			fmt.Print(workspaceicons.Get(target))
+		},
+		"--workspace-icons-all": func() {
+			fmt.Print(workspaceicons.GetAll())
+		},
 
-	// --all-window-icons - outputs all window class→icon mappings (one i3-msg call)
-	commands["--all-window-icons"] = func() {
-		windows := windowicon.GetAllWindowIcons()
-		for class, icon := range windows {
-			fmt.Printf("%s=%s\n", class, icon)
-		}
-	}
-	// --workspace-switch N - switch to workspace N (requires arg)
-	commands["--workspace-switch"] = func() {
-		if len(os.Args) < 3 {
-			fmt.Fprintln(os.Stderr, "Usage: openriot --workspace-switch <N>")
-			os.Exit(1)
-		}
-		target, err := strconv.Atoi(os.Args[2])
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Invalid workspace number")
-			os.Exit(1)
-		}
-		workspace.Switch(target)
-	}
-
-	// --workspace-icons N - output workspace icons for polybar (requires arg)
-	commands["--workspace-icons"] = func() {
-		if len(os.Args) < 3 {
-			fmt.Fprintln(os.Stderr, "Usage: openriot --workspace-icons <N>")
-			os.Exit(1)
-		}
-		target, err := strconv.Atoi(os.Args[2])
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Invalid workspace number")
-			os.Exit(1)
-		}
-		fmt.Print(workspaceicons.Get(target))
-	}
-
-	// --workspace-icons-all - output all workspace icons with single i3 call (optimized)
-	commands["--workspace-icons-all"] = func() {
-		fmt.Print(workspaceicons.GetAll())
-	}
-
-	// Check if any audio is playing via sndio (OpenBSD) or PulseAudio (Linux)
-	hasAudioPlaying := func() bool {
-		// Try OpenBSD sndio first
-		cmd := exec.Command("sndioctl", "-n")
-		output, err := cmd.Output()
-		if err == nil {
-			// Check for active audio (apps with level > 0)
-			lines := strings.Split(string(output), "\n")
-			for _, line := range lines {
-				if strings.HasPrefix(line, "app/") && strings.Contains(line, ".level=") {
-					// Found an app with audio level - something is playing
-					return true
+		// Lock, power, apps
+		"--lock": func() {
+			lock.Lock()
+		},
+		"--smart-lock": func() {
+			if hasAudioPlaying() {
+				return
+			}
+			players := []string{"firefox", "mpv", "vlc", "mplayer", "chrome", "chromium"}
+			for _, p := range players {
+				cmd := exec.Command("pgrep", "-x", p)
+				if output, _ := cmd.Output(); len(strings.TrimSpace(string(output))) > 0 {
+					return
 				}
 			}
-		}
-		// Fallback to PulseAudio (Linux)
-		cmd = exec.Command("pactl", "list", "sink-inputs")
-		output, err = cmd.Output()
-		if err == nil && strings.Contains(string(output), "State: RUNNING") {
-			return true
-		}
-		return false
-	}
-
-	// Dispatch commands with args
-	if len(os.Args) >= 2 {
-		if fn, ok := commands[os.Args[1]]; ok {
-			fn()
-			return
-		}
-	}
-
-	// Section 5: Volume, brightness, lock, power menu
-	commands["--lock"] = func() {
-		lock.Lock()
-	}
-	commands["--smart-lock"] = func() {
-		// Skip lock if audio is playing
-		if hasAudioPlaying() {
-			return
-		}
-		// Skip lock if media players are running
-		players := []string{"firefox", "mpv", "vlc", "mplayer", "chrome", "chromium"}
-		for _, p := range players {
-			cmd := exec.Command("pgrep", "-x", p)
-			if output, _ := cmd.Output(); len(strings.TrimSpace(string(output))) > 0 {
+			lock.Lock()
+		},
+		"--signal-launch": func() {
+			home, _ := os.UserHomeDir()
+			cmd := exec.Command("pgrep", "-f", "gurk")
+			output, _ := cmd.Output()
+			if len(strings.TrimSpace(string(output))) > 0 {
+				notify.SendNotify("signal", "Signal", "Signal already launched", "normal", 2000, 0)
 				return
 			}
-		}
-		lock.Lock()
-	}
-	commands["--signal-launch"] = func() {
-		home, _ := os.UserHomeDir()
-		cmd := exec.Command("pgrep", "-f", "gurk")
-		output, _ := cmd.Output()
-		if len(strings.TrimSpace(string(output))) > 0 {
-			// Already running
-			notify.SendNotify("signal", "Signal", "Signal already launched", "normal", 2000, 0)
-			return
-		}
-		// Launch Signal
-		notify.SendNotify("signal", "Signal", "Starting Signal...", "normal", 2000, 0)
-		exec.Command("alacritty", "--class", "gurk", "--title", "Signal", "-e", home+"/.local/share/openriot/config/bin/gurk").Start()
-	}
-	commands["--browser"] = func() {
-		cmd := exec.Command("pgrep", "-f", "firefox")
-		output, _ := cmd.Output()
-		if len(strings.TrimSpace(string(output))) > 0 {
-			notify.SendNotify("firefox", "Firefox", "Already running", "normal", 2000, 0)
-			return
-		}
-		notify.SendNotify("firefox", "Firefox", "Starting Browser...", "normal", 2000, 0)
-		exec.Command("firefox", os.Args[2:]...).Start()
-	}
-	commands["--proton"] = func() {
-		notify.SendNotify("proton-mail", "Proton Mail", "Opening...", "normal", 2000, 0)
-		exec.Command("firefox", "https://mail.proton.me/u/11/inbox").Start()
-	}
-	commands["--twitter"] = func() {
-		notify.SendNotify("twitter", "X (Twitter)", "Opening...", "normal", 2000, 0)
-		exec.Command("firefox", "https://x.com/").Start()
-	}
-	commands["--crush"] = func() {
-		home, _ := os.UserHomeDir()
-		cmd := exec.Command("pgrep", "-f", "crush")
-		output, _ := cmd.Output()
-		if len(strings.TrimSpace(string(output))) > 0 {
-			notify.SendNotify("crush", "Crush AI", "Already running", "normal", 2000, 0)
-			return
-		}
-		notify.SendNotify("crush", "Crush AI", "Starting Crush...", "normal", 2000, 0)
-		exec.Command("alacritty", "--class", "crush", "--title", "Crush AI", "-e", home+"/.local/bin/crush").Start()
-	}
-	commands["--suspend"] = func() {
-		exec.Command("zzz").Run()
-	}
-	commands["--power-menu"] = func() {
-		cmd := exec.Command("rofi", "-dmenu", "-p", "Power: ")
-		cmd.Stdin = strings.NewReader("Lock\nSuspend\nReboot\nShutdown\nLogout")
-		out, err := cmd.Output()
-		if err != nil {
-			return
-		}
-		choice := strings.TrimSpace(string(out))
-		switch choice {
-		case "Lock":
-			lock.Lock()
-		case "Suspend":
-			notify.SendNotify("power", "Power", "Suspending...", "normal", 2000, 0)
-			lock.Lock()
-			exec.Command("doas", "zzz").Run()
-		case "Reboot":
-			notify.SendNotify("power", "Power", "Rebooting...", "normal", 3000, 0)
-			exec.Command("doas", "shutdown", "-r", "now").Run()
-		case "Shutdown":
-			notify.SendNotify("power", "Power", "Shutting down...", "normal", 5000, 0)
-			exec.Command("doas", "shutdown", "-p", "now").Run()
-		case "Logout":
-			notify.SendNotify("power", "Power", "Logging out...", "normal", 2000, 0)
-			exec.Command("i3-msg", "exit").Run()
-		}
-	}
-	commands["--wallpaper-next"] = func() {
-		os.Exit(backgrounds.Next())
-	}
-	commands["--wallpaper-prev"] = func() {
-		os.Exit(backgrounds.Prev())
-	}
-	commands["--wallpaper-load"] = func() {
-		os.Exit(backgrounds.Load())
-	}
-	commands["--polybar-setup"] = func() {
-		os.Exit(polybar.Setup())
-	}
-	commands["--dunst-setup"] = func() {
-		os.Exit(notify.Setup())
-	}
-	commands["--suspend-if-undocked"] = func() {
-		detect.SuspendIfUndocked()
-	}
-	commands["--screenshot"] = func() {
-		// --screenshot with no args = full screen
-		// --screenshot select = area selection
-		selectArea := len(os.Args) >= 3 && os.Args[2] == "select"
-		if err := screenshot.Run(selectArea); err != nil {
-			fmt.Fprintf(os.Stderr, "Screenshot failed: %v\n", err)
-			os.Exit(1)
-		}
-	}
+			notify.SendNotify("signal", "Signal", "Starting Signal...", "normal", 2000, 0)
+			exec.Command("alacritty", "--class", "gurk", "--title", "Signal", "-e", home+"/.local/share/openriot/config/bin/gurk").Start()
+		},
+		"--browser": func() {
+			cmd := exec.Command("pgrep", "-f", "firefox")
+			output, _ := cmd.Output()
+			if len(strings.TrimSpace(string(output))) > 0 {
+				notify.SendNotify("firefox", "Firefox", "Already running", "normal", 2000, 0)
+				return
+			}
+			notify.SendNotify("firefox", "Firefox", "Starting Browser...", "normal", 2000, 0)
+			exec.Command("firefox", os.Args[2:]...).Start()
+		},
+		"--proton": func() {
+			notify.SendNotify("proton-mail", "Proton Mail", "Opening...", "normal", 2000, 0)
+			exec.Command("firefox", "https://mail.proton.me/u/11/inbox").Start()
+		},
+		"--twitter": func() {
+			notify.SendNotify("twitter", "X (Twitter)", "Opening...", "normal", 2000, 0)
+			exec.Command("firefox", "https://x.com/").Start()
+		},
+		"--crush": func() {
+			home, _ := os.UserHomeDir()
+			cmd := exec.Command("pgrep", "-f", "crush")
+			output, _ := cmd.Output()
+			if len(strings.TrimSpace(string(output))) > 0 {
+				notify.SendNotify("crush", "Crush AI", "Already running", "normal", 2000, 0)
+				return
+			}
+			notify.SendNotify("crush", "Crush AI", "Starting Crush...", "normal", 2000, 0)
+			exec.Command("alacritty", "--class", "crush", "--title", "Crush AI", "-e", home+"/.local/bin/crush").Start()
+		},
+		"--suspend": func() {
+			exec.Command("zzz").Run()
+		},
+		"--power-menu": func() {
+			cmd := exec.Command("rofi", "-dmenu", "-p", "Power: ")
+			cmd.Stdin = strings.NewReader("Lock\nSuspend\nReboot\nShutdown\nLogout")
+			out, err := cmd.Output()
+			if err != nil {
+				return
+			}
+			choice := strings.TrimSpace(string(out))
+			switch choice {
+			case "Lock":
+				lock.Lock()
+			case "Suspend":
+				notify.SendNotify("power", "Power", "Suspending...", "normal", 2000, 0)
+				lock.Lock()
+				exec.Command("doas", "zzz").Run()
+			case "Reboot":
+				notify.SendNotify("power", "Power", "Rebooting...", "normal", 3000, 0)
+				exec.Command("doas", "shutdown", "-r", "now").Run()
+			case "Shutdown":
+				notify.SendNotify("power", "Power", "Shutting down...", "normal", 5000, 0)
+				exec.Command("doas", "shutdown", "-p", "now").Run()
+			case "Logout":
+				notify.SendNotify("power", "Power", "Logging out...", "normal", 2000, 0)
+				exec.Command("i3-msg", "exit").Run()
+			}
+		},
+		"--wallpaper-next": func() {
+			os.Exit(backgrounds.Next())
+		},
+		"--wallpaper-prev": func() {
+			os.Exit(backgrounds.Prev())
+		},
+		"--wallpaper-load": func() {
+			os.Exit(backgrounds.Load())
+		},
+		"--polybar-setup": func() {
+			os.Exit(polybar.Setup())
+		},
+		"--dunst-setup": func() {
+			os.Exit(notify.Setup())
+		},
+		"--suspend-if-undocked": func() {
+			detect.SuspendIfUndocked()
+		},
+		"--screenshot": func() {
+			selectArea := len(os.Args) >= 3 && os.Args[2] == "select"
+			if err := screenshot.Run(selectArea); err != nil {
+				fmt.Fprintf(os.Stderr, "Screenshot failed: %v\n", err)
+				os.Exit(1)
+			}
+		},
 
-	// Dispatch Section 5 commands
-	if len(os.Args) >= 2 {
-		if fn, ok := commands[os.Args[1]]; ok {
-			fn()
-			return
-		}
+		// Notifications & metrics
+		"--notify-dismiss": func() {
+			id := 0
+			if len(os.Args) >= 3 {
+				fmt.Sscanf(os.Args[2], "%d", &id)
+			}
+			if err := notify.Dismiss(id); err != nil {
+				fmt.Fprintf(os.Stderr, "notify dismiss error: %v\n", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		},
+		"--notify-clear": func() {
+			if err := notify.Clear(); err != nil {
+				fmt.Fprintf(os.Stderr, "notify clear error: %v\n", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		},
+		"--notify-dunst": func() {
+			if err := notify.Status(); err != nil {
+				fmt.Fprintf(os.Stderr, "notify dunst error: %v\n", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		},
+		"--notify-status": func() {
+			if err := notify.Status(); err != nil {
+				fmt.Fprintf(os.Stderr, "notify dunst error: %v\n", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		},
+		"--polybar-metrics": func() {
+			if err := polybar.RunMetrics(); err != nil {
+				fmt.Fprintf(os.Stderr, "polybar metrics error: %v\n", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		},
+		"--polybar-volume": func() {
+			if err := polybar.RunVolume(); err != nil {
+				fmt.Fprintf(os.Stderr, "polybar volume error: %v\n", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		},
+		"--polybar-memory": func() {
+			ram := polybar.GetRAM()
+			ramPct := polybar.GetMemPercent()
+			fmt.Printf(" %s\nMemory: %s\n", ram, ramPct)
+			os.Exit(0)
+		},
+		"--cpu-notify": func() {
+			cpuDetails := polybar.GetCPUDetails()
+			notify.SendNotify("cpu", "CPU", cpuDetails, "normal", 5000, 0)
+			os.Exit(0)
+		},
+		"--mem-notify": func() {
+			memDetails := polybar.GetMemDetails()
+			notify.SendNotify("memory", "Memory", memDetails, "normal", 5000, 0)
+			os.Exit(0)
+		},
+		"--crypto-notify": func() {
+			notify.SendNotify("chart", "Crypto", "Loading...", "normal", 0, 1)
+			time.Sleep(1 * time.Second)
+			if err := crypto.RunCrypto("NOTIFY_SEND"); err != nil {
+				fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
+			}
+		},
+		"--crypto-refresh": func() {
+			os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot-crypto.json"))
+			os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot-crypto-prev.json"))
+			if err := crypto.RunCrypto("ROWML"); err != nil {
+				fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
+			}
+		},
 	}
+}
 
-	// Section 6: Notify, polybar metrics, crypto commands
-	commands["--notify-dismiss"] = func() {
-		id := 0
-		if len(os.Args) >= 3 {
-			fmt.Sscanf(os.Args[2], "%d", &id)
-		}
-		if err := notify.Dismiss(id); err != nil {
-			fmt.Fprintf(os.Stderr, "notify dismiss error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-	commands["--notify-clear"] = func() {
-		if err := notify.Clear(); err != nil {
-			fmt.Fprintf(os.Stderr, "notify clear error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-	commands["--notify-dunst"] = func() {
-		if err := notify.Status(); err != nil {
-			fmt.Fprintf(os.Stderr, "notify dunst error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-	commands["--notify-status"] = func() {
-		if err := notify.Status(); err != nil {
-			fmt.Fprintf(os.Stderr, "notify dunst error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-	commands["--polybar-metrics"] = func() {
-		if err := polybar.RunMetrics(); err != nil {
-			fmt.Fprintf(os.Stderr, "polybar metrics error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-	commands["--polybar-volume"] = func() {
-		if err := polybar.RunVolume(); err != nil {
-			fmt.Fprintf(os.Stderr, "polybar volume error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-	commands["--polybar-memory"] = func() {
-		ram := polybar.GetRAM()
-		ramPct := polybar.GetMemPercent()
-		fmt.Printf(" %s\nMemory: %s\n", ram, ramPct)
-		os.Exit(0)
-	}
-	commands["--cpu-notify"] = func() {
-		cpuDetails := polybar.GetCPUDetails()
-		notify.SendNotify("cpu", "CPU", cpuDetails, "normal", 5000, 0)
-		os.Exit(0)
-	}
-	commands["--mem-notify"] = func() {
-		memDetails := polybar.GetMemDetails()
-		notify.SendNotify("memory", "Memory", memDetails, "normal", 5000, 0)
-		os.Exit(0)
-	}
-	commands["--crypto-notify"] = func() {
-		notify.SendNotify("chart", "Crypto", "Loading...", "normal", 0, 1)
-		time.Sleep(1 * time.Second)
-		if err := crypto.RunCrypto("NOTIFY_SEND"); err != nil {
-			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
-		}
-	}
-	commands["--crypto-refresh"] = func() {
-		os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot-crypto.json"))
-		os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot-crypto-prev.json"))
-		if err := crypto.RunCrypto("ROWML"); err != nil {
-			fmt.Fprintf(os.Stderr, "crypto error: %v\n", err)
-		}
-	}
-	// Commands with args: --notify, --crypto, --share-log, --make-icon
-
-	// Dispatch Section 6 commands
-	if len(os.Args) >= 2 {
-		if fn, ok := commands[os.Args[1]]; ok {
-			fn()
-			return
-		}
-	}
-
-	// No command or unknown command
+func printUsage() {
 	fmt.Fprintf(os.Stderr, "openriot %s\n", version)
 	fmt.Fprintf(os.Stderr, "Usage: openriot <command>\n")
 	fmt.Fprintf(os.Stderr, "\nCommands:\n")
@@ -740,6 +703,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "  --packages         List packages from packages.yaml\n")
 	fmt.Fprintf(os.Stderr, "  --check-packages   Verify installed packages match yaml\n")
 	fmt.Fprintf(os.Stderr, "  --sync-packages    Update packages.yaml to installed versions\n")
+	fmt.Fprintf(os.Stderr, "  --check-dependencies Show module dependency order\n")
 	fmt.Fprintf(os.Stderr, "  --mirrors          Detect and show fastest OpenBSD mirror\n")
 	fmt.Fprintf(os.Stderr, "  --random-mac <subcommand>  Manage MAC address randomization\n")
 	fmt.Fprintf(os.Stderr, "  --crush-upgrade    Upgrade crush CLI to latest version\n")

@@ -1,6 +1,7 @@
 package installer
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"openriot/logger"
 )
@@ -79,43 +81,22 @@ func (c *CrushUpgrade) getLatestVersion() (string, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
+	var r struct {
+		TagName string `json:"tag_name"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
 		return "", err
 	}
 
-	content := string(body)
-	idx := strings.Index(content, `"tag_name"`)
-	if idx < 0 {
-		return "", nil
-	}
-
-	start := idx + len(`"tag_name"`)
-	for i := start; i < len(content); i++ {
-		if content[i] == 'v' && i+1 < len(content) && content[i+1] >= '0' && content[i+1] <= '9' {
-			start = i + 1
-			break
-		}
-	}
-
-	end := start
-	for i := start; i < len(content); i++ {
-		c := content[i]
-		if (c >= '0' && c <= '9') || c == '.' {
-			end = i + 1
-		} else {
-			break
-		}
-	}
-
-	return content[start:end], nil
+	return strings.TrimPrefix(r.TagName, "v"), nil
 }
 
 // install downloads and installs the latest crush binary
 func (c *CrushUpgrade) install(version string) error {
 	url := fmt.Sprintf("https://github.com/charmbracelet/crush/releases/download/v%s/crush_%s_Openbsd_x86_64.tar.gz", version, version)
 
-	resp, err := http.Get(url)
+	client := &http.Client{Timeout: 2 * time.Minute}
+	resp, err := client.Get(url)
 	if err != nil {
 		return fmt.Errorf("download failed: %w", err)
 	}

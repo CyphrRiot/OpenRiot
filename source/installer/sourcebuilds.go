@@ -1,9 +1,11 @@
 package installer
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"strings"
+	"time"
 
 	"openriot/config"
 	"openriot/logger"
@@ -12,8 +14,12 @@ import (
 // SourceBuilds executes all source build commands from modules with type "Source".
 // Commands are run as-is; each command is a separate shell invocation.
 func SourceBuilds(cfg *config.Config, testMode bool) error {
-	allModules := cfg.GetAllModules()
-	for _, module := range allModules {
+	refs, err := cfg.GetAllModulesOrdered()
+	if err != nil {
+		return fmt.Errorf("dependency resolution failed: %w", err)
+	}
+	for _, ref := range refs {
+		module := ref.Module
 		if module.Type != "Source" || len(module.Build) == 0 {
 			continue
 		}
@@ -49,10 +55,31 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 			}
 
 			logger.Info(fmt.Sprintf("%s...", desc))
-			c := exec.Command("/bin/sh", "-c", cmd)
+
+			// Execute the command with a 10-minute timeout
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+			defer cancel()
+			c := exec.CommandContext(ctx, "/bin/sh", "-c", cmd)
+
+			// Notify if the command runs longer than 2 minutes
+			done := make(chan struct{})
+			go func() {
+				select {
+				case <-time.After(2 * time.Minute):
+					logger.Info(fmt.Sprintf("Still running (>%dm): %s", 2, desc))
+				case <-done:
+				}
+			}()
+
 			output, err := c.CombinedOutput()
+			close(done)
+
 			if err != nil {
-				logger.Warn(fmt.Sprintf("%s failed: %v\n%s", desc, err, string(output)))
+				if ctx.Err() == context.DeadlineExceeded {
+					logger.Warn(fmt.Sprintf("Build timed out after 10m: %s", desc))
+				} else {
+					logger.Warn(fmt.Sprintf("%s failed: %v\n%s", desc, err, string(output)))
+				}
 				continue
 			}
 

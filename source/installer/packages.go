@@ -50,10 +50,7 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 
 
 		if err != nil {
-			outputStr := string(output)
-			if len(outputStr) > 300 {
-				outputStr = outputStr[:300] + "..."
-			}
+			outputStr := truncateOutput(output)
 			// Retry with base name (without version) on failure
 			base := config.GetBaseName(pkg)
 			if base != pkg {
@@ -65,10 +62,7 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 					logger.Done(fmt.Sprintf("%s installed (latest version)", base))
 					continue
 				}
-				outputStr = string(output)
-				if len(outputStr) > 300 {
-					outputStr = outputStr[:300] + "..."
-				}
+				outputStr = truncateOutput(output)
 			}
 			logger.Warn(fmt.Sprintf("Failed to install %s:\n    %s", pkg, outputStr))
 			failed++
@@ -85,6 +79,14 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 	}
 
 	return failed, nil
+}
+
+func truncateOutput(output []byte) string {
+	s := string(output)
+	if len(s) > 300 {
+		return s[:300] + "..."
+	}
+	return s
 }
 
 // isPackageInstalled checks if a package is already installed.

@@ -70,7 +70,7 @@ func RunInstallPackages() {
 	logger.Done("Package installation complete.")
 }
 
-// findPackagesYaml finds packages.yaml: CWD first, then installed location
+// findPackagesYaml finds packages.yaml: installed location first, then CWD fallback
 func findPackagesYaml() string {
 	homeDir, _ := os.UserHomeDir()
 
@@ -108,7 +108,7 @@ func RunCheckPackages() {
 	mismatches := 0
 
 	for _, pkg := range yamlPkgs {
-		base := GetBaseName(pkg)
+		base := config.GetBaseName(pkg)
 		installedVer, exists := installed[base]
 		if !exists {
 			logger.Info(fmt.Sprintf("[MISS] %s (not installed)", pkg))
@@ -170,7 +170,7 @@ func RunSyncPackages() {
 			continue
 		}
 		pkg := strings.TrimPrefix(trimmed, "- ")
-		base := GetBaseName(pkg)
+		base := config.GetBaseName(pkg)
 		if installedVer, exists := installed[base]; exists && installedVer != pkg {
 			lines[i] = indent + "- " + installedVer
 			updated++
@@ -217,14 +217,6 @@ func GetInstalledPackages() map[string]string {
 		}
 	}
 	return packages
-}
-
-// GetBaseName extracts base name from package (e.g., "fish-4.6.0" -> "fish")
-func GetBaseName(pkg string) string {
-	if idx := strings.LastIndex(pkg, "-"); idx > 0 {
-		return pkg[:idx]
-	}
-	return pkg
 }
 
 // RunMirrors tests mirror connectivity and shows results

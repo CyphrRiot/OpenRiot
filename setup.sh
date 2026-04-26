@@ -46,12 +46,14 @@ export OPENRIOT_CONFIG_DIR="$INSTALL_DIR/install"
 
 # --install mode forces fresh clone even if .git exists
 FORCE_INSTALL=0
+LOCAL_MODE=0
 for arg in "$@"; do
     [ "$arg" = "--install" ] && FORCE_INSTALL=1
+    [ "$arg" = "--local" ] && LOCAL_MODE=1
 done
 
 # Log file configuration - logs go to ~/.cache/openriot/ NOT ~/.local/share/openriot/
-LOG_DIR="$HOME/.cache/openriot"
+LOG_DIR="${REAL_HOME}/.cache/openriot"
 LOG_FILE="$LOG_DIR/setup.log"
 mkdir -p "$LOG_DIR"
 
@@ -59,10 +61,10 @@ mkdir -p "$LOG_DIR"
 # Helper Functions
 # -----------------------------------------------------------------------------
 
-info() { echo -e "${BLUE}[INFO]${NC} $1" | tee -a "$LOG_FILE"; }
-success() { echo -e "${GREEN}[DONE]${NC} $1" | tee -a "$LOG_FILE"; }
-warn() { echo -e "${YELLOW}[WARN]${NC} $1" | tee -a "$LOG_FILE"; }
-error() { echo -e "${RED}[ERROR]${NC} $1" | tee -a "$LOG_FILE" >&2; }
+info() { printf '%b%s%b\n' "$BLUE" "[INFO] $1" "$NC" | tee -a "$LOG_FILE"; }
+success() { printf '%b%s%b\n' "$GREEN" "[DONE] $1" "$NC" | tee -a "$LOG_FILE"; }
+warn() { printf '%b%s%b\n' "$YELLOW" "[WARN] $1" "$NC" | tee -a "$LOG_FILE"; }
+error() { printf '%b%s%b\n' "$RED" "[ERROR] $1" "$NC" | tee -a "$LOG_FILE" >&2; }
 
 log() { printf '[OPENRIOT] %s\n' "$1" | tee -a "$LOG_FILE"; }
 
@@ -167,7 +169,7 @@ check_disk_space() {
 
 get_remote_version() {
     if command -v curl >/dev/null 2>&1; then
-        remote_ver=$(curl -fsSL "$REMOTE_VERSION_URL" 2>/dev/null)
+        remote_ver=$(curl -fsSL --max-time 5 "$REMOTE_VERSION_URL" 2>/dev/null)
         if [ -n "$remote_ver" ]; then
             echo "$remote_ver"
             return 0
@@ -233,38 +235,25 @@ setup_repository() {
 }
 
 # -----------------------------------------------------------------------------
-# Run openriot --install (as USER, not root)
+# Run openriot with a given flag and log file (as USER, not root)
 # -----------------------------------------------------------------------------
 
-run_openriot_install() {
-    if [ ! -x "$INSTALL_DIR/install/openriot" ]; then
-        error "openriot binary not found at $INSTALL_DIR/install/openriot"
-        exit 1
-    fi
-    # Run as USER - no doas, log to ~/.cache/openriot/
-    cd "$INSTALL_DIR/install" || { error "Cannot cd to $INSTALL_DIR/install"; exit 1; }
-
-    INSTALL_LOG="$HOME/.cache/openriot/install.log"
-    mkdir -p "$(dirname "$INSTALL_LOG")"
-    ./openriot --install 2>&1 | tee -a "$INSTALL_LOG"
-}
-
-# -----------------------------------------------------------------------------
-# Run openriot --install-packages (delegates to Go binary)
-# -----------------------------------------------------------------------------
-
-run_install_packages() {
+run_openriot() {
+    flag="$1"
+    logfile="$2"
     if [ ! -x "$INSTALL_DIR/install/openriot" ]; then
         error "openriot binary not found at $INSTALL_DIR/install/openriot"
         exit 1
     fi
     cd "$INSTALL_DIR/install" || { error "Cannot cd to $INSTALL_DIR/install"; exit 1; }
-    ./openriot --install-packages 2>&1 | tee -a "$LOG_FILE"
+    mkdir -p "$(dirname "$logfile")"
+    ./openriot "$flag" 2>&1 | tee -a "$logfile"
 }
 
 usage() {
-    echo "Usage: setup.sh [--install | --show-log | --share-log | --help]"
+    echo "Usage: setup.sh [--install | --local | --show-log | --share-log | --help]"
     echo "  --install   Fresh install (default)"
+    echo "  --local     Use existing local repo; skip all remote git operations"
     echo "  --show-log  Display the installation log"
     echo "  --share-log Share latest log file at tmpfiles.org"
     echo "  --help      Show this message"
@@ -282,6 +271,7 @@ main() {
     for arg in "$@"; do
         case "$arg" in
             --install) FORCE_INSTALL=1 ;;
+            --local) LOCAL_MODE=1 ;;
             --share-log)
                 SPECIAL_MODE="share-log"
                 share_log "${2:-}"
@@ -306,7 +296,11 @@ main() {
     fi
 
     # Fetch remote version for banner (may fail offline)
-    banner_ver=$(get_remote_version 2>/dev/null || echo "?.?")
+    if [ "$LOCAL_MODE" -eq 1 ] && [ -f "$INSTALL_DIR/VERSION" ]; then
+        banner_ver=$(cat "$INSTALL_DIR/VERSION")
+    else
+        banner_ver=$(get_remote_version 2>/dev/null || echo "?.?")
+    fi
 
     echo ""
     echo "=== OpenRiot v${banner_ver} Setup (OpenBSD ${OPENBSD_MIN_VERSION}) ==="
@@ -317,7 +311,11 @@ main() {
     configure_pkg_add
     install_bootstrap_packages
 
-    setup_repository
+    if [ "$LOCAL_MODE" -eq 1 ]; then
+        info "Local mode: skipping remote repository setup"
+    else
+        setup_repository
+    fi
     check_disk_space 1
 
     # Install X11 file sets if missing (MUST be before packages)
@@ -341,8 +339,8 @@ main() {
     }
     install_x11_sets
 
-    run_install_packages
-    run_openriot_install
+    run_openriot --install-packages "$LOG_FILE"
+    run_openriot --install "$HOME/.cache/openriot/install.log"
 
     # Enable xenodm for automatic X11 login on boot
     info "Enabling xenodm (X11 display manager)..."
@@ -352,14 +350,17 @@ main() {
         warn "xenodm already enabled or rcctl unavailable"
     fi
 
-    # This is properly formatted. Need the variable for version fixed
+    banner_line() {
+        awk -v text="$1" 'BEGIN { printf "|%s", text; for(i=length(text);i<60;i++) printf " "; print "|" }'
+    }
+
     echo ""
     echo "+------------------------------------------------------------+"
-    echo "|                                                            |"
-    printf "|  OpenRiot v%s Installation Complete                       |\n" "$banner_ver"
-    echo "|                                                            |"
-    echo "|  xenodm will start X11 automatically on next boot.         |"
-    echo "|                                                            |"
+    banner_line ""
+    banner_line "  OpenRiot v${banner_ver} Installation Complete"
+    banner_line ""
+    banner_line "  xenodm will start X11 automatically on next boot."
+    banner_line ""
     echo "+------------------------------------------------------------+"
     echo ""
     echo "Press any key to continue..."
