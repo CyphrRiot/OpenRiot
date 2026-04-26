@@ -319,3 +319,18 @@ system:
         depends: [desktop.i3, source.polybar-scaling]
         start: "Restarting i3 window manager"
         end: "i3 restarted"
+
+# Kill polybar at the end - i3 will restart it automatically
+post-install:
+    type: "Source"
+    build:
+        - desc: "Killing polybar before exit"
+          cmd: |
+              if [ -z "$DISPLAY" ]; then
+                  echo "[SKIP] No X11, skipping polybar kill"
+              else
+                  pkill -9 polybar 2>/dev/null || true
+                  echo "[DONE] Polybar killed (will restart automatically)"
+              fi
+    start: "Cleaning up"
+    end: "Cleanup complete"
