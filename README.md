@@ -554,23 +554,23 @@ Polybar is your status bar. Click on modules for more:
 | 󰃭 Date | Shows date/time |
 | weather | Shows current temp + conditions (OpenWeatherMap) |
 
-No. │ Module          │ Icon                  │ Meaning
-────┼─────────────────┼───────────────────────┼────────────────────────────────────────
- 1  │ crypto          │                      │ Crypto prices
- 2  │ proton-drive    │  󱥾  /  󰴋  /          │ Synced / Syncing / Not configured
- 3  │ transmission    │  󰐻  /  󱧝              │ Running / Stopped
- 4  │ stealth         │  󰝴  /  󱊨              │ MAC randomization ON / OFF
- 5  │ wireguard       │  󰱓  /  󰅛  /  󰛳        │ VPN up / Down / Not configured
- 6  │ night-light     │  󰌵  /                │ Night light ON / OFF
- 7  │ cpu             │  󰡳 → 󰡵 → 󰊚 → 󰡴        │ CPU load tier
- 8  │ memory          │  󰢿 → 󰢼 → 󰢽 → 󰢾        │ RAM usage tier
- 9  │ volume          │    /  󰕿  /  󰖀  /  󰕾  │ Muted / Low / Med / High
- 10 │ network-wifi    │  󰤨→󰤥→󰤢→󰤟→󰤯 /  󱛅    │ Signal bars / No internet
- 11 │ network-eth     │  󰈀  /  󰌙  / (empty)   │ Carrier / No carrier / No eth
- 12 │ openriot-update │  󰋻  /  󰚇  /  ?        │ Update available / Up to date / Unknown
- 13 │ battery         │  󰁺 → 󰂂  /  󰁹          │ Level / Full+charging
- 14 │ power           │  ⏻                    │ Power menu
- 15 │ lock            │  󰌾                    │ Lock screen
+| No. | Module | Icon | Meaning |
+|-----|--------|------|---------|
+| 1 | crypto |  | Crypto prices |
+| 2 | proton-drive | 󱥾 / 󰴋 /  | Synced / Syncing / Not configured |
+| 3 | transmission | 󰐻 / 󱧝 | Running / Stopped |
+| 4 | stealth | 󰝴 / 󱊨 | MAC randomization ON / OFF |
+| 5 | wireguard | 󰱓 / 󰅛 / 󰛳 | VPN up / Down / Not configured |
+| 6 | night-light | 󰌵 /  | Night light ON / OFF |
+| 7 | cpu | 󰡳→󰡵→󰊚→󰡴 | CPU load tier |
+| 8 | memory | 󰢿→󰢼→󰢽→󰢾 | RAM usage tier |
+| 9 | volume | /󰕿/󰖀/󰕾 | Muted / Low / Med / High |
+| 10 | network-wifi | 󰤨→󰤥→󰤢→󰤟→󰤯 / 󱛅 | Signal bars / No internet |
+| 11 | network-eth | 󰈀 / 󰌙 / (empty) | Carrier / No carrier / No eth |
+| 12 | openriot-update | 󰋻 / 󰚇 / ? | Update available / Up to date / Unknown |
+| 13 | battery | 󰁺→󰂂 / 󰁹 | Level / Full+charging |
+| 14 | power | ⏻ | Power menu |
+| 15 | lock | 󰌾 | Lock screen |
 
 **Workspace Bar:** Shows all 3 workspaces with indicators and app icons.
 
@@ -1555,13 +1555,13 @@ benchmark
 
 Results go to `~/.benchmark/<hostname>-YYYYMMDD-N.log` with full system specs.
 
-Metric              │ mini (N150, 4c)    │ t14 (i5-10310U, 8c) │ Winner
-─────────────────────┼────────────────────┼─────────────────────┼────────────────────
- CPU (prime 20k)     │ 0.0029s            │ 0.0020s             │ t14 (31% faster)
- Memory ops/sec      │ 4,018,316          │ 4,743,669           │ t14 (18% faster)
- Memory MB/s         │ 3,924              │ 4,632               │ t14 (18% faster)
- FileIO (rnd)        │ 2,206 req/s        │ 3,561 req/s         │ t14 (61% faster)
- dd write            │ 236 MB/s           │ 335 MB/s            │ t14 (42% faster)
- dd read             │ 169 MB/s           │ 2,584 MB/s          │ t14 (15x faster)
+| Metric | mini (N150, 4c) | t14 (i5-10310U, 8c) | Winner |
+|--------|-----------------|---------------------|--------|
+| CPU (prime 20k) | 0.0029s | 0.0020s | t14 (31% faster) |
+| Memory ops/sec | 4,018,316 | 4,743,669 | t14 (18% faster) |
+| Memory MB/s | 3,924 | 4,632 | t14 (18% faster) |
+| FileIO (rnd) | 2,206 req/s | 3,561 req/s | t14 (61% faster) |
+| dd write | 236 MB/s | 335 MB/s | t14 (42% faster) |
+| dd read | 169 MB/s | 2,584 MB/s | t14 (15x faster) |
 
 > "You are absolutely deluded, if not stupid, if you think that a worldwide collection of software engineers who can't write operating systems or applications without security holes, can then turn around and suddenly write virtualization layers without security holes." — Theo de Raadt
