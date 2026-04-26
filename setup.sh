@@ -316,6 +316,12 @@ main() {
     else
         setup_repository
     fi
+
+    # Use the actual installed version for the final banner
+    if [ -f "$INSTALL_DIR/VERSION" ]; then
+        banner_ver=$(cat "$INSTALL_DIR/VERSION")
+    fi
+
     check_disk_space 1
 
     # Install X11 file sets if missing (MUST be before packages)
