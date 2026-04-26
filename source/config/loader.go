@@ -251,37 +251,6 @@ func (c *Config) GetCommands() []CommandEntry {
 	return commands
 }
 
-// SyncPackages updates package versions to match installed packages
-// Returns count of updated packages
-func (c *Config) SyncPackages(installed map[string]string) int {
-	updated := 0
-
-	// Helper to sync packages in a module map
-	syncModuleMap := func(modules map[string]Module) {
-		for name := range modules {
-			for i, pkg := range modules[name].Packages {
-				base := GetBaseName(pkg)
-				if installedVer, exists := installed[base]; exists {
-					if installedVer != pkg {
-						modules[name].Packages[i] = installedVer
-						updated++
-					}
-				}
-			}
-		}
-	}
-
-	syncModuleMap(c.Core)
-	syncModuleMap(c.System)
-	syncModuleMap(c.Desktop)
-	syncModuleMap(c.Media)
-	syncModuleMap(c.Fonts)
-	syncModuleMap(c.Themes)
-	syncModuleMap(c.Source)
-
-	return updated
-}
-
 // SaveConfig writes the config back to a YAML file
 func (c *Config) SaveConfig(filename string) error {
 	data, err := yaml.Marshal(c)

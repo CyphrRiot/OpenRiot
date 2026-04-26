@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"strings"
 
-	"openriot/installer"
 	"openriot/logger"
 )
 
@@ -40,7 +39,7 @@ func RunMakeImage(args []string) {
 	// Load config
 	cfg, err := LoadConfig(args)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Failed to load config: %v\n", installer.Red, installer.Reset, err)
+		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Failed to load config: %v\n", logger.Red, logger.Reset, err)
 		os.Exit(1)
 	}
 
@@ -51,7 +50,7 @@ func RunMakeImage(args []string) {
 
 	// Check prerequisites
 	if err := CheckPrereqs(cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "%s[ERROR]%s %v\n", installer.Red, installer.Reset, err)
+		fmt.Fprintf(os.Stderr, "%s[ERROR]%s %v\n", logger.Red, logger.Reset, err)
 		os.Exit(1)
 	}
 
@@ -71,29 +70,29 @@ func runFullBuild(cfg *Config) {
 
 	// Check root for imaging operations
 	if err := MustRunAsRoot(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s[ERROR]%s %v\n", installer.Red, installer.Reset, err)
-		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Run with doas: doas %s --make-image\n", installer.Red, installer.Reset, cfg.OpenriotBin)
+		fmt.Fprintf(os.Stderr, "%s[ERROR]%s %v\n", logger.Red, logger.Reset, err)
+		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Run with doas: doas %s --make-image\n", logger.Red, logger.Reset, cfg.OpenriotBin)
 		os.Exit(1)
 	}
 
 	// Step 1: Download packages
 	logger.Info("Downloading packages...")
 	if err := DownloadPackages(cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Download failed: %v\n", installer.Red, installer.Reset, err)
+		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Download failed: %v\n", logger.Red, logger.Reset, err)
 		os.Exit(1)
 	}
 
 	// Step 2: Create site tarball
 	logger.Info("Creating site tarball...")
 	if err := CreateSite(cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Site creation failed: %v\n", installer.Red, installer.Reset, err)
+		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Site creation failed: %v\n", logger.Red, logger.Reset, err)
 		os.Exit(1)
 	}
 
 	// Step 3: Build image
 	logger.Info("Building image...")
 	if err := BuildImage(cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Build failed: %v\n", installer.Red, installer.Reset, err)
+		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Build failed: %v\n", logger.Red, logger.Reset, err)
 		os.Exit(1)
 	}
 
@@ -101,7 +100,7 @@ func runFullBuild(cfg *Config) {
 	logger.Info("Detecting drives...")
 	drives, err := DetectDrives()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s[WARN]%s Drive detection failed: %v\n", installer.Yellow, installer.Reset, err)
+		fmt.Fprintf(os.Stderr, "%s[WARN]%s Drive detection failed: %v\n", logger.Yellow, logger.Reset, err)
 	} else {
 		PromptBurn(cfg, drives)
 	}
@@ -115,14 +114,14 @@ func runSiteOnly(cfg *Config) {
 	// Download packages
 	logger.Info("Downloading packages...")
 	if err := DownloadPackages(cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Download failed: %v\n", installer.Red, installer.Reset, err)
+		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Download failed: %v\n", logger.Red, logger.Reset, err)
 		os.Exit(1)
 	}
 
 	// Create tarball
 	logger.Info("Creating site tarball...")
 	if err := CreateSite(cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Site creation failed: %v\n", installer.Red, installer.Reset, err)
+		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Site creation failed: %v\n", logger.Red, logger.Reset, err)
 		os.Exit(1)
 	}
 
@@ -133,7 +132,7 @@ func runClean(cfg *Config) {
 	logger.Info("Mode: Clean")
 
 	if err := Cleanup(cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Cleanup failed: %v\n", installer.Red, installer.Reset, err)
+		fmt.Fprintf(os.Stderr, "%s[ERROR]%s Cleanup failed: %v\n", logger.Red, logger.Reset, err)
 		os.Exit(1)
 	}
 
@@ -143,7 +142,7 @@ func runClean(cfg *Config) {
 		logger.Done("Repo cache cleaned")
 	}
 
-	fmt.Printf("%s[DONE]%s Cleanup complete\n", installer.Green, installer.Reset)
+	logger.Done("Cleanup complete")
 }
 
 func printMakeImageHelp() {

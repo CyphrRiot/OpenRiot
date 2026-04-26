@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"openriot/config"
-	"openriot/installer"
+	"openriot/logger"
 )
 
 // GetPackageList returns list of packages from config
@@ -102,7 +102,7 @@ func DownloadPackages(cfg *Config) error {
 		displayName := strings.TrimSuffix(pkg, ".tgz")
 		// Pad to 35 chars to clear any previous longer name
 		displayPadded := fmt.Sprintf("%-35s", displayName)
-		fmt.Printf("\r%s[INFO]%s Downloading package %d/%d: %s", installer.Cyan, installer.Reset, i+1, pkgCount, displayPadded)
+		fmt.Printf("\r%s[INFO]%s Downloading package %d/%d: %s", logger.Cyan, logger.Reset, i+1, pkgCount, displayPadded)
 
 		pkgPath := filepath.Join(pkgDir, pkg+".tgz")
 
@@ -117,7 +117,7 @@ func DownloadPackages(cfg *Config) error {
 		// Download with retry
 		err := downloadWithRetry(pkgPath, pkg)
 		if err != nil {
-			fmt.Printf("\n%s[WARN]%s Failed to download: %s\n", installer.Yellow, installer.Reset, pkg)
+			logger.Warn(fmt.Sprintf("Failed to download: %s", pkg))
 		}
 	}
 

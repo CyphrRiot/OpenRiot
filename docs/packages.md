@@ -33,6 +33,13 @@ All commands use consistent 4-character brackets:
 | `[MISS]` | Missing packages |
 | `[DONE]` | Success |
 
+## Build vs Commands
+
+- `type: "Package"` → uses `commands:` (shell commands that run every time)
+- `type: "Source"` → uses `build:` (source compilation steps with skip checks)
+
+`build:` under a `Package` type module is **dead code** — never executed. The Go `SourceBuilds()` function only processes `build` entries for modules with `type: "Source"`.
+
 ## Skip Checks in Source Builds
 
 When adding skip checks for source builds, verify the actual output filename:

@@ -68,8 +68,17 @@ func MakeIcon(name, symbol string) error {
 		return fmt.Errorf("FiraCode Nerd Font not found (checked bundled assets and ~/.local/share/fonts/FiraCode/)")
 	}
 
-	home, _ := os.UserHomeDir()
-	iconDir := filepath.Join(home, ".local/share/openriot/config/icons")
+	iconDir := ""
+	if ex, err := os.Executable(); err == nil {
+		repoDir := filepath.Join(filepath.Dir(ex), "..", "config", "icons")
+		if _, err := os.Stat(repoDir); err == nil {
+			iconDir = repoDir
+		}
+	}
+	if iconDir == "" {
+		home, _ := os.UserHomeDir()
+		iconDir = filepath.Join(home, ".local", "share", "openriot", "config", "icons")
+	}
 
 	// Ensure icon directory exists
 	if err := os.MkdirAll(iconDir, 0755); err != nil {

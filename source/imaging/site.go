@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"openriot/logger"
 )
 
 // CreateSite creates the openriot.tgz tarball
@@ -128,7 +130,7 @@ func copyMotd(siteDir string) error {
 		err = os.WriteFile(motdDst, motdData, 0644)
 		if err != nil {
 			// Log but don't fail - motd is optional
-			fmt.Printf("[WARN] Could not copy motd: %v\n", err)
+			logger.Warn(fmt.Sprintf("Could not copy motd: %v", err))
 		}
 	}
 	return nil

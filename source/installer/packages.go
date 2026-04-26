@@ -1,8 +1,10 @@
 package installer
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
+	"time"
 
 	"openriot/config"
 	"openriot/logger"
@@ -45,24 +47,33 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 		}
 		installCmd = append(installCmd, installName)
 
-		cmd := exec.Command(installCmd[0], installCmd[1:]...)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+		cmd := exec.CommandContext(ctx, installCmd[0], installCmd[1:]...)
 		output, err := cmd.CombinedOutput()
-
+		cancel()
 
 		if err != nil {
 			outputStr := truncateOutput(output)
+			if ctx.Err() == context.DeadlineExceeded {
+				logger.Warn(fmt.Sprintf("Timed out after 10m: %s", pkg))
+			}
 			// Retry with base name (without version) on failure
 			base := config.GetBaseName(pkg)
 			if base != pkg {
 				logger.Info(fmt.Sprintf("Retrying %s with latest version...", base))
 				installCmd[len(installCmd)-1] = base
-				cmd = exec.Command(installCmd[0], installCmd[1:]...)
+				ctx, cancel = context.WithTimeout(context.Background(), 10*time.Minute)
+				cmd = exec.CommandContext(ctx, installCmd[0], installCmd[1:]...)
 				output, err = cmd.CombinedOutput()
+				cancel()
 				if err == nil {
 					logger.Done(fmt.Sprintf("%s installed (latest version)", base))
 					continue
 				}
 				outputStr = truncateOutput(output)
+				if ctx.Err() == context.DeadlineExceeded {
+					logger.Warn(fmt.Sprintf("Timed out after 10m: %s", base))
+				}
 			}
 			logger.Warn(fmt.Sprintf("Failed to install %s:\n    %s", pkg, outputStr))
 			failed++

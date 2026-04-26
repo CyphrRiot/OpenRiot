@@ -22,9 +22,3 @@ func GetIconPath(filename string) string {
 	}
 	return path
 }
-
-// GetInstallDir returns the installation directory
-func GetInstallDir() string {
-	homeDir, _ := os.UserHomeDir()
-	return filepath.Join(homeDir, ".local", "share", "openriot")
-}

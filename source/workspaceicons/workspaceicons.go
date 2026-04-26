@@ -162,7 +162,7 @@ func getIndicator(state string, hasApps bool) string {
 	}
 }
 
-// GetAll returns icons for workspaces 1-4 with a single i3-msg call each.
+// GetAll returns icons for workspaces 1-3 with a single i3-msg call each.
 // Output uses polybar click markup for workspace switching:
 //   %{A:openriot --workspace-switch N:}content%{A}
 // Each workspace is fixed-width: indicator + 5 icon slots (padded with spaces)

@@ -6,10 +6,11 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"openriot/screen"
 )
 
 // RunMetrics outputs CPU icon for polybar (memory is separate module)
@@ -489,8 +490,7 @@ func Setup() int {
 	home := os.Getenv("HOME")
 
 	// Get screen resolution
-	res := getResolution()
-	width := parseResolution(res)
+	width := screen.GetWidth()
 
 	// Determine scale factors based on resolution
 	height, font0, font1, modMargin := getScaleFactors(width)
@@ -528,41 +528,6 @@ func Setup() int {
 	return 0
 }
 
-func getResolution() string {
-	if os.Getenv("DISPLAY") == "" {
-		return "1920"
-	}
-
-	cmd := exec.Command("xrandr")
-	output, err := cmd.Output()
-	if err != nil {
-		return "1920"
-	}
-
-	// Find connected display and resolution
-	lines := strings.Split(string(output), "\n")
-	for _, line := range lines {
-		if strings.Contains(line, "connected") {
-			// Extract resolution from something like "2560x1440+0+0"
-			re := regexp.MustCompile(`(\d+)x(\d+)`)
-			matches := re.FindStringSubmatch(line)
-			if len(matches) > 1 {
-				return matches[1]
-			}
-		}
-	}
-	return "1920"
-}
-
-func parseResolution(res string) int {
-	var width int
-	_, err := fmt.Sscanf(res, "%d", &width)
-	if err != nil {
-		width = 1920
-	}
-	return width
-}
-
 func getScaleFactors(width int) (height, font0, font1, modMargin string) {
 	switch {
 	case width >= 2560: // 1440p or 4K
@@ -574,12 +539,12 @@ func getScaleFactors(width int) (height, font0, font1, modMargin string) {
 		height = "26"
 		font0 = "size=11"
 		font1 = "size=15"
-		modMargin = "1"
+		modMargin = "2"
 	default: // Below 1080p
 		height = "26"
 		font0 = "size=11"
 		font1 = "size=15"
-		modMargin = "1"
+		modMargin = "2"
 	}
 	return
 }

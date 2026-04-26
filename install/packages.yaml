@@ -162,8 +162,23 @@ desktop:
         type: "Package"
         critical: false
         commands:
+            - desc: "Allow Firefox main process to access Downloads"
+              cmd: |
+                  if [ -f /usr/local/lib/firefox/browser/defaults/preferences/unveil.main ] && ! grep -q "^~/Downloads " /usr/local/lib/firefox/browser/defaults/preferences/unveil.main 2>/dev/null; then
+                      echo "~/Downloads rwc" | doas tee -a /usr/local/lib/firefox/browser/defaults/preferences/unveil.main >/dev/null
+                  fi
+            - desc: "Allow Firefox content process to access Downloads"
+              cmd: |
+                  if [ -f /usr/local/lib/firefox/browser/defaults/preferences/unveil.content ] && ! grep -q "^~/Downloads " /usr/local/lib/firefox/browser/defaults/preferences/unveil.content 2>/dev/null; then
+                      echo "~/Downloads r" | doas tee -a /usr/local/lib/firefox/browser/defaults/preferences/unveil.content >/dev/null
+                  fi
             - desc: "Import dconf settings (requires X11)"
-              cmd: "[ -n \"$DISPLAY\" ] && dconf load /org/gnome/TextEditor/ < $HOME/.config/openriot/dconf/org.gnome.TextEditor.ini || echo '[SKIP] No X11, skipping dconf'"
+              cmd: |
+                  if [ -z "$DISPLAY" ]; then
+                      echo "[SKIP] No X11, skipping dconf"
+                  else
+                      dconf load /org/gnome/TextEditor/ < $HOME/.config/openriot/dconf/org.gnome.TextEditor.ini
+                  fi
 media:
     media:
         packages:
@@ -208,11 +223,27 @@ source:
         type: "Source"
         build:
             - desc: "Scaling polybar for display"
-              cmd: "[ -n \"$DISPLAY\" ] && $HOME/.local/share/openriot/install/openriot --polybar-setup || echo '[SKIP] No X11, skipping polybar'"
+              cmd: |
+                  if [ -z "$DISPLAY" ]; then
+                      echo "[SKIP] No X11, skipping polybar"
+                  else
+                      $HOME/.local/share/openriot/install/openriot --polybar-setup
+                  fi
             - desc: "Scaling dunst for display"
-              cmd: "[ -n \"$DISPLAY\" ] && $HOME/.local/share/openriot/install/openriot --dunst-setup || echo '[SKIP] No X11, skipping dunst'"
+              cmd: |
+                  if [ -z "$DISPLAY" ]; then
+                      echo "[SKIP] No X11, skipping dunst"
+                  else
+                      $HOME/.local/share/openriot/install/openriot --dunst-setup
+                  fi
             - desc: "Restarting dunst with new config"
-              cmd: "[ -n \"$DISPLAY\" ] && (pkill -9 dunst 2>/dev/null || true) && echo '[DONE] Dunst restarted with new config'"
+              cmd: |
+                  if [ -z "$DISPLAY" ]; then
+                      echo "[SKIP] No X11, skipping dunst restart"
+                  else
+                      pkill -9 dunst 2>/dev/null || true
+                      echo "[DONE] Dunst restarted with new config"
+                  fi
         depends: []
         start: "Scaling polybar and dunst configs for display"
         end: "Polybar and dunst scaled"
@@ -255,7 +286,11 @@ system:
             - desc: "Enable apmd (high performance)"
               cmd: "doas rcctl enable apmd && doas rcctl set apmd flags -H"
             - desc: "Disable USB power saving"
-              cmd: "grep -q '^hw.allowpowerdown=' /etc/sysctl.conf || { sed -i '/^hw.allowpowerdown=/d' /etc/sysctl.conf; echo 'hw.allowpowerdown=0' | doas tee -a /etc/sysctl.conf; }"
+              cmd: |
+                  if grep -q '^hw.allowpowerdown=' /etc/sysctl.conf 2>/dev/null; then
+                      doas sed -i '/^hw.allowpowerdown=/d' /etc/sysctl.conf
+                  fi
+                  echo 'hw.allowpowerdown=0' | doas tee -a /etc/sysctl.conf >/dev/null
             - desc: "Disable core dumps via login.conf"
               cmd: "doas grep -q ':coredump=0:' /etc/login.conf || doas sed -i 's/:umask=022:/:umask=022: coredump=0:/' /etc/login.conf; doas cap_mkdb /etc/login.conf"
             - desc: "Enable sndiod (audio)"
@@ -274,7 +309,13 @@ system:
     i3-restart:
         type: "Source"
         build:
-            - "[ -n \"$DISPLAY\" ] && i3-msg restart || echo '[SKIP] Not in X11 or i3 not running'"
-        depends: []
+            - desc: "Restarting i3 window manager"
+              cmd: |
+                  if [ -z "$DISPLAY" ]; then
+                      echo "[SKIP] Not in X11, skipping i3 restart"
+                  else
+                      i3-msg restart
+                  fi
+        depends: [desktop.i3, source.polybar-scaling]
         start: "Restarting i3 window manager"
         end: "i3 restarted"

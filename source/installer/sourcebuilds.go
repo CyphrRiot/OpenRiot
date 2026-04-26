@@ -58,7 +58,6 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 
 			// Execute the command with a 10-minute timeout
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
-			defer cancel()
 			c := exec.CommandContext(ctx, "/bin/sh", "-c", cmd)
 
 			// Notify if the command runs longer than 2 minutes
@@ -73,6 +72,7 @@ func SourceBuilds(cfg *config.Config, testMode bool) error {
 
 			output, err := c.CombinedOutput()
 			close(done)
+			cancel()
 
 			if err != nil {
 				if ctx.Err() == context.DeadlineExceeded {

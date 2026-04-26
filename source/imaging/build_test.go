@@ -3,6 +3,8 @@ package imaging
 import (
 	"os"
 	"testing"
+
+	"openriot/fsutil"
 )
 
 func TestGetPartitionInfo(t *testing.T) {
@@ -40,8 +42,8 @@ func TestCopyFile(t *testing.T) {
 	os.WriteFile(src, content, 0644)
 
 	// Copy
-	if err := copyFile(src, dst); err != nil {
-		t.Fatalf("copyFile failed: %v", err)
+	if err := fsutil.CopyFile(src, dst); err != nil {
+		t.Fatalf("CopyFile failed: %v", err)
 	}
 
 	// Verify
@@ -50,5 +52,5 @@ func TestCopyFile(t *testing.T) {
 		t.Errorf("content mismatch")
 	}
 
-	t.Logf("copyFile works correctly")
+	t.Logf("CopyFile works correctly")
 }

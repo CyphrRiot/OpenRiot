@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+
+	"openriot/logger"
 )
 
 // Interface represents a network interface with MAC info
@@ -259,7 +261,7 @@ func runEnable() error {
 
 		// Apply immediately
 		if err := ApplyMAC(iface.Name); err != nil {
-			fmt.Printf("[WARN] %s: failed to apply (reboot to activate): %v\n", iface.Name, err)
+			logger.Warn(fmt.Sprintf("%s: failed to apply (reboot to activate): %v", iface.Name, err))
 		}
 	}
 
@@ -282,7 +284,7 @@ func runDisable() error {
 	disabled := 0
 	for _, iface := range interfaces {
 		if err := DisableRandomMAC(iface.Name); err != nil {
-			fmt.Printf("[WARN] %s: %v\n", iface.Name, err)
+			logger.Warn(fmt.Sprintf("%s: %v", iface.Name, err))
 			continue
 		}
 		fmt.Printf("[OK] %s: random MAC disabled\n", iface.Name)
@@ -290,7 +292,7 @@ func runDisable() error {
 
 		// Apply immediately
 		if err := ApplyMAC(iface.Name); err != nil {
-			fmt.Printf("[WARN] %s: failed to apply (reboot to activate): %v\n", iface.Name, err)
+			logger.Warn(fmt.Sprintf("%s: failed to apply (reboot to activate): %v", iface.Name, err))
 		}
 	}
 

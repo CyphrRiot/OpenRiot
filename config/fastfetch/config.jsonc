@@ -27,32 +27,29 @@
         },
         {
             "type": "cpu",
-            "key": "CPU",
-            "keyIcon": " ",
+            "key": " CPU",
             "showPeCoreCount": true,
             "keyColor": "green",
         },
         {
             "type": "gpu",
-            "key": "GPU",
-            "keyIcon": " ",
+            "key": " GPU",
             "detectionMethod": "pci",
             "keyColor": "green",
         },
         {
             "type": "memory",
-            "key": "RAM",
-            "keyIcon": " ",
+            "key": " RAM",
             "keyColor": "green",
         },
         {
             "type": "swap",
-            "key": "Swap",
-            "keyIcon": " ",
+            "key": " Swap",
             "keyColor": "green",
         },
         {
             "type": "disk",
+            "key": " Disk",
             "keyColor": "cyan",
             "showUsed": true,
             "showPercent": true,
@@ -62,6 +59,7 @@
         },
         {
             "type": "localip",
+            "key": " Local IP",
             "keyColor": "cyan",
             "showIpv4": true,
             "showPrefixLen": true,
@@ -69,6 +67,7 @@
         },
         {
             "type": "display",
+            "key": " Display",
             "keyColor": "cyan",
             "compactType": "none"
         },
@@ -83,39 +82,33 @@
         },
         {
             "type": "os",
-            "key": "OS Ver",
-            "keyIcon": " ",
+            "key": " OS Ver",
             "keyColor": "magenta",
         },
         {
             "type": "command",
-            "key": "OpenRiot",
-            "keyIcon": " ",
+            "key": " OpenRiot",
             "keyColor": "magenta",
             "text": "cat $HOME/.local/share/openriot/VERSION 2>/dev/null || echo N/A"
         },
         {
             "type": "shell",
-            "key": "Shell",
-            "keyIcon": " ",
+            "key": " Shell",
             "keyColor": "magenta",
         },
         {
             "type": "wm",
-            "key": "WinMgr",
-            "keyIcon": " ",
+            "key": " WinMgr",
             "keyColor": "magenta",
         },
         {
             "type": "terminal",
-            "key": "Term",
-            "keyIcon": " ",
+            "key": " Term",
             "keyColor": "magenta",
         },
         {
             "type": "uptime",
-            "key": "Uptime",
-            "keyIcon": " ",
+            "key": " Uptime",
             "keyColor": "cyan",
         },
         {

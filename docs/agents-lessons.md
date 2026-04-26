@@ -77,6 +77,80 @@ if os.Getenv("DISPLAY") == "" {
 2. Verify every output message matches the shell script character-for-character
 3. Check for: colors, brackets (`[INFO]` not `INFO`), spacing, punctuation
 
+## YAML Indentation Silently Breaks Struct Mapping
+
+A single indent level can silently drop an entire category. The loader produces **NO error** — just empty maps:
+
+```yaml
+# WRONG — media nested under desktop, Go sees empty cfg.Media
+desktop:
+  firefox: ...
+  media:
+    transmission: ...
+
+# CORRECT — media is top-level
+desktop:
+  firefox: ...
+media:
+  transmission: ...
+```
+
+Always verify struct population after YAML changes.
+
+## HTTP Client Timeouts
+
+`http.Get()` has **NO timeout by default** and hangs indefinitely on slow networks:
+
+```go
+// WRONG
+resp, err := http.Get(url)
+
+// CORRECT
+client := &http.Client{Timeout: 2 * time.Minute}
+resp, err := client.Get(url)
+```
+
+## POSIX sh Pipeline Exit Codes
+
+There is **no `pipefail`** in POSIX `sh`. This masks failures:
+
+```sh
+# WRONG — exits with tee's status (0) even if openriot fails
+./openriot --install 2>&1 | tee -a "$LOG_FILE"
+
+# CORRECT — capture status before tee
+./openriot --install > /tmp/out 2>&1
+status=$?
+tee -a "$LOG_FILE" < /tmp/out
+exit $status
+```
+
+## MakeIcon Font Paths
+
+`MakeIcon` searches fonts in this order. **Do NOT hardcode a single path**:
+
+1. `../assets/fonts/` relative to binary (production)
+2. Same-directory `assets/fonts/` (development)
+3. `~/.local/share/fonts/FiraCode/` (user-installed)
+
+## packages.yaml: build vs commands
+
+- `type: "Package"` → uses `commands:` (shell commands)
+- `type: "Source"` → uses `build:` (source compilation steps)
+
+`build:` under a `Package` type module is **dead code** — never executed.
+
+## setup.sh --local Flag
+
+For offline end-to-end testing without network:
+
+```bash
+rsync -a --delete ~/Code/OpenRiot/ ~/.local/share/openriot/
+sh ~/.local/share/openriot/setup.sh --local
+```
+
+Skips all remote git ops and reads version from local `VERSION` file.
+
 ## make release Order (CRITICAL)
 ```
 1. Sync packages.yaml

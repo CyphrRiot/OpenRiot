@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-3.4-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-3.5-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -471,8 +471,6 @@ _We use Helix instead of `vi` or `vim`. The essential bindings are documented in
 | `Super + Shift + W`          | Previous wallpaper               |
 | `Super + Shift + S`          | Screenshot (region)              |
 | `Super + Shift + V`          | Clipboard manager                 |
-| `Alt + Tab`                  | Cycle windows                    |
-| `Alt + Shift + Tab`          | Cycle windows (reverse)          |
 | `Super + Shift + H`          | OpenRiot Help (website)          |
 | `Super + Escape`             | Power menu                       |
 | `Super + =`                  | Calculator (rofi)                |
@@ -487,9 +485,9 @@ _We use Helix instead of `vi` or `vim`. The essential bindings are documented in
 | `Super + Arrow keys`         | Focus window direction           |
 | `Super + Shift + Arrow`     | Move window to direction        |
 | `Super + button4/5`         | Scroll workspaces                |
-| `Print`                     | Screenshot (window)              |
-| `Shift + Print`             | Screenshot (fullscreen)          |
-| `Ctrl + Print`              | Screenshot to clipboard          |
+| `Print`                     | Screenshot (fullscreen + clipboard) |
+| `Shift + Print`             | Screenshot (fullscreen + clipboard) |
+| `Ctrl + Print`              | Screenshot (fullscreen + clipboard) |
 | `Super + Shift + X`         | Compose tweet                    |
 | `Super + Shift + space`     | Refresh polybar                  |
 
@@ -529,16 +527,15 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | App              | Icon | Description              |
 | ---------------- | ---- | ------------------------ |
 | Terminal         |    | Alacritty terminal       |
-| Firefox          | 󰈹   | Web browser              |
+| Firefox          |    | Web browser              |
 | Telegram         | 󰭹   | Messaging app            |
 | Helix            |    | Text editor              |
-| Text Editor      |    | GNOME text editor        |
+| Text Editor      | 󰷉   | GNOME text editor        |
 | File Manager     | 󰝰   | Thunar file browser      |
 | System Monitor   | 󰍹   | btop resource monitor    |
-| Htop             | 󰍹   | Process viewer           |
 | Crush AI         | 󰚩   | AI CLI assistant         |
 | Media Player     |    | mpv video player         |
-| Word Processor   | 󰈙   | Abiword document editor  |
+| Word Processor   | 󰈙   | LibreOffice Writer       |
 | Settings         | 󰒓   | XFCE settings manager    |
 | Transmission     | 󰐻   | BitTorrent client        |
 | Proton Mail      | 󰊫   | Email (web app)          |
@@ -552,33 +549,38 @@ Polybar is your status bar. Click on modules for more:
 | Module | Click Action |
 | ------ | ------------- |
 | 󰟠 Launcher | Opens app launcher |
-| 󰎤󰎧󰎪󰎭 Workspaces 1-4 | Click to switch workspace |
+| 󰎤󰎧󰎪 Workspaces 1-3 | Click to switch workspace |
 | Window Title | Shows focused window name |
 | 󰃭 Date | Shows date/time |
-| 󰝴/󱊨 Stealth | Toggle MAC randomization |
 | weather | Shows current temp + conditions (OpenWeatherMap) |
-|  crypto | Shows crypto prices |
-| 󰢝 CPU | Shows CPU usage |
-| 󰌅 Memory | Shows memory usage |
-| 󰕾/󰖀/󰕿/ Volume | Click to toggle mute, scroll adjust |
-| 󰤨/󰤯/󱛅 WiFi | Click for wifi-menu |
-| 󰈀 Ethernet | Click for ethernet info |
-| 󰛳/󰅛/󰱓 WireGuard | Toggle VPN connection |
-| 󰃫/󰌵 Night Light | Toggle night light (redshift) |
-| 󱥾/󰴋/ Proton Drive | Sync Proton Drive |
-| 󱧝/󰐻 Transmission | Toggle Transmission daemon |
-| 󰋻/󰚇 OpenRiot Update | Click to check for updates |
-| ⏻ Power | Click for power menu |
-| 󰌾 Lock | Click to lock screen |
 
-**Workspace Bar:** Shows all 4 workspaces with indicators and app icons.
+No. │ Module          │ Icon                  │ Meaning
+────┼─────────────────┼───────────────────────┼────────────────────────────────────────
+ 1  │ crypto          │                      │ Crypto prices
+ 2  │ proton-drive    │  󱥾  /  󰴋  /          │ Synced / Syncing / Not configured
+ 3  │ transmission    │  󰐻  /  󱧝              │ Running / Stopped
+ 4  │ stealth         │  󰝴  /  󱊨              │ MAC randomization ON / OFF
+ 5  │ wireguard       │  󰱓  /  󰅛  /  󰛳        │ VPN up / Down / Not configured
+ 6  │ night-light     │  󰌵  /                │ Night light ON / OFF
+ 7  │ cpu             │  󰡳 → 󰡵 → 󰊚 → 󰡴        │ CPU load tier
+ 8  │ memory          │  󰢿 → 󰢼 → 󰢽 → 󰢾        │ RAM usage tier
+ 9  │ volume          │    /  󰕿  /  󰖀  /  󰕾  │ Muted / Low / Med / High
+ 10 │ network-wifi    │  󰤨→󰤥→󰤢→󰤟→󰤯 /  󱛅    │ Signal bars / No internet
+ 11 │ network-eth     │  󰈀  /  󰌙  / (empty)   │ Carrier / No carrier / No eth
+ 12 │ openriot-update │  󰋻  /  󰚇  /  ?        │ Update available / Up to date / Unknown
+ 13 │ battery         │  󰁺 → 󰂂  /  󰁹          │ Level / Full+charging
+ 14 │ power           │  ⏻                    │ Power menu
+ 15 │ lock            │  󰌾                    │ Lock screen
+
+**Workspace Bar:** Shows all 3 workspaces with indicators and app icons.
 
 ```
-● 󰞷 󰈹   ○   ◉ 󰝰   ○
+ 󰞷 󰈹       󰝰
 ```
-- `●` focused workspace
-- `◉` unfocused with windows
-- `○` empty workspace
+- `` focused workspace
+- `` urgent workspace
+- `` unfocused with windows
+- `` empty workspace
 - Icons show running apps: `` Alacritty, `󰈹` Firefox, `󰝰` Thunar, etc.
 
 ## Shell Aliases & Quick Reference
@@ -841,13 +843,16 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 | Module | Icon | States | Click Action | Scroll |
 |--------|------|-------|-------------|--------|
 | **launcher** | 󰟠 | - | Open app launcher (Rofi) | - |
-| **workspaces** | 󰎤󰎧󰎪󰎭 | - | Switch to workspace | - |
+| **workspaces** | 󰎤󰎧󰎪 | - | Switch to workspace | - |
 | **window-title** | text | - | - | - |
 | **date** | 󰃭 | - | Show date/time | - |
 | **stealth** | 󰝴 | ON | Toggle MAC randomization | - |
 | | 󱊨 | OFF | | |
-| **network-wifi** | 󰤨 | Connected | WiFi info | - |
-| | 󰤯 | No signal | | |
+| **network-wifi** | 󰤨 | Excellent (70%+) | WiFi info | - |
+| | 󰤥 | Good (50-69%) | | |
+| | 󰤢 | Fair (30-49%) | | |
+| | 󰤟 | Poor (20-29%) | | |
+| | 󰤯 | Very poor / no signal | | |
 | | 󱛅 | No internet | | |
 | **network-eth** | 󰈀 | Connected | Ethernet info | - |
 | **wireguard** | 󰛳 | Not configured | Toggle VPN | - |
@@ -860,10 +865,10 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 | **battery** | 󰁺-󰂂 | Discharging | Battery notification | - |
 | | 󰢜-󰂋 | Charging | | |
 | **crypto** |  | - | Show crypto prices | - |
-| **night-light** | 󰃫 | OFF | Toggle redshift | - |
+| **night-light** |  | OFF | Toggle redshift | - |
 | | 󰌵 | ON | | |
-| **cpu** | 󰢝 | - | CPU notification | - |
-| **memory** | 󰌅 | - | Memory notification | - |
+| **cpu** | 󰡳→󰡵→󰊚→󰡴 | - | CPU notification | - |
+| **memory** | 󰢿→󰢼→󰢽→󰢾 | - | Memory notification | - |
 | **proton-drive** | 󱥾 | Synced | Sync Proton Drive | - |
 | | 󰴋 | Syncing | | |
 | |  | Not configured | | |
@@ -893,7 +898,7 @@ api=85a4e3c55b73909f42c6a23ec35b7147
 - `units` - `imperial` (°F) or `metric` (°C)
 - `api` - OpenWeatherMap API key (optional, uses built-in key if omitted)
 
-2. Restart polybar: `Super + Shift + R`
+2. Restart polybar: `Super + Shift + space`
 
 **If no config exists**, the weather module is hidden automatically.
 
@@ -942,7 +947,6 @@ pairs = [
 
 [display]
 show_totals = false
-max_pairs = 6
 ```
 
 **Quick rules:**
@@ -974,8 +978,8 @@ Helix gives you a powerful, modern editing experience while staying lightweight 
 
 Launch Helix with:
 
-- `Super + O` — Open Helix (default keybinding in OpenRiot)
-- Or simply run `hx` in any terminal
+- `Super + O` — Open GNOME Text Editor
+- Run `hx` in any terminal to open Helix
 
 Helix starts in **Normal mode** by default. Here are the most important commands to get you productive quickly:
 
@@ -1201,8 +1205,8 @@ Click the icon to toggle. Notifications confirm state changes.
 ### Rofi Menu
 
 The app launcher (Rofi) also has a Transmission entry that dynamically shows:
-- **Transmission** 󰐻 — Click to stop (running)
-- **Transmission** 󱧝 — Click to start (stopped)
+- **Transmission** 󱧝 — Click to stop (running)
+- **Transmission** 󰐻 — Click to start (stopped)
 
 ### Default Settings
 
@@ -1281,7 +1285,7 @@ chmod 600 ~/.config/rclone/rclone.conf
 
 ### How It Works
 
-- **Polybar icon** 󱥾 synced, 󰴋 needs sync, 󰫢 not configured
+- **Polybar icon** 󱥾 synced, 󰴋 needs sync,  not configured
 - **Click the icon** to sync (auto-init cache on first click)
 - Files are encrypted client-side before transit (end-to-end encryption)
 
@@ -1345,7 +1349,7 @@ Create or edit `~/.config/gurk/gurk.toml` to customize:
 ```toml
 [keybindings.message_selected]
 alt-e = "edit_message"           # Edit selected message
-alt-y = "copy_message"           # Copy selected message
+alt-y = "copy_message selected"  # Copy selected message
 ctrl-t = "react :thumbsup:"      # React with 👍
 ctrl-f = "react 🔥"              # React with 🔥
 ctrl+h = "react :purple_heart:" # React with 💜
@@ -1393,10 +1397,10 @@ If something goes wrong, upload your log file for debugging:
 
 ```bash
 # Setup log location
-~/.cache/openriot/setup.log
+cat ~/.cache/openriot/setup.log
 
 # Install log location
-~/.cache/openriot/install.log
+cat ~/.cache/openriot/install.log
 
 # Share install log
 ~/.local/share/openriot/install/openriot --share-log install.log

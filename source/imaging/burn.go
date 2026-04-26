@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 
-	"openriot/installer"
 	"openriot/logger"
 )
 
@@ -190,17 +189,17 @@ func PromptBurn(cfg *Config, drives []Drive) error {
 		suffix := ""
 		switch d.Status {
 		case "ROOT":
-			prefix = installer.Red + "[ROOT]" + installer.Reset
+			prefix = logger.Red + "[ROOT]" + logger.Reset
 			if d.IsBootDrive {
 				suffix = " [OpenBSD Encrypted]"
 			} else {
 				suffix = " [OpenBSD]"
 			}
 		case "WARN":
-			prefix = installer.Yellow + "[WARN]" + installer.Reset
+			prefix = logger.Yellow + "[WARN]" + logger.Reset
 			suffix = " [Removable USB]"
 		default:
-			prefix = installer.Cyan + "[INFO]" + installer.Reset
+			prefix = logger.Cyan + "[INFO]" + logger.Reset
 		}
 		fmt.Printf("%s %s - %5d GB%s\n", prefix, d.Device, d.SizeGB, suffix)
 	}
@@ -211,9 +210,9 @@ func PromptBurn(cfg *Config, drives []Drive) error {
 		driveList = append(driveList, d.Device)
 	}
 
-	fmt.Printf("\n%s[DONE]%s Available for burn: %s\n", installer.Green, installer.Reset, strings.Join(driveList, ", "))
-	fmt.Printf("%s[WARN]%s THIS WILL ERASE ALL DATA ON THE SELECTED DRIVE.\n", installer.Yellow, installer.Reset)
-	fmt.Printf("\n%s[ASK ]%s Which drive to burn? (%s or press Enter to skip) ", installer.Cyan, installer.Reset, strings.Join(driveList, ", "))
+	logger.Done("Available for burn: " + strings.Join(driveList, ", "))
+	logger.Warn("THIS WILL ERASE ALL DATA ON THE SELECTED DRIVE.")
+	fmt.Printf("\n%s[ASK ]%s Which drive to burn? (%s or press Enter to skip) ", logger.Cyan, logger.Reset, strings.Join(driveList, ", "))
 
 	reader := bufio.NewReader(os.Stdin)
 	input, _ := reader.ReadString('\n')
@@ -241,7 +240,7 @@ func PromptBurn(cfg *Config, drives []Drive) error {
 	}
 
 	// Confirmation
-	fmt.Printf("\n%s[ASK ]%s You will be erasing %s (%d GB). Are you sure? [y/N] ", installer.Cyan, installer.Reset, selected.Device, selected.SizeGB)
+	fmt.Printf("\n%s[ASK ]%s You will be erasing %s (%d GB). Are you sure? [y/N] ", logger.Cyan, logger.Reset, selected.Device, selected.SizeGB)
 	input, _ = reader.ReadString('\n')
 	input = strings.TrimSpace(input)
 

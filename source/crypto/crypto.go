@@ -767,90 +767,74 @@ func outputROW(items []CryptoItem) error {
 	return nil
 }
 
-func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold int) error {
-	lines := []string{}
-
-	// Header row
-	header := "COIN     HELD   PRICE        % GAINS       $ GAINS                REBALANCE"
-	lines = append(lines, header)
-	separator := "------ ------   -----------  -------  ------------   ----------------------"
-	lines = append(lines, separator)
-
-	// Sort items - preserve config order, move USD to end (matching shell)
-	sort.Slice(items, func(i, j int) bool {
-		if items[i].Sym == "USD" {
+// sortCryptoItems returns a copy sorted by config order with USD moved to end
+func sortCryptoItems(items []CryptoItem) []CryptoItem {
+	sorted := make([]CryptoItem, len(items))
+	copy(sorted, items)
+	sort.Slice(sorted, func(i, j int) bool {
+		if sorted[i].Sym == "USD" {
 			return false
 		}
-		if items[j].Sym == "USD" {
+		if sorted[j].Sym == "USD" {
 			return true
 		}
-		return items[i].Index < items[j].Index
+		return sorted[i].Index < sorted[j].Index
 	})
+	return sorted
+}
 
-	// Display up to 6 items (matching shell)
-	displayItems := items
-	if len(items) > 6 {
-		displayItems = items[:6]
+// formatPriceArrow returns ▲, ▼, or • based on price change
+func formatPriceArrow(item CryptoItem) string {
+	if item.Price > 0 && item.PrevPrice > 0 {
+		if item.Price > item.PrevPrice {
+			return "▲"
+		} else if item.Price < item.PrevPrice {
+			return "▼"
+		}
+	}
+	return "•"
+}
+
+// formatROWMLLine formats a single crypto line for ROWML output
+func formatROWMLLine(item CryptoItem, items []CryptoItem, oversold int) string {
+	arrow := " " + formatPriceArrow(item)
+	isUSDStable := item.Sym == "USD" && item.Price >= 0.99 && item.Price <= 1.01
+
+	symStr := item.Sym
+
+	var heldStr, pctStr, amtStr string
+	if item.Held > 0 && item.Entry > 0 && !isUSDStable {
+		glAmt := (item.Price - item.Entry) * item.Held
+		glPct := ((item.Price - item.Entry) / item.Entry) * 100
+		heldStr = fmtHeld(item.Held)
+		pctStr = fmtPercent(glPct)
+		amtStr = fmtSignedAmountWithSpace(glAmt)
+	} else if isUSDStable {
+		heldStr = fmt.Sprintf("%9.2f", item.Held) + " x"
+		pctStr = fmtPercentStable()
+		amtStr = fmtAmountStable()
+	} else {
+		heldStr = fmtHeld(item.Held)
+		pctStr = ""
+		amtStr = ""
 	}
 
-	for _, item := range displayItems {
-		arrow := " •"
-		if item.Price > 0 && item.PrevPrice > 0 {
-			if item.Price > item.PrevPrice {
-				arrow = " ▲"
-			} else if item.Price < item.PrevPrice {
-				arrow = " ▼"
-			} else {
-				arrow = " •"
-			}
-		}
-
-		// Check for USD stablecoin
-		isUSDStable := item.Sym == "USD" && item.Price >= 0.99 && item.Price <= 1.01
-
-		symStr := item.Sym
-
-		var heldStr, pctStr, amtStr string
-		if item.Held > 0 && item.Entry > 0 && !isUSDStable {
-			glAmt := (item.Price - item.Entry) * item.Held
-			glPct := ((item.Price - item.Entry) / item.Entry) * 100
-			heldStr = fmtHeld(item.Held)
-			pctStr = fmtPercent(glPct)
-			amtStr = fmtSignedAmountWithSpace(glAmt)
-		} else if isUSDStable {
-			heldStr = fmt.Sprintf("%9.2f", item.Held) + " x"
-			pctStr = fmtPercentStable()
-			amtStr = fmtAmountStable()
-		} else {
-			heldStr = fmtHeld(item.Held)
-			pctStr = ""
-			amtStr = ""
-		}
-
-		// Calculate sell limit
-		sellStr := ""
-		if item.Held > 0 && item.Sym != "USD" && item.Sym != "USDC" {
-			sellStr = calculateSellLimit(item.Sym, item.Price, item.Entry, item.Held, item, items, oversold)
-		}
-
-		// Check concentration
-		concStr := checkConcentration(item.Held, item.Price, items)
-		if concStr != "" {
-			symStr = item.Sym + concStr
-		}
-
-		// Build line matching shell format exactly:
-		// Shell: f"{sym} {held_str} {price_str} {pct_str} {amt_str}{arrow}{sell_str:>22}"
-		// Note: NO space between amt_str and arrow in shell
-		priceStr := fmtPrice(item.Price)
-		line := fmt.Sprintf("%s %s %s %s %s%s %22s", symStr, heldStr, priceStr, pctStr, amtStr, arrow, sellStr)
-		lines = append(lines, line)
+	sellStr := ""
+	if item.Held > 0 && item.Sym != "USD" && item.Sym != "USDC" {
+		sellStr = calculateSellLimit(item.Sym, item.Price, item.Entry, item.Held, item, items, oversold)
 	}
 
-	// Calculate totals
-	var heldTotal, gainTotal float64
-	haveValue := false
-	haveGain := false
+	concStr := checkConcentration(item.Held, item.Price, items)
+	if concStr != "" {
+		symStr = item.Sym + concStr
+	}
+
+	priceStr := fmtPrice(item.Price)
+	return fmt.Sprintf("%s %s %s %s %s%s %22s", symStr, heldStr, priceStr, pctStr, amtStr, arrow, sellStr)
+}
+
+// calculateTotals returns portfolio totals
+func calculateTotals(items []CryptoItem) (heldTotal, gainTotal float64, haveValue, haveGain bool) {
 	for _, item := range items {
 		if item.Price == 0 {
 			continue
@@ -864,31 +848,11 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold i
 			haveGain = true
 		}
 	}
+	return
+}
 
-	if haveGain {
-		if showTotals && haveValue {
-			heldStr := "$ " + formatNumberWithWidth(heldTotal, 10)
-			var gainStr string
-			if gainTotal >= 0 {
-				gainStr = " " + formatNumberWithWidth(gainTotal, 12)
-			} else {
-				gainStr = "-" + formatNumberWithWidth(-gainTotal, 12)
-			}
-			lines = append(lines, fmt.Sprintf("%s%s%s", strings.Repeat(" ", 37), gainStr, strings.Repeat(" ", 13))+heldStr)
-		} else {
-			var gainStr string
-			if gainTotal >= 0 {
-				gainStr = " " + formatNumberWithWidth(gainTotal, 12)
-			} else {
-				gainStr = "-" + formatNumberWithWidth(-gainTotal, 12)
-			}
-			lines = append(lines, fmt.Sprintf("%s%s%s", strings.Repeat(" ", 37), gainStr, strings.Repeat(" ", 21)))
-		}
-	}
-
-	fmt.Println(strings.Join(lines, "\n"))
-
-	// Save prev snapshot
+// saveCryptoSnapshot saves current prices as the previous snapshot
+func saveCryptoSnapshot(items []CryptoItem, curFile string) {
 	prevFile := strings.Replace(curFile, "crypto.json", "crypto-prev.json", 1)
 	prevData := make(map[string]float64)
 	for _, item := range items {
@@ -898,7 +862,42 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold i
 	}
 	data, _ := json.Marshal(prevData)
 	os.WriteFile(prevFile, data, 0600)
+}
 
+func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold int) error {
+	lines := []string{
+		"COIN     HELD   PRICE        % GAINS       $ GAINS                REBALANCE",
+		"------ ------   -----------  -------  ------------   ----------------------",
+	}
+
+	sorted := sortCryptoItems(items)
+	displayItems := sorted
+	if len(sorted) > 6 {
+		displayItems = sorted[:6]
+	}
+
+	for _, item := range displayItems {
+		lines = append(lines, formatROWMLLine(item, items, oversold))
+	}
+
+	heldTotal, gainTotal, haveValue, haveGain := calculateTotals(items)
+	if haveGain {
+		var gainStr string
+		if gainTotal >= 0 {
+			gainStr = " " + formatNumberWithWidth(gainTotal, 12)
+		} else {
+			gainStr = "-" + formatNumberWithWidth(-gainTotal, 12)
+		}
+		if showTotals && haveValue {
+			heldStr := "$ " + formatNumberWithWidth(heldTotal, 10)
+			lines = append(lines, fmt.Sprintf("%s%s%s", strings.Repeat(" ", 37), gainStr, strings.Repeat(" ", 13))+heldStr)
+		} else {
+			lines = append(lines, fmt.Sprintf("%s%s%s", strings.Repeat(" ", 37), gainStr, strings.Repeat(" ", 21)))
+		}
+	}
+
+	fmt.Println(strings.Join(lines, "\n"))
+	saveCryptoSnapshot(items, curFile)
 	return nil
 }
 
@@ -946,30 +945,14 @@ func getCryptoIcon(sym string) string {
 
 // outputNotifySend sends crypto prices as a dunst notification
 func outputNotifySend(items []CryptoItem) error {
-	// Sort items - preserve config order, move USD to end
-	sort.Slice(items, func(i, j int) bool {
-		if items[i].Sym == "USD" {
-			return false
-		}
-		if items[j].Sym == "USD" {
-			return true
-		}
-		return items[i].Index < items[j].Index
-	})
+	sorted := sortCryptoItems(items)
 
 	var lines []string
-	for _, item := range items {
+	for _, item := range sorted {
 		if item.Sym == "USD" {
 			continue
 		}
-		arrow := "•"
-		if item.Price > 0 && item.PrevPrice > 0 {
-			if item.Price > item.PrevPrice {
-				arrow = "▲"
-			} else if item.Price < item.PrevPrice {
-				arrow = "▼"
-			}
-		}
+		arrow := formatPriceArrow(item)
 		pct := ""
 		if item.Held > 0 && item.Entry > 0 {
 			glPct := ((item.Price - item.Entry) / item.Entry) * 100
@@ -978,9 +961,8 @@ func outputNotifySend(items []CryptoItem) error {
 		lines = append(lines, fmt.Sprintf("%s %-5s %6s x $%10s %s %7s", getCryptoIcon(item.Sym), item.Sym, fmt.Sprintf("%.2f", item.Held), formatNumberSimple(item.Price), arrow, pct))
 	}
 
-	// Calculate total portfolio gains
 	var totalValue, totalCost float64
-	for _, item := range items {
+	for _, item := range sorted {
 		if item.Sym == "USD" {
 			continue
 		}

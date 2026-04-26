@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"openriot/installer"
+	"openriot/fsutil"
 	"openriot/logger"
 )
 
@@ -27,7 +27,7 @@ func BuildImage(cfg *Config) error {
 
 	// Copy base image first (so we don't modify source)
 	logger.Info("Copying base image...")
-	if err := copyFile(cfg.BaseImg, cfg.OutputImg); err != nil {
+	if err := fsutil.CopyFile(cfg.BaseImg, cfg.OutputImg); err != nil {
 		return fmt.Errorf("copy base: %w", err)
 	}
 
@@ -202,7 +202,7 @@ func injectContent(cfg *Config) error {
 	logger.Info("Injecting openriot.tgz...")
 	tgzSrc := cfg.OpenriotTgz
 	tgzDst := "/mnt/openriot.tgz"
-	if err := copyFile(tgzSrc, tgzDst); err != nil {
+	if err := fsutil.CopyFile(tgzSrc, tgzDst); err != nil {
 		return fmt.Errorf("copy tgz: %w", err)
 	}
 
@@ -227,11 +227,11 @@ func injectContent(cfg *Config) error {
 			name := strings.TrimSuffix(entry.Name(), ".tgz")
 			// Pad to 35 chars to clear any previous longer name
 			namePadded := fmt.Sprintf("%-35s", name)
-			fmt.Printf("\r%s[INFO]%s Injecting package %d/%d: %s", installer.Cyan, installer.Reset, pkgDone, pkgCount, namePadded)
+			fmt.Printf("\r%s[INFO]%s Injecting package %d/%d: %s", logger.Cyan, logger.Reset, pkgDone, pkgCount, namePadded)
 
 			src := filepath.Join(pkgSrcDir, entry.Name())
 			dst := filepath.Join(pkgDstDir, entry.Name())
-			if err := copyFile(src, dst); err != nil {
+			if err := fsutil.CopyFile(src, dst); err != nil {
 				fmt.Println()
 				logger.Warn(fmt.Sprintf("Failed to copy %s: %v", entry.Name(), err))
 			}
@@ -246,15 +246,6 @@ func injectContent(cfg *Config) error {
 
 	logger.Info("Content injected")
 	return nil
-}
-
-// copyFile copies a file from src to dst
-func copyFile(src, dst string) error {
-	data, err := os.ReadFile(src)
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(dst, data, 0644)
 }
 
 // shrinkImage reduces image to minimum size + buffer

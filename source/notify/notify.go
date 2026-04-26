@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
+
+	"openriot/screen"
 )
 
 // Notification represents a single notification
@@ -224,8 +224,8 @@ func Status() error {
 func Setup() int {
 	home := os.Getenv("HOME")
 
-	// Get screen resolution using xrandr
-	width := getScreenWidth()
+	// Get screen resolution
+	width := screen.GetWidth()
 
 	// Read template config
 	templatePath := filepath.Join(home, ".local/share/openriot/config/dunst/dunstrc")
@@ -259,29 +259,4 @@ func Setup() int {
 	return 0
 }
 
-// getScreenWidth returns the screen width in pixels using xrandr
-func getScreenWidth() int {
-	if os.Getenv("DISPLAY") == "" {
-		return 1920
-	}
 
-	cmd := exec.Command("xrandr")
-	output, err := cmd.Output()
-	if err != nil {
-		return 1920
-	}
-
-	lines := strings.Split(string(output), "\n")
-	for _, line := range lines {
-		if strings.Contains(line, "connected") {
-			re := regexp.MustCompile(`(\d+)x(\d+)`)
-			matches := re.FindStringSubmatch(line)
-			if len(matches) > 1 {
-				var width int
-				fmt.Sscanf(matches[1], "%d", &width)
-				return width
-			}
-		}
-	}
-	return 1920
-}

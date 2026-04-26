@@ -1,7 +1,6 @@
 package installer
 
 import (
-	"bytes"
 	"fmt"
 	"io/fs"
 	"os"
@@ -10,6 +9,7 @@ import (
 	"strings"
 
 	"openriot/config"
+	"openriot/fsutil"
 	"openriot/logger"
 )
 
@@ -116,7 +116,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 				// Copy file
 				if dryRun {
 					logger.Info(fmt.Sprintf("[DRY-RUN] Would copy %s -> %s", relPath, destPath))
-				} else if err := copyFilePreserve(srcPath, destPath); err != nil {
+				} else if err := fsutil.CopyFile(srcPath, destPath); err != nil {
 					logger.Warn(fmt.Sprintf("Failed to copy %s: %v", srcPath, err))
 					return nil
 				} else {
@@ -171,7 +171,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 			// Copy file
 			if dryRun {
 				logger.Info(fmt.Sprintf("[DRY-RUN] Would copy %s -> %s", rule.Pattern, destPath))
-			} else if err := copyFilePreserve(srcPath, destPath); err != nil {
+			} else if err := fsutil.CopyFile(srcPath, destPath); err != nil {
 				logger.Warn(fmt.Sprintf("Failed to copy %s: %v", rule.Pattern, err))
 				continue
 			} else {
@@ -211,30 +211,4 @@ func shouldPreserve(filename string, preserveList []string, destPath string) boo
 	return false
 }
 
-// copyFilePreserve copies a single file, preserving source permissions and skipping identical content
-func copyFilePreserve(source, dest string) error {
-	sourceData, err := os.ReadFile(source)
-	if err != nil {
-		return fmt.Errorf("reading source file: %w", err)
-	}
 
-	// Skip write when content is identical to prevent spurious reloads
-	if existing, err := os.ReadFile(dest); err == nil {
-		if bytes.Equal(existing, sourceData) {
-			return nil
-		}
-	}
-
-	// Preserve source file permissions
-	info, err := os.Stat(source)
-	if err != nil {
-		return fmt.Errorf("stat source file: %w", err)
-	}
-	mode := info.Mode()
-
-	if err := os.WriteFile(dest, sourceData, mode); err != nil {
-		return fmt.Errorf("writing dest file: %w", err)
-	}
-
-	return nil
-}

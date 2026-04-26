@@ -37,7 +37,6 @@ func ExecCommands(cfg *config.Config, dryRun bool) error {
 
 			// Execute the command with a 15-minute timeout
 			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
-			defer cancel()
 			execCmd := exec.CommandContext(ctx, "/bin/sh", "-c", entry.Cmd)
 
 			// Notify if the command runs longer than 2 minutes
@@ -52,6 +51,7 @@ func ExecCommands(cfg *config.Config, dryRun bool) error {
 
 			output, err := execCmd.CombinedOutput()
 			close(done)
+			cancel()
 
 			if err != nil {
 				if ctx.Err() == context.DeadlineExceeded {

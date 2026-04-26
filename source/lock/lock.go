@@ -1,6 +1,7 @@
 package lock
 
 import (
+	"fmt"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"openriot/macspoof"
+	"openriot/screen"
 	"openriot/notify"
 )
 
@@ -58,10 +60,8 @@ func Lock() error {
 		time.Sleep(500 * time.Millisecond)
 
 		// Get screen resolution
-		res := getResolution()
-		if res == "" {
-			res = "1920x1080"
-		}
+		w, h := screen.GetResolution()
+		res := fmt.Sprintf("%dx%d", w, h)
 
 		// Convert to /tmp with exact resolution (centers and fills)
 		lockPng := "/tmp/openriot-lock.png"
@@ -96,27 +96,6 @@ func Lock() error {
 		notify.SendNotify("lock", "Screen Lock", "Lock failed: i3lock error", "critical", 5000, 0)
 	}
 	return err
-}
-
-func getResolution() string {
-	cmd := exec.Command("xdpyinfo")
-	output, err := cmd.Output()
-	if err != nil {
-		return ""
-	}
-
-	lines := strings.Split(string(output), "\n")
-	for _, line := range lines {
-		if strings.Contains(line, "dimensions:") {
-			parts := strings.Fields(line)
-			for i, p := range parts {
-				if p == "dimensions:" && i+1 < len(parts) {
-					return parts[i+1]
-				}
-			}
-		}
-	}
-	return ""
 }
 
 // checkLockRunning returns true if i3lock is already running

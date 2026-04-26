@@ -75,7 +75,8 @@ func (c *CrushUpgrade) getCurrentVersion() string {
 
 // getLatestVersion fetches latest version from GitHub API
 func (c *CrushUpgrade) getLatestVersion() (string, error) {
-	resp, err := http.Get("https://api.github.com/repos/charmbracelet/crush/releases/latest")
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Get("https://api.github.com/repos/charmbracelet/crush/releases/latest")
 	if err != nil {
 		return "", err
 	}
