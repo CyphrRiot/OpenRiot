@@ -633,27 +633,32 @@ func initLockPowerAppsCommands(cmds map[string]func()) {
 			exec.Command("zzz").Run()
 	}
 	cmds["--power-menu"] = func() {
-			cmd := exec.Command("rofi", "-dmenu", "-p", "Power: ")
-			cmd.Stdin = strings.NewReader("Lock\nSuspend\nReboot\nShutdown\nLogout")
+			home, _ := os.UserHomeDir()
+			theme := filepath.Join(home, ".local/share/openriot/config/rofi/simple-tokyonight.rasi")
+			if _, err := os.Stat(theme); os.IsNotExist(err) {
+				theme = "simple-tokyonight"
+			}
+			cmd := exec.Command("rofi", "-dmenu", "-p", "Power: ", "-theme", theme)
+			cmd.Stdin = strings.NewReader("󰌾 Lock\n󰒲 Suspend\n󰑐 Reboot\n󰐥 Shutdown\n󰍃 Logout")
 			out, err := cmd.Output()
 			if err != nil {
 				return
 			}
 			choice := strings.TrimSpace(string(out))
-			switch choice {
-			case "Lock":
+			switch {
+			case strings.HasPrefix(choice, "󰌾"):
 				lock.Lock()
-			case "Suspend":
+			case strings.HasPrefix(choice, "󰒲"):
 				notify.SendNotify("power", "Power", "Suspending...", "normal", 2000, 0)
 				lock.Lock()
 				exec.Command("doas", "zzz").Run()
-			case "Reboot":
+			case strings.HasPrefix(choice, "󰑐"):
 				notify.SendNotify("power", "Power", "Rebooting...", "normal", 3000, 0)
 				exec.Command("doas", "shutdown", "-r", "now").Run()
-			case "Shutdown":
+			case strings.HasPrefix(choice, "󰐥"):
 				notify.SendNotify("power", "Power", "Shutting down...", "normal", 5000, 0)
 				exec.Command("doas", "shutdown", "-p", "now").Run()
-			case "Logout":
+			case strings.HasPrefix(choice, "󰍃"):
 				notify.SendNotify("power", "Power", "Logging out...", "normal", 2000, 0)
 				exec.Command("i3-msg", "exit").Run()
 			}
