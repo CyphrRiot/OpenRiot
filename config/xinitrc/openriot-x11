@@ -28,5 +28,8 @@ xset dpms 0 0 1800
 xset +dpms
 xautolock -time 10 -locker "$HOME/.local/share/openriot/install/openriot --smart-lock" &
 
+# Configure trackpad pointer speed
+doas wsconsctl mouse.tp.scaling=1.5 2>/dev/null || true
+
 # Start i3 (or fallback)
 exec i3

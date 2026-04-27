@@ -8,6 +8,8 @@ import (
 	"openriot/notify"
 )
 
+const maxWorkspaces = 3
+
 func GetCurrent() int {
 	cmd := exec.Command("i3-msg", "-t", "get_workspaces")
 	output, err := cmd.Output()
@@ -32,7 +34,20 @@ func GetCurrent() int {
 	return 0
 }
 
+func isValid(target int) bool {
+	return target >= 1 && target <= maxWorkspaces
+}
+
+func notifyUnavailable(target int) {
+	notify.SendNotify("dialog-error", "Workspace", fmt.Sprintf("Workspace %d not available", target), "normal", 2000, 0)
+}
+
 func Switch(target int) {
+	if !isValid(target) {
+		notifyUnavailable(target)
+		return
+	}
+
 	current := GetCurrent()
 	if current == target {
 		return // Already on this workspace
@@ -45,4 +60,18 @@ func Switch(target int) {
 	// Notify
 	iconName := fmt.Sprintf("workspace%d.png", target)
 	notify.SendNotify(iconName, "Workspace", fmt.Sprintf("Switched to workspace %d", target), "normal", 1500, 0)
+}
+
+func Move(target int) {
+	if !isValid(target) {
+		notifyUnavailable(target)
+		return
+	}
+
+	// Move container and switch
+	exec.Command("i3-msg", fmt.Sprintf("move container to workspace %d", target)).Run()
+	exec.Command("i3-msg", fmt.Sprintf("workspace %d", target)).Run()
+
+	iconName := fmt.Sprintf("workspace%d.png", target)
+	notify.SendNotify(iconName, "Workspace", fmt.Sprintf("Moved to workspace %d", target), "normal", 1500, 0)
 }

@@ -536,12 +536,12 @@ func getScaleFactors(width int) (height, font0, font1, modMargin string) {
 		font1 = "size=17"
 		modMargin = "2"
 	case width >= 1920: // 1080p
-		height = "26"
+		height = "28"
 		font0 = "size=11"
 		font1 = "size=15"
 		modMargin = "2"
 	default: // Below 1080p
-		height = "26"
+		height = "28"
 		font0 = "size=11"
 		font1 = "size=15"
 		modMargin = "2"

@@ -148,123 +148,18 @@ window.thunar {
     color: #0f1016;
 }
 
-/* Generic GTK dark theme improvements */
-window {
-    background-color: #0f1016;
-    color: #c0caf5;
-}
-
-/* Entry fields (address bar, etc.) */
-entry {
-    background-color: #1a1b26;
-    color: #c0caf5;
-    border: 1px solid #414868;
-    border-radius: 6px;
-}
-
-entry:focus {
-    border-color: #bb9af7;
-    box-shadow: 0 0 3px rgba(122, 162, 247, 0.3);
-}
-
-/* Generic buttons */
-button {
-    background-color: #292e42;
-    color: #c0caf5;
-    border: 1px solid #414868;
-    border-radius: 6px;
-}
-
-button:hover {
-    background-color: #414868;
-    color: #c0caf5;
-}
-
-button:active {
-    background-color: #bb9af7;
-    color: #0f1016;
-}
-
-/* Tooltips */
-tooltip {
-    background-color: #1a1b26;
-    color: #c0caf5;
-    border: 1px solid #292e42;
-    border-radius: 6px;
-}
-
-/* Progress bars */
-progressbar progress {
-    background-color: #bb9af7;
-}
-
-progressbar trough {
-    background-color: #292e42;
-}
-
-/* Notebook tabs */
-notebook tab {
-    background-color: #1a1b26;
-    color: #a9b1d6;
-    border: 1px solid #292e42;
-}
-
-notebook tab:checked {
-    background-color: #0f1016;
-    color: #c0caf5;
-}
-
-/* Generic tree/list views */
-treeview,
-listview {
-    background-color: #0f1016;
-    color: #c0caf5;
-}
-
 /* Fix for Thunar drag selection rubber band (black box issue) */
 .thunar .rubberband,
-.thunar rubberband,
-rubberband {
+.thunar rubberband {
     background-color: rgba(122, 162, 247, 0.2);
     border: 1px solid #bb9af7;
     color: transparent;
 }
 
 /* Fix for icon view drag selection */
-.thunar iconview .rubberband,
-iconview .rubberband {
+.thunar iconview .rubberband {
     background-color: rgba(122, 162, 247, 0.15);
     border: 1px solid rgba(122, 162, 247, 0.8);
-}
-
-/* Comprehensive rubber band selection fix for all GTK applications */
-rubberband,
-.rubberband,
-XfdesktopIconView.view .rubberband,
-iconview .rubberband,
-treeview .rubberband,
-flowbox .rubberband {
-    background-color: rgba(122, 162, 247, 0.2);
-    border: 1px solid #bb9af7;
-    border-radius: 2px;
-    opacity: 0.8;
-}
-
-/* Alternative rubber band selectors */
-selection,
-.selection {
-    background-color: rgba(122, 162, 247, 0.25);
-    border: 1px solid rgba(122, 162, 247, 0.6);
-}
-
-/* File browser selection highlighting */
-treeview:selected,
-iconview:selected,
-listview row:selected {
-    background-color: #bb9af7;
-    color: #0f1016;
-    border: 2px solid #c0caf5;
-    border-radius: 6px;
 }
 
 /* Thunar specific selection - full cell highlight for icon view */

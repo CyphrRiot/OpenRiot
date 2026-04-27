@@ -193,6 +193,11 @@ func initToolsUpgradesCommands(cmds map[string]func()) {
 				os.Exit(1)
 			}
 	}
+	cmds["--benchmark"] = func() {
+			home, _ := os.UserHomeDir()
+			cmd := home + "/.local/bin/benchmark; printf \"\\n\\nPress any key to continue...\"; read -r ans"
+			exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
+	}
 	cmds["--install-asset"] = func() {
 			if err := assets.Run(os.Args[2:]); err != nil {
 				fmt.Fprintf(os.Stderr, "install-asset error: %v\n", err)
@@ -490,6 +495,18 @@ func initWindowWorkspaceCommands(cmds map[string]func()) {
 				os.Exit(1)
 			}
 			workspace.Switch(target)
+	}
+	cmds["--workspace-move"] = func() {
+			if len(os.Args) < 3 {
+				fmt.Fprintln(os.Stderr, "Usage: openriot --workspace-move <N>")
+				os.Exit(1)
+			}
+			target, err := strconv.Atoi(os.Args[2])
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Invalid workspace number")
+				os.Exit(1)
+			}
+			workspace.Move(target)
 	}
 	cmds["--workspace-icons"] = func() {
 			if len(os.Args) < 3 {

@@ -22,10 +22,12 @@ end
 # No greeting - use fastfetch instead
 set -g fish_greeting ""
 
-# Show motd then fastfetch (interactive shells only - skip SSH/rsync)
+# Show motd then fastfetch (interactive shells only - skip SSH since sshd already prints /etc/motd)
 if status is-interactive
-    if test -f $HOME/.local/share/openriot/install/motd
-        cat $HOME/.local/share/openriot/install/motd
+    if test -z "$SSH_CONNECTION"
+        if test -f $HOME/.local/share/openriot/install/motd
+            cat $HOME/.local/share/openriot/install/motd
+        end
     end
     fastfetch
 end
@@ -135,6 +137,9 @@ alias la='lsd -la'
 
 # more sucks without this
 alias more='more -e'
+
+# feh - fit images to screen
+alias feh='feh --scale-down --auto-zoom'
 
 # Disk usage - show top 10 largest items by size
 function dum

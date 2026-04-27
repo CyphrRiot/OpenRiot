@@ -112,18 +112,28 @@ apm
 echo "------------------------------------------------------------"
 
 # ----------------------------- Summary -----------------------------
+DD_WRITE_MB=$((DD_WRITE / 1024 / 1024))
+DD_READ_MB=$((DD_READ / 1024 / 1024))
+
 echo
-echo "=============================================================="
+echo "================================================================"
 echo "                         RESULTS SUMMARY"
-echo "=============================================================="
+echo "================================================================"
 printf "| %-17s | %-40s |\n" "Test" "Result"
-printf "|%-19s|%-42s|\n" "-------------------" "----------------------------------------|"
+printf "| %-17s | %-40s |\n" "-----------------" "----------------------------------------"
 printf "| %-17s | %-40s |\n" "CPU (prime 20k)" "${CPU_TIME}s @ ${THREADS} threads"
 printf "| %-17s | %-40s |\n" "Memory throughput" "${MEM_OPS} ops/sec (${MEM_MB} MB/s)"
 printf "| %-17s | %-40s |\n" "FileIO (4k rnd)" "${IO_RATE} req/s"
-printf "| %-17s | %-40s |\n" "dd seq write" "$((DD_WRITE / 1024 / 1024)) MB/s"
-printf "| %-17s | %-40s |\n" "dd seq read" "$((DD_READ / 1024 / 1024)) MB/s"
-echo "=============================================================="
+printf "| %-17s | %-40s |\n" "dd seq write" "${DD_WRITE_MB} MB/s"
+printf "| %-17s | %-40s |\n" "dd seq read" "${DD_READ_MB} MB/s"
+echo "================================================================"
+echo
+echo "Baseline comparison (ThinkPad T14 / Mini N150):"
+echo "  CPU:        0.0020s / 0.0029s"
+echo "  Memory:     4.7M / 4.0M ops/sec"
+echo "  FileIO:     3.6K / 2.2K req/s"
+echo "  dd write:   335 / 236 MB/s"
+echo "  dd read:    2584 / 169 MB/s"
 echo
 echo "=== BENCHMARK COMPLETE ==="
 echo "End time: $(date)"

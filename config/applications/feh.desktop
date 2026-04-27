@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Feh Image Viewer
+GenericName=Image Viewer
+Comment=View images scaled to screen
+Icon=image-viewer
+Exec=sh -c 'feh --scale-down --auto-zoom --start-at "$(basename "$0")" "$(dirname "$0")"' %f
+Terminal=false
+Type=Application
+Categories=Graphics;Viewer;
+Keywords=image;photo;picture;viewer;
+StartupNotify=false
+MimeType=image/bmp;image/gif;image/jpeg;image/jpg;image/png;image/tiff;image/webp;image/x-icon;image/x-pixmap;image/svg+xml;

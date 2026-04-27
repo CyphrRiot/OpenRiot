@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-3.5-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-3.6-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -1420,6 +1420,17 @@ doas vi /etc/myname
 # Then reboot.
 ```
 
+### Multiple wsmouse devices in settings
+
+You may see `wsmouse`, `wsmouse0`, `wsmouse2`, `wsmouse3`, etc. in mouse settings. This is normal OpenBSD kernel behavior.
+
+- `wsmouse` — kernel mux device
+- `wsmouse0` — trackpad touch surface
+- `wsmouse2` — TrackPoint (red nub)
+- `wsmouse3` — physical button / clickpad protocol layer
+
+The gap at `wsmouse1` is skipped enumeration. Nothing is broken.
+
 ### WiFi not working
 
 1. **Check if WiFi is recognized:**
@@ -1551,6 +1562,12 @@ Run `benchmark` to test CPU, memory, and disk performance. Requires `sysbench`:
 ```bash
 doas pkg_add sysbench
 benchmark
+```
+
+Run via terminal or app launcher:
+
+```bash
+openriot --benchmark
 ```
 
 Results go to `~/.benchmark/<hostname>-YYYYMMDD-N.log` with full system specs.

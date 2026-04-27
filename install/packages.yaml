@@ -179,6 +179,16 @@ desktop:
                   else
                       dconf load /org/gnome/TextEditor/ < $HOME/.config/openriot/dconf/org.gnome.TextEditor.ini
                   fi
+    games:
+        packages:
+            - xonotic-0.8.6
+            - zelda_roth_se-1.1.0p1
+        depends: [desktop.i3]
+        start: "Installing games"
+        end: "Games installed"
+        type: "Package"
+        critical: false
+
 media:
     media:
         packages:
