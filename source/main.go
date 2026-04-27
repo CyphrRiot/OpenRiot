@@ -406,6 +406,12 @@ func initNetworkBatteryCommands(cmds map[string]func()) {
 	cmds["--night-light-status"] = func() {
 			fmt.Print(nightlight.Get())
 	}
+	cmds["--laptop-monitor"] = func() {
+			display.RunLaptopMonitor()
+	}
+	cmds["--laptop-monitor-toggle"] = func() {
+			display.ToggleLaptopMonitor()
+	}
 	cmds["--polybar-transmission"] = func() {
 			if rofi.IsTransmissionRunning() {
 				fmt.Print("󰐻")
