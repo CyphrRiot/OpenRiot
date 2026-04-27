@@ -135,10 +135,10 @@ func parseAppsFile(path string) ([]appEntry, error) {
 		if entry.Name == "Transmission" {
 			if IsTransmissionRunning() {
 				entries[i].Name = "Transmission 󱧝"
-				entries[i].Cmd = "pkill -INT transmission-daemon"
+				entries[i].Cmd = "pkill transmission-gtk"
 			} else {
 				entries[i].Name = "Transmission 󰐻"
-				entries[i].Cmd = "sh -c \"mkdir -p ~/.local/share/transmission ~/.config/transmission && transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &\""
+				entries[i].Cmd = "transmission-gtk"
 			}
 		}
 	}
@@ -147,7 +147,7 @@ func parseAppsFile(path string) ([]appEntry, error) {
 }
 
 func IsTransmissionRunning() bool {
-	cmd := exec.Command("pgrep", "-u", os.Getenv("USER"), "transmission-daemon")
+	cmd := exec.Command("pgrep", "-u", os.Getenv("USER"), "transmission-gtk")
 	err := cmd.Run()
 	return err == nil
 }

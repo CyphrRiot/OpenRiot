@@ -7,54 +7,59 @@ import (
 	"path/filepath"
 )
 
-const fontMarker = "FiraCodeNerdFont-Regular.ttf"
 const fontSourceDir = "assets/fonts"
 const fontDestDir = ".local/share/fonts"
 
-// Run installs Nerd Fonts
+// Run installs Nerd Fonts and refreshes the font cache
 func Run() error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("failed to get home: %w", err)
 	}
 
-	// Check if fonts already installed (check for marker file)
-	destPath := filepath.Join(homeDir, fontDestDir, fontMarker)
-	if _, err := os.Stat(destPath); err == nil {
-		fmt.Println("[SKIP] Fonts already installed")
-		return nil
-	}
-
-	// Source fonts
 	sourcePath := filepath.Join(homeDir, ".local/share/openriot", fontSourceDir)
 	sourceFonts, err := os.ReadDir(sourcePath)
 	if err != nil {
 		return fmt.Errorf("font source not found: %w", err)
 	}
 
-	// Ensure destination directory exists
-	if err := os.MkdirAll(filepath.Join(homeDir, fontDestDir), 0755); err != nil {
+	destPath := filepath.Join(homeDir, fontDestDir)
+	if err := os.MkdirAll(destPath, 0755); err != nil {
 		return fmt.Errorf("failed to create font directory: %w", err)
 	}
 
-	// Copy all fonts
+	copied := 0
 	for _, f := range sourceFonts {
 		if f.IsDir() {
 			continue
 		}
 		src := filepath.Join(sourcePath, f.Name())
-		dst := filepath.Join(homeDir, fontDestDir, f.Name())
+		dst := filepath.Join(destPath, f.Name())
+
+		if _, err := os.Stat(dst); err == nil {
+			continue
+		}
+
 		data, err := os.ReadFile(src)
 		if err != nil {
 			continue
 		}
-		os.WriteFile(dst, data, 0644)
+		if err := os.WriteFile(dst, data, 0644); err != nil {
+			continue
+		}
+		copied++
 	}
 
-	// Refresh font cache
-	cmd := exec.Command("fc-cache", "-f", filepath.Join(homeDir, fontDestDir))
-	cmd.Run() // Ignore errors - fonts still installed
+	// Always refresh font cache - fixes stale cache after reboot
+	cmd := exec.Command("fc-cache", "-f", destPath)
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "[WARN] fc-cache failed: %v\n", err)
+	}
 
-	fmt.Println("[DONE] Nerd Fonts installed")
+	if copied > 0 {
+		fmt.Printf("[DONE] Installed %d font(s), cache refreshed\n", copied)
+	} else {
+		fmt.Println("[DONE] All fonts present, cache refreshed")
+	}
 	return nil
 }

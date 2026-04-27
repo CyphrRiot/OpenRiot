@@ -82,6 +82,8 @@ desktop:
             - noto-emoji-2.051v0
         configs:
             - pattern: i3/*
+            - pattern: icons/*
+              target: "~/.local/share/openriot/config/icons/"
             - pattern: polybar/*
             - pattern: rofi/*
             - pattern: dunst/*

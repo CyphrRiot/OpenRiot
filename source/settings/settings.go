@@ -11,7 +11,6 @@ import (
 	"openriot/macspoof"
 	"openriot/nightlight"
 	"openriot/polybar"
-	"openriot/rofi"
 	"openriot/wireguard"
 )
 
@@ -78,16 +77,6 @@ func buildEntries() []entry {
 		on:   wgOn,
 		toggle: func() {
 			exec.Command("sh", "-c", "$HOME/.local/share/openriot/install/openriot --wireguard").Start()
-		},
-	})
-
-	// Transmission
-	entries = append(entries, entry{
-		icon: "󰐻",
-		name: "Transmission",
-		on:   rofi.IsTransmissionRunning(),
-		toggle: func() {
-			exec.Command("sh", "-c", "$HOME/.local/share/openriot/install/openriot --transmission-toggle").Start()
 		},
 	})
 

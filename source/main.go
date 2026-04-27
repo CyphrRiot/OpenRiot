@@ -114,6 +114,14 @@ func initVersionInstallCommands(cmds map[string]func()) {
 			os.Exit(0)
 	}
 	cmds["--install"] = func() {
+			if len(os.Args) >= 3 {
+				tag := os.Args[2]
+				if err := installer.InstallTag(tag); err != nil {
+					fmt.Fprintf(os.Stderr, "install tag error: %v\n", err)
+					os.Exit(1)
+				}
+				os.Exit(0)
+			}
 			runInstall()
 	}
 }
@@ -481,18 +489,18 @@ func initDriveSyncCommands(cmds map[string]func()) {
 	}
 	cmds["--transmission-toggle"] = func() {
 			if rofi.IsTransmissionRunning() {
-				exec.Command("pkill", "-INT", "transmission-daemon").Run()
+				exec.Command("pkill", "transmission-gtk").Run()
 				notify.SendNotify("transmission", "Transmission", "Stopping Transmission...", "normal", 2000, 0)
 			} else {
-				exec.Command("sh", "-c", "mkdir -p ~/.local/share/transmission ~/.config/transmission && transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &").Run()
+				exec.Command("transmission-gtk").Start()
 				notify.SendNotify("transmission", "Transmission", "Starting Transmission...", "normal", 2000, 0)
 			}
 	}
 	cmds["--transmission-notify"] = func() {
 			if rofi.IsTransmissionRunning() {
-				notify.SendNotify("transmission", "Transmission", "Transmission is Enabled\nDisable in Settings Menu\nOr Super+Shift+G", "normal", 5000, 0)
+				notify.SendNotify("transmission", "Transmission", "Transmission is Enabled\nDisable in Rofi Menu\nOr Super+Shift+G", "normal", 5000, 0)
 			} else {
-				exec.Command("sh", "-c", "mkdir -p ~/.local/share/transmission ~/.config/transmission && transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &").Run()
+				exec.Command("transmission-gtk").Start()
 				notify.SendNotify("transmission", "Transmission", "Starting Transmission...", "normal", 2000, 0)
 			}
 	}
@@ -789,7 +797,7 @@ func printUsage() {
 	fmt.Fprintf(os.Stderr, "openriot %s\n", version)
 	fmt.Fprintf(os.Stderr, "Usage: openriot <command>\n")
 	fmt.Fprintf(os.Stderr, "\nCommands:\n")
-	fmt.Fprintf(os.Stderr, "  --install          Install OpenRiot (configs, not packages)\n")
+	fmt.Fprintf(os.Stderr, "  --install [tag]     Install OpenRiot (optionally install specific tag)\n")
 	fmt.Fprintf(os.Stderr, "  --install-packages Install packages from packages.yaml\n")
 	fmt.Fprintf(os.Stderr, "  --source-builds    Build software from source\n")
 	fmt.Fprintf(os.Stderr, "  --packages         List packages from packages.yaml\n")
