@@ -29,7 +29,7 @@ func Get() string {
 	if state == 1 {
 		return iconOn
 	}
-	return iconOff
+	return ""
 }
 
 func Toggle() error {

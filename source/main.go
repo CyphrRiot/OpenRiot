@@ -31,6 +31,7 @@ import (
 	"openriot/rofi"
 	"openriot/roficalc"
 	"openriot/screenshot"
+	"openriot/settings"
 	"openriot/update"
 	"openriot/weather"
 	"openriot/windowicon"
@@ -329,6 +330,13 @@ func initPolybarStatusCommands(cmds map[string]func()) {
 	cmds["--wireguard-status"] = func() {
 			fmt.Print(wireguard.Status())
 	}
+	cmds["--wireguard-notify"] = func() {
+			if wireguard.Status() != "" {
+				notify.SendNotify("wireguard", "WireGuard VPN", "WireGuard VPN is Enabled\nDisable in Settings Menu\nOr Super+Shift+G", "normal", 5000, 0)
+			} else {
+				wireguard.Toggle()
+			}
+	}
 	cmds["--stealth-status"] = func() {
 			fmt.Print(macspoof.StealthStatus())
 	}
@@ -345,6 +353,23 @@ func initPolybarStatusCommands(cmds map[string]func()) {
 				notify.SendNotify("stealth", "Stealth", "Disabled", "normal", 3000, 0)
 			}
 	}
+	cmds["--stealth-notify"] = func() {
+			if macspoof.IsStealthEnabled() {
+				notify.SendNotify("stealth", "Stealth Mode", "Stealth Mode is Enabled\nDisable in Settings Menu\nOr Super+Shift+G", "normal", 5000, 0)
+			} else {
+				notify.SendNotify("stealth", "Stealth", " Restarting Networking Services", "normal", 5000, 0)
+				if err := macspoof.StealthToggle(); err != nil {
+					notify.SendNotify("stealth", "Stealth", "Failed: "+err.Error(), "critical", 5000, 0)
+					os.Exit(1)
+				}
+				enabled := macspoof.IsStealthEnabled()
+				if enabled {
+					notify.SendNotify("stealth", "Stealth", "Enabled [Stealth]", "normal", 3000, 0)
+				} else {
+					notify.SendNotify("stealth", "Stealth", "Disabled", "normal", 3000, 0)
+				}
+			}
+	}
 	cmds["--update-status"] = func() {
 			fmt.Print(update.Get())
 	}
@@ -356,6 +381,9 @@ func initPolybarStatusCommands(cmds map[string]func()) {
 				fmt.Fprintf(os.Stderr, "rofi error: %v\n", err)
 				os.Exit(1)
 			}
+	}
+	cmds["--settings-menu"] = func() {
+			settings.RunMenu()
 	}
 	cmds["--weather"] = func() {
 			fmt.Print(weather.Get())
@@ -415,8 +443,6 @@ func initNetworkBatteryCommands(cmds map[string]func()) {
 	cmds["--polybar-transmission"] = func() {
 			if rofi.IsTransmissionRunning() {
 				fmt.Print("󰐻")
-			} else {
-				fmt.Print("󱧝")
 			}
 	}
 	cmds["--polybar-proton-drive"] = func() {
@@ -462,8 +488,23 @@ func initDriveSyncCommands(cmds map[string]func()) {
 				notify.SendNotify("transmission", "Transmission", "Starting Transmission...", "normal", 2000, 0)
 			}
 	}
+	cmds["--transmission-notify"] = func() {
+			if rofi.IsTransmissionRunning() {
+				notify.SendNotify("transmission", "Transmission", "Transmission is Enabled\nDisable in Settings Menu\nOr Super+Shift+G", "normal", 5000, 0)
+			} else {
+				exec.Command("sh", "-c", "mkdir -p ~/.local/share/transmission ~/.config/transmission && transmission-daemon -f --logfile ~/.local/share/transmission/daemon.log &").Run()
+				notify.SendNotify("transmission", "Transmission", "Starting Transmission...", "normal", 2000, 0)
+			}
+	}
 	cmds["--night-light"] = func() {
 			nightlight.Toggle()
+	}
+	cmds["--night-light-notify"] = func() {
+			if nightlight.Get() != "" {
+				notify.SendNotify("nightlight", "Night Light", "Night Light is Enabled\nDisable in Settings Menu\nOr Super+Shift+G", "normal", 5000, 0)
+			} else {
+				nightlight.Toggle()
+			}
 	}
 	cmds["--window-title"] = func() {
 			fmt.Print(windowtitle.Get())

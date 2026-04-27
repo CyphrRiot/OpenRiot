@@ -189,12 +189,14 @@ func RunVolume() error {
 	var icon string
 	if mute || vol == 0 {
 		icon = ""
-	} else if vol >= 67 {
+	} else if vol > 75 {
+		icon = ""
+	} else if vol >= 45 {
 		icon = "󰕾"
-	} else if vol >= 34 {
-		icon = "󰖀"
+	} else if vol >= 10 {
+		icon = "󱄠"
 	} else {
-		icon = "󰕿"
+		icon = ""
 	}
 
 	// Output: icon + tooltip with percentage
@@ -224,6 +226,9 @@ func isMuted() bool {
 
 // RunProtonDrive outputs proton-drive icon for polybar
 func RunProtonDrive() error {
+	if !isProtonDriveConfigured() {
+		return nil
+	}
 	icon := GetProtonDriveIcon()
 	fmt.Printf("%s\nProton Drive: %s\n", icon, getProtonDriveTooltip())
 	return nil

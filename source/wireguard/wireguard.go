@@ -24,13 +24,10 @@ func isRunning() bool {
 }
 
 func Status() string {
-	if !isConfigured() {
-		return "󰛳"
+	if !isConfigured() || !isRunning() {
+		return ""
 	}
-	if isRunning() {
-		return "󰱓"
-	}
-	return "󰅛"
+	return "󰱓"
 }
 
 func Start() error {

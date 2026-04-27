@@ -29,7 +29,7 @@ func GetWifi() string {
 				return getWifiIcon(signal)
 			}
 		}
-		return "󰤯"
+		return ""
 	}
 
 	// Connected but no internet - use WasOnline for hysteresis
@@ -48,7 +48,7 @@ func GetWifi() string {
 	if signal > 0 {
 		return getWifiIcon(signal)
 	}
-	return "󰤯"
+	return ""
 }
 
 func GetEth() string {
