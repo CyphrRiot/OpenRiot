@@ -278,6 +278,7 @@ system:
         packages:
             - rclone-1.73.5
             - wireguard-tools-1.0.20210914p3v0
+            - sysbench-0.4.8p17
         depends: [core.base]
         start: "Installing system tools"
         end: "System tools installed"
@@ -305,6 +306,8 @@ system:
               cmd: "doas grep -q ':coredump=0:' /etc/login.conf || doas sed -i 's/:umask=022:/:umask=022: coredump=0:/' /etc/login.conf; doas cap_mkdb /etc/login.conf"
             - desc: "Enable sndiod (audio)"
               cmd: "doas rcctl enable sndiod"
+            - desc: "Enable xenodm (X11 display manager)"
+              cmd: "rcctl check xenodm >/dev/null 2>&1 || doas rcctl enable xenodm"
             #- desc: "Enable and start seatd (seat management)"
             #  cmd: "doas rcctl enable seatd && doas rcctl start seatd"
             - desc: "Create WireGuard config directory"
@@ -342,5 +345,5 @@ system:
                       echo "[DONE] Polybar killed (will restart automatically)"
                   fi
         depends: [system.i3-restart]
-        start: "Cleaning up"
-        end: "Cleanup complete"
+        start: "Cleaning up stale menus..."
+        end: "Cleanup complete. Polybar restarting..."

@@ -138,9 +138,6 @@ alias la='lsd -la'
 # more sucks without this
 alias more='more -e'
 
-# feh - fit images to screen
-alias feh='feh --scale-down --auto-zoom'
-
 # Disk usage - show top 10 largest items by size
 function dum
     du -sm * | sort -nr | head -10

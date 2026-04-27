@@ -33,5 +33,13 @@ xautolock -time 10 -locker "$HOME/.local/share/openriot/install/openriot --smart
 # Configure trackpad pointer speed
 doas wsconsctl mouse.tp.scaling=1.5 2>/dev/null || true
 
+# Enable ThinkPad trackpoint middle-button scroll
+if sysctl hw.vendor 2>/dev/null | grep -qiE 'lenovo|ibm|thinkpad'; then
+    xinput set-prop "/dev/wsmouse" "WS Pointer Wheel Emulation" 1
+    xinput set-prop "/dev/wsmouse" "WS Pointer Wheel Emulation Button" 2
+    xinput set-prop "/dev/wsmouse" "WS Pointer Wheel Emulation Axes" 6 7 4 5
+    xinput set-prop "/dev/wsmouse" "WS Pointer Middle Button Emulation" 3
+fi
+
 # Start i3
 exec i3

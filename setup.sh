@@ -348,14 +348,6 @@ main() {
     run_openriot --install-packages "$LOG_FILE"
     run_openriot --install "$HOME/.cache/openriot/install.log"
 
-    # Enable xenodm for automatic X11 login on boot
-    info "Enabling xenodm (X11 display manager)..."
-    if doas rcctl enable xenodm 2>/dev/null; then
-        success "xenodm enabled"
-    else
-        warn "xenodm already enabled or rcctl unavailable"
-    fi
-
     banner_line() {
         awk -v text="$1" 'BEGIN { printf "|%s", text; for(i=length(text);i<60;i++) printf " "; print "|" }'
     }
