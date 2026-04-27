@@ -307,7 +307,7 @@ fonts:
 
 # 🖥️ POLYBAR MODULE REFERENCE
 
-See also: `docs/polybar-state-architecture.md`, `docs/polybar-performance.md`
+See also: `docs/polybar-performance.md`
 
 ## Module Definition Template
 
@@ -555,14 +555,14 @@ xautolock -time 10 -locker "lock-script.sh" &
   ```
 
 ## Polybar Script Paths (CRITICAL)
-- **CANONICAL location:** `~/.local/share/openriot/config/polybar/scripts/`
-- Config points to: `~/.local/share/openriot/config/polybar/scripts/*.sh`
+- **CANONICAL location:** `~/.local/share/openriot/config/polybar/scripts/` (legacy, currently empty)
+- Config points to: `$HOME/.local/share/openriot/install/openriot --{flag}`
 - **NEVER copy scripts to `~/.config/polybar/scripts/`**
 - **NEVER point config to `~/.config/polybar/scripts/`**
 
 **Correct workflow for testing changes:**
-1. Edit script in repo: `config/polybar/scripts/workspaces.sh`
-2. Copy to canonical: `cp config/polybar/scripts/workspaces.sh ~/.local/share/openriot/config/polybar/scripts/`
+1. Edit Go source in repo: `source/workspaceicons/workspaceicons.go`
+2. Build binary: `make`
 3. Restart polybar
 4. Test
 
@@ -711,7 +711,7 @@ See: `docs/Icons.md`
 
 # 📋 POLYBAR REFERENCE
 
-See: `docs/polybar-state-architecture.md`, `docs/polybar-performance.md`
+See: `docs/polybar-performance.md`
 
 ---
 

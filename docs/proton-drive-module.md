@@ -33,6 +33,9 @@ $ openriot --polybar-proton-drive
 (nothing - module hidden)
 ```
 
+### `--proton-drive-init`
+Initializes the rclone bisync cache for Proton Drive. Runs `rclone bisync` with `--resync` to create the `.lst` cache files.
+
 ### `--proton-drive-sync`
 Click action - reads state, performs appropriate action.
 
@@ -141,7 +144,7 @@ func checkProtonDriveSync() string {
 ```ini
 [module/proton-drive]
 type = custom/script
-exec = $HOME/.local/share/openriot/install/openriot --proton-drive
+exec = $HOME/.local/share/openriot/install/openriot --polybar-proton-drive
 interval = 60
 format-padding = 1
 click-left = $HOME/.local/share/openriot/install/openriot --proton-drive-sync
@@ -153,11 +156,12 @@ click-left = $HOME/.local/share/openriot/install/openriot --proton-drive-sync
 
 | Trigger | Message |
 |---------|---------|
-| Not configured (click) | "Proton Drive is not configured" |
-| Synced (click) | "Proton Drive is Synced" |
-| Sync started | "Syncing Proton Drive..." |
-| Sync complete | "Proton Drive sync complete" |
-| Sync failed | "Proton Drive sync failed" |
+| Not configured (click) | "Not configured\nSee OpenRiot.org for setup info" |
+| Synced (click) | "Synchronized: <tooltip>" |
+| Sync started | "Syncing..." |
+| Init cache failed | "Failed to init cache" |
+| Init cache success | "Cache initialized" |
+| Init not configured | "Not configured" |
 
 ---
 
