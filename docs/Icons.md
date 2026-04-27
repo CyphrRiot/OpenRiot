@@ -28,18 +28,18 @@ cp output.png ~/.local/share/openriot/config/icons/
 | 󰅛 | VPN | Starting WireGuard... | wireguard/wireguard.go |
 | 󰅛 | VPN | Stopping WireGuard... | wireguard/wireguard.go |
 | 󰱓 | VPN | Not configured | wireguard/wireguard.go |
-| 󰌵 | Display | Night Light: On | night-light.sh |
-| 󰃫 | Display | Night Light: Off | night-light.sh |
-| 󰜡 | Applications | Launching [name]... | launcher.sh |
-| 󰈹 | Applications | [Firefox title] | openriot --firefox |
-| 󰤨 | WiFi | Connected to [SSID] | wifi-info.sh |
-| 󰤯 | WiFi | Not connected | wifi-info.sh |
-| 󰤯 | WiFi | No interface found | wifi-info.sh |
-| 󰦝 | Crypto | Loading... | crypto-notify.sh |
-| 󰦝 | Crypto | [prices] | crypto-notify.sh |
-| 󰹑 | Desktop | Workspace [N] | keybindings.conf |
-| 󰚇 | Desktop | Current Version v[X.X] | openriot-update.sh |
-| 󰋻 | Desktop | Upgrade available | openriot-update.sh |
+| 󰌵 | Display | Night Light: On | nightlight/nightlight.go |
+| 󰃫 | Display | Night Light: Off | nightlight/nightlight.go |
+| 󰜡 | Applications | Launching [name]... | rofi/rofi.go |
+| 󰈹 | Applications | [Firefox title] | main.go (--browser) |
+| 󰤨 | WiFi | Connected to [SSID] | network/network.go |
+| 󰤯 | WiFi | Not connected | network/network.go |
+| 󰤯 | WiFi | No interface found | network/network.go |
+| 󰦝 | Crypto | Loading... | crypto/crypto.go |
+| 󰦝 | Crypto | [prices] | crypto/crypto.go |
+| 󰹑 | Desktop | Workspace [N] | workspace/workspace.go |
+| 󰚇 | Desktop | Current Version v[X.X] | update/update.go |
+| 󰋻 | Desktop | Upgrade available | update/update.go |
 
 ## Icon List (Unique)
 

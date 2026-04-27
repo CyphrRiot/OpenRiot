@@ -14,7 +14,7 @@ Icons are defined in THREE different places:
 
 ```ini
 [module/launcher]
-format = "%{T1} 󰟠%{T-}"        # ← Launcher icon here
+format = "%{T1} %{T-}"        # ← Launcher icon here
 
 [module/power]
 format = ⏻                        # ← Power icon here
@@ -55,20 +55,20 @@ grep "format = " config/polybar/config.ini
 
 | Module | Icon(s) | States |
 |--------|---------|--------|
-| launcher | 󰟠 | - |
+| launcher |  | - |
 | workspaces | 󰎤󰎧󰎪󰎭 | - |
-| date | 󰃭 | - |
+| date | (text) | - |
 | stealth | 󰝴/󱊨 | ON/OFF |
 | network-wifi | 󰤨/󰤯/󱛅 | Connected/No signal/No internet |
-| network-eth | 󰈀 | Connected |
+| network-eth | 󰈀/󰌙 | Connected/Disconnected |
 | wireguard | 󰛳/󰅛/󰱓 | Not configured/Disconnected/Connected |
 | volume | 󰕾/󰖀/󰕿/ | High/Medium/Low/Muted |
 | battery | 󰁺-󰂂 | Discharging (10-100%) |
 | | 󰢜-󰂋 | Charging |
 | crypto |  | - |
-| night-light | 󰃫/󰌵 | OFF/ON |
-| cpu | 󰢝 | - |
-| memory | 󰌅 | - |
+| night-light | /󰌵 | OFF/ON |
+| cpu | 󰡳/󰡵/󰊚/󰡴 | 0-25%/25-50%/50-90%/90%+ |
+| memory | 󰢿/󰢼/󰢽/󰢾 | 0-25%/25-50%/50-75%/75-100% |
 | proton-drive | 󱥾/󰴋/ | Synced/Syncing/Not configured |
 | transmission | 󱧝/󰐻 | Running/Stopped |
 | openriot-update | 󰋻/󰚇 | Update available/Up to date |

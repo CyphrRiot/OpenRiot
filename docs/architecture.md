@@ -331,20 +331,20 @@ modules-right = crypto night-light cpu memory volume network-wifi network-eth wi
 
 | Module | Icon | Click Action | Scroll |
 |--------|------|-------------|--------|
-| launcher |  | `launcher.sh` | - |
+| launcher |  | App launcher (--rofi) | - |
 | workspaces | 1-4 | Switch workspace | - |
 | window-title | text | Show window name | - |
 | date | text | Next wallpaper | - |
-| volume | 婢 | Toggle mute | Volume adjust |
-| network-wifi | 󰤨/󰤯 | WiFi details | - |
+| volume | 󰕾/󰖀/󰕿/ | Toggle mute | Volume adjust |
+| network-wifi | 󰤨/󰤯/󱛅 | WiFi details | - |
 | network-eth | 󰈀/󰌙 | ETH details | - |
-| battery |  | - | - |
-| crypto |  | crypto-notify.sh | - |
+| battery | 󰁺-󰂂/󰢜-󰂋 | Battery notification | - |
+| crypto |  | Crypto notification | - |
 | night-light | /󰌵 | Toggle redshift | - |
-| cpu | 龍 | CPU notification | - |
-| memory | 펭 | Memory notification | - |
+| cpu | 󰡳/󰡵/󰊚/󰡴 | CPU notification | - |
+| memory | 󰢿/󰢼/󰢽/󰢾 | Memory notification | - |
 | wireguard | 󰛳/󰅛/󰱓 | Toggle VPN | - |
-| openriot-update | 󰟢/󰌷 | Check updates | - |
+| openriot-update | 󰋻/󰚇 | Check updates | - |
 | power | ⏻ | Power menu | - |
 | lock | 󰌾 | Lock screen | - |
 
