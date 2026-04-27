@@ -8,7 +8,7 @@ Polybar calls `openriot` for various modules. Some calls are expensive (parse i3
 
 | Module | Flag | Interval | Calls/sec |
 |--------|------|----------|-----------|
-| workspaces x4 | workspaces.sh | 2 sec | 2/sec |
+| workspaces x4 | --workspace-icons-all | 2 sec | 2/sec |
 | window-title | --window-title | 2 sec | 0.5/sec |
 | cpu | --polybar-metrics | 30 sec | 0.03/sec |
 | memory | --polybar-memory | 30 sec | 0.03/sec |
@@ -103,4 +103,4 @@ One call, multiple modules read the same output.
 - `config/polybar/config.ini` - module definitions
 - `source/polybar/metrics.go` - CPU/RAM modules
 - `source/windowtitle/windowtitle.go` - window title
-- `config/polybar/scripts/workspaces.sh` - workspace icons
+- `source/workspaceicons/workspaceicons.go` - workspace icons

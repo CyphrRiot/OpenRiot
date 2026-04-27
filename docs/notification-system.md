@@ -12,7 +12,7 @@ OpenRiot uses a centralized notification system to prevent dunst crashes and pro
 
 **Signature:**
 ```go
-func SendNotify(iconName, title, body, urgency string, timeoutMs int) error
+func SendNotify(iconName, title, body, urgency string, timeoutMs, replaceID int) error
 ```
 
 **Parameters:**
@@ -23,6 +23,7 @@ func SendNotify(iconName, title, body, urgency string, timeoutMs int) error
 | `body` | string | Notification body text |
 | `urgency` | string | `"normal"` or `"critical"` |
 | `timeoutMs` | int | Timeout in milliseconds |
+| `replaceID` | int | Notification ID to replace (0 = no replacement) |
 
 **Behavior:**
 1. Checks cooldown - skips if < 500ms since last notification
@@ -74,9 +75,9 @@ All notification call sites have been migrated to use `notify.SendNotify()`.
 
 **Good (using centralized function):**
 ```go
-notify.SendNotify("cpu.png", "CPU", "Usage: 45%", "normal", 5000)
-notify.SendNotify("proton-drive.png", "Proton Drive", "Syncing...", "normal", 2000)
-notify.SendNotify("power.png", "Power", "Shutting down...", "critical", 5000)
+notify.SendNotify("cpu.png", "CPU", "Usage: 45%", "normal", 5000, 0)
+notify.SendNotify("proton-drive.png", "Proton Drive", "Syncing...", "normal", 2000, 0)
+notify.SendNotify("power.png", "Power", "Shutting down...", "critical", 5000, 0)
 ```
 
 **Bad (bypassing centralized function):**

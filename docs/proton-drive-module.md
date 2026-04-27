@@ -18,18 +18,18 @@ Add a 3-state polybar module for Proton Drive sync status. The icon reflects cur
 
 ## CLI Flags
 
-### `--proton-drive`
+### `--polybar-proton-drive`
 Polybar module - outputs icon for display.
 
 ```
-$ openriot --proton-drive
+$ openriot --polybar-proton-drive
 󱥾
 Proton Drive: Synced
 ```
 
 Or for hidden state (not configured):
 ```
-$ openriot --proton-drive
+$ openriot --polybar-proton-drive
 (nothing - module hidden)
 ```
 
@@ -38,14 +38,19 @@ Click action - reads state, performs appropriate action.
 
 | State | Action |
 |-------|--------|
-| Not Configured | Notify "Proton Drive is not configured" |
-| Needs Sync | Open floating terminal with sync command |
-| Synced | Notify "Proton Drive is Synced" |
+| Not Configured | Notify "Not configured\nSee OpenRiot.org for setup info" |
+| Needs Sync | Open floating terminal with interactive sync prompt |
+| Synced | Notify "Synchronized: <tooltip>" |
 
-**Sync command:**
-```bash
-alacritty -e sh -c "rclone bisync ~/Documents/ProtonSync proton:ProtonSync --progress --work-dir ~/.cache/rclone/bisync; echo 'Press enter to close...'; read"
+**Sync command (interactive terminal):**
 ```
+alacritty --class openriot_upgrade -e sh -c "<interactive prompt>"
+```
+
+The prompt asks the user to choose:
+- `[Y]` or `Enter` → bi-directional `rclone bisync` with `--resync --progress`
+- `[O]` → one-way `rclone copy` with `--progress`
+- `[Q]` or `[N]` → cancel
 
 ---
 
