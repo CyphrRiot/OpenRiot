@@ -29,8 +29,10 @@ func Lock() error {
 	// Check if stealth mode is enabled
 	var matches []string
 	if macspoof.IsStealthEnabled() {
-		// Look for stealth_*.jpg in Locked directory
-		matches, _ = filepath.Glob(filepath.Join(lockDir, "stealth_*.jpg"))
+		// In stealth: allow both locked_*.jpg and stealth_*.jpg
+		matches, _ = filepath.Glob(filepath.Join(lockDir, "locked_*.jpg"))
+		stealthMatches, _ := filepath.Glob(filepath.Join(lockDir, "stealth_*.jpg"))
+		matches = append(matches, stealthMatches...)
 	} else {
 		// Look for locked_*.jpg in Locked directory
 		matches, _ = filepath.Glob(filepath.Join(lockDir, "locked_*.jpg"))

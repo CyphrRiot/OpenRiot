@@ -42,6 +42,9 @@ Without `desc:`, the module will print blank `[INFO] ...`
 - `grep -A` does NOT work - use `sed` or `view` + offset
 - No `xxd` - use `od -c` or `strings`
 - Many bash commands behave differently
+- User runs **fish shell**, NOT bash — `<(...)` process substitution fails, use `(cmd | psub)`
+- `pkg_delete` uses base names, NOT full version strings: `doas pkg_delete autopep8`
+- Check reverse deps before suggesting removal: `pkg_info -R <pkg>`
 
 ## Eth Network Detection
 Return immediately on `status: active` - don't set flag and fall through:
@@ -187,3 +190,15 @@ Skips all remote git ops and reads version from local `VERSION` file.
 - Don't use `\n` in progress loops - use `echo ""` after loop completes
 - `set -e` causes exit on non-zero returns - use `|| true` for expected failures
 - `grep -c .` returns exit 1 on empty input - use `|| 0` fallback
+
+## Crush LSP Configuration
+
+If removing a language server package (e.g., `py3-python-lsp-server`), check `~/.config/crush/crush.json` for a matching `"lsp"` entry. Removing the package without updating the config breaks LSP for that language in Crush:
+
+```json
+"lsp": {
+    "python": { "command": "pylsp" }
+}
+```
+
+Either reinstall the package or remove the LSP entry from `crush.json`.
