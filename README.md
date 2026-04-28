@@ -439,6 +439,8 @@ doas sh /etc/netstart iwx0
 
 <a id="master-your-openriot-desktop"></a>
 
+![OpenRiot Desktop](assets/menu.png)
+
 ## ⌨️ Master Your OpenRiot Desktop
 
 _We use Helix instead of `vi` or `vim`. The essential bindings are documented in [📝 Using Helix](#using-helix). A full OpenRiot keybindings reference is coming._
