@@ -3,6 +3,9 @@
 # Ported from OpenRiot for OpenBSD
 # =============================================================================
 
+# Disable core dumps
+ulimit -c 0
+
 # Set UTF-8 locale for foot/X11 compatibility
 set -gx LANG en_US.UTF-8
 set -gx LC_ALL en_US.UTF-8

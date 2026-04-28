@@ -2,6 +2,9 @@
 # OpenRiot Xsession — for xenodm or startx
 # OpenBSD X11
 
+# Disable core dumps for all X11 processes
+ulimit -c 0
+
 export LC_CTYPE=en_US.UTF-8
 
 # Set cursor theme
