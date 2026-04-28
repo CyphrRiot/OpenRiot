@@ -102,6 +102,11 @@ func getHostnameConfig(ifaceName string) (hasRandom bool, err error) {
 
 // EnableRandomMAC adds 'lladdr random' to the interface's hostname file
 func EnableRandomMAC(iface string) error {
+	// Validate interface name to prevent path traversal / shell injection
+	if matched, _ := regexp.MatchString(`^[a-z]+[0-9]+$`, iface); !matched {
+		return fmt.Errorf("invalid interface name: %s", iface)
+	}
+
 	hostnameFile := "/etc/hostname." + iface
 
 	// Check if file exists
@@ -109,9 +114,14 @@ func EnableRandomMAC(iface string) error {
 		return fmt.Errorf("interface %s has no hostname file", iface)
 	}
 
-	// Simple shell command: prepend if not already there
-	cmd := exec.Command("doas", "sh", "-c",
-		fmt.Sprintf(`grep -q "^lladdr random$" %s && exit; (echo "lladdr random"; cat %s) > /tmp/hostname.tmp && mv /tmp/hostname.tmp %s`, hostnameFile, hostnameFile, hostnameFile))
+	// Skip if already enabled
+	if err := exec.Command("doas", "grep", "-q", "^lladdr random$", hostnameFile).Run(); err == nil {
+		return nil
+	}
+
+	// Insert at line 1 using ed (no shell, no /tmp race, preserves ownership)
+	cmd := exec.Command("doas", "ed", "-s", hostnameFile)
+	cmd.Stdin = strings.NewReader("0a\nlladdr random\n.\nw\nq\n")
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to enable random MAC: %w", err)
 	}
