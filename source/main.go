@@ -644,6 +644,10 @@ func initLockPowerAppsCommands(cmds map[string]func()) {
 			notify.SendNotify("twitter", "X (Twitter)", "Opening...", "normal", 2000, 0)
 			exec.Command("firefox", "https://x.com/").Start()
 	}
+	cmds["--help-launch"] = func() {
+			notify.SendNotify("help", "Help", "Launching help...", "normal", 2000, 0)
+			exec.Command("firefox", "https://openriot.org").Start()
+	}
 	cmds["--crush"] = func() {
 			home, _ := os.UserHomeDir()
 			cmd := exec.Command("pgrep", "-f", "crush")
@@ -848,7 +852,7 @@ func getUsage() string {
 	fmt.Fprintf(&b, "  --crypto [coin]         Show crypto prices\n")
 	fmt.Fprintf(&b, "  --crypto-notify         Show crypto notification\n")
 	fmt.Fprintf(&b, "  --crypto-refresh        Clear crypto cache and fetch fresh\n")
-	fmt.Fprintf(&b, "  --share-log [file]      Upload log to catbox.moe\n")
+	fmt.Fprintf(&b, "  --share-log [file]      Upload log to tmpfiles.org\n")
 	fmt.Fprintf(&b, "  --make-icon <name> <sym> Generate icon PNG\n")
 	fmt.Fprintf(&b, "\nPolybar Status:\n")
 	fmt.Fprintf(&b, "  --wireguard-status      Show WireGuard icon\n")
@@ -897,6 +901,7 @@ func getUsage() string {
 	fmt.Fprintf(&b, "  --browser               Launch Firefox\n")
 	fmt.Fprintf(&b, "  --proton                Open Proton Mail\n")
 	fmt.Fprintf(&b, "  --twitter               Open X (Twitter)\n")
+	fmt.Fprintf(&b, "  --help-launch           Open OpenRiot Help website\n")
 	fmt.Fprintf(&b, "  --crush                 Launch Crush AI\n")
 	fmt.Fprintf(&b, "  --suspend               Suspend the system\n")
 	fmt.Fprintf(&b, "  --power-menu            Show power menu\n")

@@ -471,6 +471,7 @@ _We use Helix instead of `vi` or `vim`. The essential bindings are documented in
 | `Super + Shift + W`          | Previous wallpaper               |
 | `Super + Shift + S`          | Screenshot (region)              |
 | `Super + Shift + V`          | Clipboard manager                 |
+| `Super + Shift + G`          | Open settings menu               |
 | `Super + Shift + H`          | OpenRiot Help (website)          |
 | `Super + Escape`             | Power menu                       |
 | `Super + =`                  | Calculator (rofi)                |
@@ -518,6 +519,7 @@ Control polybar modules and system features directly from the keyboard.
 | `Super + Shift + P`    | Show CPU notification            |
 | `Super + Shift + M`    | Show memory notification         |
 | `Super + Shift + N`    | Show WiFi info                   |
+| `Super + Shift + G`    | Open settings menu               |
 
 
 ### App Launcher (Rofi)
@@ -527,18 +529,21 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | App              | Icon | Description              |
 | ---------------- | ---- | ------------------------ |
 | Terminal         |    | Alacritty terminal       |
-| Firefox          |    | Web browser              |
-| Telegram         | 󰭹   | Messaging app            |
-| Helix            |    | Text editor              |
-| Text Editor      | 󰷉   | GNOME text editor        |
 | File Manager     | 󰝰   | Thunar file browser      |
-| System Monitor   | 󰍹   | btop resource monitor    |
-| Crush AI         | 󰚩   | AI CLI assistant         |
-| Media Player     |    | mpv video player         |
+| Firefox          |    | Web browser              |
+| Firefox (Private)|    | Private browsing         |
+| Text Editor      | 󰷉   | GNOME text editor        |
+| Helix            |    | Text editor              |
 | Word Processor   | 󰈙   | LibreOffice Writer       |
-| Settings         | 󰒓   | XFCE settings manager    |
-| Transmission     | 󰐻   | BitTorrent client        |
+| Media Player     |    | mpv video player         |
 | Proton Mail      | 󰊫   | Email (web app)          |
+| Signal           | 󰬚   | Signal messenger (gurk)  |
+| System Monitor   | 󰍹   | btop resource monitor    |
+| Telegram         | 󰭹   | Messaging app            |
+| Transmission     | 󰐻   | BitTorrent client        |
+| Crush AI         | 󰚩   | AI CLI assistant         |
+| Settings         | 󰒓   | XFCE settings manager    |
+| Games            | 󰊗   | Games sub-menu           |
 
 ![OpenRiot Terminal](assets/terminal.png)
 
@@ -548,7 +553,7 @@ Polybar is your status bar. Click on modules for more:
 
 | Module | Click Action |
 | ------ | ------------- |
-| 󰟠 Launcher | Opens app launcher |
+|  Launcher | Opens app launcher |
 | 󰎤󰎧󰎪 Workspaces 1-3 | Click to switch workspace |
 | Window Title | Shows focused window name |
 | 󰃭 Date | Shows date/time |
@@ -558,19 +563,21 @@ Polybar is your status bar. Click on modules for more:
 |-----|--------|------|---------|
 | 1 | crypto |  | Crypto prices |
 | 2 | proton-drive | 󱥾 / 󰴋 /  | Synced / Syncing / Not configured |
-| 3 | transmission | 󰐻 / 󱧝 | Running / Stopped |
-| 4 | stealth | 󰝴 / 󱊨 | MAC randomization ON / OFF |
-| 5 | wireguard | 󰱓 / 󰅛 / 󰛳 | VPN up / Down / Not configured |
-| 6 | night-light | 󰌵 /  | Night light ON / OFF |
-| 7 | cpu | 󰡳→󰡵→󰊚→󰡴 | CPU load tier |
-| 8 | memory | 󰢿→󰢼→󰢽→󰢾 | RAM usage tier |
-| 9 | volume | /󰕿/󰖀/󰕾 | Muted / Low / Med / High |
-| 10 | network-wifi | 󰤨→󰤥→󰤢→󰤟→󰤯 / 󱛅 | Signal bars / No internet |
-| 11 | network-eth | 󰈀 / 󰌙 / (empty) | Carrier / No carrier / No eth |
-| 12 | openriot-update | 󰋻 / 󰚇 / ? | Update available / Up to date / Unknown |
-| 13 | battery | 󰁺→󰂂 / 󰁹 | Level / Full+charging |
-| 14 | power | ⏻ | Power menu |
-| 15 | lock | 󰌾 | Lock screen |
+| 3 | transmission | 󰐻 | Running (auto-hides when stopped) |
+| 4 | night-light | 󰌵 /  | Night light ON / OFF |
+| 5 | cpu | 󰡳→󰡵→󰊚→󰡴 | CPU load tier |
+| 6 | memory | 󰢿→󰢼→󰢽→󰢾 | RAM usage tier |
+| 7 | wireguard | 󰱓 / 󰅛 | VPN up / Down (auto-hides when not configured) |
+| 8 | stealth | 󰝴 / 󱊨 | MAC randomization ON / OFF |
+| 9 | network-wifi | 󰤨→󰤥→󰤢→󰤟→󰤯 / 󱛅 | Signal bars / No internet |
+| 10 | network-eth | 󰈀 / 󰌙 / (empty) | Carrier / No carrier / No eth |
+| 11 | openriot-update | 󰋻 / 󰚇 / ? | Update available / Up to date / Unknown |
+| 12 | settings |  | Settings menu |
+| 13 | laptop-monitor | 󰌢 / 󰛧 | Laptop monitor enabled / disabled (auto-hides) |
+| 14 | volume | //󱄠/󰕾/ | Muted / Very low / Low / Medium / High |
+| 15 | battery | 󰁺→󰂂 / 󰁹 | Level / Full+charging |
+| 16 | power | ⏻ | Power menu |
+| 17 | lock | 󰌾 | Lock screen |
 
 **Workspace Bar:** Shows all 3 workspaces with indicators and app icons.
 
@@ -768,6 +775,12 @@ OpenRiot upgrades are handled automatically. When a new version is released, Pol
 curl -fsSL https://openriot.org/setup.sh | sh
 ```
 
+**Install a specific version (tag):**
+
+```bash
+openriot --install v4.0
+```
+
 The script automatically detects:
 
 - No existing install → fresh install
@@ -842,7 +855,7 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 
 | Module | Icon | States | Click Action | Scroll |
 |--------|------|-------|-------------|--------|
-| **launcher** | 󰟠 | - | Open app launcher (Rofi) | - |
+| **launcher** |  | - | Open app launcher (Rofi) | - |
 | **workspaces** | 󰎤󰎧󰎪 | - | Switch to workspace | - |
 | **window-title** | text | - | - | - |
 | **date** | 󰃭 | - | Show date/time | - |
@@ -855,12 +868,12 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 | | 󰤯 | Very poor / no signal | | |
 | | 󱛅 | No internet | | |
 | **network-eth** | 󰈀 | Connected | Ethernet info | - |
-| **wireguard** | 󰛳 | Not configured | Toggle VPN | - |
+| **wireguard** | 󰱓 | Connected | Toggle VPN | - |
 | | 󰅛 | Disconnected | | |
-| | 󰱓 | Connected | | |
-| **volume** | 󰕾 | High (67%+) | Toggle mute | Volume adjust |
-| | 󰖀 | Medium (34-66%) | | |
-| | 󰕿 | Low | | |
+| **volume** |  | High (76%+) | Toggle mute | Volume adjust |
+| | 󰕾 | Medium (46-75%) | | |
+| | 󱄠 | Low (11-45%) | | |
+| |  | Very low (1-10%) | | |
 | |  | Muted | | |
 | **battery** | 󰁺-󰂂 | Discharging | Battery notification | - |
 | | 󰢜-󰂋 | Charging | | |
@@ -872,10 +885,11 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 | **proton-drive** | 󱥾 | Synced | Sync Proton Drive | - |
 | | 󰴋 | Syncing | | |
 | |  | Not configured | | |
-| **transmission** | 󱧝 | Running | Toggle daemon | - |
-| | 󰐻 | Stopped | | |
+| **transmission** | 󰐻 | Running | Toggle GTK client | - |
 | **openriot-update** | 󰋻 | Update available | Check for updates | - |
 | | 󰚇 | Up to date | | |
+| **settings** |  | - | Open settings menu | - |
+| **laptop-monitor** | 󰌢 / 󰛧 | Enabled / Disabled | Toggle laptop monitor | - |
 | **weather** | varies | - | - | - |
 | **power** | ⏻ | - | Open power menu | - |
 | **lock** | 󰌾 | - | Lock screen | - |
@@ -1179,7 +1193,7 @@ ifconfig wg0
 
 ## 📥 Transmission BitTorrent Client
 
-OpenRiot includes Transmission daemon with a web interface and polybar integration.
+OpenRiot includes the Transmission GTK client with polybar and rofi integration.
 
 ### ⚠️ IMPORTANT: Use with VPN
 
@@ -1187,18 +1201,14 @@ OpenRiot includes Transmission daemon with a web interface and polybar integrati
 
 Click the **VPN icon** 󰱓 in polybar to connect before downloading anything.
 
-### Accessing the Web Interface
-
-Open in Firefox: [http://127.0.0.1:9091](http://127.0.0.1:9091)
-
-No authentication required by default.
-
 ### Polybar Module
+
+The Transmission module auto-hides when the client is not running.
 
 | Icon | Meaning |
 ---------------|
-| 󰐻 | Transmission stopped |
-| 󱧝 | Transmission running |
+| 󰐻 | Transmission running |
+| (hidden) | Not running |
 
 Click the icon to toggle. Notifications confirm state changes.
 
@@ -1212,17 +1222,12 @@ The app launcher (Rofi) also has a Transmission entry that dynamically shows:
 
 - **Download directory:** `~/Downloads`
 - **Blocklist:** Enabled (courtesy of [BT BlockLists](https://github.com/Naunter/BT_BlockLists))
-- **RPC port:** 9091
-- **Peer port:** 51413 (randomized)
 
 ### Manual Commands
 
 ```bash
 # Check if running
-pgrep transmission-daemon
-
-# View logs
-cat ~/.local/share/transmission/daemon.log
+pgrep transmission-gtk
 ```
 
 ## 📂 Proton Drive Sync
