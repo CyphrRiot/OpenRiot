@@ -202,10 +202,12 @@ media:
     media:
         packages:
             - mpv-0.41.0p0
-            - transmission-4.1.1p0
+            - transmission-gtk-4.1.1p0
             - ffmpeg-8.0.1p1v1
             - ffmpegthumbnailer-2.2.2p0
             - yt-dlp-2026.03.17
+            - x264-20250909
+            - x265-4.1p0
         configs:
             - pattern: "transmission-daemon/settings.json"
               target: "~/.config/transmission-daemon"
