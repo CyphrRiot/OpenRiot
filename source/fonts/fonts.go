@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"openriot/fsutil"
 )
 
 const fontSourceDir = "assets/fonts"
@@ -28,26 +30,32 @@ func Run() error {
 		return fmt.Errorf("failed to create font directory: %w", err)
 	}
 
+	fontCount := 0
 	copied := 0
 	for _, f := range sourceFonts {
 		if f.IsDir() {
 			continue
 		}
+		fontCount++
 		src := filepath.Join(sourcePath, f.Name())
 		dst := filepath.Join(destPath, f.Name())
 
-		if _, err := os.Stat(dst); err == nil {
-			continue
+		wasNew := false
+		if _, err := os.Stat(dst); os.IsNotExist(err) {
+			wasNew = true
 		}
 
-		data, err := os.ReadFile(src)
-		if err != nil {
-			continue
+		if err := fsutil.CopyFile(src, dst); err != nil {
+			return fmt.Errorf("failed to copy font %s: %w", f.Name(), err)
 		}
-		if err := os.WriteFile(dst, data, 0644); err != nil {
-			continue
+
+		if wasNew {
+			copied++
 		}
-		copied++
+	}
+
+	if fontCount == 0 {
+		return fmt.Errorf("no font files found in %s", sourcePath)
 	}
 
 	// Always refresh font cache - fixes stale cache after reboot

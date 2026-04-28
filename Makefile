@@ -13,7 +13,7 @@ OPENBSD_VERSION = 7.9
 # ============================================================
 # Targets
 # ============================================================
-.PHONY: all build linux clean deps test verify release ultra img isotest binary-push install help test-img
+.PHONY: all build linux clean deps test verify validate release ultra img isotest binary-push install help test-img
 
 # Build only (no install) - use for testing
 all:
@@ -53,6 +53,7 @@ linux:
 
 # Release build with versioning
 release:
+	@$(MAKE) validate || { echo "[FAIL] Validation failed. Release aborted."; exit 1; }
 	@echo "Syncing packages.yaml to latest installed versions..."; ./install/openriot --sync-packages || true; \
 	OPENRIOT_VERSION=`cat VERSION` && \
 	CURRENT_BRANCH=`git branch --show-current` && \
@@ -178,6 +179,23 @@ test-img:
 verify: all
 	@$(INSTALL_DIR)/$(BINARY_NAME) --version
 	@echo "=== Binary OK ==="
+
+# Pre-release validation gate
+validate:
+	@echo "=== Validating release readiness ==="
+	@_font_count=`ls assets/fonts/* 2>/dev/null | wc -l`; \
+	if [ "$$_font_count" -eq 0 ]; then \
+		echo "[FAIL] No font files in assets/fonts/"; exit 1; \
+	fi
+	@echo "[DONE] Fonts present"
+	@_cursor_count=`ls assets/cursors/* 2>/dev/null | wc -l`; \
+	if [ "$$_cursor_count" -eq 0 ]; then \
+		echo "[FAIL] No cursor files in assets/cursors/"; exit 1; \
+	fi
+	@echo "[DONE] Cursors present"
+	@./$(INSTALL_DIR)/$(BINARY_NAME) --validate-config || exit 1
+	@$(MAKE) verify
+	@echo "=== Validation passed ==="
 
 # Clean
 clean:

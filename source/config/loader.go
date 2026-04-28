@@ -57,31 +57,44 @@ func LoadConfig(filename string) (*Config, error) {
 
 // ValidateConfig validates that all required fields are present in the YAML
 func ValidateConfig(cfg *Config) error {
-	// Validate core modules
-	if err := validateModuleCategory("core", cfg.Core); err != nil {
-		return err
+	// Build set of all valid module IDs for dependency checking
+	validIDs := make(map[string]bool)
+	addIDs := func(cat string, mods map[string]Module) {
+		for name := range mods {
+			validIDs[cat+"."+name] = true
+		}
 	}
+	addIDs("core", cfg.Core)
+	addIDs("system", cfg.System)
+	addIDs("desktop", cfg.Desktop)
+	addIDs("media", cfg.Media)
+	addIDs("fonts", cfg.Fonts)
+	addIDs("themes", cfg.Themes)
+	addIDs("source", cfg.Source)
 
-	// Validate system modules
-	if err := validateModuleCategory("system", cfg.System); err != nil {
-		return err
-	}
-
-	// Validate desktop modules
-	if err := validateModuleCategory("desktop", cfg.Desktop); err != nil {
-		return err
-	}
-
-	// Validate media modules
-	if err := validateModuleCategory("media", cfg.Media); err != nil {
-		return err
+	// Validate all categories
+	for _, cat := range []struct {
+		name string
+		mods map[string]Module
+	}{
+		{"core", cfg.Core},
+		{"system", cfg.System},
+		{"desktop", cfg.Desktop},
+		{"media", cfg.Media},
+		{"fonts", cfg.Fonts},
+		{"themes", cfg.Themes},
+		{"source", cfg.Source},
+	} {
+		if err := validateModuleCategory(cat.name, cat.mods, validIDs); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 // validateModuleCategory validates all modules in a category
-func validateModuleCategory(category string, modules map[string]Module) error {
+func validateModuleCategory(category string, modules map[string]Module, validIDs map[string]bool) error {
 	for name, module := range modules {
 		fullName := fmt.Sprintf("%s.%s", category, name)
 
@@ -101,6 +114,25 @@ func validateModuleCategory(category string, modules map[string]Module) error {
 		validTypes := []string{"Package", "Git", "System", "File", "Source"}
 		if !slices.Contains(validTypes, module.Type) {
 			return fmt.Errorf("module %s has invalid type '%s', must be one of: %v", fullName, module.Type, validTypes)
+		}
+
+		// Validate dependencies exist
+		for _, dep := range module.Depends {
+			if !validIDs[dep] {
+				return fmt.Errorf("module %s depends on unknown module %s", fullName, dep)
+			}
+		}
+
+		// Type-field coherence checks
+		switch module.Type {
+		case "Source":
+			if len(module.Build) == 0 {
+				return fmt.Errorf("module %s type 'Source' requires non-empty 'build'", fullName)
+			}
+		case "Package":
+			if len(module.Packages) == 0 && len(module.Configs) == 0 && len(module.Commands) == 0 {
+				return fmt.Errorf("module %s type 'Package' requires at least one of: packages, configs, commands", fullName)
+			}
 		}
 	}
 

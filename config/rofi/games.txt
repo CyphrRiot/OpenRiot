@@ -1,0 +1,12 @@
+# OpenRiot Games Sub-menu for Rofi
+# Launched from main apps.txt via @submenu:games
+
+Zelda|zelda_roth_se|󰺵
+SuperTux|supertux2|
+Endless Sky|endless-sky|
+Angband|angband|
+Cataclysm|cataclysm-tiles|
+Taisei|taisei|
+Transport Tycoon|openttd|
+# Xonotic|xonotic-sdl|󰊗
+Prince of Persia|sdlpop|

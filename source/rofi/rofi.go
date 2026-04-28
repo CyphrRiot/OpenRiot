@@ -20,14 +20,17 @@ func Run() error {
 	if appsFile == "" {
 		return fmt.Errorf("apps.txt not found")
 	}
+	return runAppsFile(appsFile, "Apps")
+}
 
+func runAppsFile(appsFile, prompt string) error {
 	entries, err := parseAppsFile(appsFile)
 	if err != nil {
 		return fmt.Errorf("failed to parse apps file: %w", err)
 	}
 
 	if len(entries) == 0 {
-		return fmt.Errorf("no apps found in apps.txt")
+		return fmt.Errorf("no apps found in %s", appsFile)
 	}
 
 	configDir := filepath.Dir(appsFile)
@@ -40,7 +43,7 @@ func Run() error {
 	}
 
 	// Run rofi
-	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", "Apps", "-format", "i", "-theme", theme)
+	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", prompt, "-format", "i", "-theme", theme)
 	cmd.Stdin = &rofiInput
 	var out bytes.Buffer
 	cmd.Stdout = &out
@@ -63,6 +66,12 @@ func Run() error {
 	}
 
 	entry := entries[idx]
+
+	// Handle sub-menu
+	if submenuName, ok := strings.CutPrefix(entry.Cmd, "@submenu:"); ok {
+		submenuFile := filepath.Join(configDir, submenuName+".txt")
+		return runAppsFile(submenuFile, entry.Name)
+	}
 
 	// Send launching/stopping notification
 	go func() {
@@ -185,8 +194,8 @@ func getDesktopExec(desktopFile string) (string, error) {
 
 	for _, line := range strings.Split(string(data), "\n") {
 		if after, ok := strings.CutPrefix(line, "Exec="); ok {
-		return after, nil
-	}
+			return after, nil
+		}
 	}
 	return "", fmt.Errorf("no Exec= line found in %s", desktopFile)
 }

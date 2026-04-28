@@ -183,10 +183,17 @@ desktop:
                   fi
     games:
         packages:
-            - xonotic-0.8.6
+            # - xonotic-0.8.6
+            - supertux-0.6.3p3
+            - sdlpop-1.22v0
             - zelda_roth_se-1.1.0p1
+            - endless-sky-0.10.12p0
+            - openttd-15.3
+            - cataclysm-dda-0.Hp1v0
+            - taisei-1.4.4
+            - angband-4.2.5-sdl
         depends: [desktop.i3]
-        start: "Installing games"
+        start: "Installing the best games..."
         end: "Games installed"
         type: "Package"
         critical: false
