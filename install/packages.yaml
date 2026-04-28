@@ -212,6 +212,9 @@ media:
             - pattern: "transmission-daemon/settings.json"
               target: "~/.config/transmission-daemon"
               preserve_if_exists: [settings.json]
+            - pattern: "transmission-daemon/settings.json"
+              target: "~/.config/transmission"
+              preserve_if_exists: [settings.json]
         depends: [core.base, desktop.i3]
         start: "Installing media controls"
         end: "Media controls installed"
