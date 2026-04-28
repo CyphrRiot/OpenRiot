@@ -411,6 +411,12 @@ func initPolybarStatusCommands(cmds map[string]func()) {
 	cmds["--settings-menu"] = func() {
 			settings.RunMenu()
 	}
+	cmds["--games-menu"] = func() {
+			if err := rofi.RunGames(); err != nil {
+				fmt.Fprintf(os.Stderr, "games menu error: %v\n", err)
+				os.Exit(1)
+			}
+	}
 	cmds["--weather"] = func() {
 			fmt.Print(weather.Get())
 	}

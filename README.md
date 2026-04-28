@@ -476,6 +476,7 @@ _We use Helix instead of `vi` or `vim`. The essential bindings are documented in
 | `Super + Shift + S`          | Screenshot (region)              |
 | `Super + Shift + V`          | Clipboard manager                 |
 | `Super + Shift + G`          | Open settings menu               |
+| `Super + Shift + J`          | Open games menu                  |
 | `Super + Shift + H`          | OpenRiot Help (website)          |
 | `Super + Escape`             | Power menu                       |
 | `Super + =`                  | Calculator (rofi)                |
@@ -524,6 +525,7 @@ Control polybar modules and system features directly from the keyboard.
 | `Super + Shift + M`    | Show memory notification         |
 | `Super + Shift + N`    | Show WiFi info                   |
 | `Super + Shift + G`    | Open settings menu               |
+| `Super + Shift + J`    | Open games menu                 |
 
 
 ### App Launcher (Rofi)

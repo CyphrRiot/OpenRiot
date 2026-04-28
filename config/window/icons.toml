@@ -191,6 +191,8 @@ openttd = ""
 xonotic-sdl = "󰊗"
 angband = ""
 supertux2 = ""
+supertux = ""
+SuperTux = ""
 sdlpop = ""
 
 [office]
@@ -307,6 +309,9 @@ rclone = "󰱑"
 borg = "󰱑"
 duplicati = "󰱑"
 gnome-appfolders = "󰰀"
+
+# Generic/fallback for SDL apps without proper WM_CLASS
+sdl_app = "󰺵"
 
 [ai_tools]
 crush = "󰚩"

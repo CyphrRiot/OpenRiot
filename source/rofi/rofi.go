@@ -23,6 +23,27 @@ func Run() error {
 	return runAppsFile(appsFile, "Apps")
 }
 
+func RunGames() error {
+	gamesFile := findGamesFile()
+	if gamesFile == "" {
+		return fmt.Errorf("games.txt not found")
+	}
+	return runAppsFile(gamesFile, "Games")
+}
+
+func findGamesFile() string {
+	paths := []string{
+		filepath.Join(homeDir, ".config/rofi/games.txt"),
+	}
+
+	for _, p := range paths {
+		if _, err := os.Stat(p); err == nil {
+			return p
+		}
+	}
+	return ""
+}
+
 func runAppsFile(appsFile, prompt string) error {
 	entries, err := parseAppsFile(appsFile)
 	if err != nil {
@@ -93,7 +114,6 @@ func runAppsFile(appsFile, prompt string) error {
 func findAppsFile() string {
 	paths := []string{
 		filepath.Join(homeDir, ".config/rofi/apps.txt"),
-		filepath.Join(homeDir, ".config/openriot/rofi/apps.txt"),
 	}
 
 	for _, p := range paths {
