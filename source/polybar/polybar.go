@@ -9,7 +9,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 
+	"golang.org/x/sys/unix"
+	"openriot/notify"
 	"openriot/screen"
 )
 
@@ -41,25 +44,40 @@ func getCPUPercent() string {
 }
 
 func getCPUPercentInt() int {
-	// Use 2 samples - first one is often stale, last is current
-	out, err := exec.Command("/usr/bin/vmstat", "1", "2").Output()
-	if err != nil {
+	raw1, err := unix.SysctlRaw("kern.cp_time")
+	if err != nil || len(raw1) < 48 {
 		return 0
 	}
-	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
-	if len(lines) < 2 {
+	c1 := parseCPTime(raw1)
+
+	time.Sleep(500 * time.Millisecond)
+
+	raw2, err := unix.SysctlRaw("kern.cp_time")
+	if err != nil || len(raw2) < 48 {
 		return 0
 	}
-	// Get the LAST line (most recent sample)
-	fields := strings.Fields(lines[len(lines)-1])
-	if len(fields) > 0 {
-		idle, err := strconv.ParseFloat(fields[len(fields)-1], 64)
-		if err != nil {
-			return 0
+	c2 := parseCPTime(raw2)
+
+	var totalDiff, idleDiff uint64
+	for i := 0; i < 6; i++ {
+		diff := c2[i] - c1[i]
+		totalDiff += diff
+		if i == 5 {
+			idleDiff = diff
 		}
-		return int(100 - idle)
 	}
-	return 0
+	if totalDiff == 0 {
+		return 0
+	}
+	return int((1.0 - float64(idleDiff)/float64(totalDiff)) * 100)
+}
+
+func parseCPTime(raw []byte) []uint64 {
+	counters := make([]uint64, 6)
+	for i := 0; i < 6 && (i+1)*8 <= len(raw); i++ {
+		counters[i] = *(*uint64)(unsafe.Pointer(&raw[i*8]))
+	}
+	return counters
 }
 
 // GetRAM returns memory icon (for polybar)
@@ -92,15 +110,10 @@ func GetCPUPercent() string {
 func GetCPUDetails() string {
 	cpuPct := getCPUPercent()
 
-	// Get number of CPUs
-	ncpuOut, _ := exec.Command("/sbin/sysctl", "-n", "hw.ncpu").Output()
-	ncpu := strings.TrimSpace(string(ncpuOut))
+	ncpu, _ := unix.SysctlUint32("hw.ncpu")
+	model, _ := unix.Sysctl("hw.model")
 
-	// Get CPU model
-	modelOut, _ := exec.Command("/sbin/sysctl", "-n", "hw.model").Output()
-	model := strings.TrimSpace(string(modelOut))
-
-	return fmt.Sprintf("CPU in Use: %s%%\nProcessors: %s\nModel: %s", cpuPct, ncpu, model)
+	return fmt.Sprintf("CPU in Use: %s%%\nProcessors: %d\nModel: %s", cpuPct, ncpu, model)
 }
 
 // GetMemPercent returns memory usage as "XX%" string (for notifications)
@@ -111,74 +124,34 @@ func GetMemPercent() string {
 // GetMemDetails returns detailed memory info for notifications
 // Format: "X.XX GiB of Y.YY GiB\nTotal Used: Z%"
 func GetMemDetails() string {
-	totalOut, _ := exec.Command("/sbin/sysctl", "-n", "hw.usermem").Output()
-	total, _ := strconv.ParseInt(strings.TrimSpace(string(totalOut)), 10, 64)
-
-	topOut, _ := exec.Command("/usr/bin/top", "-n", "1").Output()
-	lines := strings.Split(strings.TrimSpace(string(topOut)), "\n")
-	var usedMB int64
-	for _, line := range lines {
-		if strings.HasPrefix(line, "Memory:") {
-			fields := strings.Fields(line)
-			for i, f := range fields {
-				if f == "Real:" && i+1 < len(fields) {
-					ram := fields[i+1]
-					if idx := strings.Index(ram, "/"); idx > 0 {
-						ram = ram[:idx]
-					}
-					ram = strings.TrimSuffix(ram, "M")
-					usedMB, _ = strconv.ParseInt(ram, 10, 64)
-					break
-				}
-			}
-			break
-		}
+	usedMB, totalMB := getMemStats()
+	if totalMB == 0 {
+		return "Memory: unavailable"
 	}
-
 	usedGB := float64(usedMB) / 1024
-	totalGB := float64(total) / (1024 * 1024 * 1024)
-	usedPct := int(float64(usedMB) * 1024 * 1024 / float64(total) * 100)
+	totalGB := float64(totalMB) / 1024
+	usedPct := int(float64(usedMB) / float64(totalMB) * 100)
 
 	return fmt.Sprintf("%.2f GiB of %.2f GiB\nTotal Used: %d%%", usedGB, totalGB, usedPct)
 }
 
 func getRAMPercentInt() int {
-	totalOut, err := exec.Command("/sbin/sysctl", "-n", "hw.usermem").Output()
-	if err != nil {
+	usedMB, totalMB := getMemStats()
+	if totalMB == 0 {
 		return 0
 	}
-	total, err := strconv.ParseInt(strings.TrimSpace(string(totalOut)), 10, 64)
-	if err != nil || total == 0 {
-		return 0
-	}
+	return int(float64(usedMB) / float64(totalMB) * 100)
+}
 
-	topOut, err := exec.Command("/usr/bin/top", "-n", "1").Output()
+func getMemStats() (usedMB, totalMB int64) {
+	uvm, err := unix.SysctlUvmexp("vm.uvmexp")
 	if err != nil {
-		return 0
+		return 0, 0
 	}
-	lines := strings.Split(strings.TrimSpace(string(topOut)), "\n")
-	var usedMB int64
-	for _, line := range lines {
-		if strings.HasPrefix(line, "Memory:") {
-			fields := strings.Fields(line)
-			for i, f := range fields {
-				if f == "Real:" && i+1 < len(fields) {
-					ram := fields[i+1]
-					if idx := strings.Index(ram, "/"); idx > 0 {
-						ram = ram[:idx]
-					}
-					ram = strings.TrimSuffix(ram, "M")
-					usedMB, _ = strconv.ParseInt(ram, 10, 64)
-					break
-				}
-			}
-			break
-		}
-	}
-	if usedMB == 0 {
-		return 0
-	}
-	return int(float64(usedMB) * 1024 * 1024 / float64(total) * 100)
+	p := int64(uvm.Pagesize)
+	totalPages := int64(uvm.Npages) - int64(uvm.Free)
+	usedPages := int64(uvm.Active)
+	return usedPages * p / (1024 * 1024), totalPages * p / (1024 * 1024)
 }
 
 // RunVolume outputs volume icon for polybar
@@ -205,7 +178,7 @@ func RunVolume() error {
 }
 
 func getVolume() int {
-	out, err := exec.Command("sh", "-c", "sndioctl output.level 2>/dev/null | cut -d= -f2").Output()
+	out, err := exec.Command("sndioctl", "-n", "output.level").Output()
 	if err != nil {
 		return 0
 	}
@@ -217,7 +190,7 @@ func getVolume() int {
 }
 
 func isMuted() bool {
-	out, err := exec.Command("sh", "-c", "sndioctl output.mute 2>/dev/null | cut -d= -f2").Output()
+	out, err := exec.Command("sndioctl", "-n", "output.mute").Output()
 	if err != nil {
 		return false
 	}
@@ -427,6 +400,23 @@ func filesInCache(local, cached []string) bool {
 // CheckProtonDriveSyncState exports checkProtonDriveSync for main.go
 func CheckProtonDriveSyncState() string {
 	return checkProtonDriveSync()
+}
+
+// TriggerSync runs the full Proton Drive sync with notifications
+func TriggerSync() error {
+	if !IsProtonDriveConfigured() {
+		notify.SendNotify("proton-drive", "Proton Drive", "Not configured\nSee OpenRiot.org for setup info", "critical", 5000, 0)
+		return nil
+	}
+	state := CheckProtonDriveSyncState()
+	if state == "synced" {
+		notify.SendNotify("proton-drive", "Proton Drive", "Synchronized: "+GetProtonDriveTooltipText(), "normal", 5000, 0)
+		return nil
+	}
+	notify.SendNotify("proton-drive", "Proton Drive", "Syncing...", "normal", 2000, 0)
+	cmd := `printf "Proton Drive Sync\nFrom: ~/Documents/ProtonSync -> Proton Drive Cloud\n\nWould you like to do a bi-directional Sync or one-way\n  and replace items in the Cloud with local items?\n\n[Y]es for bi-directional sync (or ENTER),\n[O]ne-way for One-Way sync or\n[Q]uit or [N]o ?\n\nChoose your adventure [Y/o/q/n] -> "; read -r ans; case "$ans" in o|O) echo "One-way sync selected..."; rclone copy ~/Documents/ProtonSync proton:ProtonSync --progress; printf "\nDone. Press Enter to close..."; read -r ans ;; [yY]|"") echo "Bi-directional sync selected..."; rclone bisync ~/Documents/ProtonSync proton:ProtonSync --resync --progress; printf "\nDone. Press Enter to close..."; read -r ans ;; *) echo "Canceled."; sleep 1 ;; esac`
+	exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
+	return nil
 }
 
 // cacheFilesExist checks if both bisync cache files exist

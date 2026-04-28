@@ -142,7 +142,6 @@ git add packages.yaml && git push  # Distribute to users
 | `--notify "title" "body" --urgency critical` | Critical notification |
 | `--notify-dismiss [id]` | Dismiss notification |
 | `--notify-clear` | Clear all notifications |
-| `--notify-dunst` | Show dunst status |
 | `--mem-notify` | Memory usage notification |
 | `--cpu-notify` | CPU usage notification |
 

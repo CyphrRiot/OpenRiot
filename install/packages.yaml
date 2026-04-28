@@ -192,6 +192,7 @@ desktop:
             - cataclysm-dda-0.Hp1v0
             - taisei-1.4.4
             - angband-4.2.5-sdl
+            - wesnoth-1.18.7
         depends: [desktop.i3]
         start: "Installing the best games..."
         end: "Games installed"

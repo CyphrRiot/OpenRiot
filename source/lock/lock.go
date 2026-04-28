@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"openriot/macspoof"
-	"openriot/screen"
 	"openriot/notify"
+	"openriot/screen"
 )
 
 func Lock() error {
@@ -29,14 +29,27 @@ func Lock() error {
 	// Check if stealth mode is enabled
 	var matches []string
 	if macspoof.IsStealthEnabled() {
-		// In stealth: allow both locked_*.jpg and stealth_*.jpg
-		matches, _ = filepath.Glob(filepath.Join(lockDir, "locked_*.jpg"))
-		stealthMatches, _ := filepath.Glob(filepath.Join(lockDir, "stealth_*.jpg"))
+		// In stealth: allow both default/ and stealth/
+		matches, _ = filepath.Glob(filepath.Join(lockDir, "default", "*.jpg"))
+		stealthMatches, _ := filepath.Glob(filepath.Join(lockDir, "stealth", "*.jpg"))
 		matches = append(matches, stealthMatches...)
 	} else {
-		// Look for locked_*.jpg in Locked directory
-		matches, _ = filepath.Glob(filepath.Join(lockDir, "locked_*.jpg"))
+		// Look for default/*.jpg in Locked directory
+		matches, _ = filepath.Glob(filepath.Join(lockDir, "default", "*.jpg"))
 	}
+
+	// Holiday images are shown in both modes (if they exist)
+	holidayMatches, _ := filepath.Glob(filepath.Join(lockDir, "holiday", "*.jpg"))
+	matches = append(matches, holidayMatches...)
+
+	// Retro images are shown in both modes (if they exist)
+	retroMatches, _ := filepath.Glob(filepath.Join(lockDir, "retro", "*.jpg"))
+	matches = append(matches, retroMatches...)
+
+	// Product images are shown in both modes (if they exist)
+	productMatches, _ := filepath.Glob(filepath.Join(lockDir, "products", "*.jpg"))
+	matches = append(matches, productMatches...)
+
 	if len(matches) == 0 {
 		// Fallback to old locked.jpg
 		lockJpg := filepath.Join(home, ".local/share/openriot/assets/locked.jpg")

@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-4.0-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-4.1-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -185,6 +185,8 @@ You can buy a T14s Gen 1 for ~$300 USD at [Amazon](https://www.amazon.com/dp/B08
 ## ⚠️ UEFI/BIOS Settings
 
 Before installing OpenBSD (and therefore OpenRiot), you need to make some BIOS/UEFI adjustments to ensure everything works correctly. Most hardware ships with settings that assume you're running Windows or macOS — we need to fix that.
+
+If you run into trouble, there's a [video on installing OpenBSD](https://www.youtube.com/watch?v=uTrOIPIx7pY) that walks through much of what you need to know.
 
 ### How to Enter BIOS
 

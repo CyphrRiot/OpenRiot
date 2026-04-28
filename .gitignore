@@ -7,6 +7,10 @@ dev
 *.core
 *.img
 
+# audit docs + agents
+docs/audit*.md
+docs/agents-lessons.md
+
 # External source builds
 src/
 

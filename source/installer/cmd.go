@@ -54,6 +54,11 @@ func RunInstallPackages() {
 		os.Exit(1)
 	}
 
+	// Check games preference before package installation
+	if !GamesPreference() {
+		delete(cfg.Desktop, "games")
+	}
+
 	logger.Info("Installing packages (safe one-by-one mode)...")
 
 	packages := cfg.GetPackages()

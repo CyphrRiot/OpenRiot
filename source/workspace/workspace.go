@@ -49,7 +49,9 @@ func Switch(target int) {
 	}
 
 	current := GetCurrent()
+	iconName := fmt.Sprintf("workspace%d.png", target)
 	if current == target {
+		notify.SendNotify(iconName, "Workspace", fmt.Sprintf("On workspace %d", target), "normal", 1500, 0)
 		return // Already on this workspace
 	}
 
@@ -58,7 +60,6 @@ func Switch(target int) {
 	cmd.Run()
 
 	// Notify
-	iconName := fmt.Sprintf("workspace%d.png", target)
 	notify.SendNotify(iconName, "Workspace", fmt.Sprintf("Switched to workspace %d", target), "normal", 1500, 0)
 }
 

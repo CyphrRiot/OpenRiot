@@ -10,6 +10,7 @@ import (
 
 	"openriot/macspoof"
 	"openriot/nightlight"
+	"openriot/notify"
 	"openriot/polybar"
 	"openriot/wireguard"
 )
@@ -31,6 +32,9 @@ func RunMenu() {
 		stateStr := "(Turn on)"
 		if e.on {
 			stateStr = "(Turn off)"
+		}
+		if e.label != "" {
+			stateStr = e.label
 		}
 		fmt.Fprintf(&rofiInput, "%s %s %s\n", e.icon, e.name, stateStr)
 	}
@@ -62,6 +66,7 @@ func RunMenu() {
 type entry struct {
 	icon   string
 	name   string
+	label  string
 	on     bool
 	toggle func()
 }
@@ -76,7 +81,7 @@ func buildEntries() []entry {
 		name: "WireGuard VPN",
 		on:   wgOn,
 		toggle: func() {
-			exec.Command("sh", "-c", "$HOME/.local/share/openriot/install/openriot --wireguard").Start()
+			_ = wireguard.Toggle()
 		},
 	})
 
@@ -87,17 +92,18 @@ func buildEntries() []entry {
 		name: "Night Light",
 		on:   nlOn,
 		toggle: func() {
-			exec.Command("sh", "-c", "$HOME/.local/share/openriot/install/openriot --night-light").Start()
+			_ = nightlight.Toggle()
 		},
 	})
 
 	// Proton Sync
 	entries = append(entries, entry{
-		icon: "󱥾",
-		name: "Proton Sync",
-		on:   polybar.IsProtonDriveConfigured(),
+		icon:  "󱥾",
+		name:  "Proton Sync",
+		label: "(Sync)",
+		on:    polybar.IsProtonDriveConfigured(),
 		toggle: func() {
-			exec.Command("sh", "-c", "$HOME/.local/share/openriot/install/openriot --proton-drive-sync").Start()
+			_ = polybar.TriggerSync()
 		},
 	})
 
@@ -107,7 +113,17 @@ func buildEntries() []entry {
 		name: "Stealth Mode",
 		on:   macspoof.IsStealthEnabled(),
 		toggle: func() {
-			exec.Command("sh", "-c", "$HOME/.local/share/openriot/install/openriot --stealth").Start()
+			notify.SendNotify("stealth", "Stealth", "Restarting Networking Services", "normal", 5000, 0)
+			if err := macspoof.StealthToggle(); err != nil {
+				notify.SendNotify("stealth", "Stealth", "Failed: "+err.Error(), "critical", 5000, 0)
+				return
+			}
+			enabled := macspoof.IsStealthEnabled()
+			if enabled {
+				notify.SendNotify("stealth", "Stealth", "Enabled [Stealth]", "normal", 3000, 0)
+			} else {
+				notify.SendNotify("stealth", "Stealth", "Disabled", "normal", 3000, 0)
+			}
 		},
 	})
 

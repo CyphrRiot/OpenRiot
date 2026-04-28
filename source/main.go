@@ -739,13 +739,6 @@ func initNotificationsMetricsCommands(cmds map[string]func()) {
 			}
 			os.Exit(0)
 	}
-	cmds["--notify-dunst"] = func() {
-			if err := notify.Status(); err != nil {
-				fmt.Fprintf(os.Stderr, "notify dunst error: %v\n", err)
-				os.Exit(1)
-			}
-			os.Exit(0)
-	}
 	cmds["--notify-status"] = func() {
 			if err := notify.Status(); err != nil {
 				fmt.Fprintf(os.Stderr, "notify dunst error: %v\n", err)
@@ -847,7 +840,6 @@ func getUsage() string {
 	fmt.Fprintf(&b, "  --notify <title> <body> Send notification\n")
 	fmt.Fprintf(&b, "  --notify-dismiss [id]   Dismiss notification\n")
 	fmt.Fprintf(&b, "  --notify-clear          Clear all notifications\n")
-	fmt.Fprintf(&b, "  --notify-dunst          Show dunst status\n")
 	fmt.Fprintf(&b, "  --notify-status         Show notification status\n")
 	fmt.Fprintf(&b, "  --crypto [coin]         Show crypto prices\n")
 	fmt.Fprintf(&b, "  --crypto-notify         Show crypto notification\n")
@@ -937,8 +929,8 @@ func runInstall() {
 		os.Exit(1)
 	}
 
-	repoDir := filepath.Join(homeDir, ".local", "share", "openriot")
-	configPath := filepath.Join(repoDir, "install", "packages.yaml")
+	deployDir := filepath.Join(homeDir, ".local", "share", "openriot")
+	configPath := filepath.Join(deployDir, "install", "packages.yaml")
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
@@ -946,12 +938,23 @@ func runInstall() {
 		os.Exit(1)
 	}
 
+	// Check games preference before any processing
+	installGames := installer.GamesPreference()
+	if !installGames {
+		delete(cfg.Desktop, "games")
+	}
+
 	// Step 0: Package installation - SKIPPED (use --install-packages separately)
 	// This avoids running pkg_add -u twice when called from setup.sh
 
 	// Step 1: Config deployment
-	if err := installer.CopyConfigs(repoDir, cfg, testMode); err != nil {
+	if err := installer.CopyConfigs(deployDir, cfg, testMode); err != nil {
 		logger.Warn(fmt.Sprintf("Config deployment skipped: %v", err))
+	}
+
+	// Remove Games from rofi menu if opted out
+	if !installGames {
+		installer.StripGamesFromRofi()
 	}
 
 	// Step 2: Command execution
@@ -964,6 +967,12 @@ func runInstall() {
 	logger.Info("Running source builds...")
 	if err := installer.SourceBuilds(cfg, testMode); err != nil {
 		logger.Warn(fmt.Sprintf("Source builds: %v", err))
+	}
+
+	// Clean up deployed source files — not needed at runtime
+	srcDir := filepath.Join(deployDir, "source")
+	if err := os.RemoveAll(srcDir); err == nil {
+		logger.Info("Source files cleaned up")
 	}
 
 	// Source builds handled above, setup.sh shows completion box

@@ -10,3 +10,4 @@ Taisei|taisei|
 Transport Tycoon|openttd|
 # Xonotic|xonotic-sdl|󰊗
 Prince of Persia|sdlpop|
+Wesnoth|wesnoth|󰄚
