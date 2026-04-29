@@ -319,7 +319,7 @@ system:
                   fi
                   echo 'hw.allowpowerdown=0' | doas tee -a /etc/sysctl.conf >/dev/null
             - desc: "Disable core dumps via login.conf"
-              cmd: "doas grep -q ':coredump=0:' /etc/login.conf || doas sed -i 's/:umask=022:/:umask=022: coredump=0:/' /etc/login.conf; doas cap_mkdb /etc/login.conf"
+              cmd: "doas sed -i '' -e 's/ coredump=0://g' -e 's/:umask=022:/:umask=022: coredump=0:/' /etc/login.conf && doas cap_mkdb /etc/login.conf"
             - desc: "Enable sndiod (audio)"
               cmd: "doas rcctl enable sndiod"
             - desc: "Enable xenodm (X11 display manager)"
