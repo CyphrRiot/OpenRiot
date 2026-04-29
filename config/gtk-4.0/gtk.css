@@ -1,1 +1,15 @@
-/* OpenRiot GTK4 - Empty (Thunar uses GTK3) */
+/* OpenRiot GTK4 - Dark theme */
+root { color-scheme: dark; }
+
+window {
+    background-color: #16161e;
+}
+
+decoration {
+    background-color: #16161e;
+}
+
+headerbar {
+    background-color: #16161e;
+    border-bottom: 1px solid #292e42;
+}
