@@ -149,9 +149,6 @@ end
 # =============================================================================
 # History Configuration
 # =============================================================================
-set -x FISH_HISTORY_SAVE 1
-set -x FISH_HISTORY_LIMIT 5000
-
 # NOTE: Don't manually save history on every command - fish auto-saves.
 # Manual save causes race conditions and file corruption.
 # function __save_history --on-event fish_postexec
