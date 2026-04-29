@@ -54,6 +54,7 @@ linux:
 # Release build with versioning
 release:
 	@$(MAKE) validate || { echo "[FAIL] Validation failed. Release aborted."; exit 1; }
+	@$(MAKE) test || { echo "[FAIL] Tests failed. Release aborted."; exit 1; }
 	@echo "Syncing packages.yaml to latest installed versions..."; ./install/openriot --sync-packages || true; \
 	OPENRIOT_VERSION=`cat VERSION` && \
 	CURRENT_BRANCH=`git branch --show-current` && \
@@ -168,7 +169,12 @@ deps:
 # Testing
 test:
 	@echo "=== Running tests ==="
-	@cd $(SOURCE_DIR) && go test ./...
+	@cd $(SOURCE_DIR) && go test ./... 2>&1 | grep -v 'no test files'
+
+# Smoke tests - integration tests for install paths
+smoke-test:
+	@echo "=== Running smoke tests ==="
+	@cd $(SOURCE_DIR) && go test -v -run Smoke .
 
 # Imaging module tests
 test-img:

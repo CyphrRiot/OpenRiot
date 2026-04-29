@@ -862,6 +862,7 @@ func getUsage() string {
 	fmt.Fprintf(&b, "  --update                Check for updates\n")
 	fmt.Fprintf(&b, "  --rofi                  Show app launcher\n")
 	fmt.Fprintf(&b, "  --settings-menu         Show settings menu\n")
+	fmt.Fprintf(&b, "  --games-menu            Show games menu\n")
 	fmt.Fprintf(&b, "  --weather               Show weather\n")
 	fmt.Fprintf(&b, "\nNetwork & Battery:\n")
 	fmt.Fprintf(&b, "  --network-wifi          Show WiFi status\n")
