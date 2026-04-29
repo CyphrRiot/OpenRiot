@@ -11,3 +11,4 @@ Transport Tycoon|openttd|
 # Xonotic|xonotic-sdl|󰊗
 Prince of Persia|sdlpop|
 Wesnoth|wesnoth|󰄚
+Nethack|nethack-3.6.6|󰌌
