@@ -171,7 +171,7 @@ func StealthStatus() string {
 	if IsStealthEnabled() {
 		return "󰝴" // Stealth ON
 	}
-	return "󱊨" // Stealth OFF
+	return "" // Stealth OFF — hide module
 }
 
 // StealthToggle enables or disables stealth mode
