@@ -921,6 +921,7 @@ func runInstall() {
 	installGames := installer.GamesPreference()
 	if !installGames {
 		delete(cfg.Desktop, "games")
+		delete(cfg.Desktop, "pacman")
 	}
 
 	// Step 0: Package installation - SKIPPED (use --install-packages separately)

@@ -2,6 +2,8 @@
 # Launched from main apps.txt via @submenu:games
 
 Zelda|zelda_roth_se|󰺵
+Pac-man|pacman|󰮯
+Defender|defendguin|󱓞
 SuperTux|supertux2|
 Endless Sky|endless-sky|
 Angband|angband|
@@ -12,4 +14,6 @@ Transport Tycoon|openttd|
 Prince of Persia|sdlpop|
 Wesnoth|wesnoth|󰄚
 Bos Wars|boswars|󰴺
+Frozen Bubble|frozen-bubble|󰗣
+# 0 A.D.|0ad|󱢿
 Nethack|nethack-3.6.6|󰌌

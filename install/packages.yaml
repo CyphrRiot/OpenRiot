@@ -184,6 +184,7 @@ desktop:
     games:
         packages:
             # - xonotic-0.8.6
+            - defendguin-0.0.13
             - supertux-0.6.3p3
             - sdlpop-1.22v0
             - zelda_roth_se-1.1.0p1
@@ -195,11 +196,26 @@ desktop:
             - wesnoth-1.18.7
             - boswars-2.7p4
             - nethack-3.6.6p1
+            - frozen-bubble-2.2.0p17
         depends: [desktop.i3]
         start: "Installing the best games..."
         end: "Games installed"
         type: "Package"
         critical: false
+
+    pacman:
+        depends: [desktop.games]
+        start: "Installing pacman"
+        end: "pacman installed"
+        type: "Source"
+        build:
+            - desc: "Extracting pacman bundle"
+              cmd: |
+                  if [ -f /usr/local/bin/pacman ]; then
+                      echo "[SKIP] pacman already installed"
+                  else
+                      doas tar -xzf "$HOME/.local/share/openriot/config/pacman/pacman.tgz" -C /
+                  fi
 
 media:
     media:
