@@ -179,24 +179,24 @@ func GetAll() string {
 		// Get workspace state from cached workspaces
 		state := getStateFromWorkspaces(workspaces, wsNum)
 
-		// Build icons for this workspace from window classes (max 5)
+		// Build icons for this workspace from window classes (max 4)
 		var icons []string
 		for _, cls := range classes {
 			if icon, ok := windowIcons[cls]; ok {
 				icons = append(icons, icon)
 			}
 		}
-		if len(icons) > 5 {
-			icons = icons[:5]
+		if len(icons) > 4 {
+			icons = icons[:4]
 		}
 
-		// Build fixed-width content: indicator + ALWAYS 5 icon slots
-		allSlots := make([]string, 0, 5)
+		// Build fixed-width content: indicator + ALWAYS 4 icon slots
+		allSlots := make([]string, 0, 4)
 		for _, icon := range icons {
 			allSlots = append(allSlots, icon)
 		}
-		// Pad to exactly 5 slots with Nerd Font blank icon
-		for len(allSlots) < 5 {
+		// Pad to exactly 4 slots with Nerd Font blank icon
+		for len(allSlots) < 4 {
 			allSlots = append(allSlots, "\uec03")
 		}
 

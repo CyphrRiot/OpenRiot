@@ -14,6 +14,7 @@ import (
 	"golang.org/x/sys/unix"
 	"openriot/notify"
 	"openriot/screen"
+	"openriot/windowtitle"
 )
 
 // RunMetrics outputs CPU icon for polybar (memory is separate module)
@@ -512,6 +513,12 @@ func Setup() int {
 		content = strings.ReplaceAll(content, r.old, r.new)
 	}
 
+	// On small screens reduce title length and tighten bar padding
+	if width < 1360 {
+		content = strings.ReplaceAll(content, "padding-right = 3", "padding-right = 0")
+		windowtitle.SetMaxLen(24)
+	}
+
 	// Write scaled config
 	if err := os.MkdirAll(filepath.Dir(configPath), 0755); err != nil {
 		return 1
@@ -535,11 +542,16 @@ func getScaleFactors(width int) (height, font0, font1, modMargin string) {
 		font0 = "size=11"
 		font1 = "size=15"
 		modMargin = "2"
-	default: // Below 1080p
-		height = "28"
-		font0 = "size=11"
-		font1 = "size=15"
-		modMargin = "2"
+	case width >= 1360: // WXGA+ / 900p
+		height = "26"
+		font0 = "size=10"
+		font1 = "size=13"
+		modMargin = "1"
+	default: // Below 1360 — e.g. 1280x720
+		height = "22"
+		font0 = "size=8.5"
+		font1 = "size=12"
+		modMargin = "0"
 	}
 	return
 }

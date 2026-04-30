@@ -7,7 +7,15 @@ import (
 	"unicode"
 )
 
-const maxTitleLen = 36
+var maxTitleLen = 36
+
+func SetMaxLen(n int) {
+	maxTitleLen = n
+}
+
+func GetMaxLen() int {
+	return maxTitleLen
+}
 
 func Get() string {
 	cmd := exec.Command("i3-msg", "-t", "get_tree")
@@ -65,9 +73,13 @@ func formatTitle(title string) string {
 	title = stripEmojis(title)
 	runes := []rune(title)
 	if len(runes) > maxTitleLen {
-		return fmt.Sprintf("%-33s", string(runes[:33])) + "..."
+		trunc := maxTitleLen - 3
+		if trunc < 1 {
+			trunc = 1
+		}
+		return fmt.Sprintf("%-*s", trunc, string(runes[:trunc])) + "..."
 	}
-	return fmt.Sprintf("%-36s", string(runes))
+	return fmt.Sprintf("%-*s", maxTitleLen, string(runes))
 }
 
 // stripEmojis removes emojis and problematic unicode from title
