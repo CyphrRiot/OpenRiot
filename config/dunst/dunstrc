@@ -4,7 +4,7 @@
 [global]
     monitor = 0
     follow = mouse
-    width = 400
+    width = 450
     height = (0, 200)
     offset = (16, 42)
     scale = 0

@@ -361,7 +361,7 @@ main() {
     banner_line ""
     echo "+------------------------------------------------------------+"
     echo ""
-    echo "Press any key to continue..."
+    echo "Press ENTER/RETURN to continue..."
     read -r dummy < /dev/tty || true
 }
 

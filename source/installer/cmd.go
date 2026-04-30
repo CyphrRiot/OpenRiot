@@ -11,12 +11,12 @@ import (
 	"openriot/logger"
 )
 
-// RunSourceBuilds runs only the source builds phase (used by setup.sh)
-func RunSourceBuilds(testMode bool) {
+// RunSourceBuilds runs only the source builds phase (used by setup.sh).
+// Returns an error on failure instead of calling os.Exit, making it testable.
+func RunSourceBuilds(testMode bool) error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[FAIL] Could not determine home directory: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("could not determine home directory: %w", err)
 	}
 
 	repoDir := filepath.Join(homeDir, ".local", "share", "openriot")
@@ -24,25 +24,25 @@ func RunSourceBuilds(testMode bool) {
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[FAIL] Failed to load config: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	if err := SourceBuilds(cfg, testMode); err != nil {
 		logger.Warn(fmt.Sprintf("Source builds: %v", err))
 	}
 	logger.Info("Source builds complete!")
+	return nil
 }
 
-// RunInstallPackages installs packages from packages.yaml (used by setup.sh)
-func RunInstallPackages() {
+// RunInstallPackages installs packages from packages.yaml (used by setup.sh).
+// Returns an error on failure instead of calling os.Exit, making it testable.
+func RunInstallPackages() error {
 	// Setup fastest mirror if not already configured
 	SetupMirror()
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[FAIL] Could not determine home directory: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("could not determine home directory: %w", err)
 	}
 
 	repoDir := filepath.Join(homeDir, ".local", "share", "openriot")
@@ -50,8 +50,7 @@ func RunInstallPackages() {
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[FAIL] Failed to load config: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	// Check games preference before package installation
@@ -63,19 +62,19 @@ func RunInstallPackages() {
 
 	packages := cfg.GetPackages()
 	if len(packages) == 0 {
-		logger.Fail("No packages found in packages.yaml")
-		os.Exit(1)
+		return fmt.Errorf("no packages found in packages.yaml")
 	}
 
 	failed, _ := InstallPackages(cfg, packages)
 	if failed > 0 {
-		os.Exit(1)
+		return fmt.Errorf("%d package(s) failed to install", failed)
 	}
 
 	logger.Done("Package installation complete.")
+	return nil
 }
 
-// findPackagesYaml finds packages.yaml: installed location first, then CWD fallback
+// findPackagesYaml finds packages.yaml: installed location first, then CWD fallback.
 func findPackagesYaml() string {
 	homeDir, _ := os.UserHomeDir()
 
@@ -90,25 +89,22 @@ func findPackagesYaml() string {
 	return filepath.Join(cwd, "install", "packages.yaml")
 }
 
-// RunCheckPackages verifies packages.yaml versions against installed
-func RunCheckPackages() {
+// RunCheckPackages verifies packages.yaml versions against installed.
+// Returns an error if mismatches are found or on any internal failure.
+func RunCheckPackages() error {
 	configPath := findPackagesYaml()
 	logger.Info(fmt.Sprintf("Checking: %s", configPath))
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[FAIL] Failed to load config: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Get installed packages from pkg_info -a
 	installed := GetInstalledPackages()
 	if len(installed) == 0 {
-		fmt.Fprintf(os.Stderr, "[FAIL] No packages found from pkg_info\n")
-		os.Exit(1)
+		return fmt.Errorf("no packages found from pkg_info")
 	}
 
-	// Check each yaml package against installed
 	yamlPkgs := cfg.GetPackages()
 	mismatches := 0
 
@@ -127,38 +123,33 @@ func RunCheckPackages() {
 	if mismatches > 0 {
 		logger.Warn(fmt.Sprintf("%d package version mismatches found", mismatches))
 		logger.Info("Run 'openriot --sync-packages' to update packages.yaml")
-		os.Exit(1)
+		return fmt.Errorf("%d package version mismatches found", mismatches)
 	}
 
 	logger.Done("All packages in sync")
-	os.Exit(0)
+	return nil
 }
 
-// RunSyncPackages updates packages.yaml to latest installed versions
-func RunSyncPackages() {
+// RunSyncPackages updates packages.yaml to latest installed versions.
+// Returns an error on any failure.
+func RunSyncPackages() error {
 	configPath := findPackagesYaml()
 	logger.Info(fmt.Sprintf("Updating: %s", configPath))
 
-	// Get installed packages
 	installed := GetInstalledPackages()
 	if len(installed) == 0 {
-		fmt.Fprintf(os.Stderr, "[FAIL] No packages found from pkg_info\n")
-		os.Exit(1)
+		return fmt.Errorf("no packages found from pkg_info")
 	}
 
-	// Read yaml file as text to preserve formatting
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		logger.Fail(fmt.Sprintf("Failed to read config: %v", err))
-		os.Exit(1)
+		return fmt.Errorf("failed to read config: %w", err)
 	}
 
 	lines := strings.Split(string(data), "\n")
 	updated := 0
 
-	// Replace only matching package lines
 	for i, line := range lines {
-		// Find indentation (spaces before "- ")
 		indent := ""
 		for j, ch := range line {
 			if ch == ' ' {
@@ -182,24 +173,19 @@ func RunSyncPackages() {
 		}
 	}
 
-	// Write back (preserves formatting)
 	if err := os.WriteFile(configPath, []byte(strings.Join(lines, "\n")), 0600); err != nil {
-		fmt.Fprintf(os.Stderr, "[FAIL] Failed to save config: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to save config: %w", err)
 	}
 
 	logger.Done(fmt.Sprintf("Updated %d packages in packages.yaml", updated))
-	os.Exit(0)
+	return nil
 }
 
-// GetInstalledPackages returns map of base name -> full package version
+// GetInstalledPackages returns map of base name -> full package version.
 func GetInstalledPackages() map[string]string {
 	cmd := exec.Command("pkg_info", "-a")
 	output, err := cmd.Output()
 	if err != nil {
-		// Return empty map instead of nil to distinguish from "no packages installed"
-		// Callers check len() == 0 which works for both, but we lose the error context
-		// Use empty map so downstream len() check works consistently
 		return make(map[string]string)
 	}
 
@@ -210,11 +196,9 @@ func GetInstalledPackages() map[string]string {
 		if line == "" {
 			continue
 		}
-		// Format: package-version description
 		fields := strings.Fields(line)
 		if len(fields) >= 1 {
 			pkg := fields[0]
-			// Extract base name from package-version
 			if idx := strings.LastIndex(pkg, "-"); idx > 0 {
 				base := pkg[:idx]
 				packages[base] = pkg
@@ -224,14 +208,14 @@ func GetInstalledPackages() map[string]string {
 	return packages
 }
 
-// RunMirrors tests mirror connectivity and shows results
-func RunMirrors() {
+// RunMirrors tests mirror connectivity and shows results.
+// Returns an error on failure.
+func RunMirrors() error {
 	logger.Info("Testing mirrors...")
 
 	mirror, latency, err := SelectFastestMirror()
 	if err != nil {
-		logger.Fail(fmt.Sprintf("No mirrors responded: %v", err))
-		os.Exit(1)
+		return fmt.Errorf("no mirrors responded: %w", err)
 	}
 
 	logger.Done(fmt.Sprintf("Fastest mirror: %s (%dms)", mirror, latency.Milliseconds()))
@@ -247,4 +231,5 @@ func RunMirrors() {
 	} else {
 		logger.Info("No /etc/installurl found. Run as root to create.")
 	}
+	return nil
 }

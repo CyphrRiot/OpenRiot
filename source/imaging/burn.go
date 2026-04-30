@@ -3,6 +3,7 @@ package imaging
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -267,15 +268,65 @@ func burnImage(device, imagePath string) error {
 	// Use pv for progress if available, otherwise plain dd
 	pvCmd := exec.Command("which", "pv")
 	if pvCmd.Run() == nil {
-		// Use pv
-		cmd := exec.Command("sh", "-c", fmt.Sprintf("cat %s | pv -pterb | doas dd of=%s bs=1M", imagePath, drivePath))
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Stdin = os.Stdin
-		return cmd.Run()
+		return burnWithPV(imagePath, drivePath)
 	}
 
-	// Fallback to plain dd
+	return burnWithDD(imagePath, drivePath)
+}
+
+// burnWithPV pipes image -> pv -> doas dd using Go's io.Pipe chain.
+// No shell — safe with paths containing spaces or special characters.
+func burnWithPV(imagePath, drivePath string) error {
+	// Open the image file
+	img, err := os.Open(imagePath)
+	if err != nil {
+		return fmt.Errorf("open image: %w", err)
+	}
+	defer img.Close()
+
+	info, err := img.Stat()
+	if err != nil {
+		return fmt.Errorf("stat image: %w", err)
+	}
+	sizeMB := float64(info.Size()) / (1024 * 1024)
+	logger.Info(fmt.Sprintf("Image size: %.1f MB", sizeMB))
+
+	// Chain: img -> pv -> dd
+	pvOut, pvIn := io.Pipe()
+
+	pv := exec.Command("pv", "-pterb", "-s", fmt.Sprintf("%d", info.Size()))
+	pv.Stdin = img
+	pv.Stdout = pvIn
+	pv.Stderr = os.Stderr
+
+	dd := exec.Command("doas", "dd", "of="+drivePath, "bs=1M")
+	dd.Stdin = pvOut
+	dd.Stdout = os.Stdout
+	dd.Stderr = os.Stderr
+
+	if err := pv.Start(); err != nil {
+		return fmt.Errorf("start pv: %w", err)
+	}
+	if err := dd.Start(); err != nil {
+		_ = pv.Process.Kill()
+		return fmt.Errorf("start dd: %w", err)
+	}
+
+	// Wait for pv to finish, then close pipe so dd sees EOF
+	if err := pv.Wait(); err != nil {
+		_ = dd.Process.Kill()
+		return fmt.Errorf("pv: %w", err)
+	}
+	_ = pvIn.Close()
+
+	if err := dd.Wait(); err != nil {
+		return fmt.Errorf("dd: %w", err)
+	}
+	return nil
+}
+
+// burnWithDD runs doas dd directly (no shell) with paths as arguments.
+func burnWithDD(imagePath, drivePath string) error {
 	cmd := exec.Command("doas", "dd", "if="+imagePath, "of="+drivePath, "bs=1M")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

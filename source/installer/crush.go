@@ -22,8 +22,8 @@ func NewCrushUpgrade() *CrushUpgrade {
 	return &CrushUpgrade{}
 }
 
-// Run executes the crush upgrade
-func (c *CrushUpgrade) Run() {
+// Run executes the crush upgrade. Returns error on failure.
+func (c *CrushUpgrade) Run() error {
 	logger.Info("Checking for crush upgrades...")
 
 	currentVer := c.getCurrentVersion()
@@ -32,28 +32,27 @@ func (c *CrushUpgrade) Run() {
 	latestVer, err := c.getLatestVersion()
 	if err != nil {
 		logger.Warn(fmt.Sprintf("Could not fetch latest version: %v", err))
-		os.Exit(0)
+		return nil
 	}
 
 	if latestVer == "" {
 		logger.Warn("Could not determine latest version")
-		os.Exit(0)
+		return nil
 	}
 
 	logger.Info(fmt.Sprintf("Latest version: v%s", latestVer))
 
 	if currentVer != "" && strings.Compare(currentVer, latestVer) >= 0 {
 		logger.Info(fmt.Sprintf("crush v%s is up to date", currentVer))
-		os.Exit(0)
+		return nil
 	}
 
 	if err := c.install(latestVer); err != nil {
-		logger.Fail(fmt.Sprintf("Upgrade failed: %v", err))
-		os.Exit(1)
+		return fmt.Errorf("upgrade failed: %w", err)
 	}
 
 	logger.Done(fmt.Sprintf("Crush upgraded: v%s → v%s", currentVer, latestVer))
-	os.Exit(0)
+	return nil
 }
 
 // getCurrentVersion returns installed crush version or empty string

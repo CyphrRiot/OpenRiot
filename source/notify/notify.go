@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -218,16 +220,54 @@ func Status() error {
 	return nil
 }
 
-// Setup scales dunstrc based on screen resolution.
-// If screen width > 1920, uses width 450 and font size 11 (mild increase).
-// Otherwise uses defaults from template (400 width, size 10).
+var (
+	widthRe    = regexp.MustCompile(`(?m)^\s*width\s*=\s*(\d+)`)
+	fontSizeRe = regexp.MustCompile(`FiraCode Nerd Font\s+(\d+)`)
+)
+
+// scaleDunstrc parses the template for actual width/font values and scales
+// them proportionally for screens > 1920px. This survives template changes.
+func scaleDunstrc(content string, screenWidth int) string {
+	if screenWidth <= 1920 {
+		return content
+	}
+
+	// Add 70px to base width for hi-DPI screens (450→520, 420→490).
+	content = widthRe.ReplaceAllStringFunc(content, func(match string) string {
+		m := widthRe.FindStringSubmatch(match)
+		if len(m) < 2 {
+			return match
+		}
+		baseW, _ := strconv.Atoi(m[1])
+		if baseW <= 0 {
+			return match
+		}
+		newW := baseW + 70
+		return fmt.Sprintf("width = %d", newW)
+	})
+
+	// Add 2pt to base font size for hi-DPI screens (10→12, 11→13).
+	content = fontSizeRe.ReplaceAllStringFunc(content, func(match string) string {
+		m := fontSizeRe.FindStringSubmatch(match)
+		if len(m) < 2 {
+			return match
+		}
+		baseSize, _ := strconv.Atoi(m[1])
+		if baseSize <= 0 {
+			return match
+		}
+		newSize := baseSize + 2
+		return fmt.Sprintf("FiraCode Nerd Font %d", newSize)
+	})
+
+	return content
+}
+
+// Setup writes dunstrc from template, scaling width and font for hi-DPI screens.
 func Setup() int {
 	home := os.Getenv("HOME")
+	screenWidth := screen.GetWidth()
 
-	// Get screen resolution
-	width := screen.GetWidth()
-
-	// Read template config
 	templatePath := filepath.Join(home, ".local/share/openriot/config/dunst/dunstrc")
 	configPath := filepath.Join(home, ".config/dunst/dunstrc")
 
@@ -237,15 +277,8 @@ func Setup() int {
 		return 1
 	}
 
-	content := string(template)
+	content := scaleDunstrc(string(template), screenWidth)
 
-	// Scale for larger screens
-	if width > 1920 {
-		content = strings.ReplaceAll(content, "width = 400", "width = 480")
-		content = strings.ReplaceAll(content, "FiraCode Nerd Font 10", "FiraCode Nerd Font 13")
-	}
-
-	// Write scaled config
 	if err := os.MkdirAll(filepath.Dir(configPath), 0755); err != nil {
 		fmt.Fprintf(os.Stderr, "dunst setup: cannot create dir: %v\n", err)
 		return 1
@@ -258,5 +291,3 @@ func Setup() int {
 	fmt.Println("[DONE] Dunst scaled. Run `Super+Shift+R` to apply changes.")
 	return 0
 }
-
-
