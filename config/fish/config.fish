@@ -6,6 +6,10 @@
 # Disable core dumps
 ulimit -c 0
 
+# Stop history
+set -e FISH_HISTORY_SAVE
+set -e FISH_HISTORY_LIMIT
+
 # Set UTF-8 locale for foot/X11 compatibility
 set -gx LANG en_US.UTF-8
 set -gx LC_ALL en_US.UTF-8

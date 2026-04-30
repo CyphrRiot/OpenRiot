@@ -241,8 +241,8 @@ func Setup() int {
 
 	// Scale for larger screens
 	if width > 1920 {
-		content = strings.ReplaceAll(content, "width = 400", "width = 450")
-		content = strings.ReplaceAll(content, "FiraCode Nerd Font 10", "FiraCode Nerd Font 11")
+		content = strings.ReplaceAll(content, "width = 400", "width = 480")
+		content = strings.ReplaceAll(content, "FiraCode Nerd Font 10", "FiraCode Nerd Font 13")
 	}
 
 	// Write scaled config

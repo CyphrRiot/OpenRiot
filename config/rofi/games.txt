@@ -11,4 +11,5 @@ Transport Tycoon|openttd|
 # Xonotic|xonotic-sdl|󰊗
 Prince of Persia|sdlpop|
 Wesnoth|wesnoth|󰄚
+Bos Wars|boswars|󰴺
 Nethack|nethack-3.6.6|󰌌
