@@ -88,25 +88,7 @@ func main() {
 	printUsage()
 }
 
-// hasAudioPlaying checks if any audio is playing via sndio (OpenBSD) or PulseAudio (Linux)
-func hasAudioPlaying() bool {
-	cmd := exec.Command("sndioctl", "-n")
-	output, err := cmd.Output()
-	if err == nil {
-		lines := strings.Split(string(output), "\n")
-		for _, line := range lines {
-			if strings.HasPrefix(line, "app/") && strings.Contains(line, ".level=") {
-				return true
-			}
-		}
-	}
-	cmd = exec.Command("pactl", "list", "sink-inputs")
-	output, err = cmd.Output()
-	if err == nil && strings.Contains(string(output), "State: RUNNING") {
-		return true
-	}
-	return false
-}
+
 
 func initVersionInstallCommands(cmds map[string]func()) {
 	cmds["--version"] = func() {
@@ -609,17 +591,7 @@ func initLockPowerAppsCommands(cmds map[string]func()) {
 			lock.Lock()
 	}
 	cmds["--smart-lock"] = func() {
-			if hasAudioPlaying() {
-				return
-			}
-			players := []string{"firefox", "mpv", "vlc", "mplayer", "chrome", "chromium"}
-			for _, p := range players {
-				cmd := exec.Command("pgrep", "-x", p)
-				if output, _ := cmd.Output(); len(strings.TrimSpace(string(output))) > 0 {
-					return
-				}
-			}
-			lock.Lock()
+			lock.SmartLock()
 	}
 	cmds["--signal-launch"] = func() {
 			home, _ := os.UserHomeDir()

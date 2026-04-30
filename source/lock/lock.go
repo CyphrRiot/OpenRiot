@@ -122,3 +122,15 @@ func checkLockRunning() bool {
 	}
 	return len(strings.TrimSpace(string(output))) > 0
 }
+
+// SmartLock prevents locking when a known video player is running.
+func SmartLock() error {
+	players := []string{"mpv", "vlc", "mplayer"}
+	for _, p := range players {
+		cmd := exec.Command("pgrep", "-x", p)
+		if output, _ := cmd.Output(); len(strings.TrimSpace(string(output))) > 0 {
+			return nil
+		}
+	}
+	return Lock()
+}
