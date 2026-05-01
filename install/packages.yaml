@@ -353,8 +353,8 @@ system:
     services:
         type: "Package"
         commands:
-            - desc: "Enable apmd (high performance)"
-              cmd: "doas rcctl enable apmd && doas rcctl set apmd flags -H"
+            - desc: "Enable and start apmd (high performance)"
+              cmd: "doas rcctl enable apmd && doas rcctl set apmd flags -H && doas rcctl start apmd"
             - desc: "Disable USB power saving"
               cmd: |
                   if grep -q '^hw.allowpowerdown=' /etc/sysctl.conf 2>/dev/null; then

@@ -40,9 +40,9 @@ include keybindings.conf
 
 # Status bar - generate scaled config, then launch polybar (delay for Xorg readiness)
 exec --no-startup-id $openriot_bin --polybar-setup
-exec --no-startup-id sh -c '$openriot_bin --notify info "Polybar" "Starting Polybar..." normal 5000; sleep 3; polybar main'
+exec --no-startup-id sh -c '$openriot_bin --notify info "Polybar" "Starting Polybar..." normal 5000; sleep 5; polybar main'
 # Restart polybar after startup to ensure icons/fonts are loaded
-exec --no-startup-id sh -c 'sleep 8; polybar-msg cmd restart'
+exec --no-startup-id sh -c 'sleep 10; polybar-msg cmd restart'
 exec --no-startup-id sh -c 'sleep 10; while true; do pgrep polybar >/dev/null || polybar main; sleep 5; done'
 
 # Wallpaper

@@ -33,8 +33,8 @@ xset dpms 0 0 1800
 xset +dpms
 xautolock -time 10 -locker "$HOME/.local/share/openriot/install/openriot --smart-lock" &
 
-# Configure trackpad pointer speed (lower = slower)
-doas wsconsctl mouse.tp.scaling=0.8 2>/dev/null || true
+# # Configure trackpad pointer speed (lower = slower)
+# doas wsconsctl mouse.tp.scaling=0.8 2>/dev/null || true
 
 # Enable ThinkPad trackpoint middle-button scroll
 if sysctl hw.vendor 2>/dev/null | grep -qiE 'lenovo|ibm|thinkpad'; then
