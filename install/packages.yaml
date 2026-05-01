@@ -198,8 +198,11 @@ desktop:
     games:
         packages:
             # - xonotic-0.8.6
+            # - katomic-25.12.3
+            - gottet-1.2.7
             - defendguin-0.0.13
             - supertux-0.6.3p3
+            # - supertuxkart-1.5
             - sdlpop-1.22v0
             - zelda_roth_se-1.1.0p1
             - endless-sky-0.10.12p0

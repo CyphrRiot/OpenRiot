@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 
 	"openriot/macspoof"
 	"openriot/notify"
@@ -64,6 +65,10 @@ func Lock() error {
 	}
 
 	lockFile := matches[rand.Intn(len(matches))]
+
+	// Give user time to see the notification before screen locks
+	notify.SendNotify("lock", "Screen Lock", "Screen is locking...", "normal", 4000, 0)
+	time.Sleep(1 * time.Second)
 
 	cmd := exec.Command("i3lock", "-i", lockFile)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
