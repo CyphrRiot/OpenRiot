@@ -113,7 +113,7 @@ These ThinkPads have excellent OpenBSD support for WiFi, trackpoints, and suspen
 
 | Model                 | CPU               | WiFi                         | Notes                                     |
 | --------------------- | ----------------- | ---------------------------- | ----------------------------------------- |
-| **T14s Gen 1+** (AMD) | Ryzen 3 PRO 4450U | ⭐⭐⭐ `iwm` (AX200 adapter) | Best OpenBSD laptop                       |
+| **T14s Gen 1+** | Intel i5/i7 or AMD Ryzen | ⭐⭐⭐ `iwm` (AX200 adapter) | Best OpenBSD laptop                       |
 | **T490**              | Intel i5-8265U    | ⭐⭐ `iwm` (Intel 9560)      | Good experience overall                   |
 | **T480**              | Intel i5-8350U    | ⭐⭐ `iwm` (Intel 8265)      | Works well, slightly older                |
 | **X1 Carbon Gen 7**   | Intel i7-8665U    | ⭐⭐ `iwm` (Intel 9560)      | Premium build, good Linux/OpenBSD support |
@@ -650,7 +650,7 @@ This means:
 | Browser                | OpenBSD Support  | Notes                         |
 | ---------------------- | ---------------- | ----------------------------- |
 | **Firefox**            | ✅ Full          | `pkg_add firefox`             |
-| **Ungoogled Chromium** | ✅ Available     | `pkg_add ungoogled-chromium`  |
+| **Ungoogled Chromium** | ✅ Available     | `pkg_add ungoogled-chromium` (not installed by default) |
 | **Brave/Chrome/Edge**  | ❌ Not available | Chromium derivatives, no port |
 
 Firefox is open source, actively maintained, privacy-respecting by default, and has excellent OpenBSD support.
@@ -784,7 +784,7 @@ curl -fsSL https://openriot.org/setup.sh | sh
 **Install a specific version (tag):**
 
 ```bash
-openriot --install v4.0
+openriot --install v4.5
 ```
 
 The script automatically detects:
