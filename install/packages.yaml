@@ -81,6 +81,8 @@ desktop:
             - libqalculate-5.8.0p1
             - redshift-1.12p11
             - noto-emoji-2.051v0
+            - zathura-0.5.14
+            - zathura-pdf-poppler-0.3.4
         configs:
             - pattern: i3/*
             - pattern: icons/*
@@ -188,6 +190,9 @@ desktop:
                   if [ -f /usr/local/lib/firefox/browser/defaults/preferences/unveil.content ] && ! grep -q "^~/Downloads " /usr/local/lib/firefox/browser/defaults/preferences/unveil.content 2>/dev/null; then
                       echo "~/Downloads r" | doas tee -a /usr/local/lib/firefox/browser/defaults/preferences/unveil.content >/dev/null
                   fi
+            - desc: "Set Zathura as default PDF viewer"
+              cmd: |
+                  xdg-mime default org.pwmt.zathura.desktop application/pdf 2>/dev/null || true
             - desc: "Import dconf settings (requires X11)"
               cmd: |
                   if [ -z "$DISPLAY" ]; then
