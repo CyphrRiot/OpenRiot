@@ -192,7 +192,11 @@ desktop:
                   fi
             - desc: "Set Zathura as default PDF viewer"
               cmd: |
-                  xdg-mime default org.pwmt.zathura.desktop application/pdf 2>/dev/null || true
+                  if [ -z "$DISPLAY" ]; then
+                      echo "[SKIP] No X11, skipping PDF viewer setup"
+                  else
+                      xdg-mime default org.pwmt.zathura.desktop application/pdf 2>/dev/null || true
+                  fi
             - desc: "Import dconf settings (requires X11)"
               cmd: |
                   if [ -z "$DISPLAY" ]; then
