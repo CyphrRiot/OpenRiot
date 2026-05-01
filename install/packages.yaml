@@ -379,7 +379,7 @@ system:
                   else
                       i3-msg restart
                   fi
-        depends: [desktop.i3, source.polybar-scaling]
+        depends: [system.cleanup]
         start: "Restarting i3 window manager"
         end: "i3 restarted"
 
@@ -394,6 +394,6 @@ system:
                       pkill -9 polybar 2>/dev/null || true
                       echo "[DONE] Polybar killed (will restart automatically)"
                   fi
-        depends: [system.i3-restart]
+        depends: [desktop.i3, source.polybar-scaling]
         start: "Cleaning up stale menus..."
         end: "Cleanup complete. Polybar restarting..."
