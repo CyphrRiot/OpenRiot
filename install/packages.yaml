@@ -74,6 +74,7 @@ desktop:
             - picom-13
             - xclip-0.13p1
             - ImageMagick-6.9.13.43
+            - ffmpeg-8.0.1p1v1
             - dunst-1.13.1
             - clipmenu-6.2.0
             # - clipnotify-1.0.2  # Optional: for clipboard change detection scripts
@@ -124,6 +125,19 @@ desktop:
         depends: [desktop.i3]
         start: "Building rofi-calc from source"
         end: "rofi-calc installed"
+    lock-cache:
+        type: "Source"
+        build:
+            - desc: "Building Lock Images for your screen (~1 min)..."
+              cmd: |
+                  if [ -z "$DISPLAY" ]; then
+                      echo "[SKIP] No X11, skipping lock screen cache"
+                  else
+                      $HOME/.local/share/openriot/install/openriot --build-lock-cache
+                  fi
+        depends: [desktop.i3]
+        start: "Building Lock Screens... (~1 min)"
+        end: "Lock screen images completed"
     apps:
         packages:
             - firefox-150.0

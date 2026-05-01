@@ -559,6 +559,11 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Run: func(args []string) error { lock.SmartLock(); return nil },
 	})
 	r.Register(&Command{
+		Name: "--build-lock-cache", Category: "Lock & Power",
+		Description: "Pre-convert lock screen images to screen resolution",
+		Run: func(args []string) error { return lock.BuildCache() },
+	})
+	r.Register(&Command{
 		Name: "--signal-launch", Category: "Lock & Power",
 		Description: "Launch Signal messenger",
 		Run: func(args []string) error { return runAppLauncher("signal", "gurk", "alacritty", "--class", "gurk", "--title", "Signal", "-e") },

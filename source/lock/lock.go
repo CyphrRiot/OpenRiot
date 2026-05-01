@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
-	"time"
 
 	"openriot/macspoof"
 	"openriot/notify"
@@ -23,85 +22,50 @@ func Lock() error {
 		return nil // Already locked, skip
 	}
 
+	// Get screen resolution
+	w, h := screen.GetResolution()
+	res := fmt.Sprintf("%dx%d", w, h)
+
 	// Find random lock image
 	lockDir := filepath.Join(home, ".local/share/openriot/Locked")
+	cacheBase := filepath.Join(lockDir, ".cache", res)
 
-	// Check if stealth mode is enabled
+	// Try cached PNGs first (fast path)
 	var matches []string
 	if macspoof.IsStealthEnabled() {
-		// In stealth: allow both default/ and stealth/
-		matches, _ = filepath.Glob(filepath.Join(lockDir, "default", "*.jpg"))
-		stealthMatches, _ := filepath.Glob(filepath.Join(lockDir, "stealth", "*.jpg"))
+		matches, _ = filepath.Glob(filepath.Join(cacheBase, "default", "*.png"))
+		stealthMatches, _ := filepath.Glob(filepath.Join(cacheBase, "stealth", "*.png"))
 		matches = append(matches, stealthMatches...)
 	} else {
-		// Look for default/*.jpg in Locked directory
-		matches, _ = filepath.Glob(filepath.Join(lockDir, "default", "*.jpg"))
+		matches, _ = filepath.Glob(filepath.Join(cacheBase, "default", "*.png"))
 	}
 
-	// Holiday images are shown in both modes (if they exist)
-	holidayMatches, _ := filepath.Glob(filepath.Join(lockDir, "holiday", "*.jpg"))
-	matches = append(matches, holidayMatches...)
-
-	// Retro images are shown in both modes (if they exist)
-	retroMatches, _ := filepath.Glob(filepath.Join(lockDir, "retro", "*.jpg"))
-	matches = append(matches, retroMatches...)
-
-	// Product images are shown in both modes (if they exist)
-	productMatches, _ := filepath.Glob(filepath.Join(lockDir, "products", "*.jpg"))
-	matches = append(matches, productMatches...)
-
+	// Cache missing — build it now
 	if len(matches) == 0 {
-		// Fallback to old locked.jpg
-		lockJpg := filepath.Join(home, ".local/share/openriot/assets/locked.jpg")
-		if _, err := os.Stat(lockJpg); os.IsNotExist(err) {
-			lockJpg = filepath.Join(home, "Code/OpenRiot/assets/locked.jpg")
+		notify.SendNotify("lock", "Screen Lock", "Building Lock screens... Expected time: ~2 mins", "normal", 120000, 0)
+		if err := BuildCache(); err != nil {
+			notify.SendNotify("lock", "Screen Lock", "Lock failed: could not build cache", "critical", 5000, 0)
+			return err
 		}
-		if _, err := os.Stat(lockJpg); err == nil {
-			matches = append(matches, lockJpg)
+
+		// Retry after build
+		if macspoof.IsStealthEnabled() {
+			matches, _ = filepath.Glob(filepath.Join(cacheBase, "default", "*.png"))
+			stealthMatches, _ := filepath.Glob(filepath.Join(cacheBase, "stealth", "*.png"))
+			matches = append(matches, stealthMatches...)
+		} else {
+			matches, _ = filepath.Glob(filepath.Join(cacheBase, "default", "*.png"))
 		}
 	}
 
 	if len(matches) == 0 {
-		// No lock images found
 		notify.SendNotify("lock", "Screen Lock", "No lock images found", "normal", 4000, 0)
+		return nil
 	}
 
-	if len(matches) > 0 {
-		// Randomly select one
-		lockJpg := matches[rand.Intn(len(matches))]
+	lockFile := matches[rand.Intn(len(matches))]
 
-		// Notify user
-		notify.SendNotify("lock", "Screen Lock", "Screen is locking...", "normal", 4000, 0)
-		time.Sleep(500 * time.Millisecond)
-
-		// Get screen resolution
-		w, h := screen.GetResolution()
-		res := fmt.Sprintf("%dx%d", w, h)
-
-		// Convert to /tmp with exact resolution (centers and fills)
-		lockPng := "/tmp/openriot-lock.png"
-		cmd := exec.Command("convert", lockJpg, "-resize", res+"^", "-gravity", "center", "-extent", res, lockPng)
-		cmd.Run()
-
-		if _, err := os.Stat(lockPng); err == nil {
-			cmd = exec.Command("i3lock", "-i", lockPng)
-			cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
-			cmd.Stdin = nil
-			cmd.Stdout = nil
-			cmd.Stderr = nil
-			err := cmd.Start()
-			if err != nil {
-				notify.SendNotify("lock", "Screen Lock", "Lock failed: i3lock error", "critical", 5000, 0)
-				return err
-			}
-			cmd.Wait()
-			os.Remove(lockPng)
-			return nil
-		}
-	}
-
-	// Fallback: solid color
-	cmd := exec.Command("i3lock", "-c", "08090c")
+	cmd := exec.Command("i3lock", "-i", lockFile)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	cmd.Stdin = nil
 	cmd.Stdout = nil
@@ -109,8 +73,10 @@ func Lock() error {
 	err := cmd.Start()
 	if err != nil {
 		notify.SendNotify("lock", "Screen Lock", "Lock failed: i3lock error", "critical", 5000, 0)
+		return err
 	}
-	return err
+	cmd.Wait()
+	return nil
 }
 
 // checkLockRunning returns true if i3lock is already running
