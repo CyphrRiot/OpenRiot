@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"openriot/notify"
+	"openriot/polybar"
 )
 
 const (
@@ -27,7 +28,7 @@ func Get() string {
 	state := getState()
 	ensureRedshift(state)
 	if state == 1 {
-		return iconOn
+		return polybar.Icon(iconOn)
 	}
 	return ""
 }

@@ -17,11 +17,19 @@ import (
 	"openriot/windowtitle"
 )
 
+// Icon wraps a Nerd Font glyph with polybar click-area offset to fix right-edge clickability on right-side modules.
+func Icon(icon string) string {
+	if icon == "" {
+		return ""
+	}
+	return icon + "%{O2}"
+}
+
 // RunMetrics outputs CPU icon for polybar (memory is separate module)
 func RunMetrics() error {
 	cpu := getCPU()
 	cpuPct := getCPUPercent()
-	fmt.Printf("%s\nCPU: %s%%\n", cpu, cpuPct)
+	fmt.Printf("%s\nCPU: %s%%\n", Icon(cpu), cpuPct)
 	return nil
 }
 
@@ -87,13 +95,13 @@ func GetRAM() string {
 	// 0-25%: 󰢿, 25-50%: 󰢼, 50-75%: 󰢽, 75-100%: 󰢾
 	switch {
 	case ram >= 75:
-		return "󰢾"
+		return Icon("󰢾")
 	case ram >= 50:
-		return "󰢽"
+		return Icon("󰢽")
 	case ram >= 25:
-		return "󰢼"
+		return Icon("󰢼")
 	default:
-		return "󰢿"
+		return Icon("󰢿")
 	}
 }
 
@@ -174,7 +182,7 @@ func RunVolume() error {
 	}
 
 	// Output: icon + tooltip with percentage
-	fmt.Printf("%s\nVolume: %d%%\n", icon, vol)
+	fmt.Printf("%s\nVolume: %d%%\n", Icon(icon), vol)
 	return nil
 }
 
@@ -204,7 +212,7 @@ func RunProtonDrive() error {
 		return nil
 	}
 	icon := GetProtonDriveIcon()
-	fmt.Printf("%s\nProton Drive: %s\n", icon, getProtonDriveTooltip())
+	fmt.Printf("%s\nProton Drive: %s\n", Icon(icon), getProtonDriveTooltip())
 	return nil
 }
 

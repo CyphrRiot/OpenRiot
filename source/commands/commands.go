@@ -421,7 +421,7 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Description: "Show transmission icon",
 		Run: func(args []string) error {
 			if rofi.IsTransmissionRunning() {
-				fmt.Print("󰐻")
+				fmt.Print(polybar.Icon("󰐻"))
 			}
 			return nil
 		},

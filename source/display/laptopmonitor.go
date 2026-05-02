@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"openriot/notify"
+	"openriot/polybar"
 )
 
 const (
@@ -20,9 +21,9 @@ func RunLaptopMonitor() {
 		return
 	}
 	if isLaptopMonitorEnabled() {
-		fmt.Println(iconEnabled)
+		fmt.Println(polybar.Icon(iconEnabled))
 	} else {
-		fmt.Println(iconDisabled)
+		fmt.Println(polybar.Icon(iconDisabled))
 	}
 }
 

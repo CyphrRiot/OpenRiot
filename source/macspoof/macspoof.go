@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"openriot/logger"
+	"openriot/polybar"
 )
 
 // Interface represents a network interface with MAC info
@@ -169,7 +170,7 @@ func IsStealthEnabled() bool {
 // StealthStatus returns the appropriate icon for polybar
 func StealthStatus() string {
 	if IsStealthEnabled() {
-		return "󰝴" // Stealth ON
+		return polybar.Icon("󰝴") // Stealth ON
 	}
 	return "" // Stealth OFF — hide module
 }

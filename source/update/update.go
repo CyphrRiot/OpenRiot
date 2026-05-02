@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"openriot/notify"
+	"openriot/polybar"
 )
 
 var home, _ = os.UserHomeDir()
@@ -29,12 +30,12 @@ func Get() string {
 
 func iconForComparison(local, remote string) string {
 	if local == "unknown" || remote == "unknown" {
-		return unknownIcon
+		return polybar.Icon(unknownIcon)
 	}
 	if CompareVersions(local, remote) < 0 {
-		return updateIcon
+		return polybar.Icon(updateIcon)
 	}
-	return noUpdateIcon
+	return polybar.Icon(noUpdateIcon)
 }
 
 func Click() error {

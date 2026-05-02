@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"openriot/polybar"
 )
 
 // GetNotifyDetails returns formatted battery info for notifications.
@@ -72,7 +74,7 @@ func Get() string {
 		return "" // No battery info
 	}
 
-	return getBatteryIcon(percent, ac)
+	return polybar.Icon(getBatteryIcon(percent, ac))
 }
 
 func getBatteryIcon(percent, ac int) string {

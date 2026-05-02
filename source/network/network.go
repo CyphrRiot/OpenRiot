@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"openriot/polybar"
 )
 
 const connectivityFile = "network-online"
@@ -41,7 +43,7 @@ func GetWifi() string {
 				return getWifiIcon(signal)
 			}
 		}
-		return "󱛅"
+		return polybar.Icon("󱛅")
 	}
 
 	signal := getSignal(iface)
@@ -58,9 +60,9 @@ func GetEth() string {
 	}
 
 	if hasCarrier {
-		return "󰈀"
+		return polybar.Icon("󰈀")
 	}
-	return "󰌙"
+	return polybar.Icon("󰌙")
 }
 
 func GetWifiDetails() string {
@@ -213,16 +215,19 @@ func getSignal(iface string) int {
 func getWifiIcon(signal int) string {
 	percent := max(0, min((signal+100)*100/70, 100))
 
+	var icon string
 	if percent >= 70 {
-		return "󰤨"
+		icon = "󰤨"
 	} else if percent >= 50 {
-		return "󰤥"
+		icon = "󰤥"
 	} else if percent >= 30 {
-		return "󰤢"
+		icon = "󰤢"
 	} else if percent >= 20 {
-		return "󰤟"
+		icon = "󰤟"
+	} else {
+		icon = "󰤯"
 	}
-	return "󰤯"
+	return polybar.Icon(icon)
 }
 
 func extractAP(output string) string {

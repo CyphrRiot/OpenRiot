@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"openriot/notify"
+	"openriot/polybar"
 )
 
 const (
@@ -27,7 +28,7 @@ func Status() string {
 	if !isConfigured() || !isRunning() {
 		return ""
 	}
-	return "󰱓"
+	return polybar.Icon("󰱓")
 }
 
 func Start() error {
