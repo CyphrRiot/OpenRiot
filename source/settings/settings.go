@@ -133,7 +133,6 @@ func buildEntries() []entry {
 func findTheme() string {
 	candidates := []string{
 		filepath.Join(homeDir, ".local/share/openriot/config/rofi/simple-tokyonight.rasi"),
-		"/home/grendel/.local/share/openriot/config/rofi/simple-tokyonight.rasi",
 		"/usr/local/share/openriot/config/rofi/simple-tokyonight.rasi",
 	}
 	for _, p := range candidates {
