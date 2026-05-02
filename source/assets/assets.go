@@ -65,7 +65,6 @@ func installKora() error {
 	}
 
 	destPath := filepath.Join(homeDir, ".local/share/icons/kora")
-	repoURL := "https://github.com/bikass/kora.git"
 
 	// Check if already installed
 	if _, err := os.Stat(destPath); err == nil {
@@ -73,30 +72,23 @@ func installKora() error {
 		return nil
 	}
 
-	// Clone to temp location
-	tmpPath := "/tmp/kora"
-	os.RemoveAll(tmpPath) // Clean up any previous attempt
+	// Extract bundled kora.tgz from assets to ~/.local/share/icons/
+	sourceTgz := filepath.Join(homeDir, ".local/share/openriot/assets/themes/kora.tgz")
+	iconsDir := filepath.Join(homeDir, ".local/share/icons")
 
-	cmd := exec.Command("git", "clone", repoURL, tmpPath)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to clone Kora: %w", err)
+	if _, err := os.Stat(sourceTgz); os.IsNotExist(err) {
+		fmt.Println("[SKIP] Kora theme archive not found (run setup.sh first)")
+		return nil
 	}
 
-	// Ensure destination directory exists
-	iconsDir := filepath.Join(homeDir, ".local/share/icons")
 	if err := os.MkdirAll(iconsDir, 0755); err != nil {
 		return fmt.Errorf("failed to create icons directory: %w", err)
 	}
 
-	// Copy kora folder from repo
-	srcKora := filepath.Join(tmpPath, "kora")
-	cmd = exec.Command("cp", "-r", srcKora, destPath)
+	cmd := exec.Command("tar", "xzf", sourceTgz, "-C", iconsDir)
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to copy Kora: %w", err)
+		return fmt.Errorf("failed to extract Kora theme: %w", err)
 	}
-
-	// Clean up
-	os.RemoveAll(tmpPath)
 
 	fmt.Println("[DONE] Kora icon theme installed")
 	return nil
