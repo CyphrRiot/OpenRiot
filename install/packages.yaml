@@ -254,11 +254,8 @@ media:
             - x264-20250909
             - x265-4.1p0
         configs:
-            - pattern: "transmission-daemon/settings.json"
-              target: "~/.config/transmission-daemon"
-              preserve_if_exists: [settings.json]
-            - pattern: "transmission-daemon/settings.json"
-              target: "~/.config/transmission"
+            - pattern: "transmission/settings.json"
+              target: "~/.config/transmission/settings.json"
               preserve_if_exists: [settings.json]
         depends: [core.base, desktop.i3]
         start: "Installing media controls"
