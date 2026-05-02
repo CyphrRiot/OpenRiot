@@ -32,7 +32,9 @@ func BuildCache() error {
 		return fmt.Errorf("failed to clear old cache: %w", err)
 	}
 
-	dirs := []string{"default", "stealth"}
+	if err := os.MkdirAll(cacheRoot, 0755); err != nil {
+		return fmt.Errorf("failed to create cache directory: %w", err)
+	}
 
 	// Detect CPU count for parallelisation
 	ncpu := 4
@@ -48,60 +50,39 @@ func BuildCache() error {
 		useFFmpeg = true
 	}
 
-	var total, converted int
-	for _, dir := range dirs {
-		matches, _ := filepath.Glob(filepath.Join(lockDir, dir, "*.jpg"))
-		total += len(matches)
+	matches, _ := filepath.Glob(filepath.Join(lockDir, "*.jpg"))
+	if len(matches) == 0 {
+		logger.Done("No lock screen images found")
+		return nil
 	}
 
-	for _, dir := range dirs {
-		srcDir := filepath.Join(lockDir, dir)
-		dstDir := filepath.Join(cacheRoot, dir)
-
-		matches, _ := filepath.Glob(filepath.Join(srcDir, "*.jpg"))
-		if len(matches) == 0 {
-			continue
-		}
-
-		if err := os.MkdirAll(dstDir, 0755); err != nil {
-			logger.Warn(fmt.Sprintf("Failed to create %s: %v", dstDir, err))
-			continue
-		}
-
-		if useFFmpeg {
-			// Parallel ffmpeg: ~2× faster per image, plus parallelisation
-			filter := fmt.Sprintf("scale=%d:%d:force_original_aspect_ratio=decrease,pad=%d:%d:(ow-iw)/2:(oh-ih)/2", w, h, w, h)
-			script := fmt.Sprintf(
-				`for f in %s/*.jpg; do
-					bn=$(basename "$f" .jpg)
-					echo "$f" "%s/${bn}.png"
-				done | xargs -P %d -n2 sh -c 'ffmpeg -y -i "$1" -vf "%s" "$2" 2>/dev/null' _`,
-				srcDir, dstDir, ncpu, filter)
-			cmd := exec.Command("/bin/sh", "-c", script)
-			if out, err := cmd.CombinedOutput(); err != nil {
-				logger.Warn(fmt.Sprintf("ffmpeg batch failed: %v\n%s", err, string(out)))
-				useFFmpeg = false // fall through to convert
-			} else {
-				// Count successes
-				pngs, _ := filepath.Glob(filepath.Join(dstDir, "*.png"))
-				converted += len(pngs)
-				continue
-			}
-		}
-
-		// Fallback: parallel ImageMagick convert
+	if useFFmpeg {
+		filter := fmt.Sprintf("scale=%d:%d:force_original_aspect_ratio=decrease,pad=%d:%d:(ow-iw)/2:(oh-ih)/2", w, h, w, h)
 		script := fmt.Sprintf(
-			`find %s -name '*.jpg' | xargs -P %d -I{} sh -c 'f="{}"; bn=$(basename "$f" .jpg); convert "$f" -resize "%s^" -gravity center -extent "%s" "%s/${bn}.png"'`,
-			srcDir, ncpu, res, res, dstDir)
+			`for f in %s/*.jpg; do
+				bn=$(basename "$f" .jpg)
+				echo "$f" "%s/${bn}.png"
+			done | xargs -P %d -n2 sh -c 'ffmpeg -y -i "$1" -vf "%s" "$2" 2>/dev/null' _`,
+			lockDir, cacheRoot, ncpu, filter)
 		cmd := exec.Command("/bin/sh", "-c", script)
 		if out, err := cmd.CombinedOutput(); err != nil {
-			logger.Warn(fmt.Sprintf("convert batch failed: %v\n%s", err, string(out)))
-			continue
+			logger.Warn(fmt.Sprintf("ffmpeg batch failed: %v\n%s", err, string(out)))
+			useFFmpeg = false // fall through to convert
 		}
-		pngs, _ := filepath.Glob(filepath.Join(dstDir, "*.png"))
-		converted += len(pngs)
 	}
 
-	logger.Done("[" + strconv.Itoa(converted) + "/" + strconv.Itoa(total) + "] Lock screen images completed")
+	if !useFFmpeg {
+		script := fmt.Sprintf(
+			`find %s -name '*.jpg' | xargs -P %d -I{} sh -c 'f="{}"; bn=$(basename "$f" .jpg); convert "$f" -resize "%s^" -gravity center -extent "%s" "%s/${bn}.png"'`,
+			lockDir, ncpu, res, res, cacheRoot)
+		cmd := exec.Command("/bin/sh", "-c", script)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return fmt.Errorf("convert batch failed: %v\n%s", err, string(out))
+		}
+	}
+
+	pngs, _ := filepath.Glob(filepath.Join(cacheRoot, "*.png"))
+	logger.Done("[" + strconv.Itoa(len(pngs)) + "/" + strconv.Itoa(len(matches)) + "] Lock screen images completed")
 	return nil
 }
+

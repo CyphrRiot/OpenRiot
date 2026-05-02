@@ -9,3 +9,4 @@ Terminal=false
 Type=Application
 Categories=AudioVideo;Player;Video;
 Keywords=video;audio;media;player;mpv;
+MimeType=video/mp4;video/x-matroska;video/x-msvideo;video/quicktime;video/webm;video/x-flv;video/x-ms-wmv;audio/mpeg;audio/flac;audio/wav;audio/ogg;audio/mp4;audio/opus;

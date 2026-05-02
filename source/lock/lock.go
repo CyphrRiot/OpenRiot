@@ -32,13 +32,18 @@ func Lock() error {
 	cacheBase := filepath.Join(lockDir, ".cache", res)
 
 	// Try cached PNGs first (fast path)
-	var matches []string
+	matches, _ := filepath.Glob(filepath.Join(cacheBase, "*.png"))
 	if macspoof.IsStealthEnabled() {
-		matches, _ = filepath.Glob(filepath.Join(cacheBase, "default", "*.png"))
-		stealthMatches, _ := filepath.Glob(filepath.Join(cacheBase, "stealth", "*.png"))
-		matches = append(matches, stealthMatches...)
+		// Stealth: use all images
 	} else {
-		matches, _ = filepath.Glob(filepath.Join(cacheBase, "default", "*.png"))
+		// Non-stealth: filter out stealth images (*s.png)
+		var normal []string
+		for _, m := range matches {
+			if !strings.HasSuffix(m, "s.png") {
+				normal = append(normal, m)
+			}
+		}
+		matches = normal
 	}
 
 	// Cache missing — build it now
@@ -50,12 +55,15 @@ func Lock() error {
 		}
 
 		// Retry after build
-		if macspoof.IsStealthEnabled() {
-			matches, _ = filepath.Glob(filepath.Join(cacheBase, "default", "*.png"))
-			stealthMatches, _ := filepath.Glob(filepath.Join(cacheBase, "stealth", "*.png"))
-			matches = append(matches, stealthMatches...)
-		} else {
-			matches, _ = filepath.Glob(filepath.Join(cacheBase, "default", "*.png"))
+		matches, _ = filepath.Glob(filepath.Join(cacheBase, "*.png"))
+		if !macspoof.IsStealthEnabled() {
+			var normal []string
+			for _, m := range matches {
+				if !strings.HasSuffix(m, "s.png") {
+					normal = append(normal, m)
+				}
+			}
+			matches = normal
 		}
 	}
 
