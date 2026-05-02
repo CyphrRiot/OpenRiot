@@ -19,4 +19,4 @@ Frozen Bubble|frozen-bubble|󰗣
 Tetris|gottet|󰸹
 # Katomic Sokoban|katomic|󰝨
 # 0 A.D.|0ad|󱢿
-Nethack|alacritty -e nethack-3.6.6|󰌌
+Slash|alacritty --class floating_center -e nethack-3.6.6|󰌌
