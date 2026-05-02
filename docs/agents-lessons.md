@@ -202,3 +202,49 @@ If removing a language server package (e.g., `py3-python-lsp-server`), check `~/
 ```
 
 Either reinstall the package or remove the LSP entry from `crush.json`.
+
+## PLATFORM — OpenBSD + Fish
+
+| Bash | Fish |
+|------|------|
+| `<(cmd)` | `(cmd \| psub)` |
+| `&&` | `; and` |
+| `\|\|` | `; or` |
+
+- `pkg_delete` base names only: `doas pkg_delete autopep8`
+- Check reverse deps: `pkg_info -R <pkg>`
+
+## DOCS
+
+- `docs/architecture.md` — system design
+- `docs/debugging.md` — debug workflow
+- `docs/packages.md` — package/module rules
+- `docs/polybar-performance.md` — polybar config notes
+- `docs/proton-drive-module.md` — Proton Drive integration
+
+## CODE TREE
+
+```
+source/
+  main.go               # CLI entry point (cmd dispatch)
+  installer/            # pkg_add, configs, source builds, mirrors
+  imaging/              # wallpaper + screenshot pipeline
+  polybar/              # bar generation + module config
+  rofi/                 # launcher menus
+  lock/                 # screen lock + blur
+  crypto/               # wallet/encryption
+  config/               # config file helpers
+  backgrounds/          # wallpaper sets
+  assets/               # embedded images/fonts
+  detect/               # hardware detection
+  display/              # xrandr / monitor helpers
+  network/              # wifi, wireguard
+  audio/                # volume/pulse
+  battery/              # power status
+  notify/               # dunst notifications
+  settings/             # UI settings panels
+  update/               # system update checks
+config/                 # dotfiles (i3, polybar, fish, nvim, etc.)
+install/                # built binary + motd + packages.yaml
+Locked/                 # wallpaper sets (default, stealth)
+```
