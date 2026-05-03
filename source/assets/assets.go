@@ -101,10 +101,25 @@ func installKora() error {
 
 	destPath := filepath.Join(homeDir, ".local/share/icons/kora")
 
-	// Check if already installed
+	// Check if already installed — but also verify it is not the broken SVG-only version
+	needsInstall := true
 	if _, err := os.Stat(destPath); err == nil {
-		fmt.Println("[SKIP] Kora icon theme already installed")
-		return nil
+		indexPath := filepath.Join(destPath, "index.theme")
+		if data, err := os.ReadFile(indexPath); err == nil {
+			content := string(data)
+			if strings.Contains(content, "panel/22") && strings.Contains(content, "actions/16") {
+				needsInstall = false
+			}
+		}
+	}
+
+	if needsInstall {
+		// Remove broken or stale install first
+		if _, err := os.Stat(destPath); err == nil {
+			if err := os.RemoveAll(destPath); err != nil {
+				return fmt.Errorf("failed to remove stale Kora: %w", err)
+			}
+		}
 	}
 
 	// Extract bundled kora.tgz from assets to ~/.local/share/icons/
@@ -125,6 +140,10 @@ func installKora() error {
 		return fmt.Errorf("failed to extract Kora theme: %w", err)
 	}
 
-	fmt.Println("[DONE] Kora icon theme installed")
+	if needsInstall {
+		fmt.Println("[DONE] Kora icon theme installed")
+	} else {
+		fmt.Println("[SKIP] Kora icon theme already installed")
+	}
 	return nil
 }

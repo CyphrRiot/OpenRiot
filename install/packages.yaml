@@ -154,6 +154,8 @@ desktop:
             - gnome-themes-extra-3.28p7
             - papirus-icon-theme-20250501p1
             - lf-41
+            - xdg-utils-1.2.1
+            - dconf-0.40.2p2
             - libreoffice-26.2.2.2v0
             - gnome-text-editor-49.1
         configs:
@@ -202,7 +204,7 @@ desktop:
                   if [ -z "$DISPLAY" ]; then
                       echo "[SKIP] No X11, skipping dconf"
                   else
-                      dconf load /org/gnome/TextEditor/ < $HOME/.config/openriot/dconf/org.gnome.TextEditor.ini
+                      dconf load /org/gnome/TextEditor/ < $HOME/.config/openriot/dconf/org.gnome.TextEditor.ini || true
                   fi
     games:
         packages:
@@ -230,7 +232,7 @@ desktop:
         critical: false
 
     pacman:
-        depends: [desktop.games]
+        depends: [desktop.apps]
         start: "Installing pacman"
         end: "pacman installed"
         type: "Source"
