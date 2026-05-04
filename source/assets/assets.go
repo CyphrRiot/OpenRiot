@@ -100,17 +100,18 @@ func installKora() error {
 	}
 
 	destPath := filepath.Join(homeDir, ".local/share/icons/kora")
+	panelPath := filepath.Join(destPath, "panel", "22")
+	actionsPath := filepath.Join(destPath, "actions", "16")
 
-	// Check if already installed — but also verify it is not the broken SVG-only version
-	needsInstall := true
-	if _, err := os.Stat(destPath); err == nil {
-		indexPath := filepath.Join(destPath, "index.theme")
-		if data, err := os.ReadFile(indexPath); err == nil {
-			content := string(data)
-			if strings.Contains(content, "panel/22") && strings.Contains(content, "actions/16") {
-				needsInstall = false
-			}
-		}
+	// Check if already installed by looking for key fixed-size directories.
+	// This is more robust than checking index.theme, which can be reverted
+	// by GTK cache rebuilds or other tools without removing the actual files.
+	needsInstall := false
+	if _, err := os.Stat(panelPath); os.IsNotExist(err) {
+		needsInstall = true
+	}
+	if _, err := os.Stat(actionsPath); os.IsNotExist(err) {
+		needsInstall = true
 	}
 
 	if needsInstall {
@@ -135,12 +136,12 @@ func installKora() error {
 		return fmt.Errorf("failed to create icons directory: %w", err)
 	}
 
-	cmd := exec.Command("tar", "xzf", sourceTgz, "-C", iconsDir)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to extract Kora theme: %w", err)
-	}
-
 	if needsInstall {
+		fmt.Println("[INFO] Installing Kora icon theme... (be patient)")
+		cmd := exec.Command("tar", "xzf", sourceTgz, "-C", iconsDir)
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("failed to extract Kora theme: %w", err)
+		}
 		fmt.Println("[DONE] Kora icon theme installed")
 	} else {
 		fmt.Println("[SKIP] Kora icon theme already installed")
