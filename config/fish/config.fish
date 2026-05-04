@@ -6,9 +6,21 @@
 # Disable core dumps
 ulimit -c 0
 
-# Stop history
-set -e FISH_HISTORY_SAVE
-set -e FISH_HISTORY_LIMIT
+# =============================================================================
+# History Configuration (Multi-Alacritty / i3 Safe)
+# =============================================================================
+# Prevent corruption with many concurrent terminals
+set -U fish_history_limit 10000 # reasonable size, prevents huge files
+set -U fish_history_size 10000 # same value for safety
+
+# Force fish to merge history from all terminals on every prompt
+function __fish_history_merge --on-event fish_postexec
+    history merge
+end
+
+# Optional: completely disable saving if you hate history (uncomment if you want)
+# set -U fish_history ""
+# 
 
 # Set UTF-8 locale for foot/X11 compatibility
 set -gx LANG en_US.UTF-8
