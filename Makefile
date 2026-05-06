@@ -101,7 +101,7 @@ release:
 		sed -i "s/version-[0-9.]*/version-$$NEW_VERSION/" README.md; \
 		echo "Committing..."; \
 		git add -A; \
-		git commit; \
+		GIT_EDITOR=hx git commit; \
 		echo "Creating tag..."; \
 		git tag -a "v$$NEW_VERSION" -m "OpenRiot v$$NEW_VERSION"; \
 		echo ""; \
