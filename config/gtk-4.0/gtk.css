@@ -13,3 +13,21 @@ headerbar {
     background-color: #16161e;
     border-bottom: 1px solid #292e42;
 }
+
+tabbar {
+    background-color: transparent;
+}
+
+tabbar tab {
+    color: #c0caf5;
+}
+
+tabbar tab:selected {
+    background-color: transparent;
+    border-bottom: 3px solid #7b68ee;
+    color: #c0caf5;
+}
+
+tabbar tab:hover {
+    background-color: #292e42;
+}
