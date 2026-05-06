@@ -22,6 +22,7 @@ line-number = "relative"
 cursorline = true
 
 mouse = true
+clipboard-provider = "x-clip"
 auto-completion = true
 auto-format = true
 auto-save = false

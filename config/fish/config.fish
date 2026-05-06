@@ -14,9 +14,9 @@ set -U fish_history_limit 10000 # reasonable size, prevents huge files
 set -U fish_history_size 10000 # same value for safety
 
 # Force fish to merge history from all terminals on every prompt
-function __fish_history_merge --on-event fish_postexec
-    history merge
-end
+#function __fish_history_merge --on-event fish_postexec
+#    history merge
+#end
 
 # Optional: completely disable saving if you hate history (uncomment if you want)
 # set -U fish_history ""

@@ -407,14 +407,14 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Run: func(args []string) error { fmt.Print(nightlight.Get()); return nil },
 	})
 	r.Register(&Command{
-		Name: "--laptop-monitor", Category: "Network & Battery",
-		Description: "Run laptop monitor script",
-		Run: func(args []string) error { display.RunLaptopMonitor(); return nil },
+		Name: "--hdmi", Category: "Network & Battery",
+		Description: "Show HDMI/external display icon",
+		Run: func(args []string) error { display.RunHDMI(); return nil },
 	})
 	r.Register(&Command{
-		Name: "--laptop-monitor-toggle", Category: "Network & Battery",
-		Description: "Toggle laptop monitor",
-		Run: func(args []string) error { display.ToggleLaptopMonitor(); return nil },
+		Name: "--hdmi-toggle", Category: "Network & Battery",
+		Description: "Toggle HDMI-only / Laptop+HDMI mode",
+		Run: func(args []string) error { display.ToggleHDMI(); return nil },
 	})
 	r.Register(&Command{
 		Name: "--polybar-transmission", Category: "Network & Battery",

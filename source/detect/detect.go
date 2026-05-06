@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+
+	"openriot/display"
 )
 
 // IsUndocked returns true if the system appears to be undocked (no external power detected).
@@ -22,12 +24,16 @@ func IsUndocked() bool {
 	return false // Assume docked/desktop if no battery
 }
 
-// SuspendIfUndocked checks and suspends if on battery.
+// SuspendIfUndocked checks and suspends if on battery with no external display.
 func SuspendIfUndocked() {
-	if IsUndocked() {
-		fmt.Println("Undocked, suspending...")
-		_ = exec.Command("zzz").Run()
-	} else {
+	if !IsUndocked() {
 		fmt.Println("Docked or on AC - not suspending")
+		return
 	}
+	if display.HasExternalDisplay() {
+		fmt.Println("On battery but external display connected - not suspending")
+		return
+	}
+	fmt.Println("Undocked, suspending...")
+	_ = exec.Command("zzz").Run()
 }

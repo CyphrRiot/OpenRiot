@@ -1,6 +1,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -47,22 +48,16 @@ func GetWifi() string {
 	}
 
 	signal := getSignal(iface)
-	if signal > 0 {
-		return getWifiIcon(signal)
-	}
-	return ""
+	return getWifiIcon(signal)
 }
 
 func GetEth() string {
 	iface, hasCarrier := getEthInterface()
-	if iface == "" {
+	if iface == "" || !hasCarrier {
 		return ""
 	}
 
-	if hasCarrier {
-		return polybar.Icon("󰈀")
-	}
-	return polybar.Icon("󰌙")
+	return polybar.Icon("󰈀")
 }
 
 func GetWifiDetails() string {
@@ -147,21 +142,46 @@ func getWifiInterface() (string, bool) {
 	cmd := exec.Command("/sbin/ifconfig")
 	output, _ := cmd.Output()
 
+	lines := strings.Split(string(output), "\n")
 	var current string
 	isWifi := false
-	lines := strings.Split(string(output), "\n")
+	isUp := false
+	hasJoin := false
+	noNetwork := false
+
 	for _, line := range lines {
+		// New interface block starts
 		if matched, _ := regexp.MatchString(`^[a-z]+[0-9]+:`, line); matched {
+			// Check previous interface first
+			if current != "" && isWifi && isUp && hasJoin && !noNetwork {
+				return current, true
+			}
 			current = strings.TrimSuffix(strings.SplitN(line, ":", 2)[0], ":")
 			isWifi = false
+			isUp = strings.Contains(line, "<UP")
+			hasJoin = false
+			noNetwork = false
+			continue
+		}
+		if current == "" {
+			continue
 		}
 		if strings.Contains(line, "ieee80211") && current != "ieee80211" {
 			isWifi = true
 		}
-		// Connected if: join (WPA) or inet (DHCP/static IP assigned)
-		if isWifi && (strings.Contains(line, "join") || strings.Contains(line, "inet ")) {
-			return current, true
+		if isWifi {
+			if strings.Contains(line, "join") {
+				hasJoin = true
+			}
+			if strings.Contains(line, "status: no network") {
+				noNetwork = true
+			}
 		}
+	}
+
+	// Check the last interface in the output
+	if current != "" && isWifi && isUp && hasJoin && !noNetwork {
+		return current, true
 	}
 	return "", false
 }
@@ -172,26 +192,17 @@ func getEthInterface() (string, bool) {
 
 	var current string
 	var isEth bool
-	hasCarrier := false
 	lines := strings.Split(string(output), "\n")
 	for _, line := range lines {
 		if matched, _ := regexp.MatchString(`^[a-z]+[0-9]+:`, line); matched {
 			current = strings.TrimSuffix(strings.SplitN(line, ":", 2)[0], ":")
 			isEth = false
-			hasCarrier = false
 		}
 		if strings.Contains(line, "media: Ethernet") {
 			isEth = true
 		}
 		if isEth && strings.Contains(line, "status: active") {
 			return current, true
-		}
-		// Only check fallback on status: lines AFTER "status: active" check
-		// This prevents returning false on media: line before we see status:
-		if isEth && current != "" && current != "lo0" && current != "ieee80211" && strings.Contains(line, "status:") {
-			// Connected if: status active OR inet (IP assigned)
-			hasCarrier = hasCarrier || strings.Contains(line, "inet ")
-			return current, hasCarrier
 		}
 	}
 	return "", false
@@ -310,8 +321,10 @@ func CheckConnectivity() {
 		return
 	}
 
-	// Ping with 1 packet, timeout wrapper for 3 second timeout
-	cmd := exec.Command("sh", "-c", "timeout 3 ping -c 1 8.8.8.8 >/dev/null 2>&1")
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "ping", "-c", "1", "8.8.8.8")
 	err := cmd.Run()
 
 	if err == nil {

@@ -85,11 +85,24 @@ func installBibata() error {
 		}
 	}
 
+	// ALWAYS create ~/.icons/default fallback (Firefox/Electron need this)
+	defaultDir := filepath.Join(homeDir, ".icons", "default")
+	if err := os.MkdirAll(defaultDir, 0755); err != nil {
+		return fmt.Errorf("failed to create ~/.icons/default: %w", err)
+	}
+
+	fallbackTheme := filepath.Join(defaultDir, "index.theme")
+	content := "[Icon Theme]\nName=Default\nComment=Default cursor theme\nInherits=Bibata-Modern-Ice\n"
+	if err := os.WriteFile(fallbackTheme, []byte(content), 0644); err != nil {
+		return fmt.Errorf("failed to write ~/.icons/default/index.theme: %w", err)
+	}
+
 	if needsInstall {
 		fmt.Println("[DONE] Bibata cursor installed")
 	} else {
 		fmt.Println("[SKIP] Bibata cursor already installed")
 	}
+	fmt.Println("[DONE] Cursor fallback set: ~/.icons/default -> Bibata-Modern-Ice")
 	return nil
 }
 
