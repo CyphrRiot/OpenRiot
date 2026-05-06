@@ -353,14 +353,20 @@ system:
     services:
         type: "Package"
         commands:
-            - desc: "Enable and start apmd (high performance)"
-              cmd: "doas rcctl enable apmd && doas rcctl set apmd flags -H && doas rcctl start apmd"
+            - desc: "Enable and start apmd (adaptive performance)"
+              cmd: "doas rcctl enable apmd && doas rcctl set apmd flags -A && doas rcctl start apmd"
             - desc: "Disable USB power saving"
               cmd: |
                   if grep -q '^hw.allowpowerdown=' /etc/sysctl.conf 2>/dev/null; then
                       doas sed -i '/^hw.allowpowerdown=/d' /etc/sysctl.conf
                   fi
                   echo 'hw.allowpowerdown=0' | doas tee -a /etc/sysctl.conf >/dev/null
+            - desc: "Set adaptive CPU performance policy"
+              cmd: |
+                  if grep -q '^hw.perfpolicy=' /etc/sysctl.conf 2>/dev/null; then
+                      doas sed -i '/^hw.perfpolicy=/d' /etc/sysctl.conf
+                  fi
+                  echo 'hw.perfpolicy=auto' | doas tee -a /etc/sysctl.conf >/dev/null
             - desc: "Configure login.conf resource limits"
               cmd: |
                   if ! grep -q 'coredump=0' /etc/login.conf 2>/dev/null; then

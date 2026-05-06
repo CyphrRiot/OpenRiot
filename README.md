@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-5.4-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-5.5-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -354,8 +354,10 @@ sync
 | Encrypt disk         | Type `p` or `no`                                      |
 | Partition layout     | Type `c` for custom                                   |
 | Label editor         | `z` → `a /` → size → `a swap` → `a /home` → `w` → `q` |
-| Location of sets     | **If online:** Type `http` → Use `http` or `httpcd`      |
-|                     | **If offline:** Type `disk` → Select the correct disk     |
+| Location of sets     | **Recommended:** Type `disk` → Select your USB device    |
+|                     | *(Sets are on the install image — no download needed.)*  |
+|                     | **Alternative:** Type `http` → Use `http` or `httpcd`    |
+|                     | *(Requires snapshot path since 7.9 is -current.)*        |
 | Set name(s)          | Press `Enter` (all sets) or type specific sets           |
 | SHA256 verification | Type `yes` → Enter                                   |
 
