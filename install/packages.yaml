@@ -123,7 +123,10 @@ desktop:
     rofi-calc:
         type: "Source"
         build:
-            - "$HOME/.local/share/openriot/install/openriot --install-rofi-calc"
+            - desc: "Create qalculate config directory"
+              cmd: "mkdir -p ~/.config/qalculate/"
+            - desc: "Build and install rofi-calc"
+              cmd: "$HOME/.local/share/openriot/install/openriot --install-rofi-calc"
         depends: [desktop.i3]
         start: "Building rofi-calc from source"
         end: "rofi-calc installed"
