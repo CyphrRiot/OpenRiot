@@ -18,7 +18,7 @@ var home, _ = os.UserHomeDir()
 func Load() int {
 	stateFile := filepath.Join(home, ".config", "openriot", ".current-background")
 	bgsDir := filepath.Join(home, ".local", "share", "openriot", "backgrounds")
-	defaultBg := filepath.Join(bgsDir, "riot_00.jpg")
+	defaultBg := filepath.Join(bgsDir, "01.png")
 
 	wallpaper := defaultBg
 	if b, err := os.ReadFile(stateFile); err == nil {
