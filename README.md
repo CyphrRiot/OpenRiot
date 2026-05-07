@@ -1523,6 +1523,20 @@ pkill -9 firefox
 firefox &
 ```
 
+### Firefox tabs crash on heavy sites (Grok, X, Canvas apps)
+
+OpenBSD's GPU stack frequently triggers WebRender crashes on WebGL/Canvas-heavy sites. If you see `Gah. Your tab just crashed.`, disable hardware acceleration:
+
+**via `about:config`:**
+```
+about:config → gfx.webrender.software → true
+```
+
+**via Settings:**
+Settings → Performance → uncheck "Use recommended performance settings" → uncheck "Use hardware acceleration when available"
+
+> Why: Xenocara's GPU drivers and Firefox's WebRender compositor don't always play well together on OpenBSD. Software rendering is stable and fast enough for desktop work.
+
 ### i3 won't start
 
 1. **Check for errors:**

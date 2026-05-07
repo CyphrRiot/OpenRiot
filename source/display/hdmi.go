@@ -15,11 +15,9 @@ const (
 	iconLaptop = ""
 )
 
-var lastLidActionState *bool
-
 // RunHDMI outputs the HDMI icon based on current display mode.
 // 󰍺 = Laptop + HDMI both active,  󰍹 = HDMI only (laptop disabled),   = Laptop only (external connected but off).
-// Also auto-sets lid suspend: external display → no suspend, no display → allow suspend.
+// Also auto-sets lid suspend and CPU policy: external display → no suspend + high perf (if AC), no display → allow suspend + auto perf.
 func RunHDMI() {
 	if HasExternalDisplay() {
 		setLidAction(false) // suspend disabled when docked
@@ -46,15 +44,23 @@ func RunHDMI() {
 }
 
 func setLidAction(enable bool) {
-	if lastLidActionState != nil && *lastLidActionState == enable {
-		return
-	}
-	lastLidActionState = &enable
-	val := "machdep.lidaction=0"
+	lidVal := "machdep.lidaction=0"
+	powerVal := "hw.allowpowerdown=0"
+	perfVal := "hw.perfpolicy=auto"
 	if enable {
-		val = "machdep.lidaction=1"
+		lidVal = "machdep.lidaction=1"
+		powerVal = "hw.allowpowerdown=1"
+	} else if isOnAC() {
+		perfVal = "hw.perfpolicy=high"
 	}
-	_ = exec.Command("doas", "sysctl", val).Run()
+	_ = exec.Command("doas", "sysctl", lidVal).Run()
+	_ = exec.Command("doas", "sysctl", powerVal).Run()
+	_ = exec.Command("doas", "sysctl", perfVal).Run()
+}
+
+func isOnAC() bool {
+	out, _ := exec.Command("apm", "-a").Output()
+	return strings.TrimSpace(string(out)) == "1"
 }
 
 // ToggleHDMI cycles through three display modes: Both → Laptop Only → HDMI Only → Both.
