@@ -361,12 +361,12 @@ system:
                       doas sed -i '/^hw.allowpowerdown=/d' /etc/sysctl.conf
                   fi
                   echo 'hw.allowpowerdown=0' | doas tee -a /etc/sysctl.conf >/dev/null
-            - desc: "Set adaptive CPU performance policy"
+            - desc: "Set high performance CPU policy"
               cmd: |
                   if grep -q '^hw.perfpolicy=' /etc/sysctl.conf 2>/dev/null; then
                       doas sed -i '/^hw.perfpolicy=/d' /etc/sysctl.conf
                   fi
-                  echo 'hw.perfpolicy=auto' | doas tee -a /etc/sysctl.conf >/dev/null
+                  echo 'hw.perfpolicy=high' | doas tee -a /etc/sysctl.conf >/dev/null
             - desc: "Configure login.conf resource limits"
               cmd: |
                   if ! grep -q 'coredump=0' /etc/login.conf 2>/dev/null; then
