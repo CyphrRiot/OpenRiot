@@ -97,8 +97,6 @@ desktop:
             - pattern: xsession/openriot-xsession
               target: "~/.xsession"
               # Always overwrite - this is a system config, not user customization
-            - pattern: picom.conf
-              target: "~/.config/picom.conf"
             - pattern: alacritty/*
               target: "~/.config/alacritty"
             - pattern: nvim/*
@@ -107,6 +105,8 @@ desktop:
               target: "~/.local/bin"
             - pattern: user-dirs.dirs
               target: "~/.config/user-dirs.dirs"
+            - pattern: mimeapps.list
+              target: "~/.config/mimeapps.list"
         commands:
             - desc: "Make all scripts executable"
               cmd: "find ~/.local/share/openriot/config -name \"*.sh\" -exec chmod +x {} \\; 2>/dev/null || true"
@@ -195,12 +195,29 @@ desktop:
                   if [ -f /usr/local/lib/firefox/browser/defaults/preferences/unveil.content ] && ! grep -q "^~/Downloads " /usr/local/lib/firefox/browser/defaults/preferences/unveil.content 2>/dev/null; then
                       echo "~/Downloads r" | doas tee -a /usr/local/lib/firefox/browser/defaults/preferences/unveil.content >/dev/null
                   fi
-            - desc: "Set Zathura as default PDF viewer"
+            - desc: "Set default applications for file types"
               cmd: |
                   if [ -z "$DISPLAY" ]; then
-                      echo "[SKIP] No X11, skipping PDF viewer setup"
+                      echo "[SKIP] No X11, skipping MIME defaults"
                   else
+                      # PDF
                       xdg-mime default org.pwmt.zathura.desktop application/pdf 2>/dev/null || true
+                      # Video
+                      for v in video/mp4 video/x-matroska video/x-msvideo video/quicktime video/webm video/x-flv video/x-ms-wmv; do
+                          xdg-mime default mpv.desktop "$v" 2>/dev/null || true
+                      done
+                      # Audio
+                      for a in audio/mpeg audio/flac audio/wav audio/ogg audio/mp4 audio/opus; do
+                          xdg-mime default mpv.desktop "$a" 2>/dev/null || true
+                      done
+                      # Images
+                      for i in image/png image/jpeg image/gif image/bmp image/webp image/x-xpixmap image/x-portable-pixmap; do
+                          xdg-mime default feh.desktop "$i" 2>/dev/null || true
+                      done
+                      # Text / Markdown
+                      for t in text/plain text/markdown application/x-shellscript text/x-script; do
+                          xdg-mime default org.gnome.TextEditor.desktop "$t" 2>/dev/null || true
+                      done
                   fi
             - desc: "Import dconf settings (requires X11)"
               cmd: |

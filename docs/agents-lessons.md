@@ -248,3 +248,71 @@ config/                 # dotfiles (i3, polybar, fish, nvim, etc.)
 install/                # built binary + motd + packages.yaml
 Locked/                 # wallpaper sets (default, stealth)
 ```
+
+---
+
+## v5.10 Critical Lessons — The xrandr Disaster
+
+### xrandr is NOT a Lightweight Status Query
+
+`xrandr` opens `/dev/drm0` and blocks on the kernel DRM event queue. **Every call is a kernel round-trip that stalls the X11 server.** Do NOT use it in timers, polling loops, or polybar modules. The HDMI module was calling it 4 times per spawn, synchronized with volume/battery/network, creating a 300–400ms stall every 30 seconds.
+
+| What | Use Instead |
+|---|---|
+| Query connected outputs | `i3-msg -t get_outputs` (IPC socket read) |
+| Query active monitors | Parse `get_outputs` JSON `active` field |
+| Reconfigure displays | `xrandr` — but only on user click, never on timer |
+
+**Rule:** `xrandr` is for **configuration**, not **polling**. Reserve it for `ToggleHDMI()` clicks.
+
+---
+
+### Verify the Actual Config Path
+
+The i3 autostart explicitly launches `picom --config $HOME/.local/share/openriot/config/picom.conf`. Every "test" we ran on `~/.config/picom.conf` or `~/.config/picom/picom.conf` was on a **dead file that picom never read**. Always confirm the live path:
+
+```sh
+ps aux | grep picom   # see --config path
+```
+
+Same for polybar — `--polybar-setup` generates `~/.config/polybar/config.ini` from `~/.local/share/openriot/config/polybar/config.ini`. Editing the repo file is not enough; the template must be synced.
+
+---
+
+### Objective Measurement Beats Subjective Feeling
+
+We spent two releases "optimizing" based on typing feel. The fix came only after `tools/detect-hang.sh` measured **exact 32-second gap intervals** correlated with polybar module spawns. Without microsecond timing + CPU snapshots, we would still be guessing.
+
+```sh
+# detect-hang.sh pattern: print dots every 100ms, scream on gap >300ms
+```
+
+**Rule:** When debugging periodic stalls, measure before optimizing. Feelings lie. Timestamps don't.
+
+---
+
+### Stagger Polybar Module Intervals
+
+Synchronized intervals (all at 30s) cluster fork+exec + blocking calls into a simultaneous burst. Always stagger:
+
+| Module | Interval |
+|---|---|
+| volume | 31 |
+| battery | 32 |
+| network-eth | 33 |
+| hdmi | 65 |
+
+---
+
+### When the User Names the Root Cause, Start There
+
+The user correctly identified picom as the primary culprit from day one. We spent time rewriting polybar modules, blaming the clipboard daemon, and chasing the Intel driver. Picom fading was indeed a major factor, but the xrandr synchronization storm was the periodic stutter we couldn't explain. **Reverse confirmation bias is still bias** — test the user's hypothesis first before building competing theories.
+
+---
+
+### Never Cache in a Short-Lived Binary
+
+`openriot` is a 15MB CLI that exits after each call. In-process caching is useless — the process dies before the cache can be reused. When performance matters, either:
+- **Reduce calls** (one parse, multiple answers — like `--polybar-all` and the new `i3Outputs` refactor)
+- **Use a persistent IPC source** (i3 socket, cache file written by a long-lived process)
+- **Beware fork+exec overhead** — a 15MB binary spawn is not free, but it's acceptable if staggered

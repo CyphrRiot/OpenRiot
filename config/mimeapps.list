@@ -1,0 +1,38 @@
+[Default Applications]
+# Video
+video/mp4=mpv.desktop
+video/x-matroska=mpv.desktop
+video/x-msvideo=mpv.desktop
+video/quicktime=mpv.desktop
+video/webm=mpv.desktop
+video/x-flv=mpv.desktop
+video/x-ms-wmv=mpv.desktop
+video/x-matroska=mpv.desktop
+
+# Audio
+audio/mpeg=mpv.desktop
+audio/flac=mpv.desktop
+audio/wav=mpv.desktop
+audio/ogg=mpv.desktop
+audio/mp4=mpv.desktop
+audio/opus=mpv.desktop
+audio/x-wav=mpv.desktop
+audio/x-flac=mpv.desktop
+
+# PDF
+application/pdf=org.pwmt.zathura.desktop
+
+# Images
+image/png=feh.desktop
+image/jpeg=feh.desktop
+image/gif=feh.desktop
+image/bmp=feh.desktop
+image/webp=feh.desktop
+image/x-xpixmap=feh.desktop
+image/x-portable-pixmap=feh.desktop
+
+# Text / Markdown
+text/markdown=org.gnome.TextEditor.desktop
+text/plain=org.gnome.TextEditor.desktop
+application/x-shellscript=org.gnome.TextEditor.desktop
+text/x-script=org.gnome.TextEditor.desktop
