@@ -49,12 +49,12 @@ exec --no-startup-id sh -c 'sleep 10; while true; do pgrep polybar >/dev/null ||
 exec --no-startup-id $openriot_bin --wallpaper-load
 
 # Compositor - runs picom synchronously; loop restarts it if it crashes
-exec --no-startup-id sh -c 'while true; do pgrep picom >/dev/null || picom --config $HOME/.local/share/openriot/config/picom.conf --backend glx; sleep 5; done'
+exec --no-startup-id sh -c 'while true; do pgrep picom >/dev/null || picom --config $HOME/.local/share/openriot/config/picom.conf; sleep 5; done'
 
 # Notifications - watchdog starts dunst on first notification
 exec --no-startup-id sh -c 'while true; do pgrep dunst >/dev/null || nohup /usr/local/bin/dunst >/dev/null 2>&1; sleep 5; done'
 
-# Clipboard manager
+# Clipboard manager - disabled: suspected X selection polling causing input lag in Alacritty
 exec --no-startup-id clipmenud
 
 # Auto-tiling

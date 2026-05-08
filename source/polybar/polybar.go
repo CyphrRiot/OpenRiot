@@ -1,6 +1,7 @@
 package polybar
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -9,11 +10,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 	"unsafe"
 
 	"golang.org/x/sys/unix"
 	"openriot/notify"
 	"openriot/screen"
+	"openriot/windowicon"
 	"openriot/windowtitle"
 )
 
@@ -52,7 +55,21 @@ func getCPUPercent() string {
 	return strconv.Itoa(getCPUPercentInt())
 }
 
+var cpuCache struct {
+	Value     int
+	Time      time.Time
+	ValidFor  time.Duration
+}
+
+func init() {
+	cpuCache.ValidFor = 5 * time.Second
+}
+
 func getCPUPercentInt() int {
+	if time.Since(cpuCache.Time) < cpuCache.ValidFor {
+		return cpuCache.Value
+	}
+
 	raw1, err := unix.SysctlRaw("kern.cp_time")
 	if err != nil || len(raw1) < 48 {
 		return 0
@@ -78,7 +95,9 @@ func getCPUPercentInt() int {
 	if totalDiff == 0 {
 		return 0
 	}
-	return int((1.0 - float64(idleDiff)/float64(totalDiff)) * 100)
+	cpuCache.Value = int((1.0 - float64(idleDiff)/float64(totalDiff)) * 100)
+	cpuCache.Time = time.Now()
+	return cpuCache.Value
 }
 
 func parseCPTime(raw []byte) []uint64 {
@@ -564,12 +583,275 @@ func getScaleFactors(width int) (height, font0, font1, modMargin string) {
 	return
 }
 
-func startPolybar() int {
-	cmd := exec.Command("polybar", "main")
-	cmd.Stdout = nil
-	cmd.Stderr = nil
-	if err := cmd.Start(); err != nil {
-		return 1
-	}
-	return 0
+
+// RunAll outputs a single polybar-formatted line combining workspace icons
+// and focused window title, avoiding separate process spawns for both.
+func RunAll() error {
+	tree := getFullTree()
+	workspaces := getAllWorkspaces()
+
+	// Build icon map from cached TOML mappings + already-parsed tree.
+	// This avoids a second expensive i3-msg -t get_tree call.
+	mappings := windowicon.GetAllMappings()
+	windowIcons := buildWindowIconsFromTree(tree, mappings)
+
+	wsStr := buildWorkspacesPolybar(tree, workspaces, windowIcons)
+	titleStr := findFocusedTitleInTree(tree)
+
+	fmt.Print(wsStr + "  %{F#565f89}" + titleStr + "%{F-}\n")
+	return nil
 }
+
+// buildWindowIconsFromTree extracts all unique window class→icon mappings
+// from an already-parsed i3 tree, avoiding a redundant i3-msg call.
+func buildWindowIconsFromTree(tree *i3Tree, mappings map[string]string) map[string]string {
+	seen := make(map[string]bool)
+	collectAllClasses(tree.Nodes, seen)
+	collectAllClasses(tree.FloatingNodes, seen)
+
+	result := make(map[string]string)
+	for class := range seen {
+		icon := ""
+		if v, ok := mappings[strings.ToLower(class)]; ok {
+			icon = v
+		}
+		result[class] = icon
+	}
+	return result
+}
+
+func collectAllClasses(nodes []i3Node, seen map[string]bool) {
+	for _, n := range nodes {
+		if n.Window != 0 && n.WindowProps.Class != "" {
+			seen[n.WindowProps.Class] = true
+		}
+		collectAllClasses(n.Nodes, seen)
+		collectAllClasses(n.FloatingNodes, seen)
+	}
+}
+
+// buildWorkspacesPolybar replicates workspaceicons.GetAll() output for use in
+// a single module, consuming an already-parsed tree.
+func buildWorkspacesPolybar(tree *i3Tree, workspaces []i3Workspace, windowIcons map[string]string) string {
+	var results []string
+	for wsNum := 1; wsNum <= 3; wsNum++ {
+		classes := findWindowsInWorkspaceFromTree(tree.Nodes, wsNum)
+		state := getStateFromWorkspaces(workspaces, wsNum)
+
+		var icons []string
+		for _, cls := range classes {
+			if icon, ok := windowIcons[cls]; ok {
+				icons = append(icons, icon)
+			}
+		}
+		if len(icons) > 4 {
+			icons = icons[:4]
+		}
+
+		allSlots := make([]string, 0, 4)
+		for _, icon := range icons {
+			allSlots = append(allSlots, icon)
+		}
+		for len(allSlots) < 4 {
+			allSlots = append(allSlots, "\uec03")
+		}
+
+		indicator := getIndicator(state, len(icons) > 0)
+
+		if state == "unfocused" && len(icons) > 0 {
+			for i := 0; i < len(icons); i++ {
+				allSlots[i] = fmt.Sprintf("%%{T0}%%{F#565f89}%s%%{F-}%%{T-}", icons[i])
+			}
+		}
+		if state == "unfocused" {
+			indicator = fmt.Sprintf("%%{F#565f89}%s%%{F-}", indicator)
+		}
+
+		content := fmt.Sprintf("%s %s", indicator, strings.Join(allSlots, " "))
+		results = append(results,
+			fmt.Sprintf("%%{A:$HOME/.local/share/openriot/install/openriot --workspace-switch %d:}%s%%{A}", wsNum, content))
+	}
+	return strings.Join(results, "  ")
+}
+
+// getIndicator mirrors workspaceicons.getIndicator.
+func getIndicator(state string, hasApps bool) string {
+	switch state {
+	case "focused":
+		return ""
+	case "urgent":
+		return ""
+	case "unfocused":
+		if hasApps {
+			return ""
+		}
+		return ""
+	default:
+		return ""
+	}
+}
+
+// i3Tree and i3Node mirror workspaceicons types.
+type i3Tree struct {
+	Nodes         []i3Node `json:"nodes"`
+	FloatingNodes []i3Node `json:"floating_nodes"`
+}
+
+type i3Node struct {
+	Type          string    `json:"type"`
+	Num           int       `json:"num"`
+	Focused       bool      `json:"focused"`
+	Urgent        bool      `json:"urgent"`
+	Window        int       `json:"window"`
+	Name          string    `json:"name"`
+	WindowProps   windowProps `json:"window_properties"`
+	Nodes         []i3Node  `json:"nodes"`
+	FloatingNodes []i3Node  `json:"floating_nodes"`
+}
+
+type windowProps struct {
+	Class string `json:"class"`
+}
+
+type i3Workspace struct {
+	Num     int  `json:"num"`
+	Focused bool `json:"focused"`
+	Urgent  bool `json:"urgent"`
+}
+
+func getFullTree() *i3Tree {
+	cmd := exec.Command("i3-msg", "-t", "get_tree")
+	output, err := cmd.Output()
+	if err != nil {
+		return nil
+	}
+	var tree i3Tree
+	if err := json.Unmarshal(output, &tree); err != nil {
+		return nil
+	}
+	return &tree
+}
+
+func getAllWorkspaces() []i3Workspace {
+	cmd := exec.Command("i3-msg", "-t", "get_workspaces")
+	output, err := cmd.Output()
+	if err != nil {
+		return nil
+	}
+	var workspaces []i3Workspace
+	if err := json.Unmarshal(output, &workspaces); err != nil {
+		return nil
+	}
+	return workspaces
+}
+
+func findWindowsInWorkspaceFromTree(nodes []i3Node, wsNum int) []string {
+	var classes []string
+	findWindowsInWorkspace(nodes, wsNum, &classes)
+	return classes
+}
+
+func findWindowsInWorkspace(nodes []i3Node, wsNum int, classes *[]string) {
+	for _, n := range nodes {
+		if n.Type == "workspace" && n.Num == wsNum {
+			collectWindows(n, classes)
+			return
+		}
+		findWindowsInWorkspace(n.Nodes, wsNum, classes)
+		findWindowsInWorkspace(n.FloatingNodes, wsNum, classes)
+	}
+}
+
+func collectWindows(node i3Node, classes *[]string) {
+	if node.Window != 0 && node.WindowProps.Class != "" {
+		*classes = append(*classes, node.WindowProps.Class)
+	}
+	for _, n := range node.Nodes {
+		collectWindows(n, classes)
+	}
+	for _, n := range node.FloatingNodes {
+		collectWindows(n, classes)
+	}
+}
+
+func getStateFromWorkspaces(workspaces []i3Workspace, wsNum int) string {
+	if workspaces == nil {
+		return "unfocused"
+	}
+	for _, ws := range workspaces {
+		if ws.Num == wsNum {
+			if ws.Urgent {
+				return "urgent"
+			}
+			if ws.Focused {
+				return "focused"
+			}
+			return "unfocused"
+		}
+	}
+	return "unfocused"
+}
+
+func findFocusedTitleInTree(tree *i3Tree) string {
+	if tree == nil {
+		return ""
+	}
+	title := findFocusedTitleInNodes(tree.Nodes)
+	if title == "" {
+		title = findFocusedTitleInNodes(tree.FloatingNodes)
+	}
+	return formatWindowTitle(title)
+}
+
+func findFocusedTitleInNodes(nodes []i3Node) string {
+	for _, n := range nodes {
+		if n.Focused && n.Type == "con" && n.Window != 0 && n.Name != "" {
+			return n.Name
+		}
+		if title := findFocusedTitleInNodes(n.Nodes); title != "" {
+			return title
+		}
+		if title := findFocusedTitleInNodes(n.FloatingNodes); title != "" {
+			return title
+		}
+	}
+	return ""
+}
+
+func formatWindowTitle(title string) string {
+	if title == "" {
+		return " ~"
+	}
+	title = stripEmojis(title)
+	runes := []rune(title)
+	if len(runes) > 36 {
+		trunc := 33
+		if trunc < 1 {
+			trunc = 1
+		}
+		return fmt.Sprintf("%-*s", trunc, string(runes[:trunc])) + "..."
+	}
+	return fmt.Sprintf("%-*s", 36, string(runes))
+}
+
+func stripEmojis(s string) string {
+	runes := []rune(s)
+	var cleaned []rune
+	for _, r := range runes {
+		if r >= 0x1F300 && r <= 0x1F9FF {
+			continue
+		}
+		if r >= 0x2600 && r <= 0x26FF {
+			continue
+		}
+		if r >= 32 && r <= 126 {
+			cleaned = append(cleaned, r)
+		} else if r > 127 && r < 0x11000 {
+			if unicode.IsLetter(r) || unicode.IsNumber(r) || unicode.IsPunct(r) || unicode.IsSpace(r) {
+				cleaned = append(cleaned, r)
+			}
+		}
+	}
+	return string(cleaned)
+}
+

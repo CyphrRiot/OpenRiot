@@ -707,6 +707,13 @@ func RegisterAll(r *Registry, testMode *bool) {
 		},
 	})
 	r.Register(&Command{
+		Name: "--polybar-all", Category: "Polybar Metrics",
+		Description: "Show all polybar metrics in one call",
+		Run: func(args []string) error {
+			return polybar.RunAll()
+		},
+	})
+	r.Register(&Command{
 		Name: "--cpu-notify", Category: "Polybar Metrics",
 		Description: "Show CPU notification",
 		Run: func(args []string) error {

@@ -1,6 +1,7 @@
 package display
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -15,15 +16,75 @@ const (
 	iconLaptop = ""
 )
 
-// RunHDMI outputs the HDMI icon based on current display mode.
-// 󰍺 = Laptop + HDMI both active,  󰍹 = HDMI only (laptop disabled),   = Laptop only (external connected but off).
-// Also auto-sets lid suspend and CPU policy: external display → no suspend + high perf (if AC), no display → allow suspend + auto perf.
+// i3Output mirrors the JSON shape returned by  i3-msg -t get_outputs .
+type i3Output struct {
+	Name             string `json:"name"`
+	Active           bool   `json:"active"`
+	Primary          bool   `json:"primary"`
+	CurrentWorkspace string `json:"current_workspace"`
+}
+
+// i3Outputs is a thin wrapper around parsed i3 get_outputs output.
+type i3Outputs []i3Output
+
+func parseI3Outputs() i3Outputs {
+	out, err := exec.Command("i3-msg", "-t", "get_outputs").Output()
+	if err != nil {
+		return nil
+	}
+	var outs []i3Output
+	if err := json.Unmarshal(out, &outs); err != nil {
+		return nil
+	}
+	return outs
+}
+
+func (o i3Outputs) laptopName() string {
+	for _, out := range o {
+		if strings.HasPrefix(out.Name, "eDP") || strings.HasPrefix(out.Name, "LVDS") {
+			return out.Name
+		}
+	}
+	return ""
+}
+
+func (o i3Outputs) externalName() string {
+	for _, out := range o {
+		if out.Name == "xroot-0" {
+			continue
+		}
+		if !strings.HasPrefix(out.Name, "eDP") && !strings.HasPrefix(out.Name, "LVDS") {
+			return out.Name
+		}
+	}
+	return ""
+}
+
+func (o i3Outputs) isActive(name string) bool {
+	if name == "" {
+		return false
+	}
+	for _, out := range o {
+		if out.Name == name {
+			return out.Active
+		}
+	}
+	return false
+}
+
+// RunHDMI prints the polybar icon for the current display configuration.
+// It uses i3's get_outputs IPC to avoid the xrandr fork+exec and DRM
+// round-trip that stalls X11 event delivery every invocation.
 func RunHDMI() {
-	if HasExternalDisplay() {
+	outputs := parseI3Outputs()
+	laptop := outputs.laptopName()
+	ext := outputs.externalName()
+	hasExt := ext != ""
+
+	if hasExt {
 		setLidAction(false) // suspend disabled when docked
-		ext := getExternalDisplay()
-		laptopActive := isLaptopMonitorEnabled()
-		extActive := ext != "" && isDisplayActive(ext)
+		laptopActive := outputs.isActive(laptop)
+		extActive := outputs.isActive(ext)
 
 		if laptopActive && !extActive {
 			fmt.Println(polybar.Icon(iconLaptop))
@@ -35,27 +96,38 @@ func RunHDMI() {
 	} else {
 		setLidAction(true) // suspend enabled when undocked
 		fmt.Println(polybar.Icon(iconLaptop))
-		// Auto-restore laptop display if HDMI was unplugged while in HDMI-only mode
-		laptop := getLaptopDisplay()
-		if laptop != "" && !isLaptopMonitorEnabled() {
+		// Auto-restore laptop display if it was disabled while HDMI-only
+		if laptop != "" && !outputs.isActive(laptop) {
 			exec.Command("xrandr", "--output", laptop, "--auto").Run()
 		}
 	}
 }
 
-func setLidAction(enable bool) {
-	lidVal := "machdep.lidaction=0"
-	powerVal := "hw.allowpowerdown=0"
-	perfVal := "hw.perfpolicy=auto"
-	if enable {
-		lidVal = "machdep.lidaction=1"
-		powerVal = "hw.allowpowerdown=1"
-	} else if isOnAC() {
-		perfVal = "hw.perfpolicy=high"
+func getSysctl(name string) string {
+	out, _ := exec.Command("sysctl", "-n", name).Output()
+	return strings.TrimSpace(string(out))
+}
+
+func setSysctlIfChanged(name, want string) {
+	if getSysctl(name) == want {
+		return
 	}
-	_ = exec.Command("doas", "sysctl", lidVal).Run()
-	_ = exec.Command("doas", "sysctl", powerVal).Run()
-	_ = exec.Command("doas", "sysctl", perfVal).Run()
+	_ = exec.Command("doas", "sysctl", name+"="+want).Run()
+}
+
+func setLidAction(enable bool) {
+	lidWant := "0"
+	powerWant := "0"
+	perfWant := "auto"
+	if enable {
+		lidWant = "1"
+		powerWant = "1"
+	} else if isOnAC() {
+		perfWant = "high"
+	}
+	setSysctlIfChanged("machdep.lidaction", lidWant)
+	setSysctlIfChanged("hw.allowpowerdown", powerWant)
+	setSysctlIfChanged("hw.perfpolicy", perfWant)
 }
 
 func isOnAC() bool {
@@ -64,33 +136,33 @@ func isOnAC() bool {
 }
 
 // ToggleHDMI cycles through three display modes: Both → Laptop Only → HDMI Only → Both.
+// It still uses xrandr for actual display reconfiguration (that only happens on click).
 func ToggleHDMI() {
-	laptop := getLaptopDisplay()
+	outputs := parseI3Outputs()
+	laptop := outputs.laptopName()
 	if laptop == "" {
 		notify.SendNotify("hdmi", "Display", "No laptop display found", "critical", 5000, 0)
 		return
 	}
 
-	if !HasExternalDisplay() {
+	ext := outputs.externalName()
+	if ext == "" {
 		notify.SendNotify("hdmi", "Display", "No External Monitor", "normal", 5000, 0)
 		return
 	}
 
-	ext := getExternalDisplay()
-	laptopActive := isLaptopMonitorEnabled()
-	extActive := ext != "" && isDisplayActive(ext)
+	laptopActive := outputs.isActive(laptop)
+	extActive := outputs.isActive(ext)
 
 	if laptopActive && extActive {
 		// Both → Laptop only: disable external
-		if ext != "" {
-			exec.Command("xrandr", "--output", ext, "--off").Run()
-		}
+		exec.Command("xrandr", "--output", ext, "--off").Run()
 		setLidAction(true)
 		notify.SendNotify("hdmi", "Display Mode", "Laptop Only \nExternal display disabled", "normal", 8000, 0)
 	} else if laptopActive && !extActive {
 		// Laptop only → HDMI only: disable laptop, enable external
 		exec.Command("xrandr", "--output", laptop, "--off").Run()
-		if ext != "" && !isDisplayActive(ext) {
+		if !extActive {
 			exec.Command("xrandr", "--output", ext, "--auto").Run()
 		}
 		setLidAction(false)
@@ -101,54 +173,18 @@ func ToggleHDMI() {
 		setLidAction(true)
 		notify.SendNotify("hdmi", "Display Mode", "Laptop + HDMI 󰍺\nLaptop re-enabled", "normal", 8000, 0)
 	}
-	// Restart polybar after display reconfiguration
+	// Restart polybar after display reconfiguration so i3 re-syncs output state
 	exec.Command("pkill", "-9", "polybar").Run()
 }
 
 // HasExternalDisplay returns true if a non-internal monitor is connected.
 func HasExternalDisplay() bool {
-	out, err := exec.Command("xrandr").Output()
-	if err != nil {
-		return false
-	}
-	for _, line := range strings.Split(string(out), "\n") {
-		if !strings.Contains(line, " connected ") {
-			continue
-		}
-		fields := strings.Fields(line)
-		if len(fields) == 0 {
-			continue
-		}
-		name := fields[0]
-		if !strings.HasPrefix(name, "eDP") && !strings.HasPrefix(name, "LVDS") {
-			return true
-		}
-	}
-	return false
+	return parseI3Outputs().externalName() != ""
 }
 
-// getLaptopDisplay returns the xrandr output name for the built-in display.
-// Uses plain xrandr (not --listmonitors) so disabled outputs are still found.
+// getLaptopDisplay returns the name of the built-in display (eDP-1 / LVDS-1).
 func getLaptopDisplay() string {
-	out, err := exec.Command("xrandr").Output()
-	if err != nil {
-		return ""
-	}
-	for _, line := range strings.Split(string(out), "\n") {
-		fields := strings.Fields(line)
-		if len(fields) < 2 {
-			continue
-		}
-		name := fields[0]
-		state := fields[1]
-		if state != "connected" && state != "disconnected" {
-			continue
-		}
-		if strings.HasPrefix(name, "eDP") || strings.HasPrefix(name, "LVDS") {
-			return name
-		}
-	}
-	return ""
+	return parseI3Outputs().laptopName()
 }
 
 // isLaptopMonitorEnabled returns true if the laptop display is currently active.
@@ -160,36 +196,16 @@ func isLaptopMonitorEnabled() bool {
 	return isDisplayActive(display)
 }
 
-// getExternalDisplay returns the xrandr output name for the first connected external display.
+// getExternalDisplay returns the name of the first connected external display.
 func getExternalDisplay() string {
-	out, err := exec.Command("xrandr").Output()
-	if err != nil {
-		return ""
-	}
-	for _, line := range strings.Split(string(out), "\n") {
-		if !strings.Contains(line, " connected ") {
-			continue
-		}
-		fields := strings.Fields(line)
-		if len(fields) == 0 {
-			continue
-		}
-		name := fields[0]
-		if !strings.HasPrefix(name, "eDP") && !strings.HasPrefix(name, "LVDS") {
-			return name
-		}
-	}
-	return ""
+	return parseI3Outputs().externalName()
 }
 
 // isDisplayActive returns true if the given display output is currently active.
+// Uses i3 get_outputs instead of xrandr for status queries.
 func isDisplayActive(display string) bool {
 	if display == "" {
 		return false
 	}
-	out, err := exec.Command("xrandr", "--listactivemonitors").Output()
-	if err != nil {
-		return false
-	}
-	return strings.Contains(string(out), display)
+	return parseI3Outputs().isActive(display)
 }
