@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-5.11-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-6.0-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -39,6 +39,7 @@ Install base OpenBSD 7.9 → run one script → get a fast, dark, beautiful desk
 - **🛡️ Privacy** — Zero telemetry, tracking, data harvesting, or ID requirements
 - **🎨 Aesthetics** — Carefully crafted dark themes that work at any hour
 - **💻 Development** — Helix, shell enhancements, crush, and other upgrades
+- **💳 Monero** — Private by default, GUI wallet with polybar integration
 - **💎 OpenBSD** — The most security-audited OS on the planet
 
 
@@ -102,6 +103,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
     - [🔒 WireGuard VPN](#-wireguard-vpn)
     - [📥 Transmission](#-transmission-bittorrent-client)
     - [📂 Proton Drive](#-proton-drive-sync)
+    - [💳 Monero Wallet](#-monero-wallet)
 - [🔧 Troubleshooting](#troubleshooting)
 - [🦊 Browser & Data Transfer](#browser--data-transfer)
 
@@ -548,6 +550,7 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | Signal           | 󰬚   | Signal messenger (gurk)  |
 | System Monitor   | 󰍹   | btop resource monitor    |
 | Telegram         | 󰭹   | Messaging app            |
+| Monero Wallet    |    | Monero GUI wallet        |
 | Transmission     | 󰐻   | BitTorrent client        |
 | Crush AI         | 󰚩   | AI CLI assistant         |
 | Settings         | 󰒓   | XFCE settings manager    |
@@ -569,7 +572,7 @@ Polybar is your status bar. Click on modules for more:
 
 | No. | Module | Icon | Meaning |
 |-----|--------|------|---------|
-| 1 | crypto |  | Crypto prices |
+| 1 | crypto |  | Crypto prices (hidden when no config) |
 | 2 | proton-drive | 󱥾 / 󰴋 /  | Synced / Syncing / Not configured |
 | 3 | transmission | 󰐻 | Running (auto-hides when stopped) |
 | 4 | night-light | 󰌵 /  | Night light ON / OFF |
@@ -885,7 +888,7 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 | |  | Muted | | |
 | **battery** | 󰁺-󰂂 | Discharging | Battery notification | - |
 | | 󰢜-󰂋 | Charging | | |
-| **crypto** |  | - | Show crypto prices | - |
+| **crypto** |  | - | Show crypto prices (hidden when no config) | - |
 | **night-light** |  | OFF | Toggle redshift | - |
 | | 󰌵 | ON | | |
 | **cpu** | 󰡳→󰡵→󰊚→󰡴 | - | CPU notification | - |
@@ -1401,6 +1404,39 @@ React to messages by selecting them (PgUp/PgDn), typing an emoji shortcode, then
 | `:heavy_check_mark:` | ✔️ | Verified |
 
 Or just paste Unicode emoji with `ctrl+Shift+V`.
+
+## 💳 Monero Wallet
+
+OpenRiot includes the Monero GUI wallet pre-built for OpenBSD with full desktop integration.
+
+![Monero Wallet](assets/xmr.png)
+
+### Launch
+
+- **Rofi**: Press `Super + D` → select "Monero Wallet"
+- **Desktop entry**: Available in the app launcher with  icon
+
+### Prerequisites (installed automatically)
+
+The following Qt5 QML runtime packages are included in `packages.yaml`:
+- `qtquickcontrols`
+- `qtquickcontrols2`
+- `qtgraphicaleffects`
+- `qtdeclarative`
+
+### Runtime Environment
+
+The desktop entry sets `QML2_IMPORT_PATH=/usr/local/lib/qt5/qml` automatically so Monero GUI finds Qt Quick modules.
+
+`~/.local/bin` is added to PATH in both `~/.xinitrc` and `~/.xsession` so rofi finds the binary immediately after install — no re-login required.
+
+`XDG_RUNTIME_DIR` permissions are set to `0700` at session startup to satisfy Qt's runtime checks.
+
+### Features
+
+- Full node or remote node wallet support
+- Integrated with polybar crypto module (shows  when `~/.config/crypto.toml` exists)
+- Window icon mapping via `config/window/icons.toml`
 
 ## 🔧 Troubleshooting
 

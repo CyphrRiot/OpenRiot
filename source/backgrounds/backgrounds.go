@@ -13,6 +13,34 @@ import (
 
 var home, _ = os.UserHomeDir()
 
+// activeDisplayCount returns the number of currently active displays.
+func activeDisplayCount() int {
+	out, err := exec.Command("xrandr", "--listactivemonitors").Output()
+	if err != nil {
+		return 1
+	}
+	count := 0
+	for _, line := range strings.Split(string(out), "\n") {
+		trimmed := strings.TrimSpace(line)
+		if len(trimmed) > 0 && trimmed[0] >= '0' && trimmed[0] <= '9' {
+			count++
+		}
+	}
+	return count
+}
+
+// fehArgs builds the feh command so each active display gets its own scaled copy.
+func fehArgs(wallpaper string) []string {
+	args := []string{"--bg-fill"}
+	n := activeDisplayCount()
+	if n < 1 {
+		n = 1
+	}
+	for i := 0; i < n; i++ {
+		args = append(args, wallpaper)
+	}
+	return args
+}
 
 // Load restores the last saved wallpaper or falls back to default.
 func Load() int {
@@ -28,7 +56,7 @@ func Load() int {
 		}
 	}
 
-	cmd := exec.Command("feh", "--bg-fill", wallpaper)
+	cmd := exec.Command("feh", fehArgs(wallpaper)...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	cmd.Stdout = nil
 	cmd.Stderr = nil
@@ -87,7 +115,7 @@ func Next() int {
 	_ = exec.Command("pkill", "-x", "feh").Run()
 	time.Sleep(500 * time.Millisecond)
 
-	cmd := exec.Command("feh", "--bg-fill", next)
+	cmd := exec.Command("feh", fehArgs(next)...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	cmd.Stdin = nil
 	cmd.Stdout = nil
@@ -152,7 +180,7 @@ func Prev() int {
 	_ = exec.Command("pkill", "-x", "feh").Run()
 	time.Sleep(500 * time.Millisecond)
 
-	cmd := exec.Command("feh", "--bg-fill", prev)
+	cmd := exec.Command("feh", fehArgs(prev)...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	cmd.Stdin = nil
 	cmd.Stdout = nil
