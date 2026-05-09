@@ -37,6 +37,7 @@ set -gx XDG_RUNTIME_DIR /tmp/$USER-runtime
 if not test -d $XDG_RUNTIME_DIR
     mkdir -p $XDG_RUNTIME_DIR
 end
+chmod 0700 $XDG_RUNTIME_DIR
 
 # No greeting - use fastfetch instead
 set -g fish_greeting ""

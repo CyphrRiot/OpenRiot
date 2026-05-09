@@ -7,6 +7,14 @@ ulimit -c 0
 
 export LC_CTYPE=en_US.UTF-8
 
+# XDG_RUNTIME_DIR — required by Qt/Wayland apps, must be 0700
+export XDG_RUNTIME_DIR=/tmp/$USER-runtime
+mkdir -p $XDG_RUNTIME_DIR
+chmod 0700 $XDG_RUNTIME_DIR
+
+# Add user and openriot binaries to PATH
+export PATH="$HOME/.local/bin:$HOME/.local/share/openriot/install:$PATH"
+
 # Set cursor theme
 export XCURSOR_THEME=Bibata-Modern-Ice
 export XCURSOR_SIZE=24

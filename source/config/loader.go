@@ -209,6 +209,7 @@ func (c *Config) GetAllModulesOrdered() ([]ModuleRef, error) {
 	addCategory("fonts", c.Fonts)
 	addCategory("themes", c.Themes)
 	addCategory("source", c.Source)
+	addCategory("crypto", c.Crypto)
 
 	n := len(refs)
 	adj := make([][]int, n)

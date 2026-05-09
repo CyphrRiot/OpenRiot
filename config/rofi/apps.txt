@@ -16,5 +16,6 @@ System Monitor|alacritty --class btop --title "System Monitor" -e btop|󰍹
 Telegram|tdesktop.desktop|󰭹
 Transmission|transmission-dynamic|󰐻
 Crush AI|alacritty --class crush --title "Crush AI" -e crush|󰚩
+Monero Wallet|monero-wallet-gui.desktop|
 Settings|xfce4-settings-manager|󰒓
 Games|@submenu:games|󰊗

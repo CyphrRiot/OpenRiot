@@ -313,6 +313,10 @@ gnome-appfolders = "󰰀"
 # Generic/fallback for SDL apps without proper WM_CLASS
 sdl_app = "󰺵"
 
+# Monero wallet GUI
+monero-wallet-gui = ""
+monero = ""
+
 [ai_tools]
 crush = "󰚩"
 crush-cli = "󰚩"

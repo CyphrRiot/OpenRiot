@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Monero Wallet
+Comment=Monero GUI Wallet
+Exec=env QML2_IMPORT_PATH=/usr/local/lib/qt5/qml monero-wallet-gui
+Icon=monero
+Categories=Office;Finance;
+Terminal=false
+StartupNotify=true

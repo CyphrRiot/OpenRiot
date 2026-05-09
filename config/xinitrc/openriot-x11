@@ -2,8 +2,13 @@
 # OpenRiot X11 startup
 # Run with: xinit ~/.xinitrc
 
-# Add openriot to PATH
-export PATH="$HOME/.local/share/openriot/install:$PATH"
+# Add user and openriot binaries to PATH
+export PATH="$HOME/.local/bin:$HOME/.local/share/openriot/install:$PATH"
+
+# XDG_RUNTIME_DIR — required by Qt/Wayland apps, must be 0700
+export XDG_RUNTIME_DIR=/tmp/$USER-runtime
+mkdir -p $XDG_RUNTIME_DIR
+chmod 0700 $XDG_RUNTIME_DIR
 
 # Set cursor theme
 export XCURSOR_THEME=Bibata-Modern-Ice

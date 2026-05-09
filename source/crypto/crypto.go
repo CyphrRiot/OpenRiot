@@ -213,6 +213,12 @@ func loadCryptoConfig() (*Config, error) {
 	return config, nil
 }
 
+func ConfigFileExists() bool {
+	configPath := filepath.Join(homeDir, ".config", "crypto.toml")
+	_, err := os.Stat(configPath)
+	return err == nil
+}
+
 func getCacheDir() string {
 	cacheDir := filepath.Join(homeDir, ".cache")
 	os.MkdirAll(cacheDir, 0755)

@@ -15,6 +15,7 @@ type Config struct {
 	Fonts   map[string]Module `yaml:"fonts"`
 	Themes  map[string]Module `yaml:"themes"`
 	Source  map[string]Module `yaml:"source"`
+	Crypto  map[string]Module `yaml:"crypto"`
 }
 
 // CommandEntry represents a single command with a description

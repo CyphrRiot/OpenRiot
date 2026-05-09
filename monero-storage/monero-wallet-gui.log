@@ -1,0 +1,8 @@
+2026-05-09 19:22:07.334	   0xe5756b18bd0	INFO	logging	contrib/epee/src/mlog.cpp:274	New log categories: *:WARNING,net:FATAL,net.http:FATAL,net.ssl:FATAL,net.p2p:FATAL,net.cn:FATAL,daemon.rpc:FATAL,global:INFO,verify:FATAL,serialization:FATAL,daemon.rpc.payment:ERROR,stacktrace:INFO,logging:INFO,msgwriter:INFO
+2026-05-09 19:22:07.334	   0xe5756b18bd0	WARNING	frontend	src/wallet/api/wallet.cpp:445	Logging to "monero-storage/monero-wallet-gui.log"
+2026-05-09 19:22:07.336	   0xe5756b18bd0	WARNING	frontend	src/wallet/api/wallet.cpp:445	qrc:/wizard/WizardWalletInput.qml:111: TypeError: Cannot read property 'btnPrev' of undefined
+2026-05-09 19:22:07.336	   0xe5756b18bd0	WARNING	frontend	src/wallet/api/wallet.cpp:445	qrc:/wizard/WizardWalletInput.qml:112: TypeError: Cannot read property 'btnPrev' of undefined
+2026-05-09 19:22:07.337	   0xe5756b18bd0	WARNING	frontend	src/wallet/api/wallet.cpp:445	qrc:/wizard/WizardWalletInput.qml:111: TypeError: Cannot read property 'btnPrev' of undefined
+2026-05-09 19:22:07.337	   0xe5756b18bd0	WARNING	frontend	src/wallet/api/wallet.cpp:445	qrc:/wizard/WizardWalletInput.qml:112: TypeError: Cannot read property 'btnPrev' of undefined
+2026-05-09 19:22:58.074	   0xe568aef9240	ERROR	device.io	src/device/device_io_hid.cpp:116	No device found
+2026-05-09 19:22:58.074	   0xe5756b18bd0	WARNING	frontend	src/wallet/api/wallet.cpp:445	file:///usr/local/lib/qt5/qml/QtQuick/Controls/ApplicationWindow.qml:259:9: QML ContentItem: Binding loop detected for property "implicitWidth"

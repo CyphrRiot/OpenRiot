@@ -739,6 +739,16 @@ func RegisterAll(r *Registry, testMode *bool) {
 		},
 	})
 	r.Register(&Command{
+		Name: "--crypto-icon", Category: "Polybar Metrics",
+		Description: "Show crypto polybar icon if configured",
+		Run: func(args []string) error {
+			if crypto.ConfigFileExists() {
+				fmt.Print("%{T1}%{T-}%{O2}")
+			}
+			return nil
+		},
+	})
+	r.Register(&Command{
 		Name: "--crypto-refresh", Category: "Polybar Metrics",
 		Description: "Clear crypto cache and fetch fresh",
 		Run: func(args []string) error {

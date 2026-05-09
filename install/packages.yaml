@@ -161,6 +161,10 @@ desktop:
             - dconf-0.40.0p2
             - libreoffice-26.2.2.2v0
             - gnome-text-editor-49.1
+            - qtquickcontrols-5.15.18pl0
+            - qtquickcontrols2-5.15.18pl5
+            - qtgraphicaleffects-5.15.18pl0
+            - qtdeclarative-5.15.18pl22
         configs:
             - pattern: gtk-3.0/*
             - pattern: gtk-4.0/*
@@ -171,7 +175,7 @@ desktop:
             - pattern: helix/*
               preserve_if_exists: [config.toml]
             - pattern: crypto.toml
-              target: "~/.config/crypto.toml"
+              target: "~/.config/crypto-template.toml"
               preserve_if_exists: [crypto.toml]
             - pattern: applications/*
               target: "~/.local/share/applications/"
@@ -264,6 +268,24 @@ desktop:
                   else
                       doas tar -xzf "$HOME/.local/share/openriot/config/pacman/pacman.tgz" -C /
                   fi
+
+crypto:
+    monero:
+        type: "Source"
+        build:
+            - desc: "Checking for Monero wallet GUI"
+              cmd: |
+                  if [ -f "$HOME/.local/bin/monero-wallet-gui" ]; then
+                      echo "[SKIP] monero-wallet-gui already installed"
+                      exit 0
+                  fi
+            - desc: "Installing Monero wallet GUI"
+              cmd: |
+                  mkdir -p "$HOME/.local/bin" && \
+                  tar -xzf "$HOME/.local/share/openriot/config/monero/monero.tgz" -C "$HOME/.local/bin"
+        depends: [desktop.apps]
+        start: "Installing Monero wallet GUI"
+        end: "Monero wallet GUI installed"
 
 media:
     media:
