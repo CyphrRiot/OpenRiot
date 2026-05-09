@@ -13,6 +13,13 @@ ulimit -c 0
 set -U fish_history_limit 10000 # reasonable size, prevents huge files
 set -U fish_history_size 10000 # same value for safety
 
+# Strip null bytes that corrupt the history parser (crashes, bad pipes)
+set -l __fish_hist_file $HOME/.local/share/fish/fish_history
+if test -s $__fish_hist_file
+    tr -d '\000' <$__fish_hist_file >$__fish_hist_file.tmp
+    mv $__fish_hist_file.tmp $__fish_hist_file
+end
+
 # Force fish to merge history from all terminals on every prompt
 #function __fish_history_merge --on-event fish_postexec
 #    history merge
