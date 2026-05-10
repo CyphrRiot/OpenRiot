@@ -13,6 +13,18 @@ import (
 
 var home, _ = os.UserHomeDir()
 
+func getStateFile() string {
+	newFile := filepath.Join(home, ".config", "openriot", "current-background")
+	oldFile := filepath.Join(home, ".config", "openriot", ".current-background")
+	if _, err := os.Stat(newFile); os.IsNotExist(err) {
+		if data, err := os.ReadFile(oldFile); err == nil {
+			_ = os.WriteFile(newFile, data, 0o600)
+			_ = os.Remove(oldFile)
+		}
+	}
+	return newFile
+}
+
 // activeDisplayCount returns the number of currently active displays.
 func activeDisplayCount() int {
 	out, err := exec.Command("xrandr", "--listactivemonitors").Output()
@@ -44,7 +56,7 @@ func fehArgs(wallpaper string) []string {
 
 // Load restores the last saved wallpaper or falls back to default.
 func Load() int {
-	stateFile := filepath.Join(home, ".config", "openriot", ".current-background")
+	stateFile := getStateFile()
 	bgsDir := filepath.Join(home, ".local", "share", "openriot", "backgrounds")
 	defaultBg := filepath.Join(bgsDir, "01.png")
 
@@ -68,7 +80,7 @@ func Load() int {
 // Next cycles to the next wallpaper and restarts feh.
 func Next() int {
 	bgsDir := filepath.Join(home, ".local", "share", "openriot", "backgrounds")
-	stateFile := filepath.Join(home, ".config", "openriot", ".current-background")
+	stateFile := getStateFile()
 
 	entries, err := os.ReadDir(bgsDir)
 	if err != nil {
@@ -134,7 +146,7 @@ func Next() int {
 // Prev cycles to the previous wallpaper and restarts feh.
 func Prev() int {
 	bgsDir := filepath.Join(home, ".local", "share", "openriot", "backgrounds")
-	stateFile := filepath.Join(home, ".config", "openriot", ".current-background")
+	stateFile := getStateFile()
 
 	entries, err := os.ReadDir(bgsDir)
 	if err != nil {

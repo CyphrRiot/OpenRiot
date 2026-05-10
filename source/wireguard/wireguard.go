@@ -1,7 +1,9 @@
 package wireguard
 
 import (
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"openriot/notify"
@@ -10,7 +12,10 @@ import (
 
 const (
 	ConfigPath = "/etc/wireguard/wg0.conf"
+	stateFile  = ".config/openriot/wireguard.enabled"
 )
+
+var homeDir, _ = os.UserHomeDir()
 
 func isConfigured() bool {
 	cmd := exec.Command("doas", "test", "-f", ConfigPath)
@@ -22,6 +27,20 @@ func isRunning() bool {
 	cmd := exec.Command("ifconfig", "wg0")
 	out, _ := cmd.Output()
 	return strings.Contains(string(out), "UP") && strings.Contains(string(out), "RUNNING")
+}
+
+func isAutostartEnabled() bool {
+	_, err := os.Stat(filepath.Join(homeDir, stateFile))
+	return err == nil
+}
+
+func setAutostart(enabled bool) {
+	path := filepath.Join(homeDir, stateFile)
+	if enabled {
+		os.WriteFile(path, []byte("1"), 0600)
+	} else {
+		os.Remove(path)
+	}
 }
 
 func Status() string {
@@ -49,7 +68,16 @@ func Toggle() error {
 		return nil
 	}
 	if isRunning() {
+		setAutostart(false)
 		return Stop()
+	}
+	setAutostart(true)
+	return Start()
+}
+
+func AutoStart() error {
+	if !isConfigured() || !isAutostartEnabled() {
+		return nil
 	}
 	return Start()
 }

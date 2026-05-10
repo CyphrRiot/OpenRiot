@@ -68,11 +68,12 @@ func RunCrypto(mode string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Get cache paths
+	// Migrate old cache files and get cache paths
+	migrateCacheFiles()
 	cacheDir := getCacheDir()
-	curFile := filepath.Join(cacheDir, "openriot-crypto.json")
-	prevFile := filepath.Join(cacheDir, "openriot-crypto-prev.json")
-	ohlcFile := filepath.Join(cacheDir, "openriot-ohlc.json")
+	curFile := filepath.Join(cacheDir, "crypto.json")
+	prevFile := filepath.Join(cacheDir, "crypto-prev.json")
+	ohlcFile := filepath.Join(cacheDir, "ohlc.json")
 
 	// Fetch prices
 	ids := make([]string, 0)
@@ -220,9 +221,29 @@ func ConfigFileExists() bool {
 }
 
 func getCacheDir() string {
-	cacheDir := filepath.Join(homeDir, ".cache")
+	cacheDir := filepath.Join(homeDir, ".cache", "openriot")
 	os.MkdirAll(cacheDir, 0755)
 	return cacheDir
+}
+
+func migrateCacheFiles() {
+	oldDir := filepath.Join(homeDir, ".cache")
+	newDir := filepath.Join(homeDir, ".cache", "openriot")
+	migrations := map[string]string{
+		"openriot-crypto.json":      "crypto.json",
+		"openriot-crypto-prev.json": "crypto-prev.json",
+		"openriot-ohlc.json":        "ohlc.json",
+	}
+	for oldName, newName := range migrations {
+		oldPath := filepath.Join(oldDir, oldName)
+		newPath := filepath.Join(newDir, newName)
+		if _, err := os.Stat(newPath); os.IsNotExist(err) {
+			if data, err := os.ReadFile(oldPath); err == nil {
+				_ = os.WriteFile(newPath, data, 0o600)
+				_ = os.Remove(oldPath)
+			}
+		}
+	}
 }
 
 func fetchPrices(ids []string, curFile string, apiKey string) {

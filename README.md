@@ -6,7 +6,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-6.0-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-6.1-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -1174,18 +1174,16 @@ curl https://am.i.mullvad.net/json
 
 The output should show `"mullvad_exit_ip": true` when connected.
 
-#### Auto-start at Boot (Optional)
+#### Auto-start at Boot
 
-Create `/etc/rc.local`:
-```bash
-#!/bin/sh
-wg-quick up /etc/wireguard/wg0.conf
-```
+WireGuard automatically starts on boot if it was enabled when you last shut down.
 
-Make it executable:
-```bash
-doas chmod +x /etc/rc.local
-```
+**How it works:**
+- Enable WireGuard via `Super+I` or the polybar icon → autostart flag is set
+- Disable WireGuard → autostart flag is cleared
+- On next i3 startup, WireGuard comes up automatically after network is ready
+
+No manual configuration required. The state is stored at `~/.config/openriot/wireguard.enabled`.
 
 #### Troubleshooting
 

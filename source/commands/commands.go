@@ -291,6 +291,11 @@ func RegisterAll(r *Registry, testMode *bool) {
 		},
 	})
 	r.Register(&Command{
+		Name: "--wireguard-autostart", Category: "System",
+		Description: "Auto-start WireGuard if enabled",
+		Run: func(args []string) error { return wireguard.AutoStart() },
+	})
+	r.Register(&Command{
 		Name: "--stealth-status", Category: "Polybar Status",
 		Description: "Show stealth mode icon",
 		Run: func(args []string) error { fmt.Print(macspoof.StealthStatus()); return nil },
@@ -752,8 +757,8 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--crypto-refresh", Category: "Polybar Metrics",
 		Description: "Clear crypto cache and fetch fresh",
 		Run: func(args []string) error {
-			os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot-crypto.json"))
-			os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot-crypto-prev.json"))
+			os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot", "crypto.json"))
+			os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot", "crypto-prev.json"))
 			return crypto.RunCrypto("ROWML")
 		},
 	})

@@ -51,6 +51,9 @@ exec --no-startup-id $openriot_bin --wallpaper-load
 # Compositor - runs picom synchronously; loop restarts it if it crashes
 exec --no-startup-id sh -c 'while true; do pgrep picom >/dev/null || picom --config $HOME/.local/share/openriot/config/picom.conf; sleep 5; done'
 
+# WireGuard VPN - auto-start if enabled (after network is up)
+exec --no-startup-id sh -c 'sleep 3; $openriot_bin --wireguard-autostart'
+
 # Notifications - watchdog starts dunst on first notification
 exec --no-startup-id sh -c 'while true; do pgrep dunst >/dev/null || nohup /usr/local/bin/dunst >/dev/null 2>&1; sleep 5; done'
 

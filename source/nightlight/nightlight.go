@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	stateFile    = ".config/openriot/.nightlight"
+	stateFile    = ".config/openriot/nightlight.state"
 	iconOn       = "󰌵"
 	iconOff      = ""
 	defaultLat   = "40.71"
@@ -53,7 +53,16 @@ func getState() int {
 	file := filepath.Join(homeDir, stateFile)
 	data, err := os.ReadFile(file)
 	if err != nil {
-		return 0
+		// Migrate from old dot-file name
+		oldFile := filepath.Join(homeDir, ".config/openriot/.nightlight")
+		data, err = os.ReadFile(oldFile)
+		if err != nil {
+			return 0
+		}
+		state, _ := strconv.Atoi(strings.TrimSpace(string(data)))
+		setState(state)
+		os.Remove(oldFile)
+		return state
 	}
 	state, _ := strconv.Atoi(strings.TrimSpace(string(data)))
 	return state
