@@ -2,7 +2,6 @@
 
 <img src="OpenRiot.png" alt="OpenRiot" width="95%"/>
 
-# :: 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥 ::
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
@@ -25,6 +24,8 @@
 ![OpenRiot Desktop](assets/screenshot.png)
 
 ---
+
+## 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥
 
 OpenRiot is a clean, minimal, ridiculously polished i3-based OpenBSD 7.9 setup with fish, Helix, and Polybar — all tuned so things just work. No more config drama, no more obscure package fights, no more “works on Linux” copium.
 
