@@ -228,7 +228,8 @@ setup_repository() {
     (
         cd "$INSTALL_DIR" || exit 1
         git fetch --depth 1 origin || true
-        git reset --hard origin/"$CONFIG_BRANCH" || { error "Git reset failed"; exit 1; }
+        # git reset --hard origin/"$CONFIG_BRANCH" || { error "Git reset failed"; exit 1; }
+        git reset --hard FETCH_HEAD
         git clean -fd
     )
     success "OpenRiot updated to latest"

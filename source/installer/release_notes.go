@@ -105,7 +105,7 @@ func AskShowReleaseNotes() bool {
 	fmt.Println()
 	prompt := fmt.Sprintf("[ASK] Read v%s Release Notes? [Y/n] ", version)
 	key := readKey(prompt)
-	return key == 'y' || key == 'Y' || key == '\r' || key == '\n' || key == 0
+	return key == 'y' || key == 'Y' || key == '\r' || key == '\n'
 }
 
 func terminalHeight() int {
@@ -135,15 +135,18 @@ func readKey(prompt string) byte {
 	newState.Cc[unix.VMIN] = 1
 	newState.Cc[unix.VTIME] = 0
 
-	err = unix.IoctlSetTermios(fd, unix.TIOCSETA, &newState)
+	err = unix.IoctlSetTermios(fd, unix.TIOCSETAF, &newState)
 	if err != nil {
 		fmt.Scanln()
 		return 0
 	}
-	defer unix.IoctlSetTermios(fd, unix.TIOCSETA, oldState)
+	defer unix.IoctlSetTermios(fd, unix.TIOCSETAF, oldState)
 
 	b := make([]byte, 1)
-	_, _ = os.Stdin.Read(b)
+	n, _ := os.Stdin.Read(b)
 	fmt.Println()
+	if n == 0 {
+		return 0
+	}
 	return b[0]
 }
