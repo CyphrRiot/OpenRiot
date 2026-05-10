@@ -60,6 +60,11 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Run: func(args []string) error { return installer.RunInstallPackages() },
 	})
 	r.Register(&Command{
+		Name: "--show-release-notes", Category: "Installation",
+		Description: "Display release notes for current version",
+		Run: func(args []string) error { installer.ShowReleaseNotes(); return nil },
+	})
+	r.Register(&Command{
 		Name: "--source-builds", Category: "Installation",
 		Description: "Build software from source",
 		Run: func(args []string) error { return installer.RunSourceBuilds(*testMode) },

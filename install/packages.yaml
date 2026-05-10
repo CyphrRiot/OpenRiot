@@ -16,9 +16,12 @@ core:
             - zip-3.0p3
             - unzip-6.0p18
             - wget-1.25.0p0
+            - lowdown-2.0.2p0
         configs:
             - pattern: fastfetch/*
               target: "~/.config/fastfetch"
+            - pattern: docs/*
+              target: "~/.local/share/openriot/docs/"
         depends: []
         commands:
             - desc: "Create XDG user directories if missing"

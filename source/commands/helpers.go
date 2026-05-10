@@ -65,6 +65,10 @@ func runInstall(testMode *bool) {
 	if err := os.RemoveAll(srcDir); err == nil {
 		logger.Info("Source files cleaned up")
 	}
+
+	if installer.AskShowReleaseNotes() {
+		installer.ShowReleaseNotes()
+	}
 }
 
 func runNotify(args []string) error {
