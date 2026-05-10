@@ -27,14 +27,22 @@ func GetPackageList() ([]string, error) {
 	return cfg.GetPackages(), nil
 }
 
-// LoadExceptions loads excluded packages from Build/exceptions.yaml
-func LoadExceptions() (map[string]bool, error) {
-	exceptions := make(map[string]bool)
+// Exceptions holds package and module exclusions from exceptions.yaml
+type Exceptions struct {
+	Packages map[string]bool // package base names to skip
+	Modules  map[string]bool // module IDs (e.g. "desktop.games") to skip
+}
 
-	// Try to find exceptions.yaml relative to the script dir
+// LoadExceptions loads excluded packages and modules from Build/exceptions.yaml
+func LoadExceptions() (*Exceptions, error) {
+	e := &Exceptions{
+		Packages: make(map[string]bool),
+		Modules:  make(map[string]bool),
+	}
+
 	execDir, err := os.Executable()
 	if err != nil {
-		return exceptions, nil // Return empty, not an error
+		return e, nil // Return empty, not an error
 	}
 	repoRoot := filepath.Dir(filepath.Dir(execDir))
 	exceptionsPath := filepath.Join(repoRoot, "Build", "exceptions.yaml")
@@ -42,39 +50,57 @@ func LoadExceptions() (map[string]bool, error) {
 	data, err := os.ReadFile(exceptionsPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return exceptions, nil // No exceptions file, that's fine
+			return e, nil // No exceptions file, that's fine
 		}
 		return nil, err
 	}
 
-	// Parse: look for lines starting with "  - "
+	var section string
 	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
-		if after, ok := strings.CutPrefix(line, "- "); ok {
-			pkg := strings.Trim(after, "\"") // Remove quotes if present
-			exceptions[pkg] = true
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		if strings.HasSuffix(trimmed, ":") {
+			section = strings.TrimSuffix(trimmed, ":")
+			continue
+		}
+		if after, ok := strings.CutPrefix(trimmed, "- "); ok {
+			item := strings.Trim(after, "\"")
+			switch section {
+			case "exclude":
+				e.Packages[item] = true
+			case "modules":
+				e.Modules[item] = true
+			}
 		}
 	}
 
-	return exceptions, nil
+	return e, nil
 }
 
 // DownloadPackages downloads all required packages to work dir
 func DownloadPackages(cfg *Config) error {
-	// Get package list from config
-	packages, err := GetPackageList()
-	if err != nil {
-		return fmt.Errorf("failed to get package list: %w", err)
+	// Load config
+	cfgPath := config.FindConfigFile()
+	if cfgPath == "" {
+		return fmt.Errorf("could not find packages.yaml")
 	}
-
-	if len(packages) == 0 {
-		return fmt.Errorf("no packages to download")
+	cfgFile, err := config.LoadConfig(cfgPath)
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	// Load exceptions
 	exceptions, err := LoadExceptions()
 	if err != nil {
 		return fmt.Errorf("failed to load exceptions: %w", err)
+	}
+
+	// Get filtered package list
+	packages := cfgFile.GetPackagesExcluding(exceptions.Packages, exceptions.Modules)
+	if len(packages) == 0 {
+		return fmt.Errorf("no packages to download")
 	}
 
 	// Create package directory
@@ -84,23 +110,12 @@ func DownloadPackages(cfg *Config) error {
 	}
 
 	// Clean stale packages first
-	CleanStalePackages(pkgDir, packages, exceptions)
-
-	// Filter packages by exceptions
-	var toDownload []string
-	for _, pkg := range packages {
-		basePkg := config.GetBaseName(pkg)
-		if exceptions[basePkg] {
-			continue // Skip excluded packages
-		}
-		toDownload = append(toDownload, pkg)
-	}
+	CleanStalePackages(pkgDir, packages, exceptions.Packages)
 
 	// Download each package
-	pkgCount := len(toDownload)
-	for i, pkg := range toDownload {
+	pkgCount := len(packages)
+	for i, pkg := range packages {
 		displayName := strings.TrimSuffix(pkg, ".tgz")
-		// Pad to 35 chars to clear any previous longer name
 		displayPadded := fmt.Sprintf("%-35s", displayName)
 		fmt.Printf("\r%s[INFO]%s Downloading package %d/%d: %s", logger.Cyan, logger.Reset, i+1, pkgCount, displayPadded)
 
@@ -117,6 +132,7 @@ func DownloadPackages(cfg *Config) error {
 		// Download with retry
 		err := downloadWithRetry(pkgPath, pkg)
 		if err != nil {
+			fmt.Println() // newline so WARN doesn't append to the progress line
 			logger.Warn(fmt.Sprintf("Failed to download: %s", pkg))
 		}
 	}

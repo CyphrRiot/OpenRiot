@@ -1,7 +1,9 @@
-# Packages to exclude from installer image
-# These are downloaded from snapshots but NOT included in the image
-# Reason: user install only, not needed for offline installer
+# Packages and modules to exclude from installer image
+# These are NOT downloaded for image builds (make img)
+# Normal installs via setup.sh still include everything
+
 exclude:
-  - abiword
-  - btop
   - go
+
+modules:
+  - desktop.games

@@ -272,6 +272,53 @@ func (c *Config) GetPackages() []string {
 	return packages
 }
 
+// GetPackagesExcluding returns packages, skipping excluded base names and modules.
+// excludePackages: set of package base names to skip (e.g. "go")
+// excludeModules: set of "category.name" IDs to skip (e.g. "desktop.games")
+func (c *Config) GetPackagesExcluding(excludePackages, excludeModules map[string]bool) []string {
+	seen := make(map[string]bool)
+	var packages []string
+
+	ordered, err := c.GetAllModulesOrdered()
+	if err != nil {
+		// Fall back to unordered if deps are broken
+		ordered = nil
+		for cat, mods := range map[string]map[string]Module{
+			"core":    c.Core,
+			"system":  c.System,
+			"desktop": c.Desktop,
+			"media":   c.Media,
+			"fonts":   c.Fonts,
+			"themes":  c.Themes,
+			"source":  c.Source,
+			"crypto":  c.Crypto,
+		} {
+			for name, mod := range mods {
+				ordered = append(ordered, ModuleRef{Category: cat, Name: name, Module: mod})
+			}
+		}
+	}
+
+	for _, ref := range ordered {
+		id := ref.Category + "." + ref.Name
+		if excludeModules[id] {
+			continue
+		}
+		for _, pkg := range ref.Module.Packages {
+			base := GetBaseName(pkg)
+			if excludePackages[base] {
+				continue
+			}
+			if !seen[pkg] {
+				seen[pkg] = true
+				packages = append(packages, pkg)
+			}
+		}
+	}
+
+	return packages
+}
+
 // GetCommands returns all commands from all modules
 func (c *Config) GetCommands() []CommandEntry {
 	var commands []CommandEntry

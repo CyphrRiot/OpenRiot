@@ -133,7 +133,7 @@ func getPartitionInfo() (int, string, error) {
 			}
 		}
 	}
-	return 0, "4.2BSD", nil // Default
+	return 0, "", fmt.Errorf("partition a: not found in disklabel")
 }
 
 // getImageSize returns image size in sectors (512 bytes each)
@@ -142,37 +142,51 @@ func getImageSize(path string) int {
 	return int(info.Size() / 512)
 }
 
-// writeDisklabel updates the disklabel to fill the expanded image
+// writeDisklabel reads the current disklabel, updates the a: partition size
+// to fill the expanded image, and writes it back.
 func writeDisklabel(rootStart int, fstype string, totalSec int) error {
-	label := fmt.Sprintf(`# /dev/rvnd0c:
-type: vnd
-disk: vnd device
-label: fictitious
-duid: 2c656feb7ddb57e2
-flags:
-bytes/sector: 512
-sectors/track: 100
-tracks/cylinder: 1
-sectors/cylinder: 100
-cylinders: 31458
-total sectors: %d
+	// Read current label
+	cmd := exec.Command("disklabel", "vnd0")
+	out, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("disklabel read: %w", err)
+	}
 
-16 partitions:
-#                size           offset  fstype [fsize bsize   cpg]
-  a:          %d             %d  %s   2048 16384 16142
-  c:          %d                0  unused
-  i:              960               64   MSDOS
-`, totalSec, totalSec-rootStart, rootStart, fstype, totalSec)
+	newSize := totalSec - rootStart
+	lines := strings.Split(string(out), "\n")
+	var modified []string
+	found := false
 
-	// Write to temp file
+	for _, line := range lines {
+		if strings.HasPrefix(line, "  a:") {
+			fields := strings.Fields(line)
+			if len(fields) >= 4 {
+				fields[1] = strconv.Itoa(newSize)
+				fields[2] = strconv.Itoa(rootStart)
+				fields[3] = fstype
+				// Rebuild line with original spacing
+				modified = append(modified, fmt.Sprintf("  a: %14s %14s  %-8s %s %s %s",
+					fields[1], fields[2], fields[3], fields[4], fields[5], fields[6]))
+				found = true
+				continue
+			}
+		}
+		modified = append(modified, line)
+	}
+
+	if !found {
+		return fmt.Errorf("partition a: not found in current disklabel")
+	}
+
+	// Write modified label to temp file
 	tmpPath := "/tmp/newlabel.txt"
-	if err := os.WriteFile(tmpPath, []byte(label), 0644); err != nil {
+	if err := os.WriteFile(tmpPath, []byte(strings.Join(modified, "\n")), 0644); err != nil {
 		return err
 	}
 
-	cmd := exec.Command("disklabel", "-R", "vnd0", tmpPath)
+	cmd = exec.Command("disklabel", "-R", "vnd0", tmpPath)
 	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("%w\n%s", err, out)
+		return fmt.Errorf("disklabel write: %w\n%s", err, out)
 	}
 	return nil
 }
@@ -199,46 +213,26 @@ func injectContent(cfg *Config) error {
 	}
 
 	// Inject tarball
-	logger.Info("Injecting openriot.tgz...")
+	logger.Info("Injecting site79.tgz...")
 	tgzSrc := cfg.OpenriotTgz
-	tgzDst := "/mnt/openriot.tgz"
+	tgzDst := "/mnt/site79.tgz"
 	if err := fsutil.CopyFile(tgzSrc, tgzDst); err != nil {
 		return fmt.Errorf("copy tgz: %w", err)
 	}
 
-	// Inject packages
-	logger.Info("Injecting packages...")
-	pkgSrcDir := filepath.Join(cfg.WorkDir, "packages", "snapshots", "amd64")
-	pkgDstDir := "/mnt/openriot/packages/snapshots/amd64"
-	os.MkdirAll(pkgDstDir, 0755)
-
-	entries, _ := os.ReadDir(pkgSrcDir)
-	pkgCount := 0
-	for _, entry := range entries {
-		if strings.HasSuffix(entry.Name(), ".tgz") {
-			pkgCount++
-		}
+	// Inject install.site and install.conf to media root
+	// The OpenBSD installer only discovers these at the root of the install media
+	logger.Info("Injecting install.site...")
+	siteSrc := filepath.Join(cfg.WorkDir, "install.site")
+	if err := fsutil.CopyFile(siteSrc, "/mnt/install.site"); err != nil {
+		return fmt.Errorf("copy install.site: %w", err)
 	}
 
-	pkgDone := 0
-	for _, entry := range entries {
-		if strings.HasSuffix(entry.Name(), ".tgz") {
-			pkgDone++
-			name := strings.TrimSuffix(entry.Name(), ".tgz")
-			// Pad to 35 chars to clear any previous longer name
-			namePadded := fmt.Sprintf("%-35s", name)
-			fmt.Printf("\r%s[INFO]%s Injecting package %d/%d: %s", logger.Cyan, logger.Reset, pkgDone, pkgCount, namePadded)
-
-			src := filepath.Join(pkgSrcDir, entry.Name())
-			dst := filepath.Join(pkgDstDir, entry.Name())
-			if err := fsutil.CopyFile(src, dst); err != nil {
-				fmt.Println()
-				logger.Warn(fmt.Sprintf("Failed to copy %s: %v", entry.Name(), err))
-			}
-		}
+	logger.Info("Injecting install.conf...")
+	confSrc := filepath.Join(cfg.WorkDir, "install.conf")
+	if err := fsutil.CopyFile(confSrc, "/mnt/install.conf"); err != nil {
+		return fmt.Errorf("copy install.conf: %w", err)
 	}
-
-	fmt.Println() // Ensure clean line before next output
 
 	// Unmount
 	exec.Command("umount", "/mnt").Run()

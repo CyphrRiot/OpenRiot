@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"openriot/logger"
 )
 
 // Config holds imaging configuration
@@ -85,7 +87,7 @@ func LoadConfig(args []string) (*Config, error) {
 		return nil, fmt.Errorf("failed to resolve work dir: %w", err)
 	}
 	cfg.WorkDir = absWorkDir
-	cfg.OpenriotTgz = filepath.Join(absWorkDir, "openriot.tgz")
+	cfg.OpenriotTgz = filepath.Join(absWorkDir, fmt.Sprintf("site%s.tgz", cfg.Version))
 
 	// Binary is always at install/openriot relative to repo root
 	execDir, err := os.Executable()
@@ -134,11 +136,63 @@ func CheckPrereqs(cfg *Config) error {
 		return fmt.Errorf("this command must be run on OpenBSD")
 	}
 
-	// Check base image exists
-	if _, err := os.Stat(cfg.BaseImg); os.IsNotExist(err) {
-		return fmt.Errorf("base image not found: %s\nlink your image: ln -sf ~/Code/Images/install79.img %s",
-			cfg.BaseImg, cfg.BaseImg)
+	// Check base image at configured path (must be non-empty)
+	if info, err := os.Stat(cfg.BaseImg); err == nil && info.Size() > 0 {
+		return nil
 	}
 
+	// Check Images/install79.img relative to repo root
+	execDir, _ := os.Executable()
+	repoRoot := filepath.Dir(filepath.Dir(execDir))
+	fallbackImg := filepath.Join(repoRoot, "Images", "install79.img")
+	if info, err := os.Stat(fallbackImg); err == nil && info.Size() > 0 {
+		cfg.BaseImg = fallbackImg
+		return nil
+	}
+
+	// Check Images/install79.iso and warn
+	fallbackIso := filepath.Join(repoRoot, "Images", "install79.iso")
+	if _, err := os.Stat(fallbackIso); err == nil {
+		return fmt.Errorf("found %s but image builder requires .img (disk image), not .iso\ndownload the .img from https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install79.img", fallbackIso)
+	}
+
+	// Download base image
+	if err := downloadBaseImage(cfg); err != nil {
+		return fmt.Errorf("base image missing and download failed: %w", err)
+	}
+
+	return nil
+}
+
+// downloadBaseImage fetches install79.img from OpenBSD CDN
+func downloadBaseImage(cfg *Config) error {
+	dir := filepath.Dir(cfg.BaseImg)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("create image dir: %w", err)
+	}
+
+	// Remove any stale empty or partial file
+	os.Remove(cfg.BaseImg)
+
+	// Default to snapshots; release users can set BASE_IMG or --base-img
+	url := fmt.Sprintf("https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install%s.img", cfg.Version)
+
+	logger.Info(fmt.Sprintf("Downloading base image from %s...", url))
+
+	cmd := exec.Command("wget", "-O", cfg.BaseImg, url)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		os.Remove(cfg.BaseImg)
+		return fmt.Errorf("wget failed: %w", err)
+	}
+
+	// Verify download is non-empty
+	if info, err := os.Stat(cfg.BaseImg); err != nil || info.Size() == 0 {
+		os.Remove(cfg.BaseImg)
+		return fmt.Errorf("downloaded image is empty")
+	}
+
+	logger.Info("Base image downloaded")
 	return nil
 }

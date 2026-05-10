@@ -27,7 +27,7 @@ func TestCreateInstallSite(t *testing.T) {
 	data, _ := os.ReadFile(path)
 	content := string(data)
 	
-	if !strings.Contains(content, "STEP 1: Extract openriot.tgz") {
+	if !strings.Contains(content, "STEP 1: Configure doas") {
 		t.Error("missing STEP 1")
 	}
 	if !strings.Contains(content, "Configuring doas") {

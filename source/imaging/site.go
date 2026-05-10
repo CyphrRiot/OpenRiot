@@ -52,17 +52,24 @@ func CreateSite(cfg *Config) error {
 	// Remove source repo
 	os.RemoveAll(repoSource)
 
-	// Create install.site
-	if err := createInstallSite(siteDir); err != nil {
+	// Copy packages into tarball so install.site can install them
+	pkgSrc := filepath.Join(workDir, "packages", "snapshots", "amd64")
+	pkgDst := filepath.Join(openriotDir, "packages", "snapshots", "amd64")
+	if err := copyDir(pkgSrc, pkgDst); err != nil {
+		return fmt.Errorf("copy packages: %w", err)
+	}
+
+	// Create install.site outside siteDir so it stays out of the tarball
+	if err := createInstallSite(workDir); err != nil {
 		return fmt.Errorf("create install.site: %w", err)
 	}
 
-	// Create install.conf
-	if err := createInstallConf(siteDir); err != nil {
+	// Create install.conf outside siteDir so it stays out of the tarball
+	if err := createInstallConf(workDir); err != nil {
 		return fmt.Errorf("create install.conf: %w", err)
 	}
 
-	// Create tarball
+	// Create tarball (only openriot/ directory and motd, NOT install.site/conf)
 	tgzPath := cfg.OpenriotTgz
 	os.Remove(tgzPath) // Remove old if exists
 
@@ -209,46 +216,40 @@ log() { echo "[OPENRIOT] $*" ; }
 
 log "OpenRiot post-install starting"
 
-# STEP 1: Extract openriot.tgz FIRST
-log "Extracting openriot.tgz..."
-if [ -f /openriot.tgz ]; then
-    tar xzf /openriot.tgz -C / 2>&1 || log "Warning: extraction failed"
-else
-    log "Warning: openriot.tgz not found"
-fi
-
-# STEP 2: Configure doas (must happen early so user can sudo)
+# STEP 1: Configure doas (must happen early so user can sudo)
 log "Configuring doas..."
 echo "permit nopass :wheel" > /etc/doas.conf
 chmod 0440 /etc/doas.conf
 log "doas configured"
 
-# STEP 3: Configure installurl for the NEW installed system
+# STEP 2: Configure installurl for the NEW installed system
 log "Configuring installurl..."
 echo "https://cdn.openbsd.org/pub/OpenBSD" > /etc/installurl
 log "installurl configured"
 
-# STEP 4: Install packages from local path
+# STEP 3: Install packages from local path
+# The installer already extracted site79.tgz as a set, so /openriot/ exists.
 PKG_PATH_LOCAL="/openriot/packages/snapshots/amd64"
 log "Installing packages from local path..."
 if [ -d "$PKG_PATH_LOCAL" ]; then
     for pkg in "$PKG_PATH_LOCAL"/*.tgz; do
         [ -f "$pkg" ] || continue
         pkg_name=$(basename "$pkg" .tgz)
-        base_pkg=$(echo "$pkg_name" | sed 's/-[0-9].*//')
-        log "Installing $base_pkg..."
-        PKG_PATH="$PKG_PATH_LOCAL" pkg_add "$base_pkg" 2>&1 || log "Failed: $base_pkg"
+        log "Installing $pkg_name..."
+        PKG_PATH="$PKG_PATH_LOCAL" pkg_add "$pkg" 2>&1 || log "Failed: $pkg_name"
     done
     log "Package install complete"
 else
     log "Warning: package directory not found"
 fi
 
-# STEP 5: Move repo to user's .local/share/openriot
+# STEP 4: Move repo to user's .local/share/openriot
 log "Setting up OpenRiot repo..."
 for homedir in /home/*; do
     [ -d "$homedir" ] || continue
     username="$(basename "$homedir")"
+    # Ensure user can use doas
+    usermod -G wheel "$username" 2>/dev/null || log "Warning: could not add $username to wheel"
     target_dir="$homedir/.local/share/openriot"
     mkdir -p "$target_dir"
     if [ -d /openriot/repo ]; then
@@ -259,7 +260,7 @@ for homedir in /home/*; do
     fi
 done
 
-# STEP 6: Add welcome message to skel
+# STEP 5: Add welcome message to skel
 log "Adding welcome message..."
 if [ -f /etc/skel/.profile ] && ! grep -q openriot-setup-done /etc/skel/.profile 2>/dev/null; then
     cat >> /etc/skel/.profile << 'WELCOME'
@@ -271,7 +272,7 @@ if [ ! -f ~/.openriot-setup-done ]; then
     echo ""
     echo "Run the following command to complete setup:"
     echo ""
-    echo "    curl -fsSL https://OpenRiot.org/sh | sh"
+    echo "    curl -fsSL https://OpenRiot.org/setup.sh | sh"
     echo ""
     touch ~/.openriot-setup-done
 fi
@@ -307,8 +308,8 @@ Location of sets = disk
 Is the disk partition already mounted? = yes
 Pathname to the sets = /
 
-# Install openriot.tgz from the disk
-install openriot.tgz = yes
+# Install site79.tgz from the disk
+install site79.tgz = yes
 `
 
 	path := filepath.Join(siteDir, "install.conf")
