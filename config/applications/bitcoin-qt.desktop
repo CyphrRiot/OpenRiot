@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Bitcoin Wallet
+Comment=Bitcoin Core Qt Wallet
+Exec=bitcoin-qt
+Icon=bitcoin
+Categories=Office;Finance;
+Terminal=false
+StartupNotify=true

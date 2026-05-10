@@ -78,7 +78,7 @@ func getCacheFile() string {
 	oldFile := filepath.Join(homeDir, ".cache", "openriot-weather.json")
 	if _, err := os.Stat(newFile); os.IsNotExist(err) {
 		if data, err := os.ReadFile(oldFile); err == nil {
-			_ = os.MkdirAll(cacheDir, 0o755)
+			_ = os.MkdirAll(cacheDir, 0o700)
 			_ = os.WriteFile(newFile, data, 0o600)
 			_ = os.Remove(oldFile)
 		}
@@ -123,7 +123,7 @@ func fetchWeather(cfg Config) (*APIResponse, error) {
 		Fresh time.Time
 	}{data, time.Now()}
 	if cacheData, err := json.Marshal(cached); err == nil {
-		os.MkdirAll(filepath.Dir(cacheFile), 0755)
+		os.MkdirAll(filepath.Dir(cacheFile), 0700)
 		os.WriteFile(cacheFile, cacheData, 0600)
 	}
 

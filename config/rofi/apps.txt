@@ -17,5 +17,6 @@ Telegram|tdesktop.desktop|󰭹
 Transmission|transmission-dynamic|󰐻
 Crush AI|alacritty --class crush --title "Crush AI" -e crush|󰚩
 Monero Wallet|monero-wallet-gui.desktop|
+Bitcoin Wallet|bitcoin-qt.desktop|
 Settings|xfce4-settings-manager|󰒓
 Games|@submenu:games|󰊗

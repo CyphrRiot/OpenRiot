@@ -222,7 +222,7 @@ func ConfigFileExists() bool {
 
 func getCacheDir() string {
 	cacheDir := filepath.Join(homeDir, ".cache", "openriot")
-	os.MkdirAll(cacheDir, 0755)
+	os.MkdirAll(cacheDir, 0700)
 	return cacheDir
 }
 

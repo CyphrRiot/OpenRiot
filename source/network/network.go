@@ -331,7 +331,7 @@ func CheckConnectivity() {
 		// Success - record timestamp
 		home, _ := os.UserHomeDir()
 		dir := filepath.Join(home, ".cache/openriot")
-		os.MkdirAll(dir, 0755)
+		os.MkdirAll(dir, 0700)
 		os.WriteFile(connectivityPath(), []byte(time.Now().Format(time.RFC3339)), 0600)
 	} else {
 		// Failed - clear connectivity file

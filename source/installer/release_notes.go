@@ -103,7 +103,7 @@ func AskShowReleaseNotes() bool {
 	}
 
 	fmt.Println()
-	prompt := fmt.Sprintf("[ASK] Read v%s Release Notes? [Y/n] ", version)
+	prompt := fmt.Sprintf("* Read v%s Release Notes? [Y/n] ", version)
 	key := readKey(prompt)
 	return key == 'y' || key == 'Y' || key == '\r' || key == '\n'
 }

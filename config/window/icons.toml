@@ -317,6 +317,10 @@ sdl_app = "󰺵"
 monero-wallet-gui = ""
 monero = ""
 
+# Bitcoin wallet
+bitcoin-qt = ""
+bitcoin = ""
+
 [ai_tools]
 crush = "󰚩"
 crush-cli = "󰚩"

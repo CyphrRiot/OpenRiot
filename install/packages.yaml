@@ -290,6 +290,17 @@ crypto:
         start: "Installing Monero wallet GUI"
         end: "Monero wallet GUI installed"
 
+    bitcoin:
+        type: "Package"
+        packages:
+            - bitcoin-30.2p0
+        configs:
+            - pattern: "applications/bitcoin-qt.desktop"
+              target: "~/.local/share/applications/bitcoin-qt.desktop"
+        depends: [desktop.apps]
+        start: "Installing Bitcoin wallet"
+        end: "Bitcoin wallet installed"
+
 media:
     media:
         packages:

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -20,12 +21,23 @@ var openbsdVersion = "7.9"
 
 var testMode bool
 
-// logDebugCall logs each binary invocation to /tmp/openriot_calls.log
+// logDebugCall logs each binary invocation to ~/.cache/openriot/debug.log
 func logDebugCall() {
 	if os.Getenv("OPENRIOT_DEBUG") != "1" {
 		return
 	}
-	f, err := os.OpenFile("/tmp/openriot_calls.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "DEBUG: cannot get home dir: %v\n", err)
+		return
+	}
+	logDir := filepath.Join(home, ".cache", "openriot")
+	if err := os.MkdirAll(logDir, 0700); err != nil {
+		fmt.Fprintf(os.Stderr, "DEBUG: cannot create log dir: %v\n", err)
+		return
+	}
+	logPath := filepath.Join(logDir, "debug.log")
+	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "DEBUG: cannot open log: %v\n", err)
 		return

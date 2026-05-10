@@ -56,7 +56,7 @@ func load() (*State, error) {
 func save(s *State) error {
 	path := statePath()
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0700); err != nil {
 		return fmt.Errorf("creating cache dir: %w", err)
 	}
 	data, err := json.MarshalIndent(s, "", "  ")
