@@ -289,39 +289,45 @@ For the best OpenBSD + i3 experience:
 
 ## 🚀 Installing OpenRiot
 
-The OpenRiot installer image includes OpenBSD 7.9, all packages, configs,
-and automation. Boot, answer a few prompts, and everything else happens
-offline. No script to run. No `pkg_add` marathon. No network required.
+There are two ways to install OpenRiot on a fresh machine.
 
-> Typical time: **5 minutes** with the OpenRiot image; 15+ minutes with
-the manual path (requires network).
+**Primary path (recommended):** Install standard OpenBSD from the official
+`install79.img`, then run one command to fetch and configure OpenRiot.
+Requires internet during setup.
+
+**Experimental path (in testing):** Flash a custom `openriot.img` that
+includes all OpenRiot packages pre-bundled. The base OpenBSD install and
+package installation happen offline, but you still run `setup.sh` after
+first login to fetch the latest OpenRiot repository and configs.
+
+> Typical time: **5 minutes** standard path with fast internet; **10–15
+minutes** offline image path (no package downloads, but repo fetch still
+requires network).
 
 ### 1. Download
 
-OpenBSD 7.9 is available as two download types:
+For the standard path, download the official OpenBSD installer:
 
-#### Option A: ISO (Best for CD/DVD)
+#### Disk Image (Best for USB)
 
-The `.iso` file is intended for optical media. If burning to CD/DVD, use this.
-
-Download: [install79.iso](https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install79.iso)
-
-#### Option B: Disk Image (Best for USB)
-
-The `.img` file is pre-configured for USB boot and bootloader. **Recommended for most users** — use this if installing from USB.
+The `.img` file is pre-configured for USB boot. **Recommended for most users.**
 
 Download: [install79.img](https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install79.img)
 
-#### Option C: OpenRiot Installer Image (Coming Soon)
+#### OpenRiot Installer Image (Experimental)
 
-The pre-built `openriot.img` includes OpenBSD 7.9, all OpenRiot packages,
-configs, and a fully automated post-install script. No internet required
-during installation. No manual `pkg_add`. No `setup.sh`.
+A custom `openriot.img` is under development. It bundles `install79.img`
+with pre-downloaded OpenRiot packages as a custom install set. This
+eliminates the `pkg_add` download phase during installation, but still
+requires `curl setup.sh` after first boot to deploy the OpenRiot
+repository, configs, and desktop environment.
 
+Not yet available for download. Build from source with `doas make img` if
+you want to test it.
 
 ### 2. Flash to USB
 
-> ⚠️ **Works for either `.img` file —** `install79.img` (manual) or `openriot.img` (automated).
+> ⚠️ **Works for any `.img` file** — `install79.img` (standard) or `openriot.img` (experimental).
 
 **For Linux:**
 ```bash
@@ -336,8 +342,7 @@ sync
 ```
 (Use raw disk device `/dev/rsdXc`, find with `dmesg | grep ^sd`)
 
-Or, for progress on OpenBSD
-
+Or, for progress on OpenBSD:
 ```bash
 dmesg | grep ^sd   # get your usb sdX number
 doas pkg_add pv    # if not installed already
@@ -345,43 +350,16 @@ pv -tpreb install79.img | doas dd of=/dev/rsdXc bs=1M
 sync
 ```
 
-### 3. Quick Install — OpenRiot Image (Recommended)
-
-Boot from the flashed USB. The OpenRiot installer handles everything
-offline — base system, all packages, configs, `doas`, service enablement.
-
-1. Disable Secure Boot, set USB first in boot order
-2. At `boot>` prompt, type `I` and press Enter
-3. Answer only these prompts:
-
-| Prompt               | Action                                     |
-| -------------------- | ------------------------------------------ |
-| Which disk           | Select your target disk (e.g. `sd0`)       |
-| Partition layout     | Type `c` for custom, then `z` → `a /` → size → `a swap` → `a /home` → `w` → `q` |
-| System hostname      | Type name → Enter                          |
-| Root password        | Type and confirm                           |
-| Setup a user         | Type username → Enter, then set password   |
-| What timezone        | Hit Enter (defaults to US/Pacific) or type yours |
-
-Everything else — sets, packages, OpenRiot repo, `doas.conf`, fish
-shell default, service enablement — is done automatically. No
-`curl | sh`. No `pkg_add` marathon. No network required.
-
-Reboot when finished:
-
-```bash
-reboot
-```
-
-The desktop starts automatically on first boot.
-
 ---
 
-### Alternative: Manual OpenBSD Install
+### Method 1: Standard OpenBSD Install (Recommended)
+
+Boot from the flashed USB and install OpenBSD normally. Then run
+`setup.sh` to install OpenRiot.
 
 1. Disable Secure Boot, set USB first in boot order
 2. At `boot>` prompt, type `I` and press Enter
-3. Follow the interactive prompts below:
+3. Follow the interactive prompts:
 
 | Prompt               | Action                                                |
 | -------------------- | ----------------------------------------------------- |
@@ -465,6 +443,41 @@ If something goes wrong:
 cat ~/.cache/openriot/setup.log
 cat ~/.cache/openriot/install.log
 ```
+
+---
+
+### Method 2: OpenRiot Installer Image (Experimental)
+
+Download the pre-built `openriot.img` from OpenRiot.org. It bundles OpenBSD
+7.9 with all OpenRiot packages pre-loaded as a custom install set — no
+`pkg_add` downloads during installation.
+
+After the OpenBSD base install completes, packages install automatically from
+the USB media. The system reboots to a console login. Log in as your user
+and run:
+
+```bash
+curl -fsSL https://openriot.org/setup.sh | sh
+```
+
+This fetches the latest OpenRiot repository, deploys configs, and completes
+the setup. Requires network during `setup.sh` execution. X11 does **not**
+start automatically on first boot — run `startx` after setup completes.
+
+#### Install Steps
+
+1. Download `openriot.img` *Coming Soon*
+2. Flash to USB:
+   **Linux:** `dd if=openriot.img of=/dev/sdX bs=4M status=progress`
+   **OpenBSD:** `doas dd if=openriot.img of=/dev/rsdXc bs=1M`
+3. Boot from USB, type `I` at the `boot>` prompt
+4. Answer the standard OpenBSD prompts (disk, hostname, user, password)
+5. When prompted for installation sets, select `site79.tgz` (or press Enter
+   to include all sets)
+6. Reboot when finished
+7. Log in as your user and run `curl -fsSL https://openriot.org/setup.sh | sh`
+
+---
 
 ### WiFi Setup
 
