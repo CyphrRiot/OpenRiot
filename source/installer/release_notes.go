@@ -122,7 +122,15 @@ func terminalHeight() int {
 func readKey(prompt string) byte {
 	fmt.Print(prompt)
 
-	fd := int(os.Stdin.Fd())
+	// Open /dev/tty explicitly — stdin may be a pipe (e.g. curl | sh)
+	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
+	if err != nil {
+		fmt.Scanln()
+		return 0
+	}
+	defer tty.Close()
+
+	fd := int(tty.Fd())
 	oldState, err := unix.IoctlGetTermios(fd, unix.TIOCGETA)
 	if err != nil {
 		fmt.Scanln()
@@ -143,7 +151,7 @@ func readKey(prompt string) byte {
 	defer unix.IoctlSetTermios(fd, unix.TIOCSETAF, oldState)
 
 	b := make([]byte, 1)
-	n, _ := os.Stdin.Read(b)
+	n, _ := tty.Read(b)
 	fmt.Println()
 	if n == 0 {
 		return 0

@@ -259,10 +259,11 @@ func injectContent(cfg *Config) error {
 		return fmt.Errorf("mount: %w\n%s", err, out)
 	}
 
-	// Log available space for debugging
+	// Log available space BEFORE injection
+	logger.Info("Space before injection:")
 	cmd = exec.Command("df", "-h", "/mnt")
 	if out, err := cmd.CombinedOutput(); err == nil {
-		logger.Info(fmt.Sprintf("Mounted space:\n%s", strings.TrimSpace(string(out))))
+		logger.Info(fmt.Sprintf("\n%s", strings.TrimSpace(string(out))))
 	}
 
 	// Inject tarball into the sets directory so the installer can find it
@@ -295,6 +296,13 @@ func injectContent(cfg *Config) error {
 	}
 	if err := f.Close(); err != nil {
 		return fmt.Errorf("close index.txt: %w", err)
+	}
+
+	// Log available space AFTER injection
+	logger.Info("Space after injection:")
+	cmd = exec.Command("df", "-h", "/mnt")
+	if out, err := cmd.CombinedOutput(); err == nil {
+		logger.Info(fmt.Sprintf("\n%s", strings.TrimSpace(string(out))))
 	}
 
 	// Unmount
