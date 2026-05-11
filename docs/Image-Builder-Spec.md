@@ -33,10 +33,8 @@ Actual size: **~1932MB**.
 | Component | Size |
 |---|---|
 | Base `install79.img` | ~801MB |
-| 68 packages (pre-downloaded) | ~793MB |
-| `install.site` + `motd` | ~5KB |
-| Tarball (`site79.tgz`) | ~793MB |
-| FFS minfree (5%) + metadata | ~350MB |
+| Site tarball (`site79.tgz`) | ~781MB |
+| FFS metadata + 5% minfree | ~350MB |
 | **Final image** | **~1932MB** |
 
 > **Note:** The OpenRiot Git repository (~1.1GB with `.git/`) is **NOT** included
@@ -51,6 +49,7 @@ Actual size: **~1932MB**.
 - **Must run on OpenBSD** (current or snapshots)
 - **Must run as root** (required for `vnconfig`, mounting, burning)
 - Binary must exist at `install/openriot` (from prior `make` build)
+
 
 ### Flags and Arguments
 
@@ -110,7 +109,7 @@ system. It:
 3. Adds `/usr/local/bin/fish` to `/etc/shells`
 4. Enables `apmd` and `sndiod`
 5. Creates `/etc/wireguard` (mode 700)
-6. Installs all 68 packages from `/openriot/packages/` via `pkg_add`
+6. Installs all 81 packages from `/openriot/packages/` via `pkg_add`
 7. For each user in `/home/*`:
    - Adds to `wheel` group
    - Sets fish as default shell
@@ -453,12 +452,12 @@ cleanup logic.
 - [x] Assert `openriot --install` is NOT present in script
 - [x] Remove `TestCreateInstallConf` if still present
 
-### `docs/image-builder-spec.md`
+### `docs/Image-Builder-Spec.md`
 - [x] This file — updated to reflect current architecture and status
 
 ### Validation
 - [x] `make && make test` passes
-- [x] `make img` as root succeeds
+- [x] `make image` as root succeeds
 - [x] `ls -lh Build/Images/openriot.img` shows **< 2.0GB** (~1932MB)
 - [x] Mount image, verify `site79.tgz` exists in `7.9/amd64/`
 - [x] Verify `index.txt` contains `site79.tgz` alongside standard sets
