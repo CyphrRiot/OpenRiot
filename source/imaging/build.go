@@ -31,19 +31,31 @@ func BuildImage(cfg *Config) error {
 		return fmt.Errorf("copy base: %w", err)
 	}
 
-	// Expand image from base
-	if err := expandImage(cfg); err != nil {
+	// Calculate target size: base image + tarball + 350MB buffer, round to 4MB
+	baseInfo, err := os.Stat(cfg.BaseImg)
+	if err != nil {
+		return fmt.Errorf("stat base image: %w", err)
+	}
+	tgzInfo, err := os.Stat(cfg.OpenriotTgz)
+	tgzSize := int64(0)
+	if err == nil {
+		tgzSize = tgzInfo.Size()
+	}
+	targetBytes := baseInfo.Size() + tgzSize + 350*1024*1024
+	// Round up to nearest 4MB
+	targetBytes = ((targetBytes + 4*1024*1024 - 1) / (4 * 1024 * 1024)) * (4 * 1024 * 1024)
+	if targetBytes < 512*1024*1024 {
+		targetBytes = 512 * 1024 * 1024 // minimum 512MB
+	}
+
+	// Expand image to calculated size
+	if err := expandImage(cfg, targetBytes); err != nil {
 		return fmt.Errorf("expand: %w", err)
 	}
 
 	// Inject content
 	if err := injectContent(cfg); err != nil {
 		return fmt.Errorf("inject: %w", err)
-	}
-
-	// Shrink to fit
-	if err := shrinkImage(cfg); err != nil {
-		return fmt.Errorf("shrink: %w", err)
 	}
 
 	// Generate checksum
@@ -62,14 +74,14 @@ func cleanupMounts() {
 	time.Sleep(500 * time.Millisecond)
 }
 
-// expandImage creates a 2GB image from base and expands partition
-func expandImage(cfg *Config) error {
-	logger.Info("Expanding image to 2GB...")
+// expandImage resizes the image to targetBytes and expands the partition
+func expandImage(cfg *Config, targetBytes int64) error {
+	logger.Info(fmt.Sprintf("Expanding image to %dMB...", targetBytes/1024/1024))
 
 	outputImg := cfg.OutputImg
 
-	// Create 2GB fixed image (truncate expands existing file)
-	cmd := exec.Command("truncate", "-s", "2G", outputImg)
+	// Resize image to target
+	cmd := exec.Command("truncate", "-s", strconv.FormatInt(targetBytes, 10), outputImg)
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("truncate: %w\n%s", err, out)
 	}
@@ -108,7 +120,7 @@ func expandImage(cfg *Config) error {
 	// Release vnd
 	exec.Command("vnconfig", "-u", "vnd0").Run()
 
-	logger.Info("Image expanded to 2GB")
+	logger.Info(fmt.Sprintf("Image expanded to %dMB", targetBytes/1024/1024))
 	return nil
 }
 
@@ -142,8 +154,17 @@ func getImageSize(path string) int {
 	return int(info.Size() / 512)
 }
 
-// writeDisklabel reads the current disklabel, updates the a: partition size
-// to fill the expanded image, and writes it back.
+// getFileSize returns file size in bytes
+func getFileSize(path string) int64 {
+	info, _ := os.Stat(path)
+	if info == nil {
+		return 0
+	}
+	return info.Size()
+}
+
+// writeDisklabel reads the current disklabel, updates the a: and c: partition
+// sizes to match the expanded image, and writes it back.
 func writeDisklabel(rootStart int, fstype string, totalSec int) error {
 	// Read current label
 	cmd := exec.Command("disklabel", "vnd0")
@@ -155,7 +176,8 @@ func writeDisklabel(rootStart int, fstype string, totalSec int) error {
 	newSize := totalSec - rootStart
 	lines := strings.Split(string(out), "\n")
 	var modified []string
-	found := false
+	foundA := false
+	foundC := false
 
 	for _, line := range lines {
 		if strings.HasPrefix(line, "  a:") {
@@ -164,18 +186,43 @@ func writeDisklabel(rootStart int, fstype string, totalSec int) error {
 				fields[1] = strconv.Itoa(newSize)
 				fields[2] = strconv.Itoa(rootStart)
 				fields[3] = fstype
-				// Rebuild line with original spacing
-				modified = append(modified, fmt.Sprintf("  a: %14s %14s  %-8s %s %s %s",
-					fields[1], fields[2], fields[3], fields[4], fields[5], fields[6]))
-				found = true
+				// Rebuild with original spacing, but only reference extra fields if present
+				if len(fields) >= 7 {
+					modified = append(modified, fmt.Sprintf("  a: %14s %14s  %-8s %s %s %s",
+						fields[1], fields[2], fields[3], fields[4], fields[5], fields[6]))
+				} else {
+					modified = append(modified, fmt.Sprintf("  a: %14s %14s  %-8s",
+						fields[1], fields[2], fields[3]))
+				}
+				foundA = true
+				continue
+			}
+		}
+		if strings.HasPrefix(line, "  c:") {
+			fields := strings.Fields(line)
+			if len(fields) >= 4 {
+				fields[1] = strconv.Itoa(totalSec)
+				fields[2] = "0"
+				// Rebuild with original spacing
+				if len(fields) >= 7 {
+					modified = append(modified, fmt.Sprintf("  c: %14s %14s  %-8s %s %s %s",
+						fields[1], fields[2], fields[3], fields[4], fields[5], fields[6]))
+				} else {
+					modified = append(modified, fmt.Sprintf("  c: %14s %14s  %-8s",
+						fields[1], fields[2], fields[3]))
+				}
+				foundC = true
 				continue
 			}
 		}
 		modified = append(modified, line)
 	}
 
-	if !found {
+	if !foundA {
 		return fmt.Errorf("partition a: not found in current disklabel")
+	}
+	if !foundC {
+		logger.Warn("partition c: not found in current disklabel")
 	}
 
 	// Write modified label to temp file
@@ -212,26 +259,42 @@ func injectContent(cfg *Config) error {
 		return fmt.Errorf("mount: %w\n%s", err, out)
 	}
 
-	// Inject tarball
+	// Log available space for debugging
+	cmd = exec.Command("df", "-h", "/mnt")
+	if out, err := cmd.CombinedOutput(); err == nil {
+		logger.Info(fmt.Sprintf("Mounted space:\n%s", strings.TrimSpace(string(out))))
+	}
+
+	// Inject tarball into the sets directory so the installer can find it
+	setsDir := filepath.Join("/mnt", "7.9", "amd64")
+	logger.Info(fmt.Sprintf("Creating sets directory %s...", setsDir))
+	if err := os.MkdirAll(setsDir, 0755); err != nil {
+		return fmt.Errorf("create sets dir: %w", err)
+	}
+
 	logger.Info("Injecting site79.tgz...")
 	tgzSrc := cfg.OpenriotTgz
-	tgzDst := "/mnt/site79.tgz"
+	tgzDst := filepath.Join(setsDir, "site79.tgz")
 	if err := fsutil.CopyFile(tgzSrc, tgzDst); err != nil {
 		return fmt.Errorf("copy tgz: %w", err)
 	}
 
-	// Inject install.site and install.conf to media root
-	// The OpenBSD installer only discovers these at the root of the install media
-	logger.Info("Injecting install.site...")
-	siteSrc := filepath.Join(cfg.WorkDir, "install.site")
-	if err := fsutil.CopyFile(siteSrc, "/mnt/install.site"); err != nil {
-		return fmt.Errorf("copy install.site: %w", err)
+	// index.txt is required for the installer to discover site79.tgz.
+	// Append to existing index.txt (base image already lists standard sets).
+	logger.Info("Updating index.txt...")
+	idxPath := filepath.Join(setsDir, "index.txt")
+	idxLine := fmt.Sprintf("-rw-r--r--  1 root  wheel  %d %s site79.tgz\n",
+		getFileSize(tgzSrc), time.Now().Format("Jan _2 15:04:05 2006"))
+	f, err := os.OpenFile(idxPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("open index.txt: %w", err)
 	}
-
-	logger.Info("Injecting install.conf...")
-	confSrc := filepath.Join(cfg.WorkDir, "install.conf")
-	if err := fsutil.CopyFile(confSrc, "/mnt/install.conf"); err != nil {
-		return fmt.Errorf("copy install.conf: %w", err)
+	if _, err := f.WriteString(idxLine); err != nil {
+		f.Close()
+		return fmt.Errorf("append index.txt: %w", err)
+	}
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("close index.txt: %w", err)
 	}
 
 	// Unmount
@@ -239,46 +302,6 @@ func injectContent(cfg *Config) error {
 	exec.Command("vnconfig", "-u", "vnd0").Run()
 
 	logger.Info("Content injected")
-	return nil
-}
-
-// shrinkImage reduces image to minimum size + buffer
-func shrinkImage(cfg *Config) error {
-	logger.Info("Shrinking image to fit content...")
-
-	// Configure vnd
-	cmd := exec.Command("vnconfig", "vnd0", cfg.OutputImg)
-	cmd.Run()
-
-	// Get used space
-	dfCmd := exec.Command("df", "-k", "/dev/vnd0a")
-	out, _ := dfCmd.Output()
-	lines := strings.Split(string(out), "\n")
-	var usedKB int
-	for _, line := range lines {
-		fields := strings.Fields(line)
-		if len(fields) >= 3 && fields[1] != "1K-blocks" {
-			usedKB, _ = strconv.Atoi(fields[2])
-			break
-		}
-	}
-
-	// Calculate needed size: used + 10% buffer + 32MB
-	neededKB := usedKB*110/100 + 32768
-	neededMB := max(1024, (neededKB+4095)/4096*4)
-
-	logger.Info(fmt.Sprintf("Shrinking to %dMB (used: %dKB)...", neededMB, usedKB))
-
-	// Release vnd
-	exec.Command("vnconfig", "-u", "vnd0").Run()
-
-	// Truncate
-	cmd = exec.Command("truncate", "-s", fmt.Sprintf("%dM", neededMB), cfg.OutputImg)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("truncate: %w\n%s", err, out)
-	}
-
-	logger.Info(fmt.Sprintf("Image shrunk to %dMB", neededMB))
 	return nil
 }
 

@@ -31,27 +31,6 @@ func CreateSite(cfg *Config) error {
 		return fmt.Errorf("copy motd: %w", err)
 	}
 
-	// Setup repo
-	repoCacheDir := filepath.Join(getBuildDir(), "repo-cache")
-	if err := setupRepo(workDir, repoCacheDir); err != nil {
-		return fmt.Errorf("setup repo: %w", err)
-	}
-
-	// Move repo to site (use cp+rm to avoid cross-device rename issues)
-	repoSource := filepath.Join(workDir, "repo")
-	repoTarget := filepath.Join(openriotDir, "repo")
-
-	// Remove existing target if present
-	os.RemoveAll(repoTarget)
-
-	// Copy repo to site
-	if err := copyDir(repoSource, repoTarget); err != nil {
-		return fmt.Errorf("copy repo: %w", err)
-	}
-
-	// Remove source repo
-	os.RemoveAll(repoSource)
-
 	// Copy packages into tarball so install.site can install them
 	pkgSrc := filepath.Join(workDir, "packages", "snapshots", "amd64")
 	pkgDst := filepath.Join(openriotDir, "packages", "snapshots", "amd64")
@@ -59,17 +38,13 @@ func CreateSite(cfg *Config) error {
 		return fmt.Errorf("copy packages: %w", err)
 	}
 
-	// Create install.site outside siteDir so it stays out of the tarball
-	if err := createInstallSite(workDir); err != nil {
+	// Create install.site inside siteDir so it ships in the tarball
+	// (extracts to /install.site on the new system and runs via install.site(5))
+	if err := createInstallSite(siteDir); err != nil {
 		return fmt.Errorf("create install.site: %w", err)
 	}
 
-	// Create install.conf outside siteDir so it stays out of the tarball
-	if err := createInstallConf(workDir); err != nil {
-		return fmt.Errorf("create install.conf: %w", err)
-	}
-
-	// Create tarball (only openriot/ directory and motd, NOT install.site/conf)
+	// Create tarball (openriot/ directory, motd, and install.site)
 	tgzPath := cfg.OpenriotTgz
 	os.Remove(tgzPath) // Remove old if exists
 
@@ -143,177 +118,119 @@ func copyMotd(siteDir string) error {
 	return nil
 }
 
-// setupRepo clones or updates the OpenRiot repo
-func setupRepo(workDir, cacheDir string) error {
-	repoDir := filepath.Join(workDir, "repo")
-	repoURL := "https://github.com/CyphrRiot/OpenRiot"
-
-	// Use shell rm to ensure directory is removed (handles more edge cases than os.RemoveAll)
-	exec.Command("rm", "-rf", repoDir).Run()
-
-	// Check for cached repo
-	if _, err := os.Stat(filepath.Join(cacheDir, ".git")); err == nil {
-		// Use cached repo - pull latest
-		os.MkdirAll(repoDir, 0755)
-
-		// Clone from cache
-		cmd := exec.Command("git", "clone", cacheDir, repoDir)
-		cmd.Dir = cacheDir
-		if out, err := cmd.CombinedOutput(); err != nil {
-			return fmt.Errorf("git clone from cache: %w\n%s", err, out)
-		}
-
-		// Fetch and reset to latest
-		cmd = exec.Command("git", "fetch", "--depth", "1", "origin", "main")
-		cmd.Dir = repoDir
-		cmd.Run() // Ignore errors - may already be at latest
-
-		cmd = exec.Command("git", "reset", "--hard", "origin/main")
-		cmd.Dir = repoDir
-		cmd.Run()
-
-		// Update cache for next time (exclude packages/)
-		updateCache(repoDir, cacheDir)
-		return nil
-	}
-
-	// Fresh clone
-	os.RemoveAll(repoDir)
-	cmd := exec.Command("git", "clone", "--depth", "1", repoURL, repoDir)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("git clone: %w\n%s", err, out)
-	}
-
-	// Create cache for next time
-	os.RemoveAll(cacheDir)
-	os.MkdirAll(cacheDir, 0755)
-	updateCache(repoDir, cacheDir)
-
-	return nil
-}
-
-// updateCache copies repo to cache (excluding packages/)
-func updateCache(repoDir, cacheDir string) {
-	entries, _ := os.ReadDir(repoDir)
-	for _, entry := range entries {
-		if entry.Name() == "packages" {
-			continue
-		}
-		src := filepath.Join(repoDir, entry.Name())
-		dst := filepath.Join(cacheDir, entry.Name())
-		os.RemoveAll(dst)
-		os.Rename(src, dst) // Move (not copy) for speed
-	}
-}
-
 // createInstallSite writes the install.site script
 func createInstallSite(siteDir string) error {
 	content := `#!/bin/sh
-# OpenRiot post-install script
-# Runs during OpenBSD installer
+# OpenRiot post-install script — runs at end of OpenBSD install
+# Environment: root, chroot at new system root, no TTY, no X
 
-log() { echo "[OPENRIOT] $*" ; }
+log() { echo "[OPENRIOT] $*"; }
+fail() { echo "[OPENRIOT] FAIL: $*"; }
 
 log "OpenRiot post-install starting"
 
-# STEP 1: Configure doas (must happen early so user can sudo)
-log "Configuring doas..."
-echo "permit nopass :wheel" > /etc/doas.conf
-chmod 0440 /etc/doas.conf
-log "doas configured"
+# ------------------------------------------------------------------
+# 1. System configuration
+# ------------------------------------------------------------------
 
-# STEP 2: Configure installurl for the NEW installed system
-log "Configuring installurl..."
-echo "https://cdn.openbsd.org/pub/OpenBSD" > /etc/installurl
+# doas
+if ! [ -f /etc/doas.conf ]; then
+	printf '%s\n' "permit nopass :wheel" > /etc/doas.conf
+	chmod 0440 /etc/doas.conf
+	log "doas configured"
+fi
+
+# installurl
+printf '%s\n' "https://cdn.openbsd.org/pub/OpenBSD" > /etc/installurl
 log "installurl configured"
 
-# STEP 3: Install packages from local path
-# The installer already extracted site79.tgz as a set, so /openriot/ exists.
-PKG_PATH_LOCAL="/openriot/packages/snapshots/amd64"
-log "Installing packages from local path..."
-if [ -d "$PKG_PATH_LOCAL" ]; then
-    for pkg in "$PKG_PATH_LOCAL"/*.tgz; do
-        [ -f "$pkg" ] || continue
-        pkg_name=$(basename "$pkg" .tgz)
-        log "Installing $pkg_name..."
-        PKG_PATH="$PKG_PATH_LOCAL" pkg_add "$pkg" 2>&1 || log "Failed: $pkg_name"
-    done
-    log "Package install complete"
-else
-    log "Warning: package directory not found"
+# Add fish to /etc/shells
+if ! grep -q '^/usr/local/bin/fish$' /etc/shells 2>/dev/null; then
+	printf '%s\n' "/usr/local/bin/fish" >> /etc/shells
+	log "fish added to /etc/shells"
 fi
 
-# STEP 4: Move repo to user's .local/share/openriot
-log "Setting up OpenRiot repo..."
+# Enable critical services (but NOT xenodm — user must start X manually)
+rcctl enable apmd 2>/dev/null && rcctl set apmd flags -A 2>/dev/null
+rcctl enable sndiod 2>/dev/null
+mkdir -p /etc/wireguard
+chmod 700 /etc/wireguard
+log "services configured"
+
+# ------------------------------------------------------------------
+# 2. Install packages from local path (offline)
+# ------------------------------------------------------------------
+PKG_PATH_LOCAL="/openriot/packages/snapshots/amd64"
+if [ -d "$PKG_PATH_LOCAL" ]; then
+	log "Installing packages from local path..."
+	for pkg in "$PKG_PATH_LOCAL"/*.tgz; do
+		[ -f "$pkg" ] || continue
+		log "Installing $(basename "$pkg")..."
+		PKG_PATH="$PKG_PATH_LOCAL" pkg_add "$pkg" 2>&1 || fail "pkg_add: $(basename "$pkg")"
+	done
+	log "Package install complete"
+else
+	fail "Package directory not found: $PKG_PATH_LOCAL"
+fi
+
+# ------------------------------------------------------------------
+# 3. Per-user setup
+# ------------------------------------------------------------------
 for homedir in /home/*; do
-    [ -d "$homedir" ] || continue
-    username="$(basename "$homedir")"
-    # Ensure user can use doas
-    usermod -G wheel "$username" 2>/dev/null || log "Warning: could not add $username to wheel"
-    target_dir="$homedir/.local/share/openriot"
-    mkdir -p "$target_dir"
-    if [ -d /openriot/repo ]; then
-        rm -rf "$target_dir/repo" 2>/dev/null || true
-        cp -r /openriot/repo "$target_dir/repo"
-        chown -R "$username:$username" "$target_dir/repo"
-        log "Repo installed for $username"
-    fi
+	[ -d "$homedir" ] || continue
+	username="$(basename "$homedir")"
+
+	# Add to wheel
+	usermod -G wheel "$username" 2>/dev/null || fail "usermod $username"
+
+	# Set fish as default shell
+	chsh -s /usr/local/bin/fish "$username" 2>/dev/null || fail "chsh $username"
+
+	# Create XDG directories
+	for dir in Documents Downloads Music Pictures Videos Code Screenshots; do
+		mkdir -p "$homedir/$dir"
+		chown "$username:$username" "$homedir/$dir"
+	done
+
+	# Welcome message
+	cat >> "$homedir/.profile" << 'WELCOME'
+
+# OpenRiot — Welcome
+echo ""
+echo "Welcome to OpenRiot!"
+echo ""
+echo "All required packages have been pre-installed."
+echo "To complete setup and download the latest OpenRiot repository, run:"
+echo ""
+echo "    curl -fsSL https://OpenRiot.org/setup.sh | sh"
+echo ""
+echo "This requires a working network or WiFi connection."
+echo ""
+WELCOME
+	chown "$username:$username" "$homedir/.profile"
 done
 
-# STEP 5: Add welcome message to skel
-log "Adding welcome message..."
-if [ -f /etc/skel/.profile ] && ! grep -q openriot-setup-done /etc/skel/.profile 2>/dev/null; then
-    cat >> /etc/skel/.profile << 'WELCOME'
+# 4. Skel for future users
+cat >> /etc/skel/.profile << 'WELCOME'
 
-# OpenRiot first login
-if [ ! -f ~/.openriot-setup-done ]; then
-    echo ""
-    echo "Welcome to OpenRiot"
-    echo ""
-    echo "Run the following command to complete setup:"
-    echo ""
-    echo "    curl -fsSL https://OpenRiot.org/setup.sh | sh"
-    echo ""
-    touch ~/.openriot-setup-done
-fi
+# OpenRiot — Welcome
+echo ""
+echo "Welcome to OpenRiot!"
+echo ""
+echo "All required packages have been pre-installed."
+echo "To complete setup and download the latest OpenRiot repository, run:"
+echo ""
+echo "    curl -fsSL https://OpenRiot.org/setup.sh | sh"
+echo ""
+echo "This requires a working network or WiFi connection."
+echo ""
 WELCOME
-fi
 
 log "Post-install complete"
 `
 
 	path := filepath.Join(siteDir, "install.site")
-	if err := os.WriteFile(path, []byte(content), 0755); err != nil {
-		return err
-	}
-	return nil
-}
-
-// createInstallConf writes install.conf autoinstall answers
-func createInstallConf(siteDir string) error {
-	content := `# OpenRiot autoinstall answers
-# User will be prompted for: disk, hostname, passwords, timezone, partition layout
-
-Which disk is the root disk = ask
-Use (W)hole disk MBR, whole disk (G)PT, or (E)dit = edit
-
-System hostname = ask
-Password for root = ask
-Setup a user = ask
-Password for user = ask
-What timezone are you in = US/Pacific
-
-# Sets come from the install disk (which is already mounted at /)
-Location of sets = disk
-Is the disk partition already mounted? = yes
-Pathname to the sets = /
-
-# Install site79.tgz from the disk
-install site79.tgz = yes
-`
-
-	path := filepath.Join(siteDir, "install.conf")
-	return os.WriteFile(path, []byte(content), 0644)
+	return os.WriteFile(path, []byte(content), 0755)
 }
 
 // PackageInfo holds info about downloaded packages

@@ -227,6 +227,7 @@ img:
 		echo "  3. doas make img"; \
 		exit 1; \
 	fi
+	@rm -f Build/Images/openriot.img Build/Images/openriot.sha256 Build/work/site79.tgz
 	@doas ./install/openriot --make-image
 
 # ISO build - DEPRECATED

@@ -13,54 +13,35 @@ func TestGetBuildDir(t *testing.T) {
 
 func TestCreateInstallSite(t *testing.T) {
 	tmpDir := t.TempDir()
-	
+
 	err := createInstallSite(tmpDir)
 	if err != nil {
 		t.Fatalf("createInstallSite failed: %v", err)
 	}
-	
+
 	path := tmpDir + "/install.site"
 	if _, err := os.Stat(path); err != nil {
 		t.Fatalf("install.site not created: %v", err)
 	}
-	
+
 	data, _ := os.ReadFile(path)
 	content := string(data)
-	
-	if !strings.Contains(content, "STEP 1: Configure doas") {
-		t.Error("missing STEP 1")
-	}
-	if !strings.Contains(content, "Configuring doas") {
+
+	if !strings.Contains(content, "permit nopass :wheel") {
 		t.Error("missing doas config")
 	}
 	if !strings.Contains(content, "pkg_add") {
 		t.Error("missing pkg_add")
 	}
-	if !strings.Contains(content, "curl -fsSL https://OpenRiot.org/sh") {
-		t.Error("missing curl command")
+	if !strings.Contains(content, "curl -fsSL https://OpenRiot.org/setup.sh") {
+		t.Error("missing curl setup.sh welcome message")
 	}
-	
-	t.Logf("install.site created successfully (%d bytes)", len(content))
-}
+	if strings.Contains(content, "rcctl enable xenodm") {
+		t.Error("xenodm should not be enabled")
+	}
+	if strings.Contains(content, "openriot --install") {
+		t.Error("openriot --install should not be in first-login script")
+	}
 
-func TestCreateInstallConf(t *testing.T) {
-	tmpDir := t.TempDir()
-	
-	err := createInstallConf(tmpDir)
-	if err != nil {
-		t.Fatalf("createInstallConf failed: %v", err)
-	}
-	
-	path := tmpDir + "/install.conf"
-	data, _ := os.ReadFile(path)
-	content := string(data)
-	
-	if !strings.Contains(content, "Which disk is the root disk = ask") {
-		t.Error("missing disk prompt")
-	}
-	if !strings.Contains(content, "install openriot.tgz = yes") {
-		t.Error("missing tgz install")
-	}
-	
-	t.Logf("install.conf created successfully (%d bytes)", len(content))
+	t.Logf("install.site created successfully (%d bytes)", len(content))
 }

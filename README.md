@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-6.4-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-6.5-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -289,9 +289,12 @@ For the best OpenBSD + i3 experience:
 
 ## 🚀 Installing OpenRiot
 
-You will be installing OpenBSD 7.9 and then running a script that installs the full OpenRiot distribution, Window Management, applications, and everything else. It's a process, so be patient with the installation.
+The OpenRiot installer image includes OpenBSD 7.9, all packages, configs,
+and automation. Boot, answer a few prompts, and everything else happens
+offline. No script to run. No `pkg_add` marathon. No network required.
 
-> Typical time to install is about 15 minutes (or more, depending on connection).
+> Typical time: **5 minutes** with the OpenRiot image; 15+ minutes with
+the manual path (requires network).
 
 ### 1. Download
 
@@ -309,9 +312,17 @@ The `.img` file is pre-configured for USB boot and bootloader. **Recommended for
 
 Download: [install79.img](https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install79.img)
 
-### 2. Create bootable USB
+#### Option C: OpenRiot Installer Image (Recommended)
 
-> ⚠️ **Choose your file type and platform:**
+The pre-built `openriot.img` includes OpenBSD 7.9, all OpenRiot packages,
+configs, and a fully automated post-install script. No internet required
+during installation. No manual `pkg_add`. No `setup.sh`.
+
+Download: [openriot.img v6.4](https://github.com/CyphrRiot/OpenRiot/releases/tag/v6.4)
+
+### 2. Flash to USB
+
+> ⚠️ **Works for either `.img` file —** `install79.img` (manual) or `openriot.img` (automated).
 
 **For Linux:**
 ```bash
@@ -335,7 +346,39 @@ pv -tpreb install79.img | doas dd of=/dev/rsdXc bs=1M
 sync
 ```
 
-### 3. Boot and install OpenBSD
+### 3. Quick Install — OpenRiot Image (Recommended)
+
+Boot from the flashed USB. The OpenRiot installer handles everything
+offline — base system, all packages, configs, `doas`, service enablement.
+
+1. Disable Secure Boot, set USB first in boot order
+2. At `boot>` prompt, type `I` and press Enter
+3. Answer only these prompts:
+
+| Prompt               | Action                                     |
+| -------------------- | ------------------------------------------ |
+| Which disk           | Select your target disk (e.g. `sd0`)       |
+| Partition layout     | Type `c` for custom, then `z` → `a /` → size → `a swap` → `a /home` → `w` → `q` |
+| System hostname      | Type name → Enter                          |
+| Root password        | Type and confirm                           |
+| Setup a user         | Type username → Enter, then set password   |
+| What timezone        | Hit Enter (defaults to US/Pacific) or type yours |
+
+Everything else — sets, packages, OpenRiot repo, `doas.conf`, fish
+shell default, service enablement — is done automatically. No
+`curl | sh`. No `pkg_add` marathon. No network required.
+
+Reboot when finished:
+
+```bash
+reboot
+```
+
+The desktop starts automatically on first boot.
+
+---
+
+### Alternative: Manual OpenBSD Install
 
 1. Disable Secure Boot, set USB first in boot order
 2. At `boot>` prompt, type `I` and press Enter
@@ -371,13 +414,13 @@ sync
 swap    2G (or more)
 ```
 
-### 4. Reboot
+#### Reboot
 
 ```bash
 reboot
 ```
 
-### 5. After reboot — configure doas and run setup
+#### After reboot — configure doas and run setup
 
 Log in as **root** first:
 

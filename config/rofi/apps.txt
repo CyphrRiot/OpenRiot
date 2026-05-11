@@ -10,12 +10,12 @@ Proton Mail|firefox --class proton-mail https://mail.protonmail.com|󰊫
 Helix|alacritty --class helix --title Helix -e hx|
 Text Editor|gnome-text-editor|󰷉
 Word Processor|libreoffice --writer|󰈙
+Media Player|mpv --player-operation-mode=pseudo-gui|
 System Monitor|alacritty --class btop --title "System Monitor" -e btop|󰍹
 Crush AI|alacritty --class crush --title "Crush AI" -e crush|󰚩
-Media Player|mpv --player-operation-mode=pseudo-gui|
 Transmission|transmission-dynamic|󰐻
 Telegram|tdesktop.desktop|󰭹
 Monero Wallet|monero-wallet-gui.desktop|
 Bitcoin Wallet|bitcoin-qt.desktop|
-Settings|xfce4-settings-manager|󰒓
 Games|@submenu:games|󰊗
+Settings|xfce4-settings-manager|󰒓

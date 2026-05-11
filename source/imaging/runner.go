@@ -136,12 +136,6 @@ func runClean(cfg *Config) {
 		os.Exit(1)
 	}
 
-	// Also clean repo cache
-	repoCache := getBuildDir() + "/repo-cache"
-	if err := os.RemoveAll(repoCache); err == nil {
-		logger.Done("Repo cache cleaned")
-	}
-
 	logger.Done("Cleanup complete")
 }
 
