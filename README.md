@@ -312,13 +312,12 @@ The `.img` file is pre-configured for USB boot and bootloader. **Recommended for
 
 Download: [install79.img](https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install79.img)
 
-#### Option C: OpenRiot Installer Image (Recommended)
+#### Option C: OpenRiot Installer Image (Coming Soon)
 
 The pre-built `openriot.img` includes OpenBSD 7.9, all OpenRiot packages,
 configs, and a fully automated post-install script. No internet required
 during installation. No manual `pkg_add`. No `setup.sh`.
 
-Download: [openriot.img v6.4](https://github.com/CyphrRiot/OpenRiot/releases/tag/v6.4)
 
 ### 2. Flash to USB
 
