@@ -20,21 +20,23 @@ const (
 
 // RunMakeImage is the main entry point for --make-image
 func RunMakeImage(args []string) {
-	// Parse mode from args
+	// Parse mode from args, filtering out mode keywords
 	mode := ModeFull
-	for i, arg := range args {
+	var filtered []string
+	for _, arg := range args {
 		switch arg {
 		case "site":
 			mode = ModeSite
-			args = append(args[:i], args[i+1:]...)
 		case "clean":
 			mode = ModeClean
-			args = append(args[:i], args[i+1:]...)
 		case "help", "--help", "-h":
 			printMakeImageHelp()
 			return
+		default:
+			filtered = append(filtered, arg)
 		}
 	}
+	args = filtered
 
 	// Load config
 	cfg, err := LoadConfig(args)
@@ -46,7 +48,7 @@ func RunMakeImage(args []string) {
 	// Print header
 	version := GetOpenriotVersion()
 	logger.Info(fmt.Sprintf("OpenRiot Image Builder v%s", version))
-	logger.Info(fmt.Sprintf("Building for OpenBSD %s", cfg.Version))
+	logger.Info(fmt.Sprintf("Building for OpenBSD %s", formatVersion(cfg.Version)))
 
 	// Check prerequisites
 	if err := CheckPrereqs(cfg); err != nil {
@@ -139,6 +141,15 @@ func runClean(cfg *Config) {
 	logger.Done("Cleanup complete")
 }
 
+// formatVersion inserts a dot before the last digit for display.
+// e.g. "79" -> "7.9", "80" -> "8.0"
+func formatVersion(v string) string {
+	if len(v) < 2 {
+		return v
+	}
+	return v[:len(v)-1] + "." + v[len(v)-1:]
+}
+
 func printMakeImageHelp() {
 	fmt.Print(`OpenRiot Image Builder
 
@@ -146,12 +157,15 @@ Usage: openriot --make-image [mode] [flags]
 
 Modes:
   (none)        Full build: create site tarball + image (default)
-  site          Create openriot.tgz tarball only
+  site          Create site tarball only
   clean         Clean build artifacts
+  help          Show this help
 
 Flags:
   --base-img PATH    Base OpenBSD image (default: Build/Images/install79.img)
   --output-img PATH  Output image (default: Build/Images/openriot.img)
+  --work-dir PATH    Working directory (default: Build/work)
+  --version X.Y      OpenBSD version to target (default: 79)
   --no-burn          Skip drive detection and burn prompt
 
 Examples:

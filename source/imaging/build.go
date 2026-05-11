@@ -94,6 +94,7 @@ func expandImage(cfg *Config, targetBytes int64) error {
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("vnconfig: %w\n%s", err, out)
 	}
+	defer exec.Command("vnconfig", "-u", "vnd0").Run()
 
 	// Get current partition info
 	rootStart, fstype, err := getPartitionInfo()
@@ -116,9 +117,6 @@ func expandImage(cfg *Config, targetBytes int64) error {
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("growfs: %w\n%s", err, out)
 	}
-
-	// Release vnd
-	exec.Command("vnconfig", "-u", "vnd0").Run()
 
 	logger.Info(fmt.Sprintf("Image expanded to %dMB", targetBytes/1024/1024))
 	return nil
@@ -152,15 +150,6 @@ func getPartitionInfo() (int, string, error) {
 func getImageSize(path string) int {
 	info, _ := os.Stat(path)
 	return int(info.Size() / 512)
-}
-
-// getFileSize returns file size in bytes
-func getFileSize(path string) int64 {
-	info, _ := os.Stat(path)
-	if info == nil {
-		return 0
-	}
-	return info.Size()
 }
 
 // writeDisklabel reads the current disklabel, updates the a: and c: partition
@@ -258,6 +247,10 @@ func injectContent(cfg *Config) error {
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("mount: %w\n%s", err, out)
 	}
+	defer func() {
+		exec.Command("umount", "/mnt").Run()
+		exec.Command("vnconfig", "-u", "vnd0").Run()
+	}()
 
 	// Log available space BEFORE injection
 	logger.Info("Space before injection:")
@@ -282,10 +275,19 @@ func injectContent(cfg *Config) error {
 
 	// index.txt is required for the installer to discover site79.tgz.
 	// Append to existing index.txt (base image already lists standard sets).
+	// Use actual ls -lT output so the installer parser recognizes the entry.
 	logger.Info("Updating index.txt...")
 	idxPath := filepath.Join(setsDir, "index.txt")
-	idxLine := fmt.Sprintf("-rw-r--r--  1 root  wheel  %d %s site79.tgz\n",
-		getFileSize(tgzSrc), time.Now().Format("Jan _2 15:04:05 2006"))
+	cmd = exec.Command("ls", "-lT", "site79.tgz")
+	cmd.Dir = setsDir
+	out, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("ls -lT site79.tgz: %w", err)
+	}
+	idxLine := string(out)
+	if !strings.HasSuffix(idxLine, "\n") {
+		idxLine += "\n"
+	}
 	f, err := os.OpenFile(idxPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return fmt.Errorf("open index.txt: %w", err)
@@ -304,10 +306,6 @@ func injectContent(cfg *Config) error {
 	if out, err := cmd.CombinedOutput(); err == nil {
 		logger.Info(fmt.Sprintf("\n%s", strings.TrimSpace(string(out))))
 	}
-
-	// Unmount
-	exec.Command("umount", "/mnt").Run()
-	exec.Command("vnconfig", "-u", "vnd0").Run()
 
 	logger.Info("Content injected")
 	return nil

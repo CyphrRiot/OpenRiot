@@ -10,21 +10,26 @@ import (
 	"openriot/logger"
 )
 
-// CreateSite creates the openriot.tgz tarball
+// CreateSite creates the site79.tgz tarball
 func CreateSite(cfg *Config) error {
 	workDir := cfg.WorkDir
-	siteDir := filepath.Join(workDir, "site")
-	openriotDir := filepath.Join(siteDir, "openriot")
 
 	// Create work directory
 	if err := os.MkdirAll(workDir, 0755); err != nil {
 		return fmt.Errorf("create work dir: %w", err)
 	}
 
-	// Clean old site content completely (handles permission issues from previous runs)
-	os.RemoveAll(siteDir)
-	os.MkdirAll(siteDir, 0755)
-	os.MkdirAll(openriotDir, 0755)
+	// Use a fresh temp directory to avoid permission collisions from prior root runs
+	siteDir, err := os.MkdirTemp(workDir, "site-")
+	if err != nil {
+		return fmt.Errorf("create site temp dir: %w", err)
+	}
+	defer os.RemoveAll(siteDir)
+
+	openriotDir := filepath.Join(siteDir, "openriot")
+	if err := os.MkdirAll(openriotDir, 0755); err != nil {
+		return fmt.Errorf("create openriot dir: %w", err)
+	}
 
 	// Copy MOTD
 	if err := copyMotd(siteDir); err != nil {
@@ -48,8 +53,7 @@ func CreateSite(cfg *Config) error {
 	tgzPath := cfg.OpenriotTgz
 	os.Remove(tgzPath) // Remove old if exists
 
-	cmd := exec.Command("tar", "czvf", tgzPath, "-C", siteDir, ".")
-	cmd.Dir = siteDir
+	cmd := exec.Command("tar", "czf", tgzPath, "-C", siteDir, ".")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("tar failed: %w\n%s", err, out)
 	}

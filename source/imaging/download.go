@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"openriot/config"
 	"openriot/logger"
@@ -203,7 +204,8 @@ func downloadWithRetry(pkgPath, pkgName string) error {
 
 // downloadFile downloads a single file
 func downloadFile(pkgPath, url string) error {
-	resp, err := http.Get(url)
+	client := &http.Client{Timeout: 2 * time.Minute}
+	resp, err := client.Get(url)
 	if err != nil {
 		return err
 	}

@@ -141,17 +141,17 @@ func CheckPrereqs(cfg *Config) error {
 		return nil
 	}
 
-	// Check Images/install79.img relative to repo root
+	// Check Build/Images/install79.img relative to repo root
 	execDir, _ := os.Executable()
 	repoRoot := filepath.Dir(filepath.Dir(execDir))
-	fallbackImg := filepath.Join(repoRoot, "Images", "install79.img")
+	fallbackImg := filepath.Join(repoRoot, "Build", "Images", "install79.img")
 	if info, err := os.Stat(fallbackImg); err == nil && info.Size() > 0 {
 		cfg.BaseImg = fallbackImg
 		return nil
 	}
 
-	// Check Images/install79.iso and warn
-	fallbackIso := filepath.Join(repoRoot, "Images", "install79.iso")
+	// Check Build/Images/install79.iso and warn
+	fallbackIso := filepath.Join(repoRoot, "Build", "Images", "install79.iso")
 	if _, err := os.Stat(fallbackIso); err == nil {
 		return fmt.Errorf("found %s but image builder requires .img (disk image), not .iso\ndownload the .img from https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install79.img", fallbackIso)
 	}

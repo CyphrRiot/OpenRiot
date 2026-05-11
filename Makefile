@@ -216,19 +216,23 @@ clean:
 
 # Custom installer image
 # Requires OpenBSD 7.9 host - cross-compilation not possible for bsd.rd modification
-img:
+image:
 	@if [ "$$(uname -s)" != "OpenBSD" ]; then \
-		echo "ERROR: img target requires OpenBSD $(OPENBSD_VERSION)"; \
+		echo "ERROR: image target requires OpenBSD $(OPENBSD_VERSION)"; \
 		echo "Current: $$(uname -s) $$(uname -r)"; \
 		echo ""; \
 		echo "To build the installer image:"; \
 		echo "  1. Boot into OpenBSD $(OPENBSD_VERSION)"; \
 		echo "  2. cd to this directory"; \
-		echo "  3. doas make img"; \
+		echo "  3. doas make image"; \
 		exit 1; \
 	fi
 	@rm -f Build/Images/openriot.img Build/Images/openriot.sha256 Build/work/site79.tgz
 	@doas ./install/openriot --make-image
+
+img:
+	@echo "ERROR: 'make img' is deprecated. Use 'make image'."
+	@exit 1
 
 # ISO build - DEPRECATED
 # Custom ISO is no longer needed. Use standard OpenBSD ISO + setup.sh.
@@ -267,7 +271,7 @@ help:
 	@echo "  linux             Build for Linux (native)"
 	@echo "  release            Version bump, commit, tag, and push"
 	@echo "  ultra              Maximum-optimized static build with optional UPX"
-	@echo "  img                Build custom OpenBSD installer image (requires OpenBSD host)"
+	@echo "  image              Build custom OpenBSD installer image (requires OpenBSD host)"
 	@echo "  isotest            Build ISO and run in QEMU"
 	@echo "  deps               Tidy Go module dependencies"
 	@echo "  test               Run Go tests"

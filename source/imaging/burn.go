@@ -343,11 +343,11 @@ func Cleanup(cfg *Config) error {
 
 	// Remove work dir
 	workDir := cfg.WorkDir
-	if strings.HasPrefix(workDir, "/") {
-		// Only remove if it's in a expected location (not absolute user path)
-		if !strings.Contains(workDir, "..") {
-			os.RemoveAll(workDir)
-		}
+	if !strings.HasPrefix(workDir, "/") || strings.Contains(workDir, "..") {
+		return fmt.Errorf("refusing to clean unsafe work dir: %s", workDir)
+	}
+	if err := os.RemoveAll(workDir); err != nil {
+		return fmt.Errorf("remove work dir: %w", err)
 	}
 
 	logger.Done("Cleanup complete")

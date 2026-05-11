@@ -8,6 +8,23 @@ installation. All packages are pre-bundled. The OpenRiot repository is fetched
 by the user after first login via `curl -fsSL https://OpenRiot.org/setup.sh | sh`.
 
 Target size: **< 2.0GB**.
+Actual size: **~1932MB**.
+
+---
+
+## Current Status
+
+| Item | Status |
+|---|---|
+| Image builds without errors | **Working** |
+| Image size under 2.0GB | **Working** (~1932MB) |
+| `site79.tgz` injects into `7.9/amd64/` | **Working** |
+| `index.txt` contains `site79.tgz` entry | **Fixed** (uses real `ls -lT` output) |
+| `site79.tgz` appears in installer sets list | **NOT VALIDATED** — previous bug: manual `fmt.Sprintf` formatting did not match `ls -lT` parser expectations. Fixed to use actual `ls -lT` output, but image has not been booted to confirm discovery. |
+| End-to-end install test | **NOT VALIDATED** |
+| Post-install script (`install.site`) execution | **NOT VALIDATED** |
+| Package installation during post-install | **NOT VALIDATED** |
+| First-login welcome message | **NOT VALIDATED** |
 
 ---
 
@@ -19,8 +36,8 @@ Target size: **< 2.0GB**.
 | 68 packages (pre-downloaded) | ~793MB |
 | `install.site` + `motd` | ~5KB |
 | Tarball (`site79.tgz`) | ~793MB |
-| FFS minfree (5%) + metadata | ~100MB |
-| **Final image** | **~1.7GB** |
+| FFS minfree (5%) + metadata | ~350MB |
+| **Final image** | **~1932MB** |
 
 > **Note:** The OpenRiot Git repository (~1.1GB with `.git/`) is **NOT** included
 > in the tarball. It is fetched by `setup.sh` after first login. This keeps the
@@ -70,6 +87,12 @@ Flags:
 
 The OpenBSD installer discovers `site79.tgz` as a custom install set via
 `index.txt` in the `7.9/amd64/` directory (per `install.site(5)`).
+
+> **Critical fix applied:** Previous builds used a manually-crafted `fmt.Sprintf`
+> line that mimicked `ls -lT` output. The installer's parser rejected it, so
+> `site79.tgz` never appeared in the sets list. We now run `ls -lT` on the
+> actual copied file and append that output verbatim. End-to-end validation
+> (booting the image and verifying the set appears) is pending.
 
 `site79.tgz` extracts to the target system's root during install, creating:
 
@@ -134,7 +157,11 @@ copies configs to `~/.config/`, and runs `openriot --install`.
 - Verify running on OpenBSD (`uname -s == OpenBSD`)
 - Verify root user (`id -u == 0`)
 - Verify base image exists at `--base-img` or `BASE_IMG`
+- Fallback to `Build/Images/install79.img` relative to repo root
 - Download base image from CDN if missing
+
+> **Fix applied:** Fallback path corrected from `Images/install79.img` to
+> `Build/Images/install79.img` to match actual repo layout.
 
 ### 2. Package Download
 
@@ -146,6 +173,11 @@ copies configs to `~/.config/`, and runs `openriot --install`.
 - Skip existing files; clean stale versions
 - Progress indicator: `Downloading package N/N: pkgname`
 - Retry logic: 3 attempts per package
+- **HTTP timeout: 2 minutes** (previously indefinite)
+
+> **Fix applied:** `downloadFile()` now uses `http.Client{Timeout: 2 * time.Minute}`
+> instead of `http.Get()`, which has no timeout and hangs indefinitely on slow
+> networks.
 
 ### 3. Site Tarball Creation
 
@@ -168,6 +200,11 @@ site/
 > **No `openriot/repo/` directory.** The Git repository is fetched post-install.
 > **No `install.conf` file.** It is dead code on media filesystems.
 
+`CreateSite()` now uses `os.MkdirTemp(workDir, "site-")` instead of a fixed
+`site/` subdirectory. This avoids permission collisions when a non-root user
+runs `--make-image site` after a prior root run left `site/` root-owned.
+The temp directory is cleaned up automatically via `defer os.RemoveAll`.
+
 #### `install.site` (inline, embedded in Go)
 
 ```sh
@@ -180,46 +217,71 @@ fail() { echo "[OPENRIOT] FAIL: $*"; }
 
 log "OpenRiot post-install starting"
 
+# ------------------------------------------------------------------
 # 1. System configuration
-cat > /etc/doas.conf << 'EOF'
-permit nopass :wheel
-EOF
-chmod 0440 /etc/doas.conf
+# ------------------------------------------------------------------
 
-printf '%s\n' "https://cdn.openbsd.org/pub/OpenBSD" > /etc/installurl
-
-if ! grep -q '^/usr/local/bin/fish$' /etc/shells 2>/dev/null; then
-    printf '%s\n' "/usr/local/bin/fish" >> /etc/shells
+# doas
+if ! [ -f /etc/doas.conf ]; then
+	printf '%s\n' "permit nopass :wheel" > /etc/doas.conf
+	chmod 0440 /etc/doas.conf
+	log "doas configured"
 fi
 
+# installurl
+printf '%s\n' "https://cdn.openbsd.org/pub/OpenBSD" > /etc/installurl
+log "installurl configured"
+
+# Add fish to /etc/shells
+if ! grep -q '^/usr/local/bin/fish$' /etc/shells 2>/dev/null; then
+	printf '%s\n' "/usr/local/bin/fish" >> /etc/shells
+	log "fish added to /etc/shells"
+fi
+
+# Enable critical services (but NOT xenodm — user must start X manually)
 rcctl enable apmd 2>/dev/null && rcctl set apmd flags -A 2>/dev/null
 rcctl enable sndiod 2>/dev/null
-mkdir -p /etc/wireguard && chmod 700 /etc/wireguard
+mkdir -p /etc/wireguard
+chmod 700 /etc/wireguard
+log "services configured"
 
+# ------------------------------------------------------------------
 # 2. Install packages from local path (offline)
+# ------------------------------------------------------------------
 PKG_PATH_LOCAL="/openriot/packages/snapshots/amd64"
-for pkg in "$PKG_PATH_LOCAL"/*.tgz; do
-    [ -f "$pkg" ] || continue
-    log "Installing $(basename "$pkg")..."
-    PKG_PATH="$PKG_PATH_LOCAL" pkg_add "$pkg" 2>&1 || fail "pkg_add: $(basename "$pkg")"
-done
-log "Package install complete"
+if [ -d "$PKG_PATH_LOCAL" ]; then
+	log "Installing packages from local path..."
+	for pkg in "$PKG_PATH_LOCAL"/*.tgz; do
+		[ -f "$pkg" ] || continue
+		log "Installing $(basename "$pkg")..."
+		PKG_PATH="$PKG_PATH_LOCAL" pkg_add "$pkg" 2>&1 || fail "pkg_add: $(basename "$pkg")"
+	done
+	log "Package install complete"
+else
+	fail "Package directory not found: $PKG_PATH_LOCAL"
+fi
 
+# ------------------------------------------------------------------
 # 3. Per-user setup
+# ------------------------------------------------------------------
 for homedir in /home/*; do
-    [ -d "$homedir" ] || continue
-    username="$(basename "$homedir")"
+	[ -d "$homedir" ] || continue
+	username="$(basename "$homedir")"
 
-    usermod -G wheel "$username" 2>/dev/null || fail "usermod $username"
-    chsh -s /usr/local/bin/fish "$username" 2>/dev/null || fail "chsh $username"
+	# Add to wheel
+	usermod -G wheel "$username" 2>/dev/null || fail "usermod $username"
 
-    for dir in Documents Downloads Music Pictures Videos Code Screenshots; do
-        mkdir -p "$homedir/$dir"
-        chown "$username:$username" "$homedir/$dir"
-    done
+	# Set fish as default shell
+	chsh -s /usr/local/bin/fish "$username" 2>/dev/null || fail "chsh $username"
 
-    # Welcome message
-    cat >> "$homedir/.profile" << 'WELCOME'
+	# Create XDG directories
+	for dir in Documents Downloads Music Pictures Videos Code Screenshots; do
+		mkdir -p "$homedir/$dir"
+		chown "$username:$username" "$homedir/$dir"
+	done
+
+	# Welcome message
+	cat >> "$homedir/.profile" << 'WELCOME'
 
 # OpenRiot — Welcome
 echo ""
@@ -233,7 +295,7 @@ echo ""
 echo "This requires a working network or WiFi connection."
 echo ""
 WELCOME
-    chown "$username:$username" "$homedir/.profile"
+	chown "$username:$username" "$homedir/.profile"
 done
 
 # 4. Skel for future users
@@ -262,14 +324,18 @@ log "Post-install complete"
 #### Expand Phase
 
 - Copy base image to output path (never modify source)
-- Calculate target size: `baseSize + tgzSize + 100MB buffer`, round to 4MB
+- Calculate target size: `baseSize + tgzSize + 350MB buffer`, round to 4MB
 - Minimum: 512MB (irrelevant in practice)
 - `truncate -s <size> <image>`
 - Configure `vnd0`, read current disklabel
 - Update `a:` partition to fill expanded space
 - Update `c:` partition to total image size
 - `growfs -y /dev/vnd0a`
-- Release `vnd0`
+- Release `vnd0` (via `defer` to ensure cleanup on error)
+
+> **Fix applied:** Added `defer exec.Command("vnconfig", "-u", "vnd0").Run()`
+> in `expandImage()` so the vnd device is released even if `getPartitionInfo`,
+> `writeDisklabel`, or `growfs` fails.
 
 #### Injection Phase
 
@@ -278,13 +344,17 @@ log "Post-install complete"
 - Mount at `/mnt`
 - Create `/mnt/7.9/amd64/` directory
 - Copy `site79.tgz` to `/mnt/7.9/amd64/site79.tgz`
-- Append `site79.tgz` entry to `/mnt/7.9/amd64/index.txt` (do NOT overwrite)
-- Unmount, release `vnd0`
+- Append `site79.tgz` entry to `/mnt/7.9/amd64/index.txt` using actual `ls -lT` output on the copied file (do NOT overwrite)
+- Unmount, release `vnd0` (via `defer` to ensure cleanup on error)
+
+> **Fix applied:** Added `defer` block in `injectContent()` that runs
+> `umount /mnt` and `vnconfig -u vnd0` on all return paths, preventing
+> leaked mounts and vnd devices when errors occur mid-injection.
 
 #### Shrink Phase
 
 > **Removed.** The image is sized correctly from the start. No shrink step.
-> Truncating an FFS image after writing data corrupts the filesystem.
+> Truncating an FFS image after data has been written corrupts the filesystem.
 
 ### 5. Drive Detection & Burning
 
@@ -295,14 +365,18 @@ write with `dd` via `pv`.
 
 ### 6. Cleanup
 
-**File:** `source/imaging/cleanup.go`
+**File:** `source/imaging/burn.go` (`Cleanup()`)
 
 - Unmount `/mnt` if mounted
 - Release `vnd0` device
-- Remove `WORK_DIR` contents (packages, site)
+- Remove `WORK_DIR` contents (packages, site temp dirs, tarball)
 
 > **No repo cache.** `Build/repo-cache/` is no longer used and is removed from
 cleanup logic.
+
+> **Fix applied:** `Cleanup()` now returns `os.RemoveAll` errors instead of
+> swallowing them, and rejects unsafe work-dir paths (relative paths or paths
+> containing `..`).
 
 ---
 
@@ -339,43 +413,65 @@ cleanup logic.
 ## Implementation Checklist
 
 ### `source/imaging/site.go`
-- [ ] Delete `setupRepo()` function entirely
-- [ ] Delete `updateCache()` function entirely
-- [ ] Rewrite `CreateSite()` to skip repo copy, copy only packages + motd + install.site
-- [ ] Rewrite `createInstallSite()` with new script (no xenodm, no repo copy, curl welcome)
-- [ ] Remove `getBuildDir()` if no longer used
+- [x] Delete `setupRepo()` function entirely
+- [x] Delete `updateCache()` function entirely
+- [x] Rewrite `CreateSite()` to skip repo copy, copy only packages + motd + install.site
+- [x] Rewrite `createInstallSite()` with new script (no xenodm, no repo copy, curl welcome)
+- [x] Remove `getBuildDir()` if no longer used
+- [x] Use `os.MkdirTemp` for site staging directory to avoid root-owned leftover collisions
+- [x] Add `defer os.RemoveAll(siteDir)` for automatic cleanup
+- [x] Check all `MkdirAll` errors instead of silently ignoring
+- [x] Use `tar czf` instead of `tar czvf` (no verbose output)
 
 ### `source/imaging/build.go`
-- [ ] Change buffer from `50*1024*1024` to `100*1024*1024`
-- [ ] Verify `injectContent()` places tarball in `7.9/amd64/` and appends to `index.txt`
+- [x] Change buffer from `50*1024*1024` to `350*1024*1024`
+- [x] Fix hardcoded "2GB" log message to report actual expanded size
+- [x] Add `df -h /mnt` logging before and after injection
+- [x] Fix `injectContent()` to use real `ls -lT` output for `index.txt` instead of manual `fmt.Sprintf`
+- [x] Remove dead `getFileSize()` function
+- [x] Add `defer vnconfig -u vnd0` in `expandImage()` for error-path cleanup
+- [x] Add `defer umount/vnconfig` in `injectContent()` for error-path cleanup
 
 ### `source/imaging/runner.go`
-- [ ] Remove `repo-cache` cleanup from `runClean()`
+- [x] Remove `repo-cache` cleanup from `runClean()`
+- [x] Fix `args` slice mutation bug during `range` iteration (build `filtered` slice)
+- [x] Update help text to include `--work-dir`, `--version`, and `help` mode
+
+### `source/imaging/download.go`
+- [x] Add 2-minute HTTP timeout to `downloadFile()` (was indefinite)
+
+### `source/imaging/burn.go`
+- [x] Make `Cleanup()` return `os.RemoveAll` errors instead of swallowing them
+- [x] Reject unsafe work-dir paths (relative or containing `..`)
+
+### `source/imaging/prereqs.go`
+- [x] Fix fallback image path to `Build/Images/install79.img` (was missing `Build/`)
 
 ### `source/imaging/site_test.go`
-- [ ] Update `TestCreateInstallSite` to check for `curl setup.sh` message
-- [ ] Assert `xenodm` is NOT present in script
-- [ ] Assert `openriot --install` is NOT present in script
-- [ ] Remove `TestCreateInstallConf` if still present
+- [x] Update `TestCreateInstallSite` to check for `curl setup.sh` message
+- [x] Assert `xenodm` is NOT present in script
+- [x] Assert `openriot --install` is NOT present in script
+- [x] Remove `TestCreateInstallConf` if still present
 
 ### `docs/image-builder-spec.md`
-- [ ] This file — updated to reflect final architecture
+- [x] This file — updated to reflect current architecture and status
 
 ### Validation
-- [ ] `make && make test` passes
-- [ ] `make img` as root succeeds
-- [ ] `ls -lh Build/Images/openriot.img` shows **< 2.0GB**
-- [ ] Mount image, verify `site79.tgz` exists in `7.9/amd64/`
-- [ ] Verify `index.txt` contains `site79.tgz` alongside standard sets
-- [ ] Extract `site79.tgz`, verify it contains `openriot/packages/` and `install.site`
-- [ ] Verify `install.site` does NOT contain `xenodm` enable
-- [ ] Verify `install.site` contains `curl -fsSL https://OpenRiot.org/setup.sh | sh`
-- [ ] Flash to USB, test boot and install
-- [ ] After install: verify packages pre-installed (`which fish`, `which alacritty`)
-- [ ] After install: verify `xenodm` is NOT enabled
-- [ ] After install: verify first login shows welcome message
-- [ ] After install: verify `doas` works
-- [ ] After install: verify `fish` is default shell
+- [x] `make && make test` passes
+- [x] `make img` as root succeeds
+- [x] `ls -lh Build/Images/openriot.img` shows **< 2.0GB** (~1932MB)
+- [x] Mount image, verify `site79.tgz` exists in `7.9/amd64/`
+- [x] Verify `index.txt` contains `site79.tgz` alongside standard sets
+- [x] Extract `site79.tgz`, verify it contains `openriot/packages/` and `install.site`
+- [x] Verify `install.site` does NOT contain `xenodm` enable
+- [x] Verify `install.site` contains `curl -fsSL https://OpenRiot.org/setup.sh | sh`
+- [x] `--make-image site` works as non-root even after prior root run
+- [ ] **Flash to USB, test boot and install** — NOT YET DONE
+- [ ] **After install: verify packages pre-installed (`which fish`, `which alacritty`)** — NOT YET DONE
+- [ ] **After install: verify `xenodm` is NOT enabled** — NOT YET DONE
+- [ ] **After install: verify first login shows welcome message** — NOT YET DONE
+- [ ] **After install: verify `doas` works** — NOT YET DONE
+- [ ] **After install: verify `fish` is default shell** — NOT YET DONE
 
 ---
 
