@@ -13,10 +13,10 @@
 set -e
 
 GURK_REPO="https://github.com/boxdot/gurk-rs"
-GURK_COMMIT="02d3c45702142febdbbbaa4afea3f38222dd9db8"
+GURK_COMMIT="${GURK_COMMIT:-}"
 PATCH_FILE="$(dirname "$0")/gurk-patch.diff"
 INSTALL_DIR="${HOME}/.local/share/openriot/config"
-SOURCE_DIR="${HOME}/Code/gurk/gurk-rs"
+SOURCE_DIR="${HOME}/Code/gurk"
 
 # Step 0: Install Rust if cargo is missing
 if ! command -v cargo >/dev/null 2>&1; then
@@ -24,30 +24,45 @@ if ! command -v cargo >/dev/null 2>&1; then
     doas pkg_add rust
 fi
 
-# Step 1: Clone or update gurk-rs
-echo "Cloning/updating gurk-rs..."
-if [ -d "$SOURCE_DIR" ]; then
-    CURRENT_COMMIT=$(git -C "$SOURCE_DIR" rev-parse HEAD 2>/dev/null || echo "")
-    if [ "$CURRENT_COMMIT" = "$GURK_COMMIT" ]; then
-        echo "Source already at correct commit ($GURK_COMMIT), using existing checkout"
+# Step 1: Clone or update gurk
+echo "Cloning/updating gurk..."
+if [ -d "$SOURCE_DIR/.git" ]; then
+    if [ -n "$GURK_COMMIT" ]; then
+        CURRENT_COMMIT=$(git -C "$SOURCE_DIR" rev-parse HEAD 2>/dev/null || echo "")
+        if [ "$CURRENT_COMMIT" = "$GURK_COMMIT" ]; then
+            echo "Source already at pinned commit ($GURK_COMMIT), using existing checkout"
+        else
+            echo "Updating to pinned commit $GURK_COMMIT..."
+            git -C "$SOURCE_DIR" fetch origin
+            git -C "$SOURCE_DIR" checkout "$GURK_COMMIT"
+        fi
     else
-        echo "Updating from $CURRENT_COMMIT to $GURK_COMMIT..."
-        git -C "$SOURCE_DIR" fetch origin "$GURK_COMMIT"
-        git -C "$SOURCE_DIR" checkout "$GURK_COMMIT"
+        echo "Updating to latest origin/main..."
+        git -C "$SOURCE_DIR" fetch origin
+        git -C "$SOURCE_DIR" reset --hard origin/main
+        echo "Source at $(git -C "$SOURCE_DIR" rev-parse --short HEAD)"
     fi
 else
+    rm -rf "$SOURCE_DIR"
     mkdir -p "$(dirname "$SOURCE_DIR")"
     git clone "$GURK_REPO" "$SOURCE_DIR"
-    git -C "$SOURCE_DIR" checkout "$GURK_COMMIT"
+    if [ -n "$GURK_COMMIT" ]; then
+        git -C "$SOURCE_DIR" checkout "$GURK_COMMIT"
+        echo "Cloned and checked out pinned commit ($GURK_COMMIT)"
+    fi
 fi
 
-# Step 2: Apply patch (idempotent - patch already applied if nothing changed)
+# Step 2: Apply patch (idempotent)
 echo "Applying SIGSEGV fix patch..."
-if git -C "$SOURCE_DIR" apply --check "$PATCH_FILE" 2>/dev/null; then
-    git -C "$SOURCE_DIR" apply "$PATCH_FILE"
+if patch -d "$SOURCE_DIR" -p1 --dry-run -f < "$PATCH_FILE" >/dev/null 2>&1; then
+    patch -d "$SOURCE_DIR" -p1 -f < "$PATCH_FILE"
     echo "Patch applied"
+elif grep -q "notify-rust disabled on OpenBSD" "$SOURCE_DIR/src/app/message.rs" 2>/dev/null; then
+    echo "Patch already applied"
 else
-    echo "Patch already applied or not needed"
+    echo "ERROR: Patch cannot be applied and notify-rust is not disabled."
+    echo "Upstream code may have changed. Update the patch or the commit pin."
+    exit 1
 fi
 
 # Step 3: Build with optimizations for smaller binary

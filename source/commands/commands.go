@@ -30,6 +30,7 @@ import (
 	"openriot/rofi"
 	"openriot/roficalc"
 	"openriot/screenshot"
+	"openriot/screenrec"
 	"openriot/settings"
 	"openriot/update"
 	"openriot/weather"
@@ -417,6 +418,16 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Run: func(args []string) error { fmt.Print(nightlight.Get()); return nil },
 	})
 	r.Register(&Command{
+		Name: "--screenrec-status", Category: "Network & Battery",
+		Description: "Show screen recorder status",
+		Run: func(args []string) error { fmt.Print(screenrec.Status()); return nil },
+	})
+	r.Register(&Command{
+		Name: "--screenrec-toggle", Category: "Network & Battery",
+		Description: "Toggle screen recording",
+		Run: func(args []string) error { return screenrec.Toggle() },
+	})
+	r.Register(&Command{
 		Name: "--hdmi", Category: "Network & Battery",
 		Description: "Show HDMI/external display icon",
 		Run: func(args []string) error { display.RunHDMI(); return nil },
@@ -753,7 +764,7 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Description: "Show crypto polybar icon if configured",
 		Run: func(args []string) error {
 			if crypto.ConfigFileExists() {
-				fmt.Print("%{T1}%{T-}%{O2}")
+				fmt.Print("%{T1}󰄨%{T-}%{O2}")
 			}
 			return nil
 		},

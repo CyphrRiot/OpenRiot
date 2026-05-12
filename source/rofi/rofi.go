@@ -94,17 +94,15 @@ func runAppsFile(appsFile, prompt string) error {
 		return runAppsFile(submenuFile, entry.Name)
 	}
 
-	// Send launching/stopping notification
+	// Check if already running
+	if entry.Cmd == "transmission-gtk" && IsTransmissionRunning() {
+		go notify.SendNotify("applications", "Transmission", "Already Running", "normal", 2000, 0)
+		return nil
+	}
+
+	// Send launching notification
 	go func() {
-		name := entry.Name
-		msg := "Launching"
-		if strings.Contains(name, "󰭽") {
-			msg = "Stopping"
-			name = "Transmission"
-		} else if strings.Contains(name, "󰅤") {
-			name = "Transmission"
-		}
-		notify.SendNotify("applications", "Applications", fmt.Sprintf("%s %s...", msg, name), "normal", 2000, 0)
+		notify.SendNotify("applications", "Applications", fmt.Sprintf("Launching %s...", entry.Name), "normal", 2000, 0)
 	}()
 
 	// Execute the command

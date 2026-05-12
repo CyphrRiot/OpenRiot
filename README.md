@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-6.6-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-6.7-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -534,6 +534,7 @@ _We use Helix instead of `vi` or `vim`. The essential bindings are documented in
 | `Super + W`                  | Next wallpaper                   |
 | `Super + Shift + W`          | Previous wallpaper               |
 | `Super + Shift + S`          | Screenshot (region)              |
+| `Super + Shift + R`          | Screen recording toggle          |
 | `Super + Shift + V`          | Clipboard manager                 |
 | `Super + Shift + G`          | Open settings menu               |
 | `Super + Shift + J`          | Open games menu                  |
@@ -628,23 +629,24 @@ Polybar is your status bar. Click on modules for more:
 
 | No. | Module | Icon | Meaning |
 |-----|--------|------|---------|
-| 1 | crypto |  | Crypto prices (hidden when no config) |
+| 1 | crypto | 󰄨 | Crypto prices (hidden when no config) |
 | 2 | proton-drive | 󱥾 / 󰴋 /  | Synced / Syncing / Not configured |
 | 3 | transmission | 󰐻 | Running (auto-hides when stopped) |
 | 4 | night-light | 󰌵 /  | Night light ON / OFF |
-| 5 | cpu | 󰡳→󰡵→󰊚→󰡴 | CPU load tier |
-| 6 | memory | 󰢿→󰢼→󰢽→󰢾 | RAM usage tier |
-| 7 | wireguard | 󰱓 / 󰅛 | VPN up / Down (auto-hides when not configured) |
-| 8 | stealth | 󰝴 / 󱊨 | MAC randomization ON / OFF |
-| 9 | network-wifi | 󰤨→󰤥→󰤢→󰤟→󰤯 / 󱛅 | Signal bars / No internet |
-| 10 | network-eth | 󰈀 / 󰌙 / (empty) | Carrier / No carrier / No eth |
-| 11 | openriot-update | 󰋻 / 󰚇 / ? | Update available / Up to date / Unknown |
-| 12 | settings |  | Settings menu |
-| 13 | laptop-monitor | 󰌢 / 󰛧 | Laptop monitor enabled / disabled (auto-hides) |
-| 14 | volume | //󱄠/󰕾/ | Muted / Very low / Low / Medium / High |
-| 15 | battery | 󰁺→󰂂 / 󰁹 | Level / Full+charging |
-| 16 | power | ⏻ | Power menu |
-| 17 | lock | 󰌾 | Lock screen |
+| 5 | screenrec |  /  | Idle / Recording |
+| 6 | cpu | 󰡳→󰡵→󰊚→󰡴 | CPU load tier |
+| 7 | memory | 󰢿→󰢼→󰢽→󰢾 | RAM usage tier |
+| 8 | wireguard | 󰱓 / 󰅛 | VPN up / Down (auto-hides when not configured) |
+| 9 | stealth | 󰝴 / 󱊨 | MAC randomization ON / OFF |
+| 10 | network-wifi | 󰤨→󰤥→󰤢→󰤟→󰤯 / 󱛅 | Signal bars / No internet |
+| 11 | network-eth | 󰈀 / 󰌙 / (empty) | Carrier / No carrier / No eth |
+| 12 | openriot-update | 󰋻 / 󰚇 / ? | Update available / Up to date / Unknown |
+| 13 | settings |  | Settings menu |
+| 14 | laptop-monitor | 󰌢 / 󰛧 | Laptop monitor enabled / disabled (auto-hides) |
+| 15 | volume | //󱄠/󰕾/ | Muted / Very low / Low / Medium / High |
+| 16 | battery | 󰁺→󰂂 / 󰁹 | Level / Full+charging |
+| 17 | power | ⏻ | Power menu |
+| 18 | lock | 󰌾 | Lock screen |
 
 **Workspace Bar:** Shows all 3 workspaces with indicators and app icons.
 
@@ -944,7 +946,7 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 | |  | Muted | | |
 | **battery** | 󰁺-󰂂 | Discharging | Battery notification | - |
 | | 󰢜-󰂋 | Charging | | |
-| **crypto** |  | - | Show crypto prices (hidden when no config) | - |
+| **crypto** | 󰄨 | - | Show crypto prices (hidden when no config) | - |
 | **night-light** |  | OFF | Toggle redshift | - |
 | | 󰌵 | ON | | |
 | **cpu** | 󰡳→󰡵→󰊚→󰡴 | - | CPU notification | - |
@@ -1491,6 +1493,38 @@ The desktop entry sets `QML2_IMPORT_PATH=/usr/local/lib/qt5/qml` automatically s
 - Full node or remote node wallet support
 - Integrated with polybar crypto module (shows  when `~/.config/crypto.toml` exists)
 - Window icon mapping via `config/window/icons.toml`
+
+## 🎬 Screen Recording
+
+Click the **** icon in polybar to start recording your screen. Click again to stop. No terminal needed.
+
+### How It Works
+
+- **Idle:** `` (teal, next to night-light)
+- **Recording:** `` (red)
+- **Output:** `~/Videos/Recordings/YYYYMMDD-HHMM.mp4`
+- **Video:** H.264, 30fps, native resolution, `ultrafast` preset
+- **Audio:** AAC 192kbps via `snd/0.mon` (when available)
+
+### Dynamic Audio Monitoring
+
+Instead of permanently reconfiguring `sndiod` at install time, the recorder temporarily enables audio monitoring:
+
+1. Before recording: saves your current `sndiod` flags, sets monitor flags, restarts `sndiod`
+2. After stopping: restores your original flags, restarts `sndiod`
+
+Your music and mic stay clean when not recording. The monitor only exists while you're actually capturing.
+
+### Notifications
+
+- **Start:** "Screen Recorder / Recording is starting..."
+- **Stop:** "Screen Recorder / Recording is stopping... / Saved to: ~/Videos/Recordings/..."
+
+### Keyboard Shortcut
+
+| Key | Action |
+|-----|--------|
+| `Super + Shift + R` | Toggle screen recording |
 
 ## 🔧 Troubleshooting
 

@@ -12,15 +12,31 @@ No manual steps needed for normal installation.
 
 Use `./scripts/gurk.sh` only when you need to rebuild gurk from source (e.g., updating to a new version, or refreshing the pre-built binary for image releases).
 
-Source is cached at `~/src/gurk-rs` so subsequent builds are fast.
+Source is cached at `~/Code/gurk` so subsequent builds are fast.
+
+### Updating to a New Version
+
+The build script defaults to the latest upstream `origin/main`:
+
+```bash
+./scripts/gurk.sh
+```
+
+To pin to a known-good commit if latest is broken:
+
+```bash
+GURK_COMMIT=02d3c45 ./scripts/gurk.sh
+```
+
+If the upstream `notify` function changed, the patch will fail to apply. The script aborts with an error — do not force-build an unpatched binary, as it will crash on OpenBSD when receiving messages. Update `scripts/gurk-patch.diff` to match the new upstream code, then re-run.
 
 ## OpenBSD SIGSEGV Fix
 
 **Problem:** gurk crashes with SIGSEGV on OpenBSD when receiving incoming messages.
 
-**Root cause:** `notify-rust` (desktop notification library) calls `/proc/self/exe` to get the executable path. This syscall doesn't exist on OpenBSD, causing a segmentation fault.
+**Root cause:** `notify-rust` (desktop notification library) calls `/proc/self/exe` to get the executable path. This syscall does not exist on OpenBSD, causing a segmentation fault.
 
-**Fix:** The patch in `scripts/gurk-patch.diff` hard-disables the notification code by replacing the condition with `if false`.
+**Fix:** The patch in `scripts/gurk-patch.diff` hard-disables the notification code by replacing the `notify` function body with a no-op.
 
 ### Patch Details
 
@@ -30,7 +46,7 @@ File: src/app/message.rs (line 723)
 -        if self.config.notifications.enabled
 +    fn notify(&self, _summary: &str, _text: &str) {
 +        // notify-rust disabled on OpenBSD (SIGSEGV on /proc/self/exe)
-+        if false
++        let _ = (_summary, _text);
 ```
 
 ### Why not a feature flag?
@@ -43,7 +59,7 @@ File: src/app/message.rs (line 723)
 PKG_CONFIG=echo \
   cargo install gurk \
     --locked \
-    --path ~/src/gurk-rs \
+    --path ~/Code/gurk \
     --root ~/.local
 ```
 
