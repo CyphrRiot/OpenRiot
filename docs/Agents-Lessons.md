@@ -222,6 +222,66 @@ Either reinstall the package or remove the LSP entry from `crush.json`.
 - `docs/polybar-performance.md` — polybar config notes
 - `docs/proton-drive-module.md` — Proton Drive integration
 
+---
+
+## v6.7 Critical Lessons — Read The Code Before Touching Anything
+
+### READ EXISTING CODE Before Adding Anything New
+
+**Do NOT use `find`, `grep`, or guess when you can read the exact function.**
+
+I used `find /home/grendel -name screenrec.png` to locate where `--make-icon` writes files, when the answer was 10 lines into `source/installer/utils.go` → `MakeIcon()`:
+
+```go
+repoDir := filepath.Join(filepath.Dir(ex), "..", "config", "icons")
+```
+
+The repo binary writes to `../config/icons/`. The installed binary writes to `~/.local/share/openriot/config/icons/`. One `view` call would have told me this. `find` was lazy and wrong.
+
+**Rule:** If a function writes files, read the function. If a command exists, read its implementation. Never guess.
+
+---
+
+### `patch` Handles Offset Hunks; `git apply` Does Not
+
+When upstream moves `fn notify()` from line 720 to line 857, `git apply` aborts with "patch does not apply" even though the surrounding context is identical. `patch -p1` finds the hunk by context and applies with an offset.
+
+```sh
+# WRONG — fails when line numbers shift
+if git -C "$dir" apply --check "$patch"; then ...
+
+# CORRECT — handles offset hunks across versions
+if patch -p1 --dry-run -f < "$patch"; then ...
+```
+
+**Rule:** For patches that must work across multiple upstream commits, use `patch` not `git apply`.
+
+---
+
+### `make-icon` Takes Actual Characters, Not Hex Escapes
+
+ImageMagick `label:` interprets the literal string. Passing `\uf03d` writes the 6-character string "\uf03d" into the PNG, not the Nerd Font glyph. Pass the actual character.
+
+```bash
+# WRONG — produces garbage PNG
+openriot --make-icon screenrec "\uf03d"
+
+# CORRECT — actual Nerd Font character
+openriot --make-icon screenrec ""
+```
+
+**Rule:** When passing Unicode to shell commands, use the actual character. Test the generated PNG if unsure.
+
+---
+
+### Never Modify Files Without a Proposal (Even "Trivial" Changes)
+
+I wrote `gurk-patch.diff` from scratch without proposing, corrupted it, and had to be rescued. I flattened `~/Code/gurk/gurk-rs/` without proposing. I updated `docs/Gurk.md` without proposing. Every unauthorized change introduced a problem that required cleanup.
+
+**Rule:** Propose → wait for "go" → execute. No exceptions. Not for docs, not for patches, not for one-line fixes.
+
+---
+
 ## CODE TREE
 
 ```
