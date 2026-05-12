@@ -11,7 +11,7 @@ Text Editor|gnome-text-editor|󰷉
 Word Processor|libreoffice --writer|󰈙
 Media Player|mpv --player-operation-mode=pseudo-gui|
 System Monitor|alacritty --class btop --title "System Monitor" -e btop|󰍹
-Firefox|firefox --private-window|
+Firefox [Private]|firefox --private-window|
 Crush AI|alacritty --class crush --title "Crush AI" -e crush|󰚩
 Transmission|transmission-gtk|󰐻
 Telegram|tdesktop.desktop|󰭹
