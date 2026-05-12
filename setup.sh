@@ -207,28 +207,20 @@ install_bootstrap_packages() {
 
 setup_repository() {
     info "Setting up repository..."
-
-    # Clean corrupt .git if config is missing/broken
-    if [ -d "$INSTALL_DIR/.git" ] && [ -f "$INSTALL_DIR/.git/config" ]; then
-        if ! grep -q "remote" "$INSTALL_DIR/.git/config" 2>/dev/null; then
-            info "Removing corrupt git config..."
-            doas rm -rf "$INSTALL_DIR/.git"
-        fi
-    fi
-
-    # Fresh install: clone with depth=1 (zero history)
-    if [ ! -d "$INSTALL_DIR/.git" ]; then
+    
+    # If git is corrupt or missing, remove and re-clone
+    if [ ! -d "$INSTALL_DIR/.git" ] || ! (cd "$INSTALL_DIR" && git status >/dev/null 2>&1); then
+        rm -rf "$INSTALL_DIR/.git"
         mkdir -p "$(dirname "$INSTALL_DIR")" || { error "Cannot create directory"; exit 1; }
         git clone --depth 1 -b "$CONFIG_BRANCH" "$REPO_URL" "$INSTALL_DIR" || { error "Git clone failed"; exit 1; }
         success "OpenRiot deployed to $INSTALL_DIR"
         return
     fi
 
-    # Existing install: let git do the work (fetch + reset + clean replaces all files)
+    # Existing clean repo: fetch + reset
     (
         cd "$INSTALL_DIR" || exit 1
         git fetch --depth 1 origin || true
-        # git reset --hard origin/"$CONFIG_BRANCH" || { error "Git reset failed"; exit 1; }
         git reset --hard FETCH_HEAD
         git clean -fd
     )

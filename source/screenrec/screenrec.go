@@ -122,6 +122,9 @@ func Toggle() error {
 }
 
 func startRecording() error {
+	// Notify immediately — user should see feedback before any setup work
+	notify.SendNotify("screenrec", "Screen Recorder", "Recording is starting...", "normal", 3000, 0)
+
 	res, err := getResolution()
 	if err != nil || res == "" {
 		res = "1920x1080"
@@ -152,8 +155,6 @@ func startRecording() error {
 			res, outPath,
 		)
 	}
-
-	notify.SendNotify("screenrec", "Screen Recorder", "Recording is starting...", "normal", 3000, 0)
 
 	cmd := exec.Command("sh", "-c", cmdStr+" &")
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
