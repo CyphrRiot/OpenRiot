@@ -159,19 +159,6 @@ func parseAppsFile(path string) ([]appEntry, error) {
 		entries = append(entries, entry)
 	}
 
-	// Handle dynamic entries
-	for i, entry := range entries {
-		if entry.Name == "Transmission" {
-			if IsTransmissionRunning() {
-				entries[i].Name = "Transmission 󱧝"
-				entries[i].Cmd = "pkill transmission-gtk"
-			} else {
-				entries[i].Name = "Transmission 󰐻"
-				entries[i].Cmd = "transmission-gtk"
-			}
-		}
-	}
-
 	return entries, scanner.Err()
 }
 

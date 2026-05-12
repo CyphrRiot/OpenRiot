@@ -314,6 +314,7 @@ gnome-appfolders = "󰰀"
 sdl_app = "󰺵"
 
 # Monero wallet GUI
+monero-core = ""
 monero-wallet-gui = ""
 monero = ""
 
