@@ -15,6 +15,8 @@ import (
 
 const connectivityFile = "network-online"
 
+var ifaceLineRE = regexp.MustCompile(`^[a-z]+[0-9]+:`)
+
 func Get() string {
 	return GetWifi()
 }
@@ -151,7 +153,7 @@ func getWifiInterface() (string, bool) {
 
 	for _, line := range lines {
 		// New interface block starts
-		if matched, _ := regexp.MatchString(`^[a-z]+[0-9]+:`, line); matched {
+		if ifaceLineRE.MatchString(line) {
 			// Check previous interface first
 			if current != "" && isWifi && isUp && hasJoin && !noNetwork {
 				return current, true
@@ -194,7 +196,7 @@ func getEthInterface() (string, bool) {
 	var isEth bool
 	lines := strings.Split(string(output), "\n")
 	for _, line := range lines {
-		if matched, _ := regexp.MatchString(`^[a-z]+[0-9]+:`, line); matched {
+		if ifaceLineRE.MatchString(line) {
 			current = strings.TrimSuffix(strings.SplitN(line, ":", 2)[0], ":")
 			isEth = false
 		}
@@ -275,14 +277,20 @@ func extractIP(output string) string {
 }
 
 // connectivityPath returns the path to the connectivity state file
-func connectivityPath() string {
-	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".cache/openriot", connectivityFile)
+func connectivityPath() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, ".cache", "openriot", connectivityFile), nil
 }
 
 // IsOnline returns true if we have confirmed internet connectivity
 func IsOnline() bool {
-	path := connectivityPath()
+	path, err := connectivityPath()
+	if err != nil {
+		return false
+	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return false
@@ -299,7 +307,10 @@ func IsOnline() bool {
 // WasOnline returns true if we were online recently (5 min grace period)
 // This provides hysteresis - don't show "down" immediately after connectivity loss
 func WasOnline() bool {
-	path := connectivityPath()
+	path, err := connectivityPath()
+	if err != nil {
+		return false
+	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return false
@@ -317,7 +328,9 @@ func CheckConnectivity() {
 	_, connected := getWifiInterface()
 	if !connected {
 		// Not connected at all - clear connectivity
-		os.Remove(connectivityPath())
+		if path, err := connectivityPath(); err == nil {
+			os.Remove(path)
+		}
 		return
 	}
 
@@ -327,15 +340,17 @@ func CheckConnectivity() {
 	cmd := exec.CommandContext(ctx, "ping", "-c", "1", "8.8.8.8")
 	err := cmd.Run()
 
+	path, err2 := connectivityPath()
+	if err2 != nil {
+		return
+	}
 	if err == nil {
 		// Success - record timestamp
-		home, _ := os.UserHomeDir()
-		dir := filepath.Join(home, ".cache/openriot")
-		os.MkdirAll(dir, 0700)
-		os.WriteFile(connectivityPath(), []byte(time.Now().Format(time.RFC3339)), 0600)
+		os.MkdirAll(filepath.Dir(path), 0700)
+		os.WriteFile(path, []byte(time.Now().Format(time.RFC3339)), 0600)
 	} else {
 		// Failed - clear connectivity file
-		os.Remove(connectivityPath())
+		os.Remove(path)
 	}
 }
 

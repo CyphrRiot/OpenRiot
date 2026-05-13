@@ -15,8 +15,6 @@ const (
 	stateFile  = ".config/openriot/wireguard.enabled"
 )
 
-var homeDir, _ = os.UserHomeDir()
-
 func isConfigured() bool {
 	cmd := exec.Command("doas", "test", "-f", ConfigPath)
 	err := cmd.Run()
@@ -30,12 +28,20 @@ func isRunning() bool {
 }
 
 func isAutostartEnabled() bool {
-	_, err := os.Stat(filepath.Join(homeDir, stateFile))
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return false
+	}
+	_, err = os.Stat(filepath.Join(home, stateFile))
 	return err == nil
 }
 
 func setAutostart(enabled bool) {
-	path := filepath.Join(homeDir, stateFile)
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return
+	}
+	path := filepath.Join(home, stateFile)
 	if enabled {
 		os.WriteFile(path, []byte("1"), 0600)
 	} else {

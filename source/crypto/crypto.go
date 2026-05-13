@@ -15,8 +15,6 @@ import (
 	"openriot/notify"
 )
 
-var homeDir, _ = os.UserHomeDir()
-
 // Config represents the crypto.toml structure
 type Config struct {
 	Indicators IndicatorsConfig `toml:"indicators"`
@@ -188,6 +186,10 @@ func RunCrypto(mode string) error {
 }
 
 func loadCryptoConfig() (*Config, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, fmt.Errorf("cannot get home dir: %w", err)
+	}
 	configPath := filepath.Join(homeDir, ".config", "crypto.toml")
 
 	// Default config with default pairs - used when config file doesn't exist
@@ -202,7 +204,7 @@ func loadCryptoConfig() (*Config, error) {
 		},
 	}
 
-	_, err := toml.DecodeFile(configPath, config)
+	_, err = toml.DecodeFile(configPath, config)
 	if err != nil {
 		// Return default config if file doesn't exist
 		if os.IsNotExist(err) {
@@ -215,18 +217,30 @@ func loadCryptoConfig() (*Config, error) {
 }
 
 func ConfigFileExists() bool {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return false
+	}
 	configPath := filepath.Join(homeDir, ".config", "crypto.toml")
-	_, err := os.Stat(configPath)
+	_, err = os.Stat(configPath)
 	return err == nil
 }
 
 func getCacheDir() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
 	cacheDir := filepath.Join(homeDir, ".cache", "openriot")
 	os.MkdirAll(cacheDir, 0700)
 	return cacheDir
 }
 
 func migrateCacheFiles() {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return
+	}
 	oldDir := filepath.Join(homeDir, ".cache")
 	newDir := filepath.Join(homeDir, ".cache", "openriot")
 	migrations := map[string]string{
@@ -717,32 +731,7 @@ func outputSingle(item CryptoItem) error {
 
 // formatNumber formats with 2 decimal places and comma separators, padded to 10 chars
 func formatNumber(v float64) string {
-	str := fmt.Sprintf("%.2f", v)
-	parts := strings.Split(str, ".")
-	intPart := parts[0]
-	decPart := ""
-	if len(parts) > 1 {
-		decPart = parts[1]
-	}
-	var result strings.Builder
-	length := len(intPart)
-	for i, c := range intPart {
-		if i > 0 && (length-i)%3 == 0 {
-			result.WriteString(",")
-		}
-		result.WriteRune(c)
-	}
-	intPart = result.String()
-
-	if decPart != "" {
-		intPart = intPart + "." + decPart
-	}
-
-	// Pad to 10 chars to match shell price formatting
-	if len(intPart) < 10 {
-		intPart = strings.Repeat(" ", 10-len(intPart)) + intPart
-	}
-	return intPart
+	return formatNumberWithWidth(v, 10)
 }
 
 // formatNumberWithWidth formats with 2 decimal places and comma separators, padded to specified width
@@ -1014,26 +1003,7 @@ func outputNotifySend(items []CryptoItem) error {
 
 // formatNumberSimple formats with commas (e.g., 73045 -> 73,045.00)
 func formatNumberSimple(v float64) string {
-	str := fmt.Sprintf("%.2f", v)
-	parts := strings.Split(str, ".")
-	intPart := parts[0]
-	decPart := ""
-	if len(parts) > 1 {
-		decPart = parts[1]
-	}
-	var result strings.Builder
-	length := len(intPart)
-	for i, c := range intPart {
-		if i > 0 && (length-i)%3 == 0 {
-			result.WriteString(",")
-		}
-		result.WriteRune(c)
-	}
-	intPart = result.String()
-	if decPart != "" {
-		return intPart + "." + decPart
-	}
-	return intPart
+	return formatNumberWithWidth(v, 0)
 }
 
 // formatSignedNumber formats with commas and explicit sign (e.g., 1234.56 -> "$ 1,234.56", -1234.56 -> "-$ 1,234.56")

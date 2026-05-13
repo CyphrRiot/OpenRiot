@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -253,35 +252,26 @@ func IsProtonDriveConfigured() bool {
 }
 
 func isProtonDriveConfigured() bool {
-	// Check for ~/Documents/ProtonSync folder
-	home := os.Getenv("HOME")
-	syncFolder := home + "/Documents/ProtonSync"
-	if _, err := os.Stat(syncFolder); err != nil {
-		return false
-	}
-
-	// Check for rclone config
-	rcloneConf := home + "/.config/rclone/rclone.conf"
-	if _, err := os.Stat(rcloneConf); err != nil {
-		return false
-	}
-
-	return true
-}
-
-// getCurrentUsername returns the current system username
-func getCurrentUsername() string {
-	user, err := user.Current()
+	home, err := os.UserHomeDir()
 	if err != nil {
-		return "unknown"
+		return false
 	}
-	return user.Username
+	if _, err := os.Stat(filepath.Join(home, "Documents", "ProtonSync")); err != nil {
+		return false
+	}
+	if _, err := os.Stat(filepath.Join(home, ".config", "rclone", "rclone.conf")); err != nil {
+		return false
+	}
+	return true
 }
 
 // checkProtonDriveSync returns "synced" or "needs-sync"
 func checkProtonDriveSync() string {
-	home := os.Getenv("HOME")
-	bisyncDir := home + "/.cache/rclone/bisync"
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "needs-sync"
+	}
+	bisyncDir := filepath.Join(home, ".cache", "rclone", "bisync")
 
 	// Find cache files using glob (works regardless of naming)
 	matches1, _ := filepath.Glob(bisyncDir + "/*path1.lst")
@@ -310,9 +300,10 @@ func checkProtonDriveSync() string {
 	// Check if any local file was modified after last bisync run
 	content1, _ := os.ReadFile(path1)
 	lines1 := strings.Split(string(content1), "\n")
-	localFiles := getLocalFileList(home + "/Documents/ProtonSync")
+	syncDir := filepath.Join(home, "Documents", "ProtonSync")
+	localFiles := getLocalFileList(syncDir)
 	for _, name := range localFiles {
-		localPath := home + "/Documents/ProtonSync/" + name
+		localPath := filepath.Join(syncDir, name)
 		localMtime := getFileMtime(localPath)
 		cachedMtime := getCachedMtime(name, lines1[1:])
 		if cachedMtime.IsZero() || localMtime.After(cachedMtime) {
@@ -456,12 +447,15 @@ func cacheFilesExist(path1, path2 string) bool {
 
 // InitProtonDriveCache runs bisync --dry-run to populate cache files
 func InitProtonDriveCache() error {
-	home := os.Getenv("HOME")
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("cannot get home dir: %w", err)
+	}
 	cmd := exec.Command("rclone", "bisync",
-		home+"/Documents/ProtonSync",
+		filepath.Join(home, "Documents", "ProtonSync"),
 		"proton:ProtonSync",
 		"--dry-run",
-		"--work-dir", home+"/.cache/rclone/bisync")
+		"--work-dir", filepath.Join(home, ".cache", "rclone", "bisync"))
 	return cmd.Run()
 }
 
@@ -490,8 +484,11 @@ func GetProtonDriveTooltipText() string {
 
 // getSyncTime returns the last sync time formatted for display
 func getSyncTime() string {
-	home := os.Getenv("HOME")
-	bisyncDir := home + "/.cache/rclone/bisync"
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "Recently"
+	}
+	bisyncDir := filepath.Join(home, ".cache", "rclone", "bisync")
 
 	// Find path1.lst to get last sync time from mtime
 	matches, _ := filepath.Glob(bisyncDir + "/*path1.lst")
@@ -510,7 +507,10 @@ func getSyncTime() string {
 
 // Setup generates scaled polybar config (doesn't launch polybar - i3 handles that)
 func Setup() int {
-	home := os.Getenv("HOME")
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return 1
+	}
 
 	// Get screen resolution
 	width := screen.GetWidth()
@@ -519,8 +519,8 @@ func Setup() int {
 	height, font0, font1, modMargin := getScaleFactors(width)
 
 	// Read template config
-	templatePath := filepath.Join(home, ".local/share/openriot/config/polybar/config.ini")
-	configPath := filepath.Join(home, ".config/polybar/config.ini")
+	templatePath := filepath.Join(home, ".local", "share", "openriot", "config", "polybar", "config.ini")
+	configPath := filepath.Join(home, ".config", "polybar", "config.ini")
 
 	template, err := os.ReadFile(templatePath)
 	if err != nil {

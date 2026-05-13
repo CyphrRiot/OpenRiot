@@ -11,7 +11,10 @@ import (
 
 // ShareLog uploads a file to tmpfiles.org for easy sharing
 func ShareLog(filename string) error {
-	homeDir, _ := os.UserHomeDir()
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("cannot get home dir: %w", err)
+	}
 	logPath := filepath.Join(homeDir, ".cache", "openriot", filename)
 
 	data, err := os.ReadFile(logPath)
@@ -76,7 +79,10 @@ func MakeIcon(name, symbol string) error {
 		}
 	}
 	if iconDir == "" {
-		home, _ := os.UserHomeDir()
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return fmt.Errorf("cannot get home dir: %w", err)
+		}
 		iconDir = filepath.Join(home, ".local", "share", "openriot", "config", "icons")
 	}
 

@@ -32,13 +32,19 @@ type State struct {
 
 const stateFile = ".cache/openriot/notifications.json"
 
-func statePath() string {
-	home, _ := os.UserHomeDir()
-	return filepath.Join(home, stateFile)
+func statePath() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, stateFile), nil
 }
 
 func load() (*State, error) {
-	path := statePath()
+	path, err := statePath()
+	if err != nil {
+		return nil, err
+	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -54,7 +60,10 @@ func load() (*State, error) {
 }
 
 func save(s *State) error {
-	path := statePath()
+	path, err := statePath()
+	if err != nil {
+		return err
+	}
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return fmt.Errorf("creating cache dir: %w", err)
@@ -265,11 +274,15 @@ func scaleDunstrc(content string, screenWidth int) string {
 
 // Setup writes dunstrc from template, scaling width and font for hi-DPI screens.
 func Setup() int {
-	home := os.Getenv("HOME")
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "dunst setup: cannot get home dir: %v\n", err)
+		return 1
+	}
 	screenWidth := screen.GetWidth()
 
-	templatePath := filepath.Join(home, ".local/share/openriot/config/dunst/dunstrc")
-	configPath := filepath.Join(home, ".config/dunst/dunstrc")
+	templatePath := filepath.Join(home, ".local", "share", "openriot", "config", "dunst", "dunstrc")
+	configPath := filepath.Join(home, ".config", "dunst", "dunstrc")
 
 	template, err := os.ReadFile(templatePath)
 	if err != nil {

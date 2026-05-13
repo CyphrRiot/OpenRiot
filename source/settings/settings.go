@@ -15,8 +15,6 @@ import (
 	"openriot/wireguard"
 )
 
-var homeDir, _ = os.UserHomeDir()
-
 // RunMenu launches a rofi settings menu with toggles for VPN, Transmission,
 // Night Light, and Proton Sync. Each entry shows its current ON/OFF state.
 func RunMenu() {
@@ -131,10 +129,11 @@ func buildEntries() []entry {
 }
 
 func findTheme() string {
-	candidates := []string{
-		filepath.Join(homeDir, ".local/share/openriot/config/rofi/simple-tokyonight.rasi"),
-		"/usr/local/share/openriot/config/rofi/simple-tokyonight.rasi",
+	var candidates []string
+	if home, err := os.UserHomeDir(); err == nil {
+		candidates = append(candidates, filepath.Join(home, ".local", "share", "openriot", "config", "rofi", "simple-tokyonight.rasi"))
 	}
+	candidates = append(candidates, "/usr/local/share/openriot/config/rofi/simple-tokyonight.rasi")
 	for _, p := range candidates {
 		if _, err := os.Stat(p); err == nil {
 			return p

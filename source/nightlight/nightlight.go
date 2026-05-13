@@ -22,8 +22,6 @@ const (
 	tempNight    = "4000"
 )
 
-var homeDir, _ = os.UserHomeDir()
-
 func Get() string {
 	state := getState()
 	ensureRedshift(state)
@@ -50,11 +48,15 @@ func Toggle() error {
 }
 
 func getState() int {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return 0
+	}
 	file := filepath.Join(homeDir, stateFile)
 	data, err := os.ReadFile(file)
 	if err != nil {
 		// Migrate from old dot-file name
-		oldFile := filepath.Join(homeDir, ".config/openriot/.nightlight")
+		oldFile := filepath.Join(homeDir, ".config", "openriot", ".nightlight")
 		data, err = os.ReadFile(oldFile)
 		if err != nil {
 			return 0
@@ -69,6 +71,10 @@ func getState() int {
 }
 
 func setState(state int) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return
+	}
 	file := filepath.Join(homeDir, stateFile)
 	os.WriteFile(file, []byte(strconv.Itoa(state)), 0600)
 }

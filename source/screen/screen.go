@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+var resDimensionRE = regexp.MustCompile(`(\d+)x(\d+)`)
+
 // GetWidth returns the screen width in pixels using xrandr.
 // Defaults to 1920 if DISPLAY is not set or xrandr fails.
 func GetWidth() int {
@@ -20,10 +22,9 @@ func GetWidth() int {
 		return 1920
 	}
 
-	re := regexp.MustCompile(`(\d+)x(\d+)`)
 	for _, line := range strings.Split(string(out), "\n") {
 		if strings.Contains(line, "connected") {
-			matches := re.FindStringSubmatch(line)
+			matches := resDimensionRE.FindStringSubmatch(line)
 			if len(matches) > 1 {
 				w, _ := strconv.Atoi(matches[1])
 				if w > 0 {
@@ -47,10 +48,9 @@ func GetResolution() (int, int) {
 		return 1920, 1080
 	}
 
-	re := regexp.MustCompile(`(\d+)x(\d+)`)
 	for _, line := range strings.Split(string(out), "\n") {
 		if strings.Contains(line, "connected") {
-			matches := re.FindStringSubmatch(line)
+			matches := resDimensionRE.FindStringSubmatch(line)
 			if len(matches) > 2 {
 				w, _ := strconv.Atoi(matches[1])
 				h, _ := strconv.Atoi(matches[2])

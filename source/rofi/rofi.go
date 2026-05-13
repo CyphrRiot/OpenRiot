@@ -13,8 +13,6 @@ import (
 	"openriot/notify"
 )
 
-var homeDir, _ = os.UserHomeDir()
-
 func Run() error {
 	appsFile := findAppsFile()
 	if appsFile == "" {
@@ -32,8 +30,12 @@ func RunGames() error {
 }
 
 func findGamesFile() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
 	paths := []string{
-		filepath.Join(homeDir, ".config/rofi/games.txt"),
+		filepath.Join(home, ".config", "rofi", "games.txt"),
 	}
 
 	for _, p := range paths {
@@ -110,8 +112,12 @@ func runAppsFile(appsFile, prompt string) error {
 }
 
 func findAppsFile() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
 	paths := []string{
-		filepath.Join(homeDir, ".config/rofi/apps.txt"),
+		filepath.Join(home, ".config", "rofi", "apps.txt"),
 	}
 
 	for _, p := range paths {
@@ -171,7 +177,11 @@ func executeCommand(cmd string) error {
 
 	switch {
 	case strings.HasSuffix(cmd, ".desktop"):
-		desktopFile := filepath.Join(homeDir, ".local/share/applications", cmd)
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return fmt.Errorf("cannot get home dir: %w", err)
+		}
+		desktopFile := filepath.Join(home, ".local", "share", "applications", cmd)
 		desktopCmd, err := getDesktopExec(desktopFile)
 		if err != nil {
 			return err

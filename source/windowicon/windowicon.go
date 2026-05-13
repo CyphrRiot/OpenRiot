@@ -89,13 +89,16 @@ func loadMappings() {
 	}
 	mappings = make(map[string]string)
 
-	homeDir, _ := os.UserHomeDir()
-	configPath := filepath.Join(homeDir, ".local/share/openriot/config/window/icons.toml")
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return
+	}
+	configPath := filepath.Join(homeDir, ".local", "share", "openriot", "config", "window", "icons.toml")
 
 	// Try multiple locations for config
 	locations := []string{
 		configPath,
-		filepath.Join(homeDir, "Code/OpenRiot/config/window/icons.toml"),
+		filepath.Join(homeDir, "Code", "OpenRiot", "config", "window", "icons.toml"),
 	}
 
 	var data map[string]any

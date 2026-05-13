@@ -16,7 +16,10 @@ import (
 )
 
 func Lock() error {
-	home, _ := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("cannot get home dir: %w", err)
+	}
 
 	// Check if i3lock is already running
 	if checkLockRunning() {
@@ -83,7 +86,7 @@ func Lock() error {
 	cmd.Stdin = nil
 	cmd.Stdout = nil
 	cmd.Stderr = nil
-	err := cmd.Start()
+	err = cmd.Start()
 	if err != nil {
 		notify.SendNotify("lock", "Screen Lock", "Lock failed: i3lock error", "critical", 5000, 0)
 		return err

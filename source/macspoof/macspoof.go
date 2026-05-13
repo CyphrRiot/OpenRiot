@@ -11,6 +11,9 @@ import (
 	"openriot/polybar"
 )
 
+var ifaceLineRE = regexp.MustCompile(`^[a-z]+[0-9]+:`)
+var ifaceNameRE = regexp.MustCompile(`^[a-z]+[0-9]+$`)
+
 // Interface represents a network interface with MAC info
 type Interface struct {
 	Name        string
@@ -34,7 +37,7 @@ func GetInterfaces() ([]Interface, error) {
 
 	for _, line := range lines {
 		// New interface line: e.g., iwx0: flags=...
-		if matched, _ := regexp.MatchString(`^[a-z]+[0-9]+:`, line); matched {
+		if ifaceLineRE.MatchString(line) {
 			// Save previous interface if we have one
 			if current.Name != "" {
 				interfaces = append(interfaces, current)
@@ -104,7 +107,7 @@ func getHostnameConfig(ifaceName string) (hasRandom bool, err error) {
 // EnableRandomMAC adds 'lladdr random' to the interface's hostname file
 func EnableRandomMAC(iface string) error {
 	// Validate interface name to prevent path traversal / shell injection
-	if matched, _ := regexp.MatchString(`^[a-z]+[0-9]+$`, iface); !matched {
+	if !ifaceNameRE.MatchString(iface) {
 		return fmt.Errorf("invalid interface name: %s", iface)
 	}
 

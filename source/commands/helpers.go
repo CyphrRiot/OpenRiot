@@ -135,20 +135,9 @@ func runStealthToggle() error {
 func runStealthNotify() error {
 	if macspoof.IsStealthEnabled() {
 		notify.SendNotify("stealth", "Stealth Mode", "Stealth Mode is Enabled\nDisable in Settings Menu\nOr Super+Shift+G", "normal", 5000, 0)
-	} else {
-		notify.SendNotify("stealth", "Stealth", " Restarting Networking Services", "normal", 5000, 0)
-		if err := macspoof.StealthToggle(); err != nil {
-			notify.SendNotify("stealth", "Stealth", "Failed: "+err.Error(), "critical", 5000, 0)
-			return err
-		}
-		enabled := macspoof.IsStealthEnabled()
-		if enabled {
-			notify.SendNotify("stealth", "Stealth", "Enabled [Stealth]", "normal", 3000, 0)
-		} else {
-			notify.SendNotify("stealth", "Stealth", "Disabled", "normal", 3000, 0)
-		}
+		return nil
 	}
-	return nil
+	return runStealthToggle()
 }
 
 func runProtonDriveSync() error {
@@ -250,7 +239,12 @@ func runAppLauncher(icon, procName string, cmdArgs ...string) error {
 		notify.SendNotify(icon, procName, procName+" already launched", "normal", 2000, 0)
 		return nil
 	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("cannot get home dir: %w", err)
+	}
+	binPath := filepath.Join(home, ".local", "share", "openriot", "config", "bin", procName)
 	notify.SendNotify(icon, procName, "Starting "+procName+"...", "normal", 2000, 0)
-	exec.Command(cmdArgs[0], append(cmdArgs[1:], os.Getenv("HOME")+"/.local/share/openriot/config/bin/"+procName)...).Start()
+	exec.Command(cmdArgs[0], append(cmdArgs[1:], binPath)...).Start()
 	return nil
 }

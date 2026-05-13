@@ -12,12 +12,10 @@ import (
 	"net/url"
 )
 
-var homeDir, _ = os.UserHomeDir()
 var cachedConfig *Config
 
 const (
 	apiURL   = "https://api.openweathermap.org/data/2.5/weather"
-	apiKey   = "85a4e3c55b73909f42c6a23ec35b7147"
 	cacheTTL = 10 * time.Minute
 )
 
@@ -39,7 +37,7 @@ type APIResponse struct {
 
 func Get() string {
 	cfg := loadConfig()
-	if cfg.Location == "" {
+	if cfg.Location == "" || cfg.APIKey == "" {
 		return ""
 	}
 
@@ -52,13 +50,17 @@ func Get() string {
 }
 
 func loadConfig() Config {
-	cfgFile := filepath.Join(homeDir, ".config/weather.cfg")
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return Config{}
+	}
+	cfgFile := filepath.Join(homeDir, ".config", "weather.cfg")
 	data, err := os.ReadFile(cfgFile)
 	if err != nil {
 		return Config{}
 	}
 
-	cfg := Config{Units: "imperial", APIKey: apiKey}
+	cfg := Config{Units: "imperial"}
 	for _, line := range strings.Split(string(data), "\n") {
 		line = strings.TrimSpace(line)
 		if after, ok := strings.CutPrefix(line, "location="); ok {
@@ -73,6 +75,10 @@ func loadConfig() Config {
 }
 
 func getCacheFile() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
 	cacheDir := filepath.Join(homeDir, ".cache", "openriot")
 	newFile := filepath.Join(cacheDir, "weather.json")
 	oldFile := filepath.Join(homeDir, ".cache", "openriot-weather.json")
@@ -100,8 +106,9 @@ func fetchWeather(cfg Config) (*APIResponse, error) {
 	}
 
 	// Fetch from API
-	url := fmt.Sprintf("%s?q=%s&units=%s&appid=%s", apiURL, url.QueryEscape(cfg.Location), cfg.Units, cfg.APIKey)
-	resp, err := http.Get(url)
+	client := &http.Client{Timeout: 10 * time.Second}
+	fetchURL := fmt.Sprintf("%s?q=%s&units=%s&appid=%s", apiURL, url.QueryEscape(cfg.Location), cfg.Units, cfg.APIKey)
+	resp, err := client.Get(fetchURL)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +144,7 @@ func formatOutput(data *APIResponse) string {
 
 	icon := getWeatherIcon(data.Weather[0].Icon)
 	temp := formatTemp(data.Main.Temp, getUnits())
-	return fmt.Sprintf("%s %s", icon, temp)
+	return fmt.Sprintf("%s %s", temp, icon)
 }
 
 func getWeatherIcon(code string) string {

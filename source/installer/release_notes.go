@@ -10,28 +10,37 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-// ShowReleaseNotes renders the current version's release notes using lowdown
-// with a custom pager that reads one screen at a time.
-func ShowReleaseNotes() {
+// getReleaseNotesPath resolves the path to the current version's release notes.
+// Returns an error if the home dir, VERSION file, or notes file are unavailable.
+func getReleaseNotesPath() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return
+		return "", err
 	}
-
-	versionPath := filepath.Join(homeDir, ".local", "share", "openriot", "VERSION")
-	data, err := os.ReadFile(versionPath)
+	data, err := os.ReadFile(filepath.Join(homeDir, ".local", "share", "openriot", "VERSION"))
 	if err != nil {
-		return
+		return "", err
 	}
 	version := strings.TrimSpace(string(data))
 	if version == "" || version == "unknown" {
-		return
+		return "", fmt.Errorf("version unknown")
 	}
-
 	notesPath := filepath.Join(homeDir, ".local", "share", "openriot", "docs", fmt.Sprintf("v%s-Release-Notes.md", version))
 	if _, err := os.Stat(notesPath); err != nil {
+		return "", err
+	}
+	return notesPath, nil
+}
+
+// ShowReleaseNotes renders the current version's release notes using lowdown
+// with a custom pager that reads one screen at a time.
+func ShowReleaseNotes() {
+	notesPath, err := getReleaseNotesPath()
+	if err != nil {
 		return
 	}
+	version := strings.TrimSuffix(filepath.Base(notesPath), "-Release-Notes.md")
+	version = strings.TrimPrefix(version, "v")
 
 	// Render markdown to terminal-formatted string
 	cmd := exec.Command("lowdown", "-Tterm", notesPath)
@@ -82,25 +91,12 @@ func ShowReleaseNotes() {
 // Q, q, or any other key. If release notes are missing, returns false
 // silently.
 func AskShowReleaseNotes() bool {
-	homeDir, err := os.UserHomeDir()
+	notesPath, err := getReleaseNotesPath()
 	if err != nil {
 		return false
 	}
-
-	versionPath := filepath.Join(homeDir, ".local", "share", "openriot", "VERSION")
-	data, err := os.ReadFile(versionPath)
-	if err != nil {
-		return false
-	}
-	version := strings.TrimSpace(string(data))
-	if version == "" || version == "unknown" {
-		return false
-	}
-
-	notesPath := filepath.Join(homeDir, ".local", "share", "openriot", "docs", fmt.Sprintf("v%s-Release-Notes.md", version))
-	if _, err := os.Stat(notesPath); err != nil {
-		return false
-	}
+	version := strings.TrimSuffix(filepath.Base(notesPath), "-Release-Notes.md")
+	version = strings.TrimPrefix(version, "v")
 
 	fmt.Println()
 	prompt := fmt.Sprintf("* Read v%s Release Notes? [Y/n] ", version)

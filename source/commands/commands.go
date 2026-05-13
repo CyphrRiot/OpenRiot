@@ -170,8 +170,11 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--benchmark", Category: "Tools & Upgrades",
 		Description: "Run system benchmark",
 		Run: func(args []string) error {
-			home, _ := os.UserHomeDir()
-			cmd := home + "/.local/bin/benchmark; printf \"\\n\\nPress any key to continue...\"; read -r ans"
+			home, err := os.UserHomeDir()
+			if err != nil {
+				return fmt.Errorf("cannot get home dir: %w", err)
+			}
+			cmd := filepath.Join(home, ".local", "bin", "benchmark") + "; printf \"\\n\\nPress any key to continue...\"; read -r ans"
 			exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
 			return nil
 		},
@@ -208,15 +211,6 @@ func RegisterAll(r *Registry, testMode *bool) {
 			}
 			fmt.Printf("Current: %s\n", localVer)
 			return fmt.Errorf("no update available")
-		},
-	})
-	r.Register(&Command{
-		Name: "--version", Category: "Version & Imaging",
-		Description: "Show version",
-		Run: func(args []string) error {
-			// version is injected at build time; caller prints it
-			fmt.Println("openriot", os.Getenv("OPENRIOT_VERSION"))
-			return nil
 		},
 	})
 	r.Register(&Command{
@@ -609,7 +603,7 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Description: "Open Proton Mail",
 		Run: func(args []string) error {
 			notify.SendNotify("proton-mail", "Proton Mail", "Opening...", "normal", 2000, 0)
-			exec.Command("firefox", "https://mail.proton.me/u/11/inbox").Start()
+			exec.Command("firefox", "https://mail.proton.me/inbox").Start()
 			return nil
 		},
 	})
@@ -773,8 +767,12 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--crypto-refresh", Category: "Polybar Metrics",
 		Description: "Clear crypto cache and fetch fresh",
 		Run: func(args []string) error {
-			os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot", "crypto.json"))
-			os.RemoveAll(filepath.Join(os.Getenv("HOME"), ".cache", "openriot", "crypto-prev.json"))
+			home, err := os.UserHomeDir()
+			if err != nil {
+				return fmt.Errorf("cannot get home dir: %w", err)
+			}
+			os.RemoveAll(filepath.Join(home, ".cache", "openriot", "crypto.json"))
+			os.RemoveAll(filepath.Join(home, ".cache", "openriot", "crypto-prev.json"))
 			return crypto.RunCrypto("ROWML")
 		},
 	})

@@ -76,7 +76,10 @@ func RunInstallPackages() error {
 
 // findPackagesYaml finds packages.yaml: installed location first, then CWD fallback.
 func findPackagesYaml() string {
-	homeDir, _ := os.UserHomeDir()
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
 
 	// 1. Check installed location first
 	installedPath := filepath.Join(homeDir, ".local", "share", "openriot", "install", "packages.yaml")

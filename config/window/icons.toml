@@ -14,6 +14,7 @@ floating_center = ""
 
 [browsers]
 firefox = "󰈹"
+firefox-private = ""
 firefox-esr = "󰈹"
 chromium = "󰊯"
 chrome = "󰊯"

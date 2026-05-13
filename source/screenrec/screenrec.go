@@ -22,19 +22,24 @@ const (
 	sndioStateFile = "sndio.orig.flags"
 )
 
-var homeDir, _ = os.UserHomeDir()
-var cacheDir = filepath.Join(homeDir, ".cache", "openriot")
+func getCacheDir() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(home, ".cache", "openriot")
+}
 
 func pidFilePath() string {
-	return filepath.Join(cacheDir, pidFile)
+	return filepath.Join(getCacheDir(), pidFile)
 }
 
 func pathFilePath() string {
-	return filepath.Join(cacheDir, pathFile)
+	return filepath.Join(getCacheDir(), pathFile)
 }
 
 func sndioStateFilePath() string {
-	return filepath.Join(cacheDir, sndioStateFile)
+	return filepath.Join(getCacheDir(), sndioStateFile)
 }
 
 func saveSndioFlags() error {
@@ -125,12 +130,17 @@ func startRecording() error {
 	// Notify immediately — user should see feedback before any setup work
 	notify.SendNotify("screenrec", "Screen Recorder", "Recording is starting...", "normal", 3000, 0)
 
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("cannot get home dir: %w", err)
+	}
+
 	res, err := getResolution()
 	if err != nil || res == "" {
 		res = "1920x1080"
 	}
 
-	outDir := filepath.Join(homeDir, outputDir)
+	outDir := filepath.Join(home, outputDir)
 	if err := os.MkdirAll(outDir, 0755); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
@@ -199,7 +209,8 @@ func stopRecording(pid int) error {
 
 	msg := "Recording is stopping..."
 	if outPath != "" {
-		displayPath := strings.Replace(outPath, homeDir, "~", 1)
+		home, _ := os.UserHomeDir()
+		displayPath := strings.Replace(outPath, home, "~", 1)
 		msg = fmt.Sprintf("Recording is stopping...\nSaved to:\n %s", displayPath)
 	}
 	notify.SendNotify("screenrec", "Screen Recorder", msg, "normal", 5000, 0)

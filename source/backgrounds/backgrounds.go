@@ -11,9 +11,7 @@ import (
 	"time"
 )
 
-var home, _ = os.UserHomeDir()
-
-func getStateFile() string {
+func getStateFile(home string) string {
 	newFile := filepath.Join(home, ".config", "openriot", "current-background")
 	oldFile := filepath.Join(home, ".config", "openriot", ".current-background")
 	if _, err := os.Stat(newFile); os.IsNotExist(err) {
@@ -56,7 +54,11 @@ func fehArgs(wallpaper string) []string {
 
 // Load restores the last saved wallpaper or falls back to default.
 func Load() int {
-	stateFile := getStateFile()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return 1
+	}
+	stateFile := getStateFile(home)
 	bgsDir := filepath.Join(home, ".local", "share", "openriot", "backgrounds")
 	defaultBg := filepath.Join(bgsDir, "01.png")
 
@@ -77,17 +79,16 @@ func Load() int {
 	return 0
 }
 
-// Next cycles to the next wallpaper and restarts feh.
-func Next() int {
+// cycle moves delta steps through the wallpaper list and applies the result.
+func cycle(home string, delta int) int {
 	bgsDir := filepath.Join(home, ".local", "share", "openriot", "backgrounds")
-	stateFile := getStateFile()
+	stateFile := getStateFile(home)
 
 	entries, err := os.ReadDir(bgsDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Backgrounds directory not found: %s\n", bgsDir)
 		return 1
 	}
-
 
 	var files []string
 	for _, e := range entries {
@@ -119,15 +120,15 @@ func Next() int {
 			break
 		}
 	}
-	next := files[(idx+1)%len(files)]
+	target := files[(idx+delta+len(files))%len(files)]
 
 	_ = os.MkdirAll(filepath.Dir(stateFile), 0o755)
-	_ = os.WriteFile(stateFile, []byte(next+"\n"), 0o600)
+	_ = os.WriteFile(stateFile, []byte(target+"\n"), 0o600)
 
 	_ = exec.Command("pkill", "-x", "feh").Run()
 	time.Sleep(500 * time.Millisecond)
 
-	cmd := exec.Command("feh", fehArgs(next)...)
+	cmd := exec.Command("feh", fehArgs(target)...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	cmd.Stdin = nil
 	cmd.Stdout = nil
@@ -136,74 +137,27 @@ func Next() int {
 
 	time.Sleep(1 * time.Second)
 	if exec.Command("pgrep", "-x", "feh").Run() == nil {
-		fmt.Printf("Switched to: %s\n", filepath.Base(next))
+		fmt.Printf("Switched to: %s\n", filepath.Base(target))
 		return 0
 	}
 	fmt.Println("Warning: feh may not have started")
 	return 0
 }
 
+// Next cycles to the next wallpaper and restarts feh.
+func Next() int {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return 1
+	}
+	return cycle(home, 1)
+}
+
 // Prev cycles to the previous wallpaper and restarts feh.
 func Prev() int {
-	bgsDir := filepath.Join(home, ".local", "share", "openriot", "backgrounds")
-	stateFile := getStateFile()
-
-	entries, err := os.ReadDir(bgsDir)
+	home, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Backgrounds directory not found: %s\n", bgsDir)
 		return 1
 	}
-
-	var files []string
-	for _, e := range entries {
-		if e.IsDir() {
-			continue
-		}
-		name := e.Name()
-		lower := strings.ToLower(name)
-		if strings.HasSuffix(lower, ".jpg") || strings.HasSuffix(lower, ".jpeg") ||
-			strings.HasSuffix(lower, ".png") || strings.HasSuffix(lower, ".webp") {
-			files = append(files, filepath.Join(bgsDir, name))
-		}
-	}
-	if len(files) == 0 {
-		fmt.Fprintf(os.Stderr, "No background images found in %s\n", bgsDir)
-		return 1
-	}
-	sort.Strings(files)
-
-	current := ""
-	if b, err := os.ReadFile(stateFile); err == nil {
-		current = strings.TrimSpace(string(b))
-	}
-
-	idx := 0
-	for i, f := range files {
-		if f == current {
-			idx = i
-			break
-		}
-	}
-	prev := files[(idx-1+len(files))%len(files)]
-
-	_ = os.MkdirAll(filepath.Dir(stateFile), 0o755)
-	_ = os.WriteFile(stateFile, []byte(prev+"\n"), 0o600)
-
-	_ = exec.Command("pkill", "-x", "feh").Run()
-	time.Sleep(500 * time.Millisecond)
-
-	cmd := exec.Command("feh", fehArgs(prev)...)
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
-	cmd.Stdin = nil
-	cmd.Stdout = nil
-	cmd.Stderr = nil
-	_ = cmd.Start()
-
-	time.Sleep(1 * time.Second)
-	if exec.Command("pgrep", "-x", "feh").Run() == nil {
-		fmt.Printf("Switched to: %s\n", filepath.Base(prev))
-		return 0
-	}
-	fmt.Println("Warning: feh may not have started")
-	return 0
+	return cycle(home, -1)
 }
