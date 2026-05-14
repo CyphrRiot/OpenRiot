@@ -110,13 +110,14 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## Why OpenRiot Chose…
 
-- [Why OpenRiot Uses the `openriot` Binary (No Shell Scripts)](assets/WhySeries/Binary.md)
+- [Why OpenRiot Uses the *openriot* Binary (No Shell Scripts)](assets/WhySeries/Binary.md)
 - [Why OpenRiot Chose fish + Helix + crush](assets/WhySeries/fish-helix-crush.md)
 - [Why OpenRiot Chose Its Desktop Stack (i3 + Xenocara)](assets/WhySeries/i3-X11.md)
 - [Why OpenRiot Chose Polybar](assets/WhySeries/polybar.md)
 
 ## 📋 Release Notes
 
+- [v6.9 — Gödel, Escher, Wi-Fi](docs/v6.9-Release-Notes.md)
 - [v6.8 — Hello, Friend](docs/v6.8-Release-Notes.md)
 - [v6.7 — Take One](docs/v6.7-Release-Notes.md)
 - [v6.6 — Seed of Riot](docs/v6.6-Release-Notes.md)

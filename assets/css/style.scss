@@ -101,6 +101,21 @@ h3 {
     font-size: 1.1em;
 }
 
+/* Inline code inside gradient headings would be invisible because
+   -webkit-text-fill-color: transparent propagates to children. Force it
+   back to the visible accent colour. */
+h1 code,
+h2 code,
+h3 code,
+h4 code,
+h5 code,
+h6 code {
+    -webkit-text-fill-color: var(--archriot-purple-light) !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
 /* Override for the main title */
 h1:first-child {
     color: var(--archriot-purple-light) !important;
