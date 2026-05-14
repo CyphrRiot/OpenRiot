@@ -1,27 +1,43 @@
 package fsutil
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 	"os"
 )
 
 // CopyFile copies a file from src to dest, preserving source permissions.
-// Skips the write if dest already exists with identical content.
+// Skips the write if dest already exists with identical size.
 func CopyFile(src, dest string) error {
-	sourceData, err := os.ReadFile(src)
-	if err != nil {
-		return fmt.Errorf("reading source file: %w", err)
-	}
-	if existing, err := os.ReadFile(dest); err == nil && bytes.Equal(existing, sourceData) {
-		return nil
-	}
-	info, err := os.Stat(src)
+	srcInfo, err := os.Stat(src)
 	if err != nil {
 		return fmt.Errorf("stat source file: %w", err)
 	}
-	if err := os.WriteFile(dest, sourceData, info.Mode()); err != nil {
-		return fmt.Errorf("writing dest file: %w", err)
+
+	// Skip if dest exists with same size (avoids rewriting large files)
+	if dstInfo, err := os.Stat(dest); err == nil && dstInfo.Size() == srcInfo.Size() {
+		return nil
 	}
+
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("opening source file: %w", err)
+	}
+	defer srcFile.Close()
+
+	dstFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, srcInfo.Mode())
+	if err != nil {
+		return fmt.Errorf("creating dest file: %w", err)
+	}
+
+	if _, err := io.Copy(dstFile, srcFile); err != nil {
+		dstFile.Close()
+		return fmt.Errorf("copying data: %w", err)
+	}
+
+	if err := dstFile.Close(); err != nil {
+		return fmt.Errorf("closing dest file: %w", err)
+	}
+
 	return nil
 }

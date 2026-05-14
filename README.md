@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-6.8-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-6.9-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -107,6 +107,23 @@ This makes the underlying X server far more resistant to client-side abuse than 
     - [💳 Monero Wallet](#-monero-wallet)
 - [🔧 Troubleshooting](#troubleshooting)
 - [🦊 Browser & Data Transfer](#browser--data-transfer)
+
+## Why OpenRiot Chose…
+
+- [Why OpenRiot Uses the `openriot` Binary (No Shell Scripts)](assets/WhySeries/Binary.md)
+- [Why OpenRiot Chose fish + Helix + crush](assets/WhySeries/fish-helix-crush.md)
+- [Why OpenRiot Chose Its Desktop Stack (i3 + Xenocara)](assets/WhySeries/i3-X11.md)
+- [Why OpenRiot Chose Polybar](assets/WhySeries/polybar.md)
+
+## 📋 Release Notes
+
+- [v6.8 — Hello, Friend](docs/v6.8-Release-Notes.md)
+- [v6.7 — Take One](docs/v6.7-Release-Notes.md)
+- [v6.6 — Seed of Riot](docs/v6.6-Release-Notes.md)
+- [v6.5 — Ghost in the Shell](docs/v6.5-Release-Notes.md)
+- [v6.4 — Installer Image](docs/v6.4-Release-Notes.md)
+
+Previous Release Notes can be found at [Github](https://github.com/CyphrRiot/OpenRiot) or at the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) top-level folder.
 
 ## ✅ Supported Systems
 
@@ -446,34 +463,41 @@ cat ~/.cache/openriot/install.log
 
 ---
 
-### Method 2: OpenRiot Installer Image (Experimental)
+### Method 2: OpenRiot Installer Image (Beta)
 
-Download the pre-built `openriot.img` from OpenRiot.org. It bundles OpenBSD
-7.9 with all OpenRiot packages pre-loaded as a custom install set — no
-`pkg_add` downloads during installation.
+> ⚠️ **Beta — may not work 100% on all systems.**
 
-After the OpenBSD base install completes, packages install automatically from
-the USB media. The system reboots to a console login. Log in as your user
-and run:
+Download `openriot.img` from the
+[v6.8 release page](https://github.com/CyphrRiot/OpenRiot/releases/tag/v6.8).
+It bundles OpenBSD 7.9 with all OpenRiot packages and non-free firmware as a
+custom install set — no `pkg_add` downloads during installation. The OpenRiot
+repository itself is **not** included; it is fetched after first login via
+`setup.sh`.
+
+After the OpenBSD base install completes, packages and firmware install
+automatically from the USB media via `install.site`. The system reboots to a
+console login. Log in as the user you created during install and run:
 
 ```bash
 curl -fsSL https://openriot.org/setup.sh | sh
 ```
 
-This fetches the latest OpenRiot repository, deploys configs, and completes
-the setup. Requires network during `setup.sh` execution. X11 does **not**
-start automatically on first boot — run `startx` after setup completes.
+This fetches the latest OpenRiot repository, deploys configs, sets your shell to
+fish, adds you to the `wheel` group, creates XDG directories, and completes
+setup. Requires network during `setup.sh` execution.
 
 #### Install Steps
 
-1. Download `openriot.img` *Coming Soon*
+1. Download `openriot.img` from the
+   [v6.8 release](https://github.com/CyphrRiot/OpenRiot/releases/tag/v6.8)
 2. Flash to USB:
-   **Linux:** `dd if=openriot.img of=/dev/sdX bs=4M status=progress`
-   **OpenBSD:** `doas dd if=openriot.img of=/dev/rsdXc bs=1M`
+   **Linux:** `dd if=openriot.img of=/dev/sdX bs=4M status=progress oflag=sync`
+   **OpenBSD:** `doas dd if=openriot.img of=/dev/rsdXc bs=1M && sync`
 3. Boot from USB, type `I` at the `boot>` prompt
-4. Answer the standard OpenBSD prompts (disk, hostname, user, password)
-5. When prompted for installation sets, select `site79.tgz` (or press Enter
-   to include all sets)
+4. Answer the standard OpenBSD prompts (disk, hostname, root password, user,
+   user password, timezone)
+5. When prompted for **Which sets?**, type `*` then `yes` — this discovers
+   `site79.tgz` as a custom install set
 6. Reboot when finished
 7. Log in as your user and run `curl -fsSL https://openriot.org/setup.sh | sh`
 
@@ -494,6 +518,40 @@ autoconf
 # Save and exit, then start the interface:
 doas sh /etc/netstart iwx0
 ```
+
+### Wi-Fi Network Manager (nmtui)
+
+OpenRiot includes `openriot --nmtui`, a Bubble Tea-based Wi-Fi TUI built
+specifically for OpenBSD. No `nmcli`, no dbus — just `ifconfig`, `hostname.if`,
+and `netstart`.
+
+**Launch:**
+- **Rofi:** Press `Super + D` → select **Select WiFi** 󱚹
+- **Terminal:** `openriot --nmtui`
+
+The TUI auto-scans on launch, shows signal strength as ●○ dots, and paginates
+dense scans. Use ↑/↓ or j/k to navigate, Enter to connect, and r to refresh.
+
+**Keybindings inside nmtui:**
+
+| Key | Action |
+|-----|--------|
+| `↑` / `k` | Move cursor up |
+| `↓` / `j` | Move cursor down |
+| `Enter` | Select network / confirm password |
+| `Esc` | Back / cancel |
+| `r` | Refresh scan |
+| `i` | Show active connection info |
+| `d` | Disconnect from current network |
+| `?` | Toggle help overlay |
+| `q` / `Ctrl+C` | Quit |
+
+**Security:** Open networks connect immediately. WPA2 networks prompt for a
+password. All mutations require `doas` — if it's not in PATH, the TUI shows an
+error instead of attempting self-elevation.
+
+**Note:** The parser handles quoted SSIDs, hidden networks (filtered out), and
+hex-encoded Unicode SSIDs such as `0x47c3b664656c` → "Gödel".
 
 ---
 
@@ -599,6 +657,7 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | File Manager     | 󰝰   | Thunar file browser      |
 | Firefox          |    | Web browser              |
 | Firefox (Private)|    | Private browsing         |
+| Select WiFi      | 󱚹   | Wi-Fi network manager    |
 | Text Editor      | 󰷉   | GNOME text editor        |
 | Helix            |    | Text editor              |
 | Word Processor   | 󰈙   | LibreOffice Writer       |

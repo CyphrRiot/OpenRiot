@@ -95,6 +95,7 @@ for_window [class="^Transmission$"] floating enable, resize set 800 600, move po
 
 # OpenRiot dialogs
 for_window [class="^(openriot_upgrade|OpenRiot Update Available|Proton Sync Update)$"] floating enable, resize set 45 ppt 75 ppt, move position center
+for_window [class="^openriot_wifi$"] floating enable, resize set 45 ppt 75 ppt, move position center
 for_window [title="^(OpenRiot Control Panel)$"] floating enable, resize set 900 85%, move position center
 
 # Popups

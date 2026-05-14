@@ -300,6 +300,9 @@ func injectContent(cfg *Config) error {
 		return fmt.Errorf("close index.txt: %w", err)
 	}
 
+	// Flush buffer cache so umount cannot silently truncate
+	exec.Command("sync").Run()
+
 	// Log available space AFTER injection
 	logger.Info("Space after injection:")
 	cmd = exec.Command("df", "-h", "/mnt")

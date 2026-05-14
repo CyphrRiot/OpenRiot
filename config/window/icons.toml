@@ -283,6 +283,7 @@ nmtui = "󰤨"
 iwctl = "󰤨"
 connman = "󰤨"
 gnome-network = "󰤨"
+openriot_wifi = "󱚹"
 
 [utilities]
 file-roller = "󰗄"

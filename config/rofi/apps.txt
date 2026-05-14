@@ -19,3 +19,4 @@ Monero|monero-wallet-gui.desktop|
 Bitcoin|bitcoin-qt.desktop|
 Games|@submenu:games|󰊗
 Settings|xfce4-settings-manager|󰒓
+Select WiFi|alacritty --class openriot_wifi -e openriot --nmtui|󱚹

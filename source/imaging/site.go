@@ -2,6 +2,7 @@ package imaging
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -43,6 +44,15 @@ func CreateSite(cfg *Config) error {
 		return fmt.Errorf("copy packages: %w", err)
 	}
 
+	// Copy firmware into tarball for install.site to install
+	fwSrc := filepath.Join(workDir, "firmware")
+	if _, err := os.Stat(fwSrc); err == nil {
+		fwDst := filepath.Join(openriotDir, "firmware")
+		if err := copyDir(fwSrc, fwDst); err != nil {
+			return fmt.Errorf("copy firmware: %w", err)
+		}
+	}
+
 	// Create install.site inside siteDir so it ships in the tarball
 	// (extracts to /install.site on the new system and runs via install.site(5))
 	if err := createInstallSite(siteDir); err != nil {
@@ -79,11 +89,18 @@ func copyDir(src, dst string) error {
 		if info.IsDir() {
 			return os.MkdirAll(targetPath, 0755)
 		}
-		data, err := os.ReadFile(path)
+		srcFile, err := os.Open(path)
 		if err != nil {
 			return err
 		}
-		return os.WriteFile(targetPath, data, info.Mode())
+		defer srcFile.Close()
+		dstFile, err := os.OpenFile(targetPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, info.Mode())
+		if err != nil {
+			return err
+		}
+		defer dstFile.Close()
+		_, err = io.Copy(dstFile, srcFile)
+		return err
 	})
 }
 
@@ -139,7 +156,13 @@ log "OpenRiot post-install starting"
 
 # doas
 if ! [ -f /etc/doas.conf ]; then
-	printf '%s\n' "permit nopass :wheel" > /etc/doas.conf
+	: > /etc/doas.conf
+	for homedir in /home/*; do
+		[ -d "$homedir" ] || continue
+		username="$(basename "$homedir")"
+		printf '%s\n' "permit nopass $username" >> /etc/doas.conf
+	done
+	printf '%s\n' "permit nopass :wheel" >> /etc/doas.conf
 	chmod 0440 /etc/doas.conf
 	log "doas configured"
 fi
@@ -167,14 +190,29 @@ log "services configured"
 PKG_PATH_LOCAL="/openriot/packages/snapshots/amd64"
 if [ -d "$PKG_PATH_LOCAL" ]; then
 	log "Installing packages from local path..."
-	for pkg in "$PKG_PATH_LOCAL"/*.tgz; do
-		[ -f "$pkg" ] || continue
-		log "Installing $(basename "$pkg")..."
-		PKG_PATH="$PKG_PATH_LOCAL" pkg_add "$pkg" 2>&1 || fail "pkg_add: $(basename "$pkg")"
-	done
+	cd "$PKG_PATH_LOCAL" || fail "cd $PKG_PATH_LOCAL"
+	export PKG_PATH="$PKG_PATH_LOCAL"
+	pkg_add -I *.tgz 2>&1
 	log "Package install complete"
 else
-	fail "Package directory not found: $PKG_PATH_LOCAL"
+	log "Package directory not found: $PKG_PATH_LOCAL"
+fi
+
+# ------------------------------------------------------------------
+# 2b. Install non-free firmware from local path (offline)
+# ------------------------------------------------------------------
+FW_PATH_LOCAL="/openriot/firmware"
+if [ -d "$FW_PATH_LOCAL" ] && [ -n "$(ls "$FW_PATH_LOCAL"/*.tgz 2>/dev/null)" ]; then
+	log "Installing firmware from local path..."
+	for fw in "$FW_PATH_LOCAL"/*.tgz; do
+		[ -f "$fw" ] || continue
+		fw_name=$(basename "$fw")
+		tar xzf "$fw" -C / 2>/dev/null || continue
+		log "Firmware installed: $fw_name"
+	done
+	log "Firmware install complete"
+else
+	log "No local firmware found, skipping"
 fi
 
 # ------------------------------------------------------------------
@@ -184,19 +222,7 @@ for homedir in /home/*; do
 	[ -d "$homedir" ] || continue
 	username="$(basename "$homedir")"
 
-	# Add to wheel
-	usermod -G wheel "$username" 2>/dev/null || fail "usermod $username"
-
-	# Set fish as default shell
-	chsh -s /usr/local/bin/fish "$username" 2>/dev/null || fail "chsh $username"
-
-	# Create XDG directories
-	for dir in Documents Downloads Music Pictures Videos Code Screenshots; do
-		mkdir -p "$homedir/$dir"
-		chown "$username:$username" "$homedir/$dir"
-	done
-
-	# Welcome message
+	# Welcome message only — setup.sh handles groups, shell, and XDG dirs
 	cat >> "$homedir/.profile" << 'WELCOME'
 
 # OpenRiot — Welcome
@@ -211,7 +237,6 @@ echo ""
 echo "This requires a working network or WiFi connection."
 echo ""
 WELCOME
-	chown "$username:$username" "$homedir/.profile"
 done
 
 # 4. Skel for future users

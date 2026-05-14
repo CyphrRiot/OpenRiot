@@ -25,6 +25,7 @@ import (
 	"openriot/macspoof"
 	"openriot/network"
 	"openriot/nightlight"
+	"openriot/nmtui"
 	"openriot/notify"
 	"openriot/polybar"
 	"openriot/rofi"
@@ -384,6 +385,11 @@ func RegisterAll(r *Registry, testMode *bool) {
 			}
 			return nil
 		},
+	})
+	r.Register(&Command{
+		Name: "--nmtui", Category: "Network & Battery",
+		Description: "Wi-Fi network manager TUI",
+		Run: func(args []string) error { return nmtui.Run() },
 	})
 	r.Register(&Command{
 		Name: "--eth-info", Category: "Network & Battery",

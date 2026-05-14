@@ -125,6 +125,17 @@ func buildEntries() []entry {
 		},
 	})
 
+	// Select WiFi
+	entries = append(entries, entry{
+		icon:  "󱚹",
+		name:  "Select WiFi",
+		label: "(Launch)",
+		on:    false,
+		toggle: func() {
+			exec.Command("alacritty", "--class", "openriot_wifi", "-e", "openriot", "--nmtui").Start()
+		},
+	})
+
 	return entries
 }
 

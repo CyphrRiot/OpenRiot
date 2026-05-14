@@ -84,6 +84,12 @@ func runFullBuild(cfg *Config) {
 		os.Exit(1)
 	}
 
+	// Step 1b: Download firmware
+	logger.Info("Downloading firmware...")
+	if err := DownloadFirmware(cfg); err != nil {
+		fmt.Fprintf(os.Stderr, "%s[WARN]%s Firmware download failed: %v\n", logger.Yellow, logger.Reset, err)
+	}
+
 	// Step 2: Create site tarball
 	logger.Info("Creating site tarball...")
 	if err := CreateSite(cfg); err != nil {
