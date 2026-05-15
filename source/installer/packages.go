@@ -3,7 +3,9 @@ package installer
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"openriot/config"
@@ -75,6 +77,20 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 					logger.Warn(fmt.Sprintf("Timed out after 10m: %s", base))
 				}
 			}
+			if cfg.IsSnapshot() && isSignatureError(outputStr) {
+				logger.Fail("OpenBSD base and packages are out of sync.")
+				fmt.Println()
+				fmt.Println("Your snapshot packages cannot be verified against your current base system.")
+				fmt.Println("This is a known issue on -current when base and package builds drift.")
+				fmt.Println()
+				fmt.Println("To fix this, run the following commands:")
+				fmt.Println("  doas sysupgrade -s")
+				fmt.Println("  (reboot when prompted)")
+				fmt.Println("  doas pkg_add -D snap -u")
+				fmt.Println()
+				fmt.Println("Then re-run the OpenRiot installer.")
+				os.Exit(1)
+			}
 			logger.Warn(fmt.Sprintf("Failed to install %s:\n    %s", pkg, outputStr))
 			failed++
 		} else {
@@ -117,4 +133,16 @@ func isPackageInstalled(pkg string) bool {
 		}
 	}
 	return false
+}
+
+// isSignatureError checks whether pkg_add output indicates a base/package
+// signature mismatch, which happens when OpenBSD -current snapshots drift.
+func isSignatureError(output string) bool {
+	s := strings.ToLower(output)
+	return strings.Contains(s, "signify") ||
+		strings.Contains(s, "signature") ||
+		strings.Contains(s, "pubkey") ||
+		strings.Contains(s, "verification") ||
+		strings.Contains(s, "can't verify") ||
+		strings.Contains(s, "gpg")
 }
