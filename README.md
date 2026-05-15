@@ -471,6 +471,8 @@ cat ~/.cache/openriot/install.log
 
 > ⚠️ **Beta — may not work 100% on all systems.**
 
+**WARNING: This is currently broken. Will be fixed shortly.**
+
 Download `openriot.img` from the
 [v6.8 release page](https://github.com/CyphrRiot/OpenRiot/releases/tag/v6.8).
 It bundles OpenBSD 7.9 with all OpenRiot packages and non-free firmware as a

@@ -372,7 +372,105 @@ The user correctly identified picom as the primary culprit from day one. We spen
 
 ### Never Cache in a Short-Lived Binary
 
-`openriot` is a 15MB CLI that exits after each call. In-process caching is useless — the process dies before the cache can be reused. When performance matters, either:
+`openriot` is an ~8.3MB CLI that exits after each call. In-process caching is useless — the process dies before the cache can be reused. When performance matters, either:
 - **Reduce calls** (one parse, multiple answers — like `--polybar-all` and the new `i3Outputs` refactor)
 - **Use a persistent IPC source** (i3 socket, cache file written by a long-lived process)
-- **Beware fork+exec overhead** — a 15MB binary spawn is not free, but it's acceptable if staggered
+- **Beware fork+exec overhead** — an 8.3MB binary spawn is not free, but it's acceptable if staggered
+
+---
+
+## v6.12 Critical Lessons — Current Snapshot Drift
+
+### `uname -r` on `-current` Returns Version Numbers, Not "current"
+
+OpenBSD `-current` snapshots report a future release version via `uname -r` (e.g., "8.0"). The string "current" only appears in `sysctl kern.version`.
+
+```go
+// WRONG — returns "8.0" on -current, fails IsSnapshot() check
+version, _ := exec.Command("uname", "-r").Output()
+
+// CORRECT
+version, _ := exec.Command("sysctl", "-n", "kern.version").Output()
+// "OpenBSD 7.9-current (GENERIC.MP) #475: ..."
+```
+
+**Rule:** Detect `-current` via `kern.version`, never `uname -r`.
+
+---
+
+### `fsutil.CopyFile()` Skips Same-Size Overwrites
+
+The installer uses size comparison to skip redundant copies. When a config edit does not change byte count, it is silently never deployed to users.
+
+**Rule:** Any config change must alter file size OR be verified with a full install test.
+
+---
+
+### Terminal Height Detection Fails on Redirected stdout
+
+`stty size` and `TIOCGWINSZ` on `os.Stdout.Fd()` fail with "Inappropriate ioctl" when stdout is a pipe (e.g., script invocation, popup terminal). Always probe `/dev/tty` first.
+
+```go
+// WRONG — falls back to 24 on pipe/redirect
+tty, _ := unix.IoctlGetWinsize(int(os.Stdout.Fd()), unix.TIOCGWINSZ)
+
+// CORRECT
+tty, err := os.Open("/dev/tty")
+if err == nil {
+    ws, err := unix.IoctlGetWinsize(int(tty.Fd()), unix.TIOCGWINSZ)
+    // ...
+}
+```
+
+**Rule:** Read terminal dimensions from `/dev/tty`, never `os.Stdout`.
+
+---
+
+### Kernel Age Alone Is Insufficient for `-current` Drift Detection
+
+A fresh kernel build can still have unverifiable snapshot packages. Probing `pkg_add` output for `signify`, `gpg`, `signature`, or `pubkey` errors is the only reliable signal.
+
+**Rule:** Detect package/base drift with a live `pkg_add -D snap -I` probe, not just kernel date math.
+
+---
+
+### `.desktop` `Exec=` Lines Need `%f` for File Passing
+
+Thunar passes selected files as arguments to `.desktop` `Exec=` commands. Without `%f`, mpv launches with no file.
+
+```
+# WRONG
+Exec=mpv
+
+# CORRECT
+Exec=mpv %f
+```
+
+**Rule:** Any `.desktop` entry for a file-handling app must include `%f` or `%U`.
+
+---
+
+### Polybar Deprecated Parameters
+
+| Old | New | Why |
+|-----|-----|-----|
+| `content =` | `format =` | Deprecated, produces warning |
+| `wm-restack = i3` | (remove) | Conflicts with `override-redirect = false` |
+
+**Rule:** Update polybar configs against current upstream docs, not old templates.
+
+---
+
+### Release Notes Lines Must Never Exceed 80 Characters
+
+`lowdown -Tterm` renders with a fixed terminal width. Lines >80 chars wrap badly in the custom pager. Verify with `awk '{print length, $0}' file | sort -rn | head` before any write.
+
+**Rule:** Run width check before writing release notes. Never submit without verifying.
+
+---
+
+### Never Ignore AGENTS.md Constraints "Because You're An AI"
+
+Every rule in AGENTS.md exists because a past session violated it and produced broken output. "Forgetting" is not a valid explanation. The rules must be enforced at both the agent level (self-check) and the tool level (hooks).
+
+**Rule:** If a constraint is documented, it is non-negotiable. No exceptions for "small" changes.
