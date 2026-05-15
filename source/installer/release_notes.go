@@ -105,14 +105,21 @@ func AskShowReleaseNotes() bool {
 }
 
 func terminalHeight() int {
+	// Try /dev/tty first — stdout may be redirected (e.g. via script or pipe)
+	tty, err := os.Open("/dev/tty")
+	if err == nil {
+		defer tty.Close()
+		ws, err := unix.IoctlGetWinsize(int(tty.Fd()), unix.TIOCGWINSZ)
+		if err == nil && ws.Row >= 10 {
+			return int(ws.Row)
+		}
+	}
+	// Fall back to stdout
 	ws, err := unix.IoctlGetWinsize(int(os.Stdout.Fd()), unix.TIOCGWINSZ)
-	if err != nil {
-		return 24
+	if err == nil && ws.Row >= 10 {
+		return int(ws.Row)
 	}
-	if ws.Row < 10 {
-		return 24
-	}
-	return int(ws.Row)
+	return 24
 }
 
 func readKey(prompt string) byte {
