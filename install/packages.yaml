@@ -237,6 +237,7 @@ desktop:
         packages:
             # - xonotic-0.8.6
             # - katomic-25.12.3
+            - micropolis-20080211p9
             - gottet-1.2.7
             - defendguin-0.0.13
             - supertux-0.6.3p3
