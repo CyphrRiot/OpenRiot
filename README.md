@@ -326,6 +326,8 @@ Download the official OpenBSD installer:
 
 #### Method 2: OpenRiot Image (Offline)
 
+### Note: This is NOT YET stable and working.
+
 Download the [OpenRiot Install Image ~1.7G](https://github.com/CyphrRiot/OpenRiot/releases/tag/v6.12)
 
 ### 2. Flash to USB
