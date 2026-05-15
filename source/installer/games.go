@@ -35,7 +35,12 @@ func GamesPreference() bool {
 
 	// Prompt user
 	logger.Ask("Do you want to install Games (~1.75G)? [Y/n] ")
-	reader := bufio.NewReader(os.Stdin)
+	stdin := os.Stdin
+	if tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0); err == nil {
+		stdin = tty
+		defer tty.Close()
+	}
+	reader := bufio.NewReader(stdin)
 	input, _ := reader.ReadString('\n')
 	input = strings.TrimSpace(strings.ToLower(input))
 

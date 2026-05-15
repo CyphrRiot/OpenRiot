@@ -215,7 +215,12 @@ func PromptBurn(cfg *Config, drives []Drive) error {
 	logger.Warn("THIS WILL ERASE ALL DATA ON THE SELECTED DRIVE.")
 	fmt.Printf("\n%s[ASK ]%s Which drive to burn? (%s or press Enter to skip) ", logger.Cyan, logger.Reset, strings.Join(driveList, ", "))
 
-	reader := bufio.NewReader(os.Stdin)
+	stdin := os.Stdin
+	if tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0); err == nil {
+		stdin = tty
+		defer tty.Close()
+	}
+	reader := bufio.NewReader(stdin)
 	input, _ := reader.ReadString('\n')
 	input = strings.TrimSpace(input)
 

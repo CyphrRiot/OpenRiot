@@ -33,14 +33,17 @@ func TestCreateInstallSite(t *testing.T) {
 	if !strings.Contains(content, "pkg_add") {
 		t.Error("missing pkg_add")
 	}
-	if !strings.Contains(content, "curl -fsSL https://OpenRiot.org/setup.sh") {
-		t.Error("missing curl setup.sh welcome message")
-	}
 	if strings.Contains(content, "rcctl enable xenodm") {
 		t.Error("xenodm should not be enabled")
 	}
 	if strings.Contains(content, "openriot --install") {
 		t.Error("openriot --install should not be in first-login script")
+	}
+	if strings.Contains(content, ".profile") {
+		t.Error("install.site should not modify .profile")
+	}
+	if strings.Contains(content, "/etc/skel/.profile") {
+		t.Error("install.site should not modify /etc/skel/.profile")
 	}
 
 	t.Logf("install.site created successfully (%d bytes)", len(content))

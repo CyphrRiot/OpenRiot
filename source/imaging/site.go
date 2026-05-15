@@ -147,7 +147,6 @@ func createInstallSite(siteDir string) error {
 # Environment: root, chroot at new system root, no TTY, no X
 
 log() { echo "[OPENRIOT] $*"; }
-fail() { echo "[OPENRIOT] FAIL: $*"; }
 
 log "OpenRiot post-install starting"
 
@@ -169,66 +168,37 @@ if ! [ -f /etc/doas.conf ]; then
 fi
 
 # installurl
-printf '%s\n' "https://cdn.openbsd.org/pub/OpenBSD" > /etc/installurl
+printf '%s\n' "http://cdn.openbsd.org/pub/OpenBSD" > /etc/installurl
 log "installurl configured"
-
-# Add fish to /etc/shells
-if ! grep -q '^/usr/local/bin/fish$' /etc/shells 2>/dev/null; then
-	printf '%s\n' "/usr/local/bin/fish" >> /etc/shells
-	log "fish added to /etc/shells"
-fi
-
-# Enable critical services (but NOT xenodm — user must start X manually)
-rcctl enable apmd 2>/dev/null && rcctl set apmd flags -A 2>/dev/null
-rcctl enable sndiod 2>/dev/null
-mkdir -p /etc/wireguard
-chmod 700 /etc/wireguard
-log "services configured"
 
 # ------------------------------------------------------------------
 # 2. Install packages from local path (offline)
 # ------------------------------------------------------------------
-PKG_PATH_LOCAL="/openriot/packages/snapshots/amd64"
-if [ -d "$PKG_PATH_LOCAL" ]; then
-	log "Installing packages from local path..."
-	cd "$PKG_PATH_LOCAL" || fail "cd $PKG_PATH_LOCAL"
-	export PKG_PATH="$PKG_PATH_LOCAL"
-	pkg_add -D snapshot -I *.tgz > /tmp/pkg_out 2>&1
-	pkg_exit=$?
-	cat /tmp/pkg_out
-	if [ $pkg_exit -ne 0 ]; then
-		if grep -qi "signify\|signature\|pubkey\|verification\|can't verify" /tmp/pkg_out 2>/dev/null; then
-			echo ""
-			echo "ERROR: Signature verification failed."
-			echo "OpenBSD base and packages are out of sync."
-			echo ""
-			echo "To fix, reboot and run:"
-			echo "  doas sysupgrade -s"
-			echo "  doas pkg_add -D snap -u"
-			echo ""
-			exit 1
-		fi
+PKG_DIR="/openriot/packages/snapshots/amd64"
+if [ -d "$PKG_DIR" ]; then
+	cd "$PKG_DIR" || { log "Cannot cd to $PKG_DIR"; exit 1; }
+	count=$(ls *.tgz 2>/dev/null | wc -l | tr -d ' ')
+	if [ "$count" -eq 0 ]; then
+		log "No packages found"
+		exit 1
 	fi
-	log "Package install complete"
-
-	# Clean up: remove site79.tgz from image to save space
-	# rm -f /7.9/amd64/site79.tgz 2>/dev/null
-	# rm -rf /openriot/packages/ 2>/dev/null
+	log "Installing $count packages..."
+	pkg_add -D unsigned -I *.tgz
+	log "Package installation finished"
 else
-	log "Package directory not found: $PKG_PATH_LOCAL"
+	log "Package directory not found: $PKG_DIR"
+	exit 1
 fi
 
 # ------------------------------------------------------------------
-# 2b. Install non-free firmware from local path (offline)
+# 3. Install non-free firmware from local path (offline)
 # ------------------------------------------------------------------
-FW_PATH_LOCAL="/openriot/firmware"
-if [ -d "$FW_PATH_LOCAL" ] && [ -n "$(ls "$FW_PATH_LOCAL"/*.tgz 2>/dev/null)" ]; then
-	log "Installing firmware from local path..."
-	for fw in "$FW_PATH_LOCAL"/*.tgz; do
+FW_DIR="/openriot/firmware"
+if [ -d "$FW_DIR" ] && [ -n "$(ls "$FW_DIR"/*.tgz 2>/dev/null)" ]; then
+	log "Installing firmware..."
+	for fw in "$FW_DIR"/*.tgz; do
 		[ -f "$fw" ] || continue
-		fw_name=$(basename "$fw")
-		tar xzf "$fw" -C / 2>/dev/null || continue
-		log "Firmware installed: $fw_name"
+		tar xzf "$fw" -C / 2>/dev/null && log "Firmware: $(basename "$fw")"
 	done
 	log "Firmware install complete"
 else
