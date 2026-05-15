@@ -148,10 +148,10 @@ func dismissWithoutReload(id int) error {
 	for i, n := range s.Notifications {
 		if n.ID == id {
 			s.Notifications = append(s.Notifications[:i], s.Notifications[i+1:]...)
-			break
+			return save(s)
 		}
 	}
-	return save(s)
+	return nil
 }
 
 // Status outputs JSON for polybar custom module

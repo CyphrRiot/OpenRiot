@@ -27,11 +27,15 @@ func FindConfigFile() string {
 			return path
 		}
 	}
-	locations := []string{
-		filepath.Join(os.Getenv("HOME"), ".local/share/openriot/install/packages.yaml"),
+	homeDir, homeErr := os.UserHomeDir()
+	locations := []string{}
+	if homeErr == nil {
+		locations = append(locations, filepath.Join(homeDir, ".local/share/openriot/install/packages.yaml"))
+	}
+	locations = append(locations,
 		filepath.Join("install", "packages.yaml"),
 		filepath.Join("..", "install", "packages.yaml"),
-	}
+	)
 	for _, path := range locations {
 		if _, err := os.Stat(path); err == nil {
 			return path
@@ -175,6 +179,11 @@ func (c *Config) GetAllModules() []Module {
 
 	// Source modules (built from source)
 	for _, m := range c.Source {
+		modules = append(modules, m)
+	}
+
+	// Crypto modules
+	for _, m := range c.Crypto {
 		modules = append(modules, m)
 	}
 

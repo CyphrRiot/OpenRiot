@@ -279,6 +279,10 @@ func fetchPrices(ids []string, curFile string, apiKey string) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return
+	}
+
 	var data map[string]any
 	if json.NewDecoder(resp.Body).Decode(&data) == nil {
 		tmp := curFile + ".tmp"
@@ -368,6 +372,10 @@ func fetchOHLC(coinID string, days int, apiKey string) []float64 {
 		return nil
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil
+	}
 
 	var data map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
@@ -464,17 +472,23 @@ func calculateBollingerBands(prices []float64, period int, stdDev float64) (uppe
 	return math.Round(upper*100) / 100, math.Round(lower*100) / 100
 }
 
+// calculateTotalPortfolioValue returns the sum of all held coins' current value
+func calculateTotalPortfolioValue(items []CryptoItem) float64 {
+	total := 0.0
+	for _, it := range items {
+		if it.Price > 0 && it.Held > 0 {
+			total += it.Held * it.Price
+		}
+	}
+	return total
+}
+
 // coinIsConcentrated returns true if the coin exceeds 35% of portfolio
 func coinIsConcentrated(sym string, items []CryptoItem) bool {
 	for _, it := range items {
 		if it.Sym == sym && it.Held > 0 && it.Price > 0 {
 			coinValue := it.Held * it.Price
-			totalValue := 0.0
-			for _, item := range items {
-				if item.Price > 0 && item.Held > 0 {
-					totalValue += item.Held * item.Price
-				}
-			}
+			totalValue := calculateTotalPortfolioValue(items)
 			if totalValue > 0 && (coinValue/totalValue) > 0.35 {
 				return true
 			}
@@ -489,12 +503,7 @@ func checkConcentration(held, price float64, items []CryptoItem) string {
 		return ""
 	}
 	coinValue := held * price
-	totalValue := 0.0
-	for _, it := range items {
-		if it.Price > 0 && it.Held > 0 {
-			totalValue += it.Held * it.Price
-		}
-	}
+	totalValue := calculateTotalPortfolioValue(items)
 	if totalValue > 0 && (coinValue/totalValue) > 0.75 {
 		return "⚠"
 	}
@@ -504,15 +513,13 @@ func checkConcentration(held, price float64, items []CryptoItem) string {
 // coinPercentOfPortfolio returns the percentage of portfolio a coin represents
 func coinPercentOfPortfolio(sym string, items []CryptoItem) float64 {
 	coinValue := 0.0
-	totalValue := 0.0
 	for _, it := range items {
-		if it.Price > 0 && it.Held > 0 {
-			totalValue += it.Held * it.Price
-			if it.Sym == sym {
-				coinValue = it.Held * it.Price
-			}
+		if it.Price > 0 && it.Held > 0 && it.Sym == sym {
+			coinValue = it.Held * it.Price
+			break
 		}
 	}
+	totalValue := calculateTotalPortfolioValue(items)
 	if totalValue > 0 {
 		return coinValue / totalValue
 	}

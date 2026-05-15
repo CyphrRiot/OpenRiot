@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-6.11-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-6.12-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -117,6 +117,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v6.12 — fsociety](docs/v6.12-Release-Notes.md)
 - [v6.11 — Wubba Lubba Dub Dub](docs/v6.11-Release-Notes.md)
 - [v6.10 — New Canvas](docs/v6.10-Release-Notes.md)
 - [v6.9 — Gödel, Escher, Wi-Fi](docs/v6.9-Release-Notes.md)

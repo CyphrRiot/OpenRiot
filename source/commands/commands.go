@@ -42,6 +42,56 @@ import (
 	"openriot/workspaceicons"
 )
 
+// loadConfigOrError finds and loads packages.yaml, returning error if not found
+func loadConfigOrError() (*config.Config, error) {
+	configPath := config.FindConfigFile()
+	if configPath == "" {
+		return nil, fmt.Errorf("could not find packages.yaml")
+	}
+	cfg, err := config.LoadConfig(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load config: %w", err)
+	}
+	return cfg, nil
+}
+
+// checkUpgrade prints system upgrade information for the user
+func checkUpgrade() {
+	version := config.DetectOpenBSDVersion()
+
+	if version == "snapshots" {
+		// We're on -current
+		cmd := exec.Command("sysctl", "-n", "kern.version")
+		output, _ := cmd.Output()
+		fmt.Println("Version: -current (snapshot)")
+		if len(output) > 0 {
+			// Extract build date from kern.version
+			lines := strings.Split(string(output), "\n")
+			if len(lines) > 0 {
+				fmt.Printf("Build: %s\n", strings.TrimSpace(lines[0]))
+			}
+		}
+		// Check for drift
+		drift, buildDate := hasPackageDrift()
+		if drift {
+			fmt.Printf("Drift detected: kernel is %d days old\n", int(time.Since(buildDate).Hours()/24))
+			fmt.Println()
+			fmt.Println("Action needed to sync base and packages:")
+			fmt.Println("  doas sysupgrade -s")
+			fmt.Println("  (reboot)")
+			fmt.Println("  doas pkg_add -D snap -u")
+		} else {
+			fmt.Println("Status: base and packages appear in sync")
+		}
+	} else {
+		// We're on stable/release
+		fmt.Printf("Version: %s (stable)\n", version)
+		fmt.Println()
+		fmt.Println("Check for errata updates:")
+		fmt.Println("  doas sysupgrade")
+	}
+}
+
 // RegisterAll populates the registry with all openriot commands.
 func RegisterAll(r *Registry, testMode *bool) {
 	// Installation
@@ -75,13 +125,9 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--packages", Category: "Installation",
 		Description: "List packages from packages.yaml",
 		Run: func(args []string) error {
-			configPath := config.FindConfigFile()
-			if configPath == "" {
-				return fmt.Errorf("could not find packages.yaml")
-			}
-			cfg, err := config.LoadConfig(configPath)
+			cfg, err := loadConfigOrError()
 			if err != nil {
-				return fmt.Errorf("failed to load config: %w", err)
+				return err
 			}
 			for _, pkg := range cfg.GetPackages() {
 				fmt.Println(pkg)
@@ -103,13 +149,9 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--check-dependencies", Category: "Installation",
 		Description: "Show module dependency order",
 		Run: func(args []string) error {
-			configPath := config.FindConfigFile()
-			if configPath == "" {
-				return fmt.Errorf("could not find packages.yaml")
-			}
-			cfg, err := config.LoadConfig(configPath)
+			cfg, err := loadConfigOrError()
 			if err != nil {
-				return fmt.Errorf("failed to load config: %w", err)
+				return err
 			}
 			refs, err := cfg.GetAllModulesOrdered()
 			if err != nil {
@@ -130,13 +172,9 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--validate-config", Category: "Installation",
 		Description: "Validate packages.yaml",
 		Run: func(args []string) error {
-			configPath := config.FindConfigFile()
-			if configPath == "" {
-				return fmt.Errorf("could not find packages.yaml")
-			}
-			cfg, err := config.LoadConfig(configPath)
+			cfg, err := loadConfigOrError()
 			if err != nil {
-				return fmt.Errorf("failed to load config: %w", err)
+				return err
 			}
 			if err := config.ValidateConfig(cfg); err != nil {
 				return fmt.Errorf("config validation failed: %w", err)
@@ -163,6 +201,14 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Run: func(args []string) error { return installer.NewCrushUpgrade().Run() },
 	})
 	r.Register(&Command{
+		Name: "--check-upgrade", Category: "Tools & Upgrades",
+		Description: "Check if system upgrade is needed",
+		Run: func(args []string) error {
+			checkUpgrade()
+			return nil
+		},
+	})
+	r.Register(&Command{
 		Name: "--gurk-setup", Category: "Tools & Upgrades",
 		Description: "Configure gurk keybindings",
 		Run: func(args []string) error { return gurk.Run() },
@@ -175,8 +221,12 @@ func RegisterAll(r *Registry, testMode *bool) {
 			if err != nil {
 				return fmt.Errorf("cannot get home dir: %w", err)
 			}
-			cmd := filepath.Join(home, ".local", "bin", "benchmark") + "; printf \"\\n\\nPress any key to continue...\"; read -r ans"
-			exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
+			script := filepath.Join(os.TempDir(), "openriot-benchmark.sh")
+			content := fmt.Sprintf("#!/bin/sh\n%s\nprintf \"\\n\\nPress any key to continue...\"\nread -r ans\n", filepath.Join(home, ".local", "bin", "benchmark"))
+			if err := os.WriteFile(script, []byte(content), 0700); err != nil {
+				return fmt.Errorf("cannot write script: %w", err)
+			}
+			exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", script).Start()
 			return nil
 		},
 	})

@@ -69,6 +69,44 @@ func runInstall(testMode *bool) {
 	if installer.AskShowReleaseNotes() {
 		installer.ShowReleaseNotes()
 	}
+
+	// Remind -current user to keep base and packages in sync (only if drift detected)
+	if config.DetectOpenBSDVersion() == "snapshots" {
+		drift, buildDate := hasPackageDrift()
+		if drift {
+			fmt.Println()
+			logger.Warn("You are running OpenBSD -current.")
+			logger.Info(fmt.Sprintf("Kernel built: %s", buildDate.Format("Jan 2 2006")))
+			logger.Info("To keep base and packages in sync, run:")
+			fmt.Println("  doas sysupgrade -s")
+			fmt.Println("  (reboot)")
+			fmt.Println("  doas pkg_add -D snap -u")
+		}
+	}
+}
+
+// hasPackageDrift parses kernel build date from sysctl and returns true if
+// the kernel is more than 7 days old (indicating potential package/base drift).
+func hasPackageDrift() (bool, time.Time) {
+	cmd := exec.Command("sysctl", "-n", "kern.version")
+	output, err := cmd.Output()
+	if err != nil {
+		return false, time.Time{}
+	}
+
+	// Parse date from "OpenBSD 7.9-current (...) #475: Thu May 14 12:34:48 MDT 2026"
+	line := strings.TrimSpace(string(output))
+	idx := strings.Index(line, ": ")
+	if idx < 0 {
+		return false, time.Time{}
+	}
+	dateStr := line[idx+2:]
+	buildDate, err := time.Parse("Mon Jan 2 15:04:05 MST 2006", dateStr)
+	if err != nil {
+		return false, time.Time{}
+	}
+
+	return time.Since(buildDate) > 7*24*time.Hour, buildDate
 }
 
 func runNotify(args []string) error {

@@ -136,6 +136,17 @@ func buildEntries() []entry {
 		},
 	})
 
+	// Benchmark
+	entries = append(entries, entry{
+		icon:  "󰓅",
+		name:  "Benchmark",
+		label: "(Launch)",
+		on:    false,
+		toggle: func() {
+			exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "openriot", "--benchmark").Start()
+		},
+	})
+
 	return entries
 }
 

@@ -47,16 +47,21 @@ type ConfigRule struct {
 // DetectOpenBSDVersion detects the running OpenBSD version.
 // Returns "snapshots" if running -current/-snap, otherwise returns the version string (e.g., "7.9").
 func DetectOpenBSDVersion() string {
-	cmd := exec.Command("uname", "-r")
+	// Check kern.version for "-current" (only reliable indicator on -current)
+	cmd := exec.Command("sysctl", "-n", "kern.version")
 	output, err := cmd.Output()
+	if err == nil {
+		if strings.Contains(strings.ToLower(string(output)), "current") {
+			return "snapshots"
+		}
+	}
+	// Fallback: use uname -r for release systems
+	cmd = exec.Command("uname", "-r")
+	output, err = cmd.Output()
 	if err != nil {
 		return "snapshots"
 	}
-	version := strings.TrimSpace(string(output))
-	if strings.Contains(version, "current") || strings.Contains(version, "snap") {
-		return "snapshots"
-	}
-	return version
+	return strings.TrimSpace(string(output))
 }
 
 // ResolveOpenBSDVersion returns the configured openbsd_version if set,
