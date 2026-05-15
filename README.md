@@ -360,7 +360,7 @@ Download the [OpenRiot Install Image ~1.7G](https://github.com/CyphrRiot/OpenRio
 | Partition layout     | Type `c` for custom                                   |
 | Label editor         | `z` → `a /` → size → `a swap` → `a /home` → `w` → `q` |
 | Location of sets     | Type `disk` → Select your USB device                    |
-| Set name(s)          | Press `Enter` (all sets)                               |
+| Set name(s)          | Press `*` and then `Enter` (all sets)                  |
 | SHA256 verification | Type `yes` → Enter                                   |
 
 **Partition layout (choose `c`):**
