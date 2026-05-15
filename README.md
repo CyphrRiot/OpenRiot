@@ -325,7 +325,8 @@ Download the official OpenBSD installer:
 - [install79.img](https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install79.img)
 
 #### Method 2: OpenRiot Image (Offline)
-Build from source with `doas make image` (not yet available for direct download).
+
+Download the [OpenRiot Install Image ~1.7G](https://github.com/CyphrRiot/OpenRiot/releases/tag/v6.12)
 
 ### 2. Flash to USB
 
@@ -365,8 +366,8 @@ Build from source with `doas make image` (not yet available for direct download)
 **Partition layout (choose `c`):**
 ```
 /       50G (or more)
-/home   * (rest of disk)
 swap    2G (or more)
+/home   * (rest of disk)
 ```
 
 #### Reboot and Configure
