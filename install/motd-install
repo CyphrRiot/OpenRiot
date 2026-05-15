@@ -1,0 +1,13 @@
+|
+ ▄████▄ ▄▄▄▄  ▄▄▄▄▄ ▄▄  ▄▄ █████▄  ▄▄  ▄▄▄ ▄▄▄▄▄▄
+ ██  ██ ██▄█▀ ██▄▄  ███▄██ ██▄▄██▄ ██ ██▀██  ██
+ ▀████▀ ██    ██▄▄▄ ██ ▀██ ██   ██ ██ ▀███▀  ██
+ 
+Welcome to OpenRiot!
+
+All required packages have been pre-installed.
+To complete setup and download the latest OpenRiot repository, run:
+
+    curl -fsSL https://OpenRiot.org/setup.sh | sh
+
+This requires a working network or WiFi connection.

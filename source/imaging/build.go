@@ -31,22 +31,8 @@ func BuildImage(cfg *Config) error {
 		return fmt.Errorf("copy base: %w", err)
 	}
 
-	// Calculate target size: base image + tarball + 350MB buffer, round to 4MB
-	baseInfo, err := os.Stat(cfg.BaseImg)
-	if err != nil {
-		return fmt.Errorf("stat base image: %w", err)
-	}
-	tgzInfo, err := os.Stat(cfg.OpenriotTgz)
-	tgzSize := int64(0)
-	if err == nil {
-		tgzSize = tgzInfo.Size()
-	}
-	targetBytes := baseInfo.Size() + tgzSize + 350*1024*1024
-	// Round up to nearest 4MB
-	targetBytes = ((targetBytes + 4*1024*1024 - 1) / (4 * 1024 * 1024)) * (4 * 1024 * 1024)
-	if targetBytes < 512*1024*1024 {
-		targetBytes = 512 * 1024 * 1024 // minimum 512MB
-	}
+	// Fixed image size: 1.75GB (1879048192 bytes)
+	const targetBytes int64 = 1879048192
 
 	// Expand image to calculated size
 	if err := expandImage(cfg, targetBytes); err != nil {
@@ -112,11 +98,21 @@ func expandImage(cfg *Config, targetBytes int64) error {
 		return fmt.Errorf("disklabel: %w", err)
 	}
 
+	// Force kernel to re-read partition table before growfs
+	exec.Command("vnconfig", "-u", "vnd0").Run()
+	cmd = exec.Command("vnconfig", "vnd0", outputImg)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("vnconfig re-read: %w\n%s", err, out)
+	}
+
 	// Grow filesystem
 	cmd = exec.Command("growfs", "-y", "/dev/vnd0a")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("growfs: %w\n%s", err, out)
 	}
+
+	// Detach so injectContent() can re-attach with fresh geometry
+	exec.Command("vnconfig", "-u", "vnd0").Run()
 
 	logger.Info(fmt.Sprintf("Image expanded to %dMB", targetBytes/1024/1024))
 	return nil

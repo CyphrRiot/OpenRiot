@@ -8,14 +8,15 @@ import (
 // Config represents the YAML structure from packages.yaml
 type Config struct {
 	OpenBSDVersion string            `yaml:"openbsd_version"`
-	Core    map[string]Module `yaml:"core"`
-	System  map[string]Module `yaml:"system"`
-	Desktop map[string]Module `yaml:"desktop"`
-	Media   map[string]Module `yaml:"media"`
-	Fonts   map[string]Module `yaml:"fonts"`
-	Themes  map[string]Module `yaml:"themes"`
-	Source  map[string]Module `yaml:"source"`
-	Crypto  map[string]Module `yaml:"crypto"`
+	Firmware []string          `yaml:"firmware,omitempty"`
+	Core     map[string]Module `yaml:"core"`
+	System   map[string]Module `yaml:"system"`
+	Desktop  map[string]Module `yaml:"desktop"`
+	Media    map[string]Module `yaml:"media"`
+	Fonts    map[string]Module `yaml:"fonts"`
+	Themes   map[string]Module `yaml:"themes"`
+	Source   map[string]Module `yaml:"source"`
+	Crypto   map[string]Module `yaml:"crypto"`
 }
 
 // CommandEntry represents a single command with a description

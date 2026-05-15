@@ -5,6 +5,15 @@
 
 openbsd_version: "snapshots"
 
+# Firmware files for the installer image (OpenBSD 7.9)
+# Update these when firmware.openbsd.org updates
+firmware:
+    - athn-firmware-1.1p4.tgz
+    - intel-firmware-20260512v0.tgz
+    - inteldrm-firmware-20250708.tgz
+    - iwm-firmware-20240410.tgz
+    - iwx-firmware-20251021p0.tgz
+
 core:
     base:
         packages:
@@ -163,7 +172,7 @@ desktop:
             - xdg-utils-1.2.1
             - dconf-0.40.0p2
             - libreoffice-26.2.3.2v0
-            - gnome-text-editor-50.0
+            - gnome-text-editor-50.1
             - qtquickcontrols-5.15.18pl0
             - qtquickcontrols2-5.15.18pl5
             - qtgraphicaleffects-5.15.18pl0

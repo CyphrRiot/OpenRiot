@@ -233,28 +233,23 @@ func downloadFile(pkgPath, url string) error {
 	return os.Rename(tmpPath, pkgPath)
 }
 
-// firmwareFiles lists firmware to bundle on the installer image
-var firmwareFiles = []string{
-	"athn-firmware-1.1p4.tgz",
-	"intel-firmware-20260227v0.tgz",
-	"inteldrm-firmware-20250708.tgz",
-	"iwm-firmware-20240410.tgz",
-	"iwx-firmware-20251021p0.tgz",
-}
-
 // DownloadFirmware downloads firmware packages for the installer image
-func DownloadFirmware(cfg *Config) error {
+func DownloadFirmware(cfg *Config, firmwareList []string) error {
+	if len(firmwareList) == 0 {
+		logger.Info("No firmware list configured, skipping")
+		return nil
+	}
 	fwDir := filepath.Join(cfg.WorkDir, "firmware")
 	if err := os.MkdirAll(fwDir, 0755); err != nil {
 		return fmt.Errorf("create firmware dir: %w", err)
 	}
 
-	for _, fw := range firmwareFiles {
+	for _, fw := range firmwareList {
 		fwPath := filepath.Join(fwDir, fw)
 		if _, err := os.Stat(fwPath); err == nil {
 			continue // already cached
 		}
-		url := fmt.Sprintf("http://firmware.openbsd.org/firmware/7.9/%s", fw)
+		url := fmt.Sprintf("http://firmware.openbsd.org/firmware/%s/%s", formatVersion(cfg.Version), fw)
 		logger.Info(fmt.Sprintf("Downloading firmware: %s", fw))
 		if err := downloadFile(fwPath, url); err != nil {
 			logger.Warn(fmt.Sprintf("Failed to download firmware %s: %v", fw, err))

@@ -42,7 +42,7 @@ func LoadConfig(args []string) (*Config, error) {
 		cfg.BaseImg = "Build/Images/install79.img"
 	}
 	if cfg.OutputImg == "" {
-		cfg.OutputImg = "Build/Images/openriot.img"
+		cfg.OutputImg = "Build/Output/openriot.img"
 	}
 	if cfg.WorkDir == "" {
 		cfg.WorkDir = "Build/work"
@@ -87,7 +87,8 @@ func LoadConfig(args []string) (*Config, error) {
 		return nil, fmt.Errorf("failed to resolve work dir: %w", err)
 	}
 	cfg.WorkDir = absWorkDir
-	cfg.OpenriotTgz = filepath.Join(absWorkDir, fmt.Sprintf("site%s.tgz", cfg.Version))
+	outputDir := filepath.Dir(cfg.OutputImg)
+	cfg.OpenriotTgz = filepath.Join(outputDir, fmt.Sprintf("site%s.tgz", cfg.Version))
 
 	// Binary is always at install/openriot relative to repo root
 	execDir, err := os.Executable()

@@ -227,7 +227,7 @@ image:
 		echo "  3. doas make image"; \
 		exit 1; \
 	fi
-	@rm -f Build/Images/openriot.img Build/Images/openriot.sha256 Build/work/site79.tgz
+	@doas rm -rf Build/Output Build/work/site79.tgz
 	@doas ./install/openriot --make-image
 
 img:

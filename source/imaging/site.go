@@ -61,6 +61,7 @@ func CreateSite(cfg *Config) error {
 
 	// Create tarball (openriot/ directory, motd, and install.site)
 	tgzPath := cfg.OpenriotTgz
+	os.MkdirAll(filepath.Dir(tgzPath), 0755) // ensure output dir exists
 	os.Remove(tgzPath) // Remove old if exists
 
 	cmd := exec.Command("tar", "czf", tgzPath, "-C", siteDir, ".")
@@ -108,7 +109,7 @@ func copyDir(src, dst string) error {
 func copyMotd(siteDir string) error {
 	execDir, _ := os.Executable()
 	repoRoot := filepath.Dir(filepath.Dir(execDir))
-	motdSrc := filepath.Join(repoRoot, "install", "motd")
+	motdSrc := filepath.Join(repoRoot, "install", "motd-install")
 
 	if _, err := os.Stat(motdSrc); err != nil {
 		return nil // No motd, that's fine
@@ -192,8 +193,27 @@ if [ -d "$PKG_PATH_LOCAL" ]; then
 	log "Installing packages from local path..."
 	cd "$PKG_PATH_LOCAL" || fail "cd $PKG_PATH_LOCAL"
 	export PKG_PATH="$PKG_PATH_LOCAL"
-	pkg_add -I *.tgz 2>&1
+	pkg_add -D snapshot -I *.tgz > /tmp/pkg_out 2>&1
+	pkg_exit=$?
+	cat /tmp/pkg_out
+	if [ $pkg_exit -ne 0 ]; then
+		if grep -qi "signify\|signature\|pubkey\|verification\|can't verify" /tmp/pkg_out 2>/dev/null; then
+			echo ""
+			echo "ERROR: Signature verification failed."
+			echo "OpenBSD base and packages are out of sync."
+			echo ""
+			echo "To fix, reboot and run:"
+			echo "  doas sysupgrade -s"
+			echo "  doas pkg_add -D snap -u"
+			echo ""
+			exit 1
+		fi
+	fi
 	log "Package install complete"
+
+	# Clean up: remove site79.tgz from image to save space
+	# rm -f /7.9/amd64/site79.tgz 2>/dev/null
+	# rm -rf /openriot/packages/ 2>/dev/null
 else
 	log "Package directory not found: $PKG_PATH_LOCAL"
 fi
@@ -214,46 +234,6 @@ if [ -d "$FW_PATH_LOCAL" ] && [ -n "$(ls "$FW_PATH_LOCAL"/*.tgz 2>/dev/null)" ];
 else
 	log "No local firmware found, skipping"
 fi
-
-# ------------------------------------------------------------------
-# 3. Per-user setup
-# ------------------------------------------------------------------
-for homedir in /home/*; do
-	[ -d "$homedir" ] || continue
-	username="$(basename "$homedir")"
-
-	# Welcome message only — setup.sh handles groups, shell, and XDG dirs
-	cat >> "$homedir/.profile" << 'WELCOME'
-
-# OpenRiot — Welcome
-echo ""
-echo "Welcome to OpenRiot!"
-echo ""
-echo "All required packages have been pre-installed."
-echo "To complete setup and download the latest OpenRiot repository, run:"
-echo ""
-echo "    curl -fsSL https://OpenRiot.org/setup.sh | sh"
-echo ""
-echo "This requires a working network or WiFi connection."
-echo ""
-WELCOME
-done
-
-# 4. Skel for future users
-cat >> /etc/skel/.profile << 'WELCOME'
-
-# OpenRiot — Welcome
-echo ""
-echo "Welcome to OpenRiot!"
-echo ""
-echo "All required packages have been pre-installed."
-echo "To complete setup and download the latest OpenRiot repository, run:"
-echo ""
-echo "    curl -fsSL https://OpenRiot.org/setup.sh | sh"
-echo ""
-echo "This requires a working network or WiFi connection."
-echo ""
-WELCOME
 
 log "Post-install complete"
 `

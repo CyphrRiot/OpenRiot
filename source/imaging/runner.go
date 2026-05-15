@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"openriot/config"
 	"openriot/logger"
 )
 
@@ -86,8 +87,18 @@ func runFullBuild(cfg *Config) {
 
 	// Step 1b: Download firmware
 	logger.Info("Downloading firmware...")
-	if err := DownloadFirmware(cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "%s[WARN]%s Firmware download failed: %v\n", logger.Yellow, logger.Reset, err)
+	cfgPath := config.FindConfigFile()
+	if cfgPath == "" {
+		logger.Warn("Could not find packages.yaml, skipping firmware download")
+	} else {
+		cfgFile, err := config.LoadConfig(cfgPath)
+		if err != nil {
+			logger.Warn(fmt.Sprintf("Failed to load config: %v", err))
+		} else {
+			if err := DownloadFirmware(cfg, cfgFile.Firmware); err != nil {
+				logger.Warn(fmt.Sprintf("Firmware download failed: %v", err))
+			}
+		}
 	}
 
 	// Step 2: Create site tarball
