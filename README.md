@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.0-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-7.1-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -117,6 +117,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.1 — Locked & Loaded](docs/v7.1-Release-Notes.md)
 - [v7.0 — Console Cowboys](docs/v7.0-Release-Notes.md)
 - [v6.12 — fsociety](docs/v6.12-Release-Notes.md)
 - [v6.11 — Wubba Lubba Dub Dub](docs/v6.11-Release-Notes.md)
@@ -329,7 +330,7 @@ Download the official OpenBSD installer:
 
 ### Note: This is NOT YET stable and working.
 
-Download the [OpenRiot Install Image ~1.7G](https://github.com/CyphrRiot/OpenRiot/releases/tag/v6.12)
+Download the [OpenRiot Install Image ~1.7G](https://github.com/CyphrRiot/OpenRiot/releases/tag/v7.0)
 
 ### 2. Flash to USB
 
