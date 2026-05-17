@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Music Player 
+Comment=rmpc Music Player
+Exec=alacritty --class rmpc --title "Music Player" -e ~/.local/bin/rmpc
+Icon=audio-player
+Terminal=false
+Categories=Audio;Music;Player;

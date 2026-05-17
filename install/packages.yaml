@@ -315,6 +315,8 @@ media:
     media:
         packages:
             - mpv-0.41.0p0
+            - mpd-0.24.10
+            - socat-1.8.0.3
             - transmission-gtk-4.1.1p0
             - ffmpeg-8.0.2v1
             - ffmpegthumbnailer-2.2.2p0
@@ -325,6 +327,95 @@ media:
             - pattern: "transmission/settings.json"
               target: "~/.config/transmission/settings.json"
               preserve_if_exists: [settings.json]
+            - pattern: "rmpc/themes/*"
+              target: "~/.config/rmpc/themes/"
+        commands:
+            - desc: "Create mpd directories"
+              cmd: "mkdir -p ~/.mpd/playlists ~/Music"
+            - desc: "Write mpd.conf with ~/Music directory"
+              cmd: |
+                  if [ ! -f ~/.mpd/mpd.conf ]; then
+                      cat > ~/.mpd/mpd.conf << EOF
+                  music_directory "$HOME/Music"
+                  playlist_directory "$HOME/.mpd/playlists"
+                  db_file "$HOME/.mpd/database"
+                  state_file "$HOME/.mpd/state"
+                  sticker_file "$HOME/.mpd/sticker.sql"
+                  bind_to_address "$HOME/.mpd/socket"
+                  EOF
+                  fi
+            - desc: "Write rmpc config with correct socket path"
+              cmd: |
+                  mkdir -p ~/.config/rmpc
+                  if [ ! -f ~/.config/rmpc/config.ron ]; then
+                      cat > ~/.config/rmpc/config.ron << EOF
+                  #![enable(implicit_some)]
+                  #![enable(unwrap_newtypes)]
+                  #![enable(unwrap_variant_newtypes)]
+                  (
+                      address: "$HOME/.mpd/socket",
+                      password: None,
+                      theme: "neo-tokyo",
+                      cache_dir: None,
+                      on_song_change: None,
+                      volume_step: 5,
+                      max_fps: 30,
+                      scrolloff: 0,
+                      wrap_navigation: false,
+                      enable_mouse: true,
+                      scroll_amount: 1,
+                      enable_config_hot_reload: true,
+                      enable_lyrics_hot_reload: false,
+                      status_update_interval_ms: 1000,
+                      rewind_to_start_sec: None,
+                      keep_state_on_song_change: true,
+                      reflect_changes_to_playlist: false,
+                      select_current_song_on_change: false,
+                      on_exit: None,
+                      ignore_leading_the: false,
+                      browser_song_sort: [Disc, Track, Artist, Title],
+                      directories_sort: SortFormat(group_by_type: true, reverse: false),
+                      auto_open_downloads: true,
+                      quit_closes_modal: false,
+                      queue_disable_current_item_style_timeout_ms: None,
+                      album_art: (
+                          method: Auto,
+                          max_size_px: (width: 1200, height: 1200),
+                          disabled_protocols: ["http://", "https://"],
+                          vertical_align: Center,
+                          horizontal_align: Center,
+                      ),
+                      tabs: [
+                          (
+                              name: "Folders",
+                              borders: "ALL",
+                              border_symbols: Rounded,
+                              pane: Pane(Directories)
+                          ),
+                          (
+                              name: "Artists",
+                              borders: "ALL",
+                              border_symbols: Rounded,
+                              pane: Pane(Artists)
+                          ),
+                          (
+                              name: "Albums",
+                              borders: "ALL",
+                              border_symbols: Rounded,
+                              pane: Pane(Albums)
+                          ),
+                          (
+                              name: "Search",
+                              borders: "ALL",
+                              border_symbols: Rounded,
+                              pane: Pane(Search)
+                          ),
+                      ],
+                  )
+                  EOF
+                  fi
+            - desc: "Start mpd and scan music"
+              cmd: "mpd ~/.mpd/mpd.conf 2>/dev/null || true"
         depends: [core.base, desktop.i3]
         start: "Installing media controls"
         end: "Media controls installed"
@@ -430,7 +521,7 @@ system:
             - desc: "Configure login.conf resource limits"
               cmd: |
                   if ! grep -q 'coredump=0' /etc/login.conf 2>/dev/null; then
-                      doas sed -i '' 's/:umask=022:.*/& coredump=0:/' /etc/login.conf && doas cap_mkdb /etc/login.conf
+                      doas sh -c "sed 's/:umask=022:.*/& coredump=0:/' /etc/login.conf > /tmp/login.conf.tmp && mv /tmp/login.conf.tmp /etc/login.conf && cap_mkdb /etc/login.conf"
                   fi
             - desc: "Enable sndiod (audio)"
               cmd: "doas rcctl enable sndiod"

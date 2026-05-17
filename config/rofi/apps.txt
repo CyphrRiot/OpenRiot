@@ -11,6 +11,7 @@ Helix|alacritty --class helix --title Helix -e hx|
 Text Editor|gnome-text-editor|󰷉
 Word Processor|libreoffice --writer|󰈙
 Media Player|mpv --player-operation-mode=pseudo-gui|
+Music Player|alacritty --class rmpc --title "Music Player" -e ~/.local/bin/rmpc|
 System Monitor|alacritty --class btop --title "System Monitor" -e btop|󰍹
 Crush AI|alacritty --class crush --title "Crush AI" -e crush|󰚩
 Transmission|transmission-gtk|󰐻

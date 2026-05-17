@@ -73,6 +73,9 @@ exec --no-startup-id clipmenud
 # XFCE config daemon (needed for xfce4-settings-manager)
 exec --no-startup-id /usr/local/lib/xfce4/xfconf/xfconfd
 
+# Music Player Daemon (MPD) - keeps library indexed for rmpc
+exec --no-startup-id sh -c 'sleep 3; while true; do pgrep mpd >/dev/null || mpd ~/.mpd/mpd.conf 2>/dev/null; sleep 5; done'
+
 # =============================================================================
 # BEHAVIOR
 # =============================================================================

@@ -7,4 +7,5 @@ configuration {
     display-calc: "Calc";
     terminal: "alacritty";
     font: "FiraCode Nerd Font 14";
+    row-count: 25;
 }

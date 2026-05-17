@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.1-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-7.2-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -105,6 +105,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
     - [📥 Transmission](#-transmission-bittorrent-client)
     - [📂 Proton Drive](#-proton-drive-sync)
     - [💳 Monero Wallet](#-monero-wallet)
+    - [🎵 Music Player](#-music-player)
 - [🔧 Troubleshooting](#troubleshooting)
 - [🦊 Browser & Data Transfer](#browser--data-transfer)
 
@@ -117,6 +118,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.2 — Drop the Needle](docs/v7.2-Release-Notes.md)
 - [v7.1 — Locked & Loaded](docs/v7.1-Release-Notes.md)
 - [v7.0 — Console Cowboys](docs/v7.0-Release-Notes.md)
 - [v6.12 — fsociety](docs/v6.12-Release-Notes.md)
@@ -467,6 +469,7 @@ _We use Helix instead of `vi` or `vim`. The essential bindings are documented in
 | `Super + S`                  | Signal (gurk CLI)                |
 | `Super + M`                  | Google Messages                  |
 | `Super + X`                  | X (Twitter)                      |
+| `Super + Shift + K`          | Music Player (rmpc)              |
 | `Super + W`                  | Next wallpaper                   |
 | `Super + Shift + W`          | Previous wallpaper               |
 | `Super + Shift + S`          | Screenshot (region)              |
@@ -540,6 +543,7 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | Helix            |    | Text editor              |
 | Word Processor   | 󰈙   | LibreOffice Writer       |
 | Media Player     |    | mpv video player         |
+| Music Player     |    | rmpc music player (MPD)  |
 | Proton Mail      | 󰊫   | Email (web app)          |
 | Signal           | 󰬚   | Signal messenger (gurk)  |
 | System Monitor   | 󰍹   | btop resource monitor    |
@@ -1430,6 +1434,74 @@ The desktop entry sets `QML2_IMPORT_PATH=/usr/local/lib/qt5/qml` automatically s
 - Full node or remote node wallet support
 - Integrated with polybar crypto module (shows  when `~/.config/crypto.toml` exists)
 - Window icon mapping via `config/window/icons.toml`
+
+## 🎵 Music Player
+
+OpenRiot now ships with a complete music player stack. **MPD** runs in
+the background, indexing your library and serving tracks over a local
+Unix socket. **rmpc** — a Rust TUI client — gives you fast,
+keyboard-driven control without ever leaving the terminal.
+
+![Music Player](assets/music.png)
+
+The stack comes with a **Neo Tokyo** theme that matches the rest of the
+desktop. Launch it from the app launcher with `Super + D` → **Music
+Player**, or press `Super + Shift + A` for instant access.
+
+### Features
+
+| Feature | Description |
+|---------|-------------|
+| **MPD backend** | Local music daemon with sndio audio output |
+| **rmpc frontend** | Rust TUI client with vim-style keybindings |
+| **Neo Tokyo theme** | Custom color scheme matching OpenRiot aesthetic |
+| **Library tabs** | Folders, Artists, Albums, Search |
+| **Unix socket** | Local-only, no network port required |
+
+### First Launch
+
+1. Ensure your music is in `~/Music` (MPD scans this automatically)
+2. Press `Super + Shift + K` or select **Music Player** from rofi
+3. rmpc connects to MPD and shows your library
+
+### Music Organization
+
+MPD expects a flat folder hierarchy for clean metadata scanning.
+Organize your library as:
+
+```
+~/Music/
+├── Artist Name/
+│   ├── Album Name/
+│   │   ├── 01 Track Title.flac
+│   │   └── 02 Track Title.flac
+│   └── Single Name.mp3
+└── Compilation/
+    └── Various Tracks/
+```
+
+MPD will build its database from whatever it finds in `~/Music` on
+first start and whenever files change.
+
+### Daily Controls
+
+| Key | Action |
+|-----|--------|
+| `Enter` | Play selected track |
+| `Space` | Pause / resume |
+| `n` | Next track |
+| `p` | Previous track |
+| `s` | Stop |
+| `+` / `-` | Volume up / down |
+| `q` | Quit rmpc |
+| `1-4` | Switch tabs (Folders, Artists, Albums, Search) |
+| `Tab` / `Shift + Tab` | Focus next / previous pane |
+
+### Configuration
+
+MPD config lives at `~/.mpd/mpd.conf`. rmpc config lives at
+`~/.config/rmpc/config.ron`. Both are generated automatically during
+install. The Neo Tokyo theme is at `~/.config/rmpc/themes/neo-tokyo.ron`.
 
 ## 🎬 Screen Recording
 
