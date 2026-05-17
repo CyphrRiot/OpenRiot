@@ -188,7 +188,6 @@ desktop:
               preserve_if_exists: [config.toml]
             - pattern: crypto.toml
               target: "~/.config/crypto-template.toml"
-              preserve_if_exists: [crypto.toml]
             - pattern: applications/*
               target: "~/.local/share/applications/"
             - pattern: dconf/*

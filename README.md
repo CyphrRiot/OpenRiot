@@ -944,10 +944,33 @@ api=85a4e3c55b73909f42c6a23ec35b7147
 
 ### 🔐 Crypto Config
 
-**Crypto on Lock Screen**
+**Crypto Prices**
 
-- Config file: `~/.config/crypto.toml` (copied on first install)
-- Shows prices and optional P/L on i3lock background
+- **Template:** `~/.config/crypto-template.toml` (deployed by the installer)
+- **Your config:** `~/.config/crypto.toml` (you create this; never touched by upgrades)
+- Shows live prices in the polybar status bar and on-demand notifications
+
+#### Setup
+
+1. Copy the template to your live config:
+
+```bash
+cp ~/.config/crypto-template.toml ~/.config/crypto.toml
+```
+
+2. Edit `~/.config/crypto.toml` and set your coins / holdings.
+
+3. The installer never overwrites `crypto.toml`. It only refreshes the
+   template. Your live config is safe across upgrades.
+
+#### How It Works
+
+| Trigger | What Happens |
+|---------|-------------|
+| **Polybar** | The `crypto` module icon (󰄨) appears automatically when `~/.config/crypto.toml` exists. Click it to refresh prices. |
+| **Keyboard** | Press `Super + Y` for an on-demand price notification via dunst. |
+| **Terminal** | Run `openriot --crypto` to print prices to stdout. |
+| **Refresh** | Run `openriot --crypto-refresh` to clear the cache and fetch fresh data. |
 
 #### Configuration
 
