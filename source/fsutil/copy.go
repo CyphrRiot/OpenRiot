@@ -7,16 +7,11 @@ import (
 )
 
 // CopyFile copies a file from src to dest, preserving source permissions.
-// Skips the write if dest already exists with identical size.
+// Always overwrites dest. Preservation decisions belong in the caller.
 func CopyFile(src, dest string) error {
 	srcInfo, err := os.Stat(src)
 	if err != nil {
 		return fmt.Errorf("stat source file: %w", err)
-	}
-
-	// Skip if dest exists with same size (avoids rewriting large files)
-	if dstInfo, err := os.Stat(dest); err == nil && dstInfo.Size() == srcInfo.Size() {
-		return nil
 	}
 
 	srcFile, err := os.Open(src)
