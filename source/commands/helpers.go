@@ -17,6 +17,7 @@ import (
 	"openriot/notify"
 	"openriot/polybar"
 	"openriot/rofi"
+	"openriot/wireguard"
 )
 
 func runInstall(testMode *bool) {
@@ -212,6 +213,10 @@ func runTransmissionToggle() error {
 		exec.Command("pkill", "transmission-gtk").Run()
 		notify.SendNotify("transmission", "Transmission", "Stopping Transmission...", "normal", 2000, 0)
 	} else {
+		if !wireguard.IsRunning() {
+			notify.SendNotify("transmission", "Transmission", "Wireguard is NOT running.\nCannot start Transmission without Wireguard.\n(This is a protective measure)", "critical", 5000, 0)
+			return nil
+		}
 		exec.Command("transmission-gtk").Start()
 		notify.SendNotify("transmission", "Transmission", "Starting Transmission...", "normal", 2000, 0)
 	}
@@ -222,6 +227,10 @@ func runTransmissionNotify() error {
 	if rofi.IsTransmissionRunning() {
 		notify.SendNotify("transmission", "Transmission", "Transmission is Enabled\nDisable in Rofi Menu\nOr Super+Shift+G", "normal", 5000, 0)
 	} else {
+		if !wireguard.IsRunning() {
+			notify.SendNotify("transmission", "Transmission", "Wireguard is NOT running.\nCannot start Transmission without Wireguard.\n(This is a protective measure)", "critical", 5000, 0)
+			return nil
+		}
 		exec.Command("transmission-gtk").Start()
 		notify.SendNotify("transmission", "Transmission", "Starting Transmission...", "normal", 2000, 0)
 	}

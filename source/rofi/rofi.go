@@ -11,6 +11,7 @@ import (
 	"syscall"
 
 	"openriot/notify"
+	"openriot/wireguard"
 )
 
 func Run() error {
@@ -99,6 +100,12 @@ func runAppsFile(appsFile, prompt string) error {
 	// Check if already running
 	if entry.Cmd == "transmission-gtk" && IsTransmissionRunning() {
 		go notify.SendNotify("applications", "Transmission", "Already Running", "normal", 2000, 0)
+		return nil
+	}
+
+	// Block Transmission if WireGuard is not active
+	if entry.Cmd == "transmission-gtk" && !wireguard.IsRunning() {
+		go notify.SendNotify("applications", "Transmission", "Wireguard is NOT running.\nCannot start Transmission without Wireguard.\n(This is a protective measure)", "critical", 5000, 0)
 		return nil
 	}
 

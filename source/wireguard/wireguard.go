@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"openriot/network"
 	"openriot/notify"
 	"openriot/polybar"
 )
@@ -25,6 +26,11 @@ func isRunning() bool {
 	cmd := exec.Command("ifconfig", "wg0")
 	out, _ := cmd.Output()
 	return strings.Contains(string(out), "UP") && strings.Contains(string(out), "RUNNING")
+}
+
+// IsRunning reports whether the WireGuard tunnel is active.
+func IsRunning() bool {
+	return isRunning()
 }
 
 func isAutostartEnabled() bool {
@@ -49,17 +55,59 @@ func setAutostart(enabled bool) {
 	}
 }
 
+const rcLocalMarker = "# OpenRiot: wireguard autostart"
+const rcLocalCmd = "[ -f /etc/wireguard/wg0.conf ] && wg-quick up /etc/wireguard/wg0.conf 2>/dev/null"
+
+func setBootPersistence(enabled bool) {
+	data, err := os.ReadFile("/etc/rc.local")
+	exists := err == nil
+	lines := strings.Split(string(data), "\n")
+
+	var out []string
+	for _, line := range lines {
+		if strings.Contains(line, rcLocalMarker) {
+			continue
+		}
+		out = append(out, line)
+	}
+
+	if enabled {
+		out = append(out, rcLocalMarker, rcLocalCmd)
+	}
+
+	if !exists && !enabled {
+		return
+	}
+
+	newContent := strings.Join(out, "\n")
+	if !strings.HasSuffix(newContent, "\n") {
+		newContent += "\n"
+	}
+
+	cmd := exec.Command("doas", "tee", "/etc/rc.local")
+	cmd.Stdin = strings.NewReader(newContent)
+	_ = cmd.Run()
+}
+
 func Status() string {
-	if !isConfigured() || !isRunning() {
+	if !isConfigured() {
 		return ""
 	}
-	return polybar.Icon("󰱓")
+	if isRunning() {
+		return polybar.Icon("󰱓")
+	}
+	return polybar.Icon("󰅛")
 }
 
 func Start() error {
 	notify.SendNotify("wireguard", "VPN", "Starting WireGuard...", "normal", 3000, 0)
 	cmd := exec.Command("doas", "wg-quick", "up", ConfigPath)
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	// wg-quick up kills WiFi; restore it
+	go network.ReconnectWifi()
+	return nil
 }
 
 func Stop() error {
@@ -75,9 +123,11 @@ func Toggle() error {
 	}
 	if isRunning() {
 		setAutostart(false)
+		setBootPersistence(false)
 		return Stop()
 	}
 	setAutostart(true)
+	setBootPersistence(true)
 	return Start()
 }
 

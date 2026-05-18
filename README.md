@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.2-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-7.3-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -64,7 +64,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ### System Requirements
 
-| Requirement | Notes |
+| Requirement | Spec | Notes |
 | --- | --- | --- |
 | **Resolution** | 1920x1080 minimum | OpenRiot's User Interface requires this |
 | **RAM** | 4GB+ minimum | 8GB+ Optimal |
@@ -118,6 +118,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.3 — Going Underground](docs/v7.3-Release-Notes.md)
 - [v7.2 — Drop the Needle](docs/v7.2-Release-Notes.md)
 - [v7.1 — Locked & Loaded](docs/v7.1-Release-Notes.md)
 - [v7.0 — Console Cowboys](docs/v7.0-Release-Notes.md)
@@ -141,11 +142,11 @@ These ThinkPads have excellent OpenBSD support for WiFi, trackpoints, and suspen
 
 | Model                 | CPU               | WiFi                         | Notes                                     |
 | --------------------- | ----------------- | ---------------------------- | ----------------------------------------- |
-| **T14s Gen 1+** | Intel i5/i7 or AMD Ryzen | ⭐⭐⭐ `iwm` (AX200 adapter) | Best OpenBSD laptop                       |
-| **T490**              | Intel i5-8265U    | ⭐⭐ `iwm` (Intel 9560)      | Good experience overall                   |
-| **T480**              | Intel i5-8350U    | ⭐⭐ `iwm` (Intel 8265)      | Works well, slightly older                |
-| **X1 Carbon Gen 7**   | Intel i7-8665U    | ⭐⭐ `iwm` (Intel 9560)      | Premium build, good Linux/OpenBSD support |
-| **X270**              | Intel i5-6300U    | ⭐ `iwm` (Intel 8265)        | Small, portable, older but solid          |
+| **T14s Gen 1+** | Intel i5/i7 or AMD Ryzen | ⭐⭐⭐⭐⭐ `iwm` (AX200 adapter) | Best OpenBSD laptop                       |
+| **T490**              | Intel i5-8265U    | ⭐⭐⭐⭐ `iwm` (Intel 9560)      | Good experience overall                   |
+| **T480**              | Intel i5-8350U    | ⭐⭐⭐⭐ `iwm` (Intel 8265)      | Works well, slightly older                |
+| **X1 Carbon Gen 7**   | Intel i7-8665U    | ⭐⭐⭐⭐ `iwm` (Intel 9560)      | Premium build, good Linux/OpenBSD support |
+| **X270**              | Intel i5-6300U    | ⭐⭐⭐ `iwm` (Intel 8265)        | Small, portable, older but solid          |
 
 You can buy a T14 Gen 1 for ~$300 USD at [Amazon](https://www.amazon.com/dp/B086MD6LTM). You can also buy a [T14s Gen 2](https://www.amazon.com/Lenovo-Thinkpad-T14s-Laptop-1-8Ghz-4-9GHz/dp/B0DKT19DQJ) for around the same price. Both are rock-solid, tested, and work perfectly out of the box.
 
@@ -153,9 +154,9 @@ You can buy a T14 Gen 1 for ~$300 USD at [Amazon](https://www.amazon.com/dp/B086
 
 | Model                   | CPU             | WiFi                    | Notes                                        |
 | ----------------------- | --------------- | ----------------------- | -------------------------------------------- |
-| **Lenovo V14**          | Ryzen 5 3500U   | ⭐⭐⭐ `iwm` (AX200)    | Budget option, excellent OpenBSD support     |
-| **Framework Laptop 13** | Intel i5-1240P  | ⭐⭐⭐ `iwm` (AX211)    | Modular, user-repairable, OpenBSD works well |
-| **Dell XPS 13 9300**    | Intel i7-1065G7 | ⭐⭐ `iwm` (Intel 9560) | Beautiful screen, good Linux/OpenBSD support |
+| **Lenovo V14**          | Ryzen 5 3500U   | ⭐⭐⭐⭐⭐ `iwm` (AX200)    | Budget option, excellent OpenBSD support     |
+| **Framework Laptop 13** | Intel i5-1240P  | ⭐⭐⭐⭐⭐ `iwm` (AX211)    | Modular, user-repairable, OpenBSD works well |
+| **Dell XPS 13 9300**    | Intel i7-1065G7 | ⭐⭐⭐⭐ `iwm` (Intel 9560) | Beautiful screen, good Linux/OpenBSD support |
 
 ### Avoid or Use Caution
 
@@ -180,26 +181,25 @@ You can buy a T14 Gen 1 for ~$300 USD at [Amazon](https://www.amazon.com/dp/B086
 
 | Adapter                      | Chip   | OpenBSD Driver | Support Level        | Buy                                                         |
 | ---------------------------- | ------ | -------------- | -------------------- | ----------------------------------------------------------- |
-| **Intel Wi-Fi 6 AX200**      | `iwm`  | `iwm(4)`       | ⭐⭐⭐ Excellent     | [Check ThinkPad T14s](https://www.amazon.com/dp/B086MD6LTM) |
-| **Intel Wi-Fi 6 AX201**      | `iwm`  | `iwm(4)`       | ⭐⭐⭐ Excellent     | Common in 10th-gen+ ThinkPads                               |
-| **Intel Wireless 8265**      | `iwm`  | `iwm(4)`       | ⭐⭐ Good            | Found in T470, X270, others                                 |
-| **Intel Wireless 8260**      | `iwm`  | `iwm(4)`       | ⭐⭐ Good            | Older but well-supported                                    |
-| **Intel Wireless 3165**      | `iwm`  | `iwm(4)`       | ⭐ Good              | Older, 802.11ac only                                        |
-| **Intel Wireless 7265**      | `iwm`  | `iwm(4)`       | ⭐⭐ Good            | Found                                                       |
-| in T450, X250                |
-| **Qualcomm Atheros QCA6174** | `athn` | `athn(4)`      | ⭐⭐ Good            | Found in some ThinkPads                                     |
+| **Intel Wi-Fi 6 AX200**      | `iwm`  | `iwm(4)`       | ⭐⭐⭐⭐⭐                | [Check ThinkPad T14s](https://www.amazon.com/s?k=thinkpad+t14s) |
+| **Intel Wi-Fi 6 AX201**      | `iwm`  | `iwm(4)`       | ⭐⭐⭐⭐⭐                | Common in 10th-gen+ ThinkPads                               |
+| **Intel Wireless 8265**      | `iwm`  | `iwm(4)`       | ⭐⭐⭐⭐                | Found in T470, X270, others                                 |
+| **Intel Wireless 8260**      | `iwm`  | `iwm(4)`       | ⭐⭐⭐⭐                | Older but well-supported                                    |
+| **Intel Wireless 3165**      | `iwm`  | `iwm(4)`       | ⭐⭐⭐                | Older, 802.11ac only                                        |
+| **Intel Wireless 7265**      | `iwm`  | `iwm(4)`       | ⭐⭐⭐⭐                | Found in T450, X250                                         |
+| **Qualcomm Atheros QCA6174** | `athn` | `athn(4)`      | ⭐⭐⭐⭐                | Found in some ThinkPads                                     |
 | **Broadcom BCM4360**         | `brcm` | `brcm(4)`      | ⚠️ Requires firmware | Avoid if possible                                           |
 
 ### USB WiFi Adapters (Nano/Compact)
 
 | Adapter                  | Chip      | OpenBSD Driver | Support Level    | Buy                                                 |
 | ------------------------ | --------- | -------------- | ---------------- | --------------------------------------------------- |
-| **ASUS USB-AC56**        | `urtwn`   | `urtwn(4)`     | ⭐⭐⭐ Excellent | [Check price](https://www.amazon.com/dp/B00PB5VR1G) |
-| **TP-Link Archer T3U**   | `urtwn`   | `urtwn(4)`     | ⭐⭐ Good        | Budget option                                       |
-| **Netgear A6200**        | `urtwn`   | `urtwn(4)`     | ⭐ Good          | Older but supported                                 |
-| **TP-Link TL-WN722N v3** | `urtwn`   | `urtwn(4)`     | ⭐⭐ Good        | Very cheap, 802.11n only                            |
-| **Alfa AWUS036NHA**      | `athn`    | `athn(4)`      | ⭐⭐⭐ Excellent | High gain, excellent range, 802.11n                 |
-| **Alfa AWUS036ACS**      | `rtl88au` | `rsu(4)`       | ⭐⭐ Good        | Long range, 802.11ac                                |
+| **ASUS USB-AC56**        | `urtwn`   | `urtwn(4)`     | ⭐⭐⭐⭐⭐                | [Check price](https://www.amazon.com/dp/B00PB5VR1G) |
+| **TP-Link Archer T3U**   | `urtwn`   | `urtwn(4)`     | ⭐⭐⭐⭐                | Budget option                                       |
+| **Netgear A6200**        | `urtwn`   | `urtwn(4)`     | ⭐⭐⭐                | Older but supported                                 |
+| **TP-Link TL-WN722N v3** | `urtwn`   | `urtwn(4)`     | ⭐⭐⭐⭐                | Very cheap, 802.11n only                            |
+| **Alfa AWUS036NHA**      | `athn`    | `athn(4)`      | ⭐⭐⭐⭐⭐                | High gain, excellent range, 802.11n                 |
+| **Alfa AWUS036ACS**      | `rtl88au` | `rsu(4)`       | ⭐⭐⭐⭐                | Long range, 802.11ac                                |
 
 ### NOT Supported (Do Not Buy)
 
@@ -314,13 +314,18 @@ For the best OpenBSD + i3 experience:
 
 ## 🚀 Installing OpenRiot
 
-There are two ways to install OpenRiot on a fresh machine.
+There are two ways to install OpenRiot on a fresh machine. **Method 1 is strongly recommended for most users** because it uses the official, up-to-date OpenBSD installer and fetches the latest packages during setup. This ensures you get current firmware, security patches, and a fully tested base. Method 2 provides an offline experience by bundling everything into a custom image, which is ideal for air-gapped environments, slow/unreliable internet, or initial testing without network exposure — but it comes with caveats (see below).
 
 **Method 1 (Recommended):** Install standard OpenBSD from `install79.img`, then run `setup.sh`.
 
 **Method 2 (Offline):** Flash `openriot.img` which bundles packages. Base install happens offline, then run `setup.sh` after first login.
 
 > Typical time: **5 minutes** (Method 1 with fast internet); **10–15 minutes** (Method 2, no downloads during install).
+
+**Choosing Between Methods – Nuances and Implications:**
+- **Method 1 (Online)**: Best for reliability and currency. Requires a working network connection during the `setup.sh` phase (packages, firmware, git clone of configs). The `setup.sh` script (a robust Go binary) handles atomic installation, config deployment, and has built-in rollback awareness. Internet also allows `fw_update` and mirror selection for fastest mirrors.
+- **Method 2 (Offline)**: Useful when you cannot or do not want to connect during base install (e.g., privacy-conscious first boot, travel, or metered connections). The image includes a `site79.tgz` set that pre-installs many packages via `install.site`. However, bundled package versions may lag behind the absolute latest snapshots, and some edge-case hardware/firmware detection or post-install tweaks might differ. **It is currently marked as not fully stable** — use primarily for evaluation or when Method 1 is impractical. Always verify checksums and consider it experimental until the note is removed in a future release.
+- **Edge cases**: If your hardware has very new components or you need specific recent fixes, Method 1 + snapshot packages is safer. For reproducible/offline deploys (e.g., multiple machines), Method 2 shines once stabilized. Both paths converge on the same polished desktop after `setup.sh`.
 
 ### 1. Download
 
@@ -331,6 +336,14 @@ Download the official OpenBSD installer:
 #### Method 2: OpenRiot Image (Offline)
 
 ### Note: This is NOT YET stable and working.
+
+**Important clarification on stability**: As of the current release, the `openriot.img` (Method 2) has not undergone the same breadth of automated + manual testing as the standard path. Potential areas of variance include:
+- Completeness of pre-bundled packages or firmware for less common hardware.
+- Exact behavior of `install.site` hooks on certain disk controllers or WiFi chipsets.
+- Minor differences in default configurations or post-boot service states.
+- Risk of version skew between the image's bundled sets and the live `setup.sh` expectations.
+
+**Recommendation**: Prefer Method 1 unless you have a specific need for offline installation. If using Method 2, boot it in a test VM or spare hardware first, monitor the setup log (`~/.cache/openriot/setup.log`), and report any issues. We are actively hardening the offline image and expect to promote it to stable in a near-term release. Download at your own risk and always cross-check the GitHub release assets and checksums.
 
 Download the [OpenRiot Install Image ~1.7G](https://github.com/CyphrRiot/OpenRiot/releases/tag/v7.0)
 
@@ -376,6 +389,13 @@ swap    2G (or more)
 /home   * (rest of disk)
 ```
 
+**Why this layout and sizing guidance (with nuances):**
+- **/** (root): 50GB+ gives ample room for `/usr/local`, packages, logs, and the Go-built `openriot` binary + its dependencies without constant cleanup. OpenBSD keeps a relatively lean base, but development tools, Helix, and GUI apps add up. You can grow it later with `growfs` if needed.
+- **swap**: 2GB+ is a safe minimum for modern RAM sizes (suspend-to-disk, large compiles, or memory pressure). Rule of thumb: at least 1–2× RAM for heavy use, or match RAM for reliable hibernation-like behavior. On SSDs, swap is fast; on HDDs, keep it reasonable.
+- **/home**: Takes the rest. Keeps user data, configs (`~/.config`), Downloads, Music, Videos, and ProtonSync separate from system. This simplifies backups, reinstalls, or future full-disk encryption experiments. It also aligns with OpenBSD's clean separation philosophy.
+- **Encryption option (`p`)**: Full-disk encryption (using OpenBSD's `softraid` + `bioctl`) is supported and recommended for laptops or sensitive data. It adds a passphrase prompt at boot. Tradeoff: slightly more complex recovery, minor performance hit on very old hardware, but excellent security. Test in a VM first if new to it. Many OpenRiot users enable it.
+- **Edge cases & implications**: Very small disks (<40GB) may need trimming (e.g., 30G root). If you plan heavy Docker-like workloads (rare on OpenBSD) or large builds, give root more space. Always leave headroom; OpenBSD values stability over filling disks. GPT (`G`) is mandatory for modern UEFI boots — MBR will fail silently or boot incorrectly.
+
 #### Reboot and Configure
 
 ```bash
@@ -391,6 +411,12 @@ permit nopass $USER
 permit nopass :wheel
 EOF
 ```
+
+**doas configuration notes and security considerations:**
+- `nopass` removes the password prompt for your user and the `wheel` group. This is the standard OpenRiot setup for a smooth desktop workflow (one-command updates, polybar actions, etc.).
+- **Tradeoffs & implications**: Huge usability win for a daily driver desktop — no constant password typing for common privileged tasks. However, it reduces the "something you know" factor. On a multi-user or high-security machine, consider removing `nopass` or scoping it more tightly (e.g., only specific commands). The config is simple by design; you can edit `/etc/doas.conf` later and `doas -C /etc/doas.conf` to validate.
+- **Best practice**: Use a strong user password at install time. Enable full-disk encryption if the machine is portable. The `setup.sh` and `openriot` binary run many commands via `doas` internally where needed.
+- After this, **log out of root** and log in as your normal user to continue.
 
 Now log in as **your user** and run:
 
@@ -420,7 +446,7 @@ Packages and firmware install automatically from the USB via `install.site`.
 
 ### WiFi Setup
 
-If you need WiFi during install, configure it manually:
+If you need WiFi during install (before the desktop is ready), configure it manually via the classic OpenBSD `hostname.if(5)` method:
 
 ```bash
 doas vi /etc/hostname.iwx0
@@ -429,9 +455,24 @@ doas vi /etc/hostname.iwx0
 doas sh /etc/netstart iwx0
 ```
 
-Or use the built-in WiFi manager after first boot:
-- **Rofi:** `Super + D` → **Select WiFi**
-- **Terminal:** `openriot --nmtui`
+**Post-connection verification (recommended):**
+```bash
+ifconfig iwx0          # Check status, IP, signal
+ping -c 3 cdn.openbsd.org   # Or 1.1.1.1
+```
+
+Or use the built-in WiFi manager after first boot (much easier for daily use and scanning):
+- **Rofi:** `Super + D` → **Select WiFi** (graphical picker)
+- **Terminal:** `openriot --nmtui` (or the underlying tool)
+
+**Important nuances & edge cases:**
+- **MAC randomization (Stealth mode)**: If you enable `openriot --random-mac enable` later, it will spoof the MAC on each connection. This is excellent for privacy on public networks but can interfere with captive portals, enterprise 802.1X, or networks that whitelist specific MACs. In those cases, temporarily disable with `openriot --random-mac disable` or use the polybar stealth module.
+- **Captive portals / hotel / airport WiFi**: The CLI `ifconfig` method or `nmtui` usually works, but you may need to open a browser manually (`firefox`) after connecting to complete the login page. Some portals are tricky with randomized MACs — disable stealth temporarily.
+- **Driver/firmware**: Most Intel `iwm(4)` adapters work out of the box after `fw_update`. If your adapter needs firmware, the setup script or manual `fw_update` handles it. Check `dmesg | grep -i iwm` or `ifconfig` output.
+- **USB adapters**: Same `hostname.if` syntax works (e.g., `urtwn0`, `athn0`). See the supported hardware table above.
+- **No internet after connect?** Double-check `wpakey` quoting/spelling, run `ifconfig iwx0 down; ifconfig iwx0 up`, or restart with `sh /etc/netstart iwx0`. The polybar network module will show signal strength and internet status once the desktop is up.
+
+This hybrid approach (manual during install + polished rofi/polybar tools after) keeps things "correct" for OpenBSD while making daily life pleasant.
 
 ---
 
@@ -473,7 +514,6 @@ _We use Helix instead of `vi` or `vim`. The essential bindings are documented in
 | `Super + W`                  | Next wallpaper                   |
 | `Super + Shift + W`          | Previous wallpaper               |
 | `Super + Shift + S`          | Screenshot (region)              |
-| `Super + Shift + R`          | Screen recording toggle          |
 | `Super + Shift + V`          | Clipboard manager                 |
 | `Super + Shift + G`          | Open settings menu               |
 | `Super + Shift + J`          | Open games menu                  |
@@ -484,8 +524,8 @@ _We use Helix instead of `vi` or `vim`. The essential bindings are documented in
 | `Super + Shift + [ / ]`      | Resize: shrink/grow height      |
 | `Super + -`                  | Show scratchpad                  |
 | `Super + Shift + -`          | Move to scratchpad               |
-| `Super + Shift + C`          | Reload i3 config                 |
-| `Super + Shift + R`          | Restart i3                       |
+| `Super + Shift + R`          | Reload i3 config                 |
+| `Super + Shift + C`          | Restart i3                       |
 | `Super + Tab`                | Focus next window                |
 | `Super + Shift + Tab`        | Focus previous window             |
 | `Super + Arrow keys`         | Focus window direction           |
@@ -494,6 +534,7 @@ _We use Helix instead of `vi` or `vim`. The essential bindings are documented in
 | `Print`                     | Screenshot (fullscreen + clipboard) |
 | `Shift + Print`             | Screenshot (fullscreen + clipboard) |
 | `Ctrl + Print`              | Screenshot (fullscreen + clipboard) |
+| `Super + Shift + N`         | Toggle screen recording          |
 | `Super + Shift + X`         | Compose tweet                    |
 | `Super + Shift + space`     | Refresh polybar                  |
 
@@ -523,7 +564,7 @@ Control polybar modules and system features directly from the keyboard.
 | `Super + J`            | Sync Proton Drive               |
 | `Super + Shift + P`    | Show CPU notification            |
 | `Super + Shift + M`    | Show memory notification         |
-| `Super + Shift + N`    | Show WiFi info                   |
+| `Super + Shift + U`    | Show WiFi info                   |
 | `Super + Shift + G`    | Open settings menu               |
 | `Super + Shift + J`    | Open games menu                 |
 
@@ -537,7 +578,7 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | Terminal         |    | Alacritty terminal       |
 | File Manager     | 󰝰   | Thunar file browser      |
 | Firefox          |    | Web browser              |
-| Firefox (Private)|    | Private browsing         |
+| Firefox (Private)|    | Private browsing         |
 | Select WiFi      | 󱚹   | Wi-Fi network manager    |
 | Text Editor      | 󰷉   | GNOME text editor        |
 | Helix            |    | Text editor              |
@@ -549,9 +590,11 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | System Monitor   | 󰍹   | btop resource monitor    |
 | Telegram         | 󰭹   | Messaging app            |
 | Monero Wallet    |    | Monero GUI wallet        |
+| Bitcoin          |    | Bitcoin Core wallet      |
 | Transmission     | 󰐻   | BitTorrent client        |
 | Crush AI         | 󰚩   | AI CLI assistant         |
 | Settings         | 󰒓   | XFCE settings manager    |
+| Benchmark        | 󰓅   | OpenRiot benchmark      |
 | Games            | 󰊗   | Games sub-menu           |
 
 ![OpenRiot Terminal](assets/terminal.png)
@@ -571,19 +614,19 @@ Polybar is your status bar. Click on modules for more:
 | No. | Module | Icon | Meaning |
 |-----|--------|------|---------|
 | 1 | crypto | 󰄨 | Crypto prices (hidden when no config) |
-| 2 | proton-drive | 󱥾 / 󰴋 /  | Synced / Syncing / Not configured |
+| 2 | proton-drive | 󱥾 / 󰴋 | Synced / Syncing (auto-hides when not configured) |
 | 3 | transmission | 󰐻 | Running (auto-hides when stopped) |
 | 4 | night-light | 󰌵 /  | Night light ON / OFF |
 | 5 | screenrec |  /  | Idle / Recording |
 | 6 | cpu | 󰡳→󰡵→󰊚→󰡴 | CPU load tier |
 | 7 | memory | 󰢿→󰢼→󰢽→󰢾 | RAM usage tier |
-| 8 | wireguard | 󰱓 / 󰅛 | VPN up / Down (auto-hides when not configured) |
+| 8 | wireguard | 󰱓 | VPN connected (auto-hides when not configured or disconnected) |
 | 9 | stealth | 󰝴 / 󱊨 | MAC randomization ON / OFF |
 | 10 | network-wifi | 󰤨→󰤥→󰤢→󰤟→󰤯 / 󱛅 | Signal bars / No internet |
-| 11 | network-eth | 󰈀 / 󰌙 / (empty) | Carrier / No carrier / No eth |
+| 11 | network-eth | 󰈀 / (empty) | Connected / Not connected |
 | 12 | openriot-update | 󰋻 / 󰚇 / ? | Update available / Up to date / Unknown |
 | 13 | settings |  | Settings menu |
-| 14 | laptop-monitor | 󰌢 / 󰛧 | Laptop monitor enabled / disabled (auto-hides) |
+| 14 | hdmi | 󰍺 / 󰍹 /  | Both / HDMI only / Laptop only |
 | 15 | volume | //󱄠/󰕾/ | Muted / Very low / Low / Medium / High |
 | 16 | battery | 󰁺→󰂂 / 󰁹 | Level / Full+charging |
 | 17 | power | ⏻ | Power menu |
@@ -611,6 +654,10 @@ Fish comes pre-configured with useful aliases:
 | `la`  | `lsd -la` | Show hidden files              |
 | `vi`  | `hx`      | Open Helix editor              |
 | `vim` | `hx`      | Open Helix editor              |
+| `helix` | `hx`    | Open Helix editor              |
+| `signal` | `~/.local/share/openriot/config/bin/gurk` | Signal messenger (gurk) |
+| `more` | `more -e` | Fixed more pager               |
+| `dum` | `du -sm * | sort -nr | head -10` | Top 10 largest items by size |
 
 ### File Manager
 
@@ -868,7 +915,7 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 | **launcher** |  | - | Open app launcher (Rofi) | - |
 | **workspaces** | 󰎤󰎧󰎪 | - | Switch to workspace | - |
 | **window-title** | text | - | - | - |
-| **date** | 󰃭 | - | Show date/time | - |
+| **date** | 󰃭 | - | Cycle wallpaper | - |
 | **stealth** | 󰝴 | ON | Toggle MAC randomization | - |
 | | 󱊨 | OFF | | |
 | **network-wifi** | 󰤨 | Excellent (70%+) | WiFi info | - |
@@ -894,12 +941,12 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 | **memory** | 󰢿→󰢼→󰢽→󰢾 | - | Memory notification | - |
 | **proton-drive** | 󱥾 | Synced | Sync Proton Drive | - |
 | | 󰴋 | Syncing | | |
-| |  | Not configured | | |
 | **transmission** | 󰐻 | Running | Toggle GTK client | - |
+| **screenrec** |  /  | Idle / Recording | Toggle screen recording | - |
 | **openriot-update** | 󰋻 | Update available | Check for updates | - |
 | | 󰚇 | Up to date | | |
 | **settings** |  | - | Open settings menu | - |
-| **laptop-monitor** | 󰌢 / 󰛧 | Enabled / Disabled | Toggle laptop monitor | - |
+| **hdmi** | 󰍺 / 󰍹 /  | Both / HDMI only / Laptop only | Toggle display mode | - |
 | **weather** | varies | - | - | - |
 | **power** | ⏻ | - | Open power menu | - |
 | **lock** | 󰌾 | - | Lock screen | - |
@@ -920,7 +967,7 @@ api=85a4e3c55b73909f42c6a23ec35b7147
 
 - `location` - City name (required)
 - `units` - `imperial` (°F) or `metric` (°C)
-- `api` - OpenWeatherMap API key (optional, uses built-in key if omitted)
+- `api` - OpenWeatherMap API key (required; module hides without one)
 
 2. Restart polybar: `Super + Shift + space`
 
@@ -995,6 +1042,16 @@ pairs = [
 [display]
 show_totals = false
 ```
+
+**Understanding the Technical Indicators (optional but powerful):**
+- **RSI (Relative Strength Index)**: Momentum oscillator (0–100). Default period 14 is standard. Below `oversold` (30) suggests potential reversal upward; above `overbought` (70) suggests potential reversal downward. Useful for timing entries/exits alongside price.
+- **Bollinger Bands (BB)**: Volatility bands (period + standard deviations). Default 16-period, 2.0 std dev. Price touching upper/lower bands or "squeezes" can signal breakouts or mean-reversion opportunities. The module can surface these in notifications or the polybar hover if extended.
+- These are computed client-side from CoinGecko data when you run `--crypto` or click the module. They add analytical depth without external dependencies.
+
+**Security & Privacy Notes for `api_key`:**
+- Leave empty for basic public CoinGecko API usage (rate-limited but sufficient for personal monitoring).
+- If you add a CoinGecko Pro or other API key, keep `crypto.toml` permissions tight (`chmod 600 ~/.config/crypto.toml`). The key is only used locally by the `openriot` binary and polybar scripts — never sent to any OpenRiot servers.
+- Holdings (`held` + `entry` price) are stored in plain TOML for convenience. If you track significant amounts, consider the privacy implications or use the Monero-focused workflow instead.
 
 **Quick rules:**
 
@@ -1172,14 +1229,31 @@ doas mv ~/Downloads/mullvad.conf /etc/wireguard/wg0.conf
 
 | Icon | Meaning |
 ---------------|
-| 󰛳 | No config file installed |
-| 󰅛 | Config exists, VPN disconnected |
+| (hidden) | No config file |
+| 󰅛 | Disconnected |
 | 󰱓 | VPN connected |
 
 Click the icon to toggle. You'll see notifications for:
 - "Starting WireGuard..."
 - "Stopping WireGuard..."
 - "WireGuard is not configured. Go to OpenRiot.org Read directions." (if no config)
+
+**Additional status & verification commands (highly recommended):**
+```bash
+# Quick interface status
+ifconfig wg0
+
+# Detailed WireGuard status (peers, latest handshakes, transfer)
+doas wg show
+
+# Test exit IP and leak detection
+curl https://am.i.mullvad.net/json
+# or
+curl https://ipinfo.io
+
+# Check if traffic is actually routed through VPN (compare with/without)
+traceroute 1.1.1.1
+```
 
 #### Manual Commands
 
@@ -1195,6 +1269,12 @@ curl https://am.i.mullvad.net/json
 ```
 
 The output should show `"mullvad_exit_ip": true` when connected.
+
+**OpenBSD-specific nuances:**
+- `wg-quick` on OpenBSD uses `ifconfig` + `route` under the hood and works reliably with Mullvad configs.
+- DNS is handled via the config's `DNS =` line (usually pushed by Mullvad). If you use `unbound` or custom resolvers, you may need to adjust post-up scripts.
+- Kill-switch behavior is not automatic like some Linux tools; the polybar toggle + notifications help, but consider firewall rules (`pf.conf`) for stricter enforcement if desired.
+- Performance: WireGuard is very lightweight on OpenBSD. Expect near-native speeds on decent hardware.
 
 #### Auto-start at Boot
 
@@ -1228,9 +1308,26 @@ OpenRiot includes the Transmission GTK client with polybar and rofi integration.
 
 ### ⚠️ IMPORTANT: Use with VPN
 
-**Always run Transmission behind a VPN!** Your ISP can see BitTorrent traffic, and you can receive copyright infringement notices (or worse) if you download copyrighted material. 😉
+**Transmission will NOT launch unless WireGuard is active.** This is not
+a suggestion — it is enforced by the OpenRiot binary. If you try to
+start Transmission while the VPN is down, you get a 5-second critical
+notification:
 
-Click the **VPN icon** 󰱓 in polybar to connect before downloading anything.
+> Wireguard is NOT running.
+> Cannot start Transmission without Wireguard.
+> (This is a protective measure)
+
+ISPs monitor BitTorrent traffic. DMCA notices are real. The old
+"always use a VPN" warning was easy to skip when you were in a hurry.
+OpenRiot now removes the temptation entirely.
+
+**To use Transmission:**
+1. Click the **VPN icon** `󰱓` in polybar or press `Super+I` to connect
+2. Wait for the shield to appear
+3. Launch Transmission from rofi or polybar
+
+If WireGuard is already running, Transmission launches normally. If
+not, the client simply refuses to start and tells you why.
 
 ### Polybar Module
 
@@ -1348,7 +1445,7 @@ A pure-Rust Signal messenger TUI — zero Java, zero GTK/libsecret. Built for Op
 
 ### First Run
 
-1. Launch from the app launcher (SUPER+D) or run `~/.local/bin/gurk`
+1. Launch from the app launcher (SUPER+D) or run `~/.local/share/openriot/config/bin/gurk`
 2. On first launch it will prompt for a passphrase — **select "Store it in config"**, not "prompt" (prompt mode causes issues)
 3. Open Signal on your phone → Linked Devices → add a new linked device → scan the QR code
 4. Wait 2–3 minutes, then press `ctrl+p` to open the channel list
@@ -1469,7 +1566,7 @@ keyboard-driven control without ever leaving the terminal.
 
 The stack comes with a **Neo Tokyo** theme that matches the rest of the
 desktop. Launch it from the app launcher with `Super + D` → **Music
-Player**, or press `Super + Shift + A` for instant access.
+Player**, or press `Super + Shift + K` for instant access.
 
 ### Features
 
@@ -1556,7 +1653,7 @@ Your music and mic stay clean when not recording. The monitor only exists while 
 
 | Key | Action |
 |-----|--------|
-| `Super + Shift + R` | Toggle screen recording |
+| `Super + Shift + N` | Toggle screen recording |
 
 ## 🔧 Troubleshooting
 
