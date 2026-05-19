@@ -534,7 +534,7 @@ system:
             #  cmd: "doas rcctl enable seatd && doas rcctl start seatd"
             - desc: "Create WireGuard config directory"
               cmd: "doas mkdir -p /etc/wireguard && doas chmod 700 /etc/wireguard"
-            - desc: "Harden PF: change pass to pass out (blocks unsolicited inbound)"
+            - desc: "Harden PF: change pass to pass out (blocks inbound)"
               cmd: |
                   if [ -f /etc/pf.conf ]; then
                       printf '/^pass[[:space:]]/c\npass out\t\t# establish keep-state\n.\nw\nq\n' | doas ed -s /etc/pf.conf
@@ -542,7 +542,7 @@ system:
                   else
                       echo "[SKIP] pf.conf not found"
                   fi
-            - desc: "Remove cupsd from pkg_scripts (not part of OpenRiot, opens port 631)"
+            - desc: "Remove cupsd from pkg_scripts (opens port 631)"
               cmd: |
                   if grep -q '^pkg_scripts=' /etc/rc.conf.local 2>/dev/null; then
                       doas sed -i 's/\bcupsd\b//g' /etc/rc.conf.local
