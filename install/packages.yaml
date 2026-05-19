@@ -3,22 +3,22 @@
 # Only includes packages that exist in OpenBSD packages/
 # Base system packages (doas, less, man, etc.) are NOT listed
 
-openbsd_version: "snapshots"
+openbsd_version: "7.9"
 
 # Firmware files for the installer image (OpenBSD 7.9)
 # Update these when firmware.openbsd.org updates
 firmware:
-    - athn-firmware-1.1p4.tgz
-    - intel-firmware-20260512v0.tgz
-    - inteldrm-firmware-20250708.tgz
-    - iwm-firmware-20240410.tgz
-    - iwx-firmware-20251021p0.tgz
+    - athn-firmware-1.1p4
+    - intel-firmware-20260512v0
+    - inteldrm-firmware-20250708
+    - iwm-firmware-20240410
+    - iwx-firmware-20251021p0
 
 core:
     base:
         packages:
             - rsync-3.4.2
-            - python-3.14.4p0
+            - python-3.14.4p1
             - fastfetch-2.60.0
             - exfat-fuse-1.4.0
             - xz-5.8.3
@@ -82,10 +82,10 @@ desktop:
             - polybar-3.7.2
             - rofi-1.7.9.1
             - maim-5.8.1p0
-            - feh-3.12.1
+            - feh-3.12.2
             - picom-13
             - xclip-0.13p1
-            - ImageMagick-6.9.13.43
+            - ImageMagick-6.9.13.47
             - ffmpeg-8.0.2v1
             - dunst-1.13.1
             - clipmenu-6.2.0
@@ -157,13 +157,14 @@ desktop:
         end: "Lock screen images completed"
     apps:
         packages:
-            - firefox-150.0.3
+            - firefox-150.0.3p0
             - tdesktop-6.8.0
             - helix-25.07.1
             - lsd-1.1.5p2
             - thunar-4.20.8
             - thunar-archive-0.6.0
             - tumbler-4.20.1p0
+            - webp-pixbuf-loader-0.2.7
             - xfconf-4.20.0
             - xfce4-settings-4.20.4
             - gnome-themes-extra-3.28p7
@@ -241,6 +242,9 @@ desktop:
                   else
                       dconf load /org/gnome/TextEditor/ < $HOME/.config/openriot/dconf/org.gnome.TextEditor.ini || true
                   fi
+            - desc: "Regenerate gdk-pixbuf loader cache for WebP thumbnails"
+              cmd: |
+                  doas sh -c 'gdk-pixbuf-query-loaders > /usr/local/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache'
     games:
         packages:
             # - xonotic-0.8.6
@@ -248,7 +252,7 @@ desktop:
             - micropolis-20080211p9
             - gottet-1.2.7
             - defendguin-0.0.13
-            - supertux-0.6.3p3
+            - supertux-0.6.3p4
             # - supertuxkart-1.5
             - sdlpop-1.22v0
             - zelda_roth_se-1.1.0p1
@@ -302,7 +306,7 @@ crypto:
     bitcoin:
         type: "Package"
         packages:
-            - bitcoin-31.0
+            - bitcoin-31.0p0
         configs:
             - pattern: "applications/bitcoin-qt.desktop"
               target: "~/.local/share/applications/bitcoin-qt.desktop"
@@ -315,7 +319,7 @@ media:
         packages:
             - mpv-0.41.0p0
             - mpd-0.24.10
-            - socat-1.8.0.3
+            - socat-1.7.4.1
             - transmission-gtk-4.1.1p0
             - ffmpeg-8.0.2v1
             - ffmpegthumbnailer-2.2.2p0
@@ -530,6 +534,22 @@ system:
             #  cmd: "doas rcctl enable seatd && doas rcctl start seatd"
             - desc: "Create WireGuard config directory"
               cmd: "doas mkdir -p /etc/wireguard && doas chmod 700 /etc/wireguard"
+            - desc: "Harden PF: change pass to pass out (blocks unsolicited inbound)"
+              cmd: |
+                  if [ -f /etc/pf.conf ]; then
+                      printf '/^pass[[:space:]]/c\npass out\t\t# establish keep-state\n.\nw\nq\n' | doas ed -s /etc/pf.conf
+                      echo "[DONE] PF rules hardened: pass → pass out"
+                  else
+                      echo "[SKIP] pf.conf not found"
+                  fi
+            - desc: "Remove cupsd from pkg_scripts (not part of OpenRiot, opens port 631)"
+              cmd: |
+                  if grep -q '^pkg_scripts=' /etc/rc.conf.local 2>/dev/null; then
+                      doas sed -i 's/\bcupsd\b//g' /etc/rc.conf.local
+                      doas sed -i 's/pkg_scripts=[[:space:]]*/pkg_scripts=/' /etc/rc.conf.local
+                      doas sed -i 's/pkg_scripts=$/# pkg_scripts=/' /etc/rc.conf.local
+                      echo "[DONE] cupsd removed from pkg_scripts"
+                  fi
             - desc: "Update firmware (may take several minutes)"
               cmd: "doas fw_update -a"
             # - desc: "Install Atheros AR9271 WiFi firmware (if adapter present)"

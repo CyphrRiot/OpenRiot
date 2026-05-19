@@ -18,7 +18,7 @@ type Mirror struct {
 	Region string
 }
 
-// DefaultMirrors is the list of verified OpenBSD mirrors that support snapshots
+// DefaultMirrors is the list of verified OpenBSD mirrors that support 7.9
 var DefaultMirrors = []Mirror{
 	{Name: "CDN", URL: "https://cdn.openbsd.org/pub/OpenBSD", Region: "na"},
 	{Name: "Sonic", URL: "https://mirrors.sonic.net/pub/OpenBSD", Region: "na"},

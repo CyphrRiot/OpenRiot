@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -217,6 +218,7 @@ func runTransmissionToggle() error {
 			notify.SendNotify("transmission", "Transmission", "Wireguard is NOT running.\nCannot start Transmission without Wireguard.\n(This is a protective measure)", "critical", 5000, 0)
 			return nil
 		}
+		bindTransmissionToWireGuard()
 		exec.Command("transmission-gtk").Start()
 		notify.SendNotify("transmission", "Transmission", "Starting Transmission...", "normal", 2000, 0)
 	}
@@ -231,10 +233,42 @@ func runTransmissionNotify() error {
 			notify.SendNotify("transmission", "Transmission", "Wireguard is NOT running.\nCannot start Transmission without Wireguard.\n(This is a protective measure)", "critical", 5000, 0)
 			return nil
 		}
+		bindTransmissionToWireGuard()
 		exec.Command("transmission-gtk").Start()
 		notify.SendNotify("transmission", "Transmission", "Starting Transmission...", "normal", 2000, 0)
 	}
 	return nil
+}
+
+func bindTransmissionToWireGuard() {
+	// Get the active WireGuard tunnel IP and bind transmission to it
+	// so the peer port only listens on the VPN interface, not LAN.
+	tunnelIP := wireguard.GetTunnelIP()
+	if tunnelIP == "" {
+		return
+	}
+	home, _ := os.UserHomeDir()
+	settingsPath := filepath.Join(home, ".config", "transmission", "settings.json")
+	data, err := os.ReadFile(settingsPath)
+	if err != nil {
+		return
+	}
+	content := string(data)
+	// Replace bind-address-ipv4
+	if strings.Contains(content, `"bind-address-ipv4"`) {
+		content = regexp.MustCompile(`"bind-address-ipv4"\s*:\s*"[^"]*"`).ReplaceAllString(content, `"bind-address-ipv4": "`+tunnelIP+`"`)
+	} else {
+		// Insert after the first property
+		content = strings.Replace(content, `"alt-speed-down"`, `"bind-address-ipv4": "`+tunnelIP+`",\n    "alt-speed-down"`, 1)
+	}
+	// Replace bind-address-ipv6 (empty — let v4 handle it for now)
+	if strings.Contains(content, `"bind-address-ipv6"`) {
+		content = regexp.MustCompile(`"bind-address-ipv6"\s*:\s*"[^"]*"`).ReplaceAllString(content, `"bind-address-ipv6": ""`)
+	} else {
+		content = strings.Replace(content, `"bind-address-ipv4"`, `"bind-address-ipv4"`, 1)
+		content = strings.Replace(content, `"bind-address-ipv4": "`+tunnelIP+`"`, `"bind-address-ipv4": "`+tunnelIP+`",\n    "bind-address-ipv6": ""`, 1)
+	}
+	os.WriteFile(settingsPath, []byte(content), 0644)
 }
 
 func runNightLightNotify() error {

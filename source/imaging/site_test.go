@@ -14,7 +14,7 @@ func TestGetBuildDir(t *testing.T) {
 func TestCreateInstallSite(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	err := createInstallSite(tmpDir)
+	err := createInstallSite(tmpDir, "7.9")
 	if err != nil {
 		t.Fatalf("createInstallSite failed: %v", err)
 	}

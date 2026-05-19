@@ -105,7 +105,8 @@ func DownloadPackages(cfg *Config) error {
 	}
 
 	// Create package directory
-	pkgDir := filepath.Join(cfg.WorkDir, "packages", "snapshots", "amd64")
+	repoPath := formatVersion(cfg.Version)
+	pkgDir := filepath.Join(cfg.WorkDir, "packages", repoPath, "amd64")
 	if err := os.MkdirAll(pkgDir, 0755); err != nil {
 		return fmt.Errorf("failed to create package dir: %w", err)
 	}
@@ -131,7 +132,7 @@ func DownloadPackages(cfg *Config) error {
 		removeOldVersions(pkgDir, pkg)
 
 		// Download with retry
-		err := downloadWithRetry(pkgPath, pkg)
+		err := downloadWithRetry(pkgPath, pkg, repoPath)
 		if err != nil {
 			fmt.Println() // newline so WARN doesn't append to the progress line
 			logger.Warn(fmt.Sprintf("Failed to download: %s", pkg))
@@ -189,8 +190,8 @@ func removeOldVersions(pkgDir, pkgName string) {
 }
 
 // downloadWithRetry downloads a package with 3 retries
-func downloadWithRetry(pkgPath, pkgName string) error {
-	url := fmt.Sprintf("https://cdn.openbsd.org/pub/OpenBSD/snapshots/packages/amd64/%s.tgz", pkgName)
+func downloadWithRetry(pkgPath, pkgName, repoPath string) error {
+	url := fmt.Sprintf("https://cdn.openbsd.org/pub/OpenBSD/%s/packages/amd64/%s.tgz", repoPath, pkgName)
 
 	var lastErr error
 	for retry := 0; retry < 3; retry++ {

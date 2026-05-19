@@ -28,6 +28,27 @@ func isRunning() bool {
 	return strings.Contains(string(out), "UP") && strings.Contains(string(out), "RUNNING")
 }
 
+// GetTunnelIP returns the IPv4 address assigned to wg0, or empty string if down.
+func GetTunnelIP() string {
+	cmd := exec.Command("ifconfig", "wg0")
+	out, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	lines := strings.Split(string(out), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "inet ") && !strings.HasPrefix(line, "inet6 ") {
+			// Format: "inet 10.75.64.36 netmask 0xffffff00"
+			fields := strings.Fields(line)
+			if len(fields) >= 2 {
+				return fields[1]
+			}
+		}
+	}
+	return ""
+}
+
 // IsRunning reports whether the WireGuard tunnel is active.
 func IsRunning() bool {
 	return isRunning()

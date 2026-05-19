@@ -25,7 +25,7 @@ func TestLoadConfig(t *testing.T) {
 	if cfg.BaseImg != "Build/Images/install79.img" {
 		t.Errorf("expected default BaseImg, got %s", cfg.BaseImg)
 	}
-	if cfg.OutputImg != "Build/Images/openriot.img" {
+	if cfg.OutputImg != "Build/Output/openriot.img" {
 		t.Errorf("expected default OutputImg, got %s", cfg.OutputImg)
 	}
 	if cfg.WorkDir == "" {

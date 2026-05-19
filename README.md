@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.4-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-7.5-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -87,6 +87,10 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ---
 
+> **Built by one person over hundreds of hours.** OpenRiot is the first truly usable
+> OpenBSD system with a working window manager, curated applications, and a complete
+> desktop workflow — no compromises, no Linux copium. If it saved you time, consider
+> donating: `bc1qscxvn9clw6n3a4kykl2nlu8w2f2aqdftfp4hyq`
 
 ## 📚 Navigate This Guide
 
@@ -107,6 +111,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
     - [💳 Monero Wallet](#-monero-wallet)
     - [🎵 Music Player](#-music-player)
 - [🔧 Troubleshooting](#troubleshooting)
+    - [Harden SSH](#harden-ssh-disable-password-authentication)
 - [🦊 Browser & Data Transfer](#browser--data-transfer)
 
 ## Why OpenRiot Chose…
@@ -118,6 +123,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.5 — Lock It Down](docs/v7.5-Release-Notes.md)
 - [v7.4 — Lossless at Full Volume](docs/v7.4-Release-Notes.md)
 - [v7.3 — Going Underground](docs/v7.3-Release-Notes.md)
 - [v7.2 — Drop the Needle](docs/v7.2-Release-Notes.md)
@@ -332,7 +338,7 @@ There are two ways to install OpenRiot on a fresh machine. **Method 1 is strongl
 
 #### Method 1: OpenBSD Installer (Recommended)
 Download the official OpenBSD installer:
-- [install79.img](https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install79.img)
+- [install79.img](https://cdn.openbsd.org/pub/OpenBSD/7.9/amd64/install79.img)
 
 #### Method 2: OpenRiot Image (Offline)
 
@@ -1863,3 +1869,37 @@ Results go to `~/.benchmark/<hostname>-YYYYMMDD-N.log` with full system specs.
 | dd read | 169 MB/s | 2,584 MB/s | t14 (15x faster) |
 
 > "You are absolutely deluded, if not stupid, if you think that a worldwide collection of software engineers who can't write operating systems or applications without security holes, can then turn around and suddenly write virtualization layers without security holes." — Theo de Raadt
+
+### Harden SSH (Disable Password Authentication)
+
+OpenRiot leaves SSH password authentication enabled by default (the OpenBSD standard). If you plan to expose this machine to the internet or prefer key-only access, disable passwords **before** you remove the ability to log in.
+
+**1. Generate and copy your key first (on your client machine):**
+
+```bash
+cat ~/.ssh/id_ed25519.pub | ssh user@openriot-machine "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+```
+
+**2. Disable password auth on the OpenRiot machine:**
+
+```bash
+doas sh -c 'echo "PasswordAuthentication no" >> /etc/ssh/sshd_config'
+doas rcctl restart sshd
+```
+
+**3. Verify you can still log in from your client:**
+
+```bash
+ssh user@openriot-machine
+# Should NOT prompt for a password
+```
+
+**Locked yourself out?** Access the physical console, log in locally, and re-enable:
+
+```bash
+doas sed -i '/PasswordAuthentication no/d' /etc/ssh/sshd_config
+doas rcctl restart sshd
+```
+
+> **Note:** `PermitRootLogin no` is already set by OpenBSD default. This section hardens normal user access.
+

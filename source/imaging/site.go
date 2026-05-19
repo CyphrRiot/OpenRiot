@@ -38,8 +38,8 @@ func CreateSite(cfg *Config) error {
 	}
 
 	// Copy packages into tarball so install.site can install them
-	pkgSrc := filepath.Join(workDir, "packages", "snapshots", "amd64")
-	pkgDst := filepath.Join(openriotDir, "packages", "snapshots", "amd64")
+	pkgSrc := filepath.Join(workDir, "packages", formatVersion(cfg.Version), "amd64")
+	pkgDst := filepath.Join(openriotDir, "packages", formatVersion(cfg.Version), "amd64")
 	if err := copyDir(pkgSrc, pkgDst); err != nil {
 		return fmt.Errorf("copy packages: %w", err)
 	}
@@ -55,7 +55,7 @@ func CreateSite(cfg *Config) error {
 
 	// Create install.site inside siteDir so it ships in the tarball
 	// (extracts to /install.site on the new system and runs via install.site(5))
-	if err := createInstallSite(siteDir); err != nil {
+	if err := createInstallSite(siteDir, formatVersion(cfg.Version)); err != nil {
 		return fmt.Errorf("create install.site: %w", err)
 	}
 
@@ -141,7 +141,7 @@ func copyMotd(siteDir string) error {
 }
 
 // createInstallSite writes the install.site script
-func createInstallSite(siteDir string) error {
+func createInstallSite(siteDir, repoPath string) error {
 	content := `#!/bin/sh
 # OpenRiot post-install script — runs at end of OpenBSD install
 # Environment: root, chroot at new system root, no TTY, no X
@@ -208,6 +208,7 @@ fi
 log "Post-install complete"
 `
 
+	content = strings.Replace(content, "packages/snapshots/amd64", "packages/"+repoPath+"/amd64", 1)
 	path := filepath.Join(siteDir, "install.site")
 	return os.WriteFile(path, []byte(content), 0755)
 }
@@ -220,7 +221,7 @@ type PackageInfo struct {
 
 // GetPackageInfo returns info about downloaded packages
 func GetPackageInfo(cfg *Config) (*PackageInfo, error) {
-	pkgDir := filepath.Join(cfg.WorkDir, "packages", "snapshots", "amd64")
+	pkgDir := filepath.Join(cfg.WorkDir, "packages", formatVersion(cfg.Version), "amd64")
 	if _, err := os.Stat(pkgDir); err != nil {
 		return nil, err
 	}

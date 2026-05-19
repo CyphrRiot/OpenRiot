@@ -154,7 +154,7 @@ func CheckPrereqs(cfg *Config) error {
 	// Check Build/Images/install79.iso and warn
 	fallbackIso := filepath.Join(repoRoot, "Build", "Images", "install79.iso")
 	if _, err := os.Stat(fallbackIso); err == nil {
-		return fmt.Errorf("found %s but image builder requires .img (disk image), not .iso\ndownload the .img from https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install79.img", fallbackIso)
+		return fmt.Errorf("found %s but image builder requires .img (disk image), not .iso\ndownload the .img from https://cdn.openbsd.org/pub/OpenBSD/%s/amd64/install79.img", fallbackIso, formatVersion(cfg.Version))
 	}
 
 	// Download base image
@@ -175,8 +175,9 @@ func downloadBaseImage(cfg *Config) error {
 	// Remove any stale empty or partial file
 	os.Remove(cfg.BaseImg)
 
-	// Default to snapshots; release users can set BASE_IMG or --base-img
-	url := fmt.Sprintf("https://cdn.openbsd.org/pub/OpenBSD/snapshots/amd64/install%s.img", cfg.Version)
+	// Default to release CDN; -current users can set BASE_IMG or --base-img
+	repoPath := formatVersion(cfg.Version)
+	url := fmt.Sprintf("https://cdn.openbsd.org/pub/OpenBSD/%s/amd64/install%s.img", repoPath, cfg.Version)
 
 	logger.Info(fmt.Sprintf("Downloading base image from %s...", url))
 
