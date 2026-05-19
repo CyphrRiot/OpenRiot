@@ -53,7 +53,9 @@ func BuildCache() error {
 		useFFmpeg = true
 	}
 
-	matches, _ := filepath.Glob(filepath.Join(lockDir, "*.png"))
+	matchesPNG, _ := filepath.Glob(filepath.Join(lockDir, "*.png"))
+	matchesWebP, _ := filepath.Glob(filepath.Join(lockDir, "*.webp"))
+	matches := append(matchesPNG, matchesWebP...)
 	if len(matches) == 0 {
 		logger.Done("No lock screen images found")
 		return nil
@@ -62,8 +64,8 @@ func BuildCache() error {
 	if useFFmpeg {
 		filter := fmt.Sprintf("scale=%d:%d:force_original_aspect_ratio=decrease,pad=%d:%d:(ow-iw)/2:(oh-ih)/2", w, h, w, h)
 		script := fmt.Sprintf(
-			`for f in %s/*.png; do
-				bn=$(basename "$f" .png)
+			`find %s \( -name '*.png' -o -name '*.webp' \) | while IFS= read -r f; do
+				bn=$(basename "$f"); bn=${bn%%.*}
 				echo "$f" "%s/${bn}.png"
 			done | xargs -P %d -n2 sh -c 'ffmpeg -y -i "$1" -vf "%s" "$2" 2>/dev/null' _`,
 			lockDir, cacheRoot, ncpu, filter)
@@ -76,7 +78,7 @@ func BuildCache() error {
 
 	if !useFFmpeg {
 		script := fmt.Sprintf(
-			`find %s -name '*.png' | xargs -P %d -I{} sh -c 'f="{}"; bn=$(basename "$f" .png); convert "$f" -resize "%s^" -gravity center -extent "%s" "%s/${bn}.png"'`,
+			`find %s \( -name '*.png' -o -name '*.webp' \) | xargs -P %d -I{} sh -c 'f="{}"; bn=$(basename "$f"); bn=${bn%%.*}; convert "$f" -resize "%s^" -gravity center -extent "%s" "%s/${bn}.png"'`,
 			lockDir, ncpu, res, res, cacheRoot)
 		cmd := exec.Command("/bin/sh", "-c", script)
 		if out, err := cmd.CombinedOutput(); err != nil {

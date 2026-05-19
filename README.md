@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.3-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-7.4-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -118,6 +118,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.4 — Lossless at Full Volume](docs/v7.4-Release-Notes.md)
 - [v7.3 — Going Underground](docs/v7.3-Release-Notes.md)
 - [v7.2 — Drop the Needle](docs/v7.2-Release-Notes.md)
 - [v7.1 — Locked & Loaded](docs/v7.1-Release-Notes.md)

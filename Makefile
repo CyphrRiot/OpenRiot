@@ -207,6 +207,18 @@ validate:
 	@$(MAKE) verify
 	@echo "=== Validation passed ==="
 
+# Convert PNG backgrounds and lock screens to WebP
+convert:
+	@echo "=== Converting backgrounds to WebP ==="
+	@for f in backgrounds/*.png; do \
+		cwebp -q 95 "$$f" -o "backgrounds/$$(basename "$$f" .png).webp" >/dev/null 2>&1; \
+	done
+	@echo "=== Converting lock screens to WebP ==="
+	@for f in Locked/*.png; do \
+		cwebp -q 95 "$$f" -o "Locked/$$(basename "$$f" .png).webp" >/dev/null 2>&1; \
+	done
+	@echo "=== Conversion complete ==="
+
 # Clean
 clean:
 	@echo "=== Cleaning build artifacts ==="
@@ -278,5 +290,6 @@ help:
 	@echo "  test-img           Run imaging module tests"
 	@echo "  verify             Build and smoke-test the binary"
 	@echo "  clean              Remove build artifacts"
+	@echo "  convert            Convert PNG backgrounds/lock screens to WebP"
 	@echo "  binary-push        Build + strip history + commit + force-push binary"
 	@echo "  help               Show this message"

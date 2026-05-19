@@ -474,3 +474,29 @@ Exec=mpv %f
 Every rule in AGENTS.md exists because a past session violated it and produced broken output. "Forgetting" is not a valid explanation. The rules must be enforced at both the agent level (self-check) and the tool level (hooks).
 
 **Rule:** If a constraint is documented, it is non-negotiable. No exceptions for "small" changes.
+
+---
+
+## v7.3 Critical Lessons — VERSION, Batching, and Proposals
+
+### NEVER Touch VERSION or README Badges
+
+The `VERSION` file and the `README.md` version badge are **only** updated by `make release`, which the user runs manually. Changing them in a normal session is a direct violation of the release lifecycle.
+
+**Rule:** Do not touch `VERSION`, `README.md` badges, or any release metadata. Ever.
+
+---
+
+### ONE CHANGE AT A TIME Means Exactly That
+
+Batching related edits into a single block — even when they feel "trivial" — violates the user's workflow. Each logical edit requires a separate "go" or "proceed".
+
+**Rule:** One `edit` or `write` per approval. No batching. No "while I'm here" changes.
+
+---
+
+### Proposals Are Not Optional
+
+Skipping the proposal step because a change seems obvious or small leads to unauthorized work. The user rejected an attempt to proceed without an explicit proposal by saying "MAKE ONE CHANGE AT A TIME. WAIT FOR 'go'".
+
+**Rule:** Propose → wait for "go" → execute ONE change → wait for "go" → next change. No exceptions.
