@@ -28,6 +28,7 @@ import (
 	"openriot/nmtui"
 	"openriot/notify"
 	"openriot/polybar"
+	"openriot/resolution"
 	"openriot/rofi"
 	"openriot/roficalc"
 	"openriot/screenshot"
@@ -333,7 +334,7 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--wireguard-notify", Category: "Polybar Status",
 		Description: "Toggle or notify WireGuard",
 		Run: func(args []string) error {
-			if wireguard.Status() != "" {
+			if wireguard.IsRunning() {
 				notify.SendNotify("wireguard", "WireGuard VPN", "WireGuard VPN is Enabled\nDisable in Settings Menu\nOr Super+Shift+G", "normal", 5000, 0)
 			} else {
 				wireguard.Toggle()
@@ -417,6 +418,30 @@ func RegisterAll(r *Registry, testMode *bool) {
 		},
 	})
 	r.Register(&Command{
+		Name: "--wifi-click", Category: "Network & Battery",
+		Description: "WiFi info if connected, reconnect if not",
+		Run: func(args []string) error {
+			if network.IsConnected() && network.IsOnline() {
+				details := network.GetWifiDetails()
+				icon := "wifi.png"
+				if !network.IsConnected() {
+					icon = "wifi-off.png"
+				}
+				notify.SendNotify(icon, "WiFi", details, "normal", 5000, 0)
+			} else {
+				if !network.IsConnected() {
+					notify.SendNotify("wifi-off", "WiFi", "Not connected", "normal", 2000, 0)
+					return nil
+				}
+				notify.SendNotify("wifi", "WiFi", "Reconnecting...", "normal", 3000, 0)
+				if err := network.ReconnectWifi(); err != nil {
+					notify.SendNotify("wifi-off", "WiFi", fmt.Sprintf("Reconnect failed: %v", err), "critical", 5000, 0)
+				}
+			}
+			return nil
+		},
+	})
+	r.Register(&Command{
 		Name: "--wifi-reconnect", Category: "Network & Battery",
 		Description: "Reconnect WiFi",
 		Run: func(args []string) error {
@@ -440,6 +465,16 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--nmtui", Category: "Network & Battery",
 		Description: "Wi-Fi network manager TUI",
 		Run: func(args []string) error { return nmtui.Run() },
+	})
+	r.Register(&Command{
+		Name: "--resolution-tui", Category: "Network & Battery",
+		Description: "Monitor resolution TUI",
+		Run: func(args []string) error { return resolution.Run() },
+	})
+	r.Register(&Command{
+		Name: "--resolution-restore", Category: "System",
+		Description: "Restore saved monitor resolution on startup",
+		Run: func(args []string) error { return resolution.Restore() },
 	})
 	r.Register(&Command{
 		Name: "--eth-info", Category: "Network & Battery",

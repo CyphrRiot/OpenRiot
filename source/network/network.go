@@ -172,7 +172,7 @@ func getWifiInterface() (string, bool) {
 			isWifi = true
 		}
 		if isWifi {
-			if strings.Contains(line, "join") {
+			if strings.Contains(line, "join") || strings.Contains(line, "nwid") {
 				hasJoin = true
 			}
 			if strings.Contains(line, "status: no network") {
@@ -221,12 +221,24 @@ func getSignal(iface string) int {
 			fmt.Sscanf(s, "%ddBm", &signal)
 			return -signal
 		}
+		// Percentage format: 56%
+		if strings.HasSuffix(s, "%") {
+			var pct int
+			if n, _ := fmt.Sscanf(s, "%d%%", &pct); n == 1 {
+				return pct
+			}
+		}
 	}
 	return 0
 }
 
 func getWifiIcon(signal int) string {
-	percent := max(0, min((signal+100)*100/70, 100))
+	var percent int
+	if signal >= 0 && signal <= 100 {
+		percent = signal
+	} else {
+		percent = max(0, min((signal+100)*100/70, 100))
+	}
 
 	var icon string
 	if percent >= 70 {
@@ -244,17 +256,34 @@ func getWifiIcon(signal int) string {
 }
 
 func extractAP(output string) string {
-	if !strings.Contains(output, "join") {
+	if !strings.Contains(output, "join") && !strings.Contains(output, "nwid") {
 		return "N/A"
 	}
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
-		if strings.Contains(line, "join") {
+		for _, kw := range []string{"join", "nwid"} {
+			if !strings.Contains(line, kw) {
+				continue
+			}
 			parts := strings.Fields(line)
 			for i, p := range parts {
-				if p == "join" && i+1 < len(parts) {
-					return parts[i+1]
+				if p != kw || i+1 >= len(parts) {
+					continue
 				}
+				word := parts[i+1]
+				if strings.HasPrefix(word, "\"") {
+					var b strings.Builder
+					b.WriteString(word)
+					for j := i + 2; j < len(parts); j++ {
+						b.WriteByte(' ')
+						b.WriteString(parts[j])
+						if strings.HasSuffix(parts[j], "\"") {
+							break
+						}
+					}
+					return strings.Trim(b.String(), "\"")
+				}
+				return word
 			}
 		}
 	}

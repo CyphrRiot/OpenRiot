@@ -57,6 +57,9 @@ exec --no-startup-id sh -c 'sleep 3; $openriot_bin --wireguard-autostart'
 # Restore saved volume level from previous session
 exec --no-startup-id sh -c 'sleep 2; $openriot_bin --volume restore'
 
+# Restore saved monitor resolution from previous session
+exec --no-startup-id sh -c 'sleep 2; $openriot_bin --resolution-restore'
+
 # Notifications - watchdog starts dunst on first notification
 exec --no-startup-id sh -c 'while true; do pgrep dunst >/dev/null || nohup /usr/local/bin/dunst >/dev/null 2>&1; sleep 5; done'
 

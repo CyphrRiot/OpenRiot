@@ -28,7 +28,11 @@ func Get() string {
 	if state == 1 {
 		return polybar.Icon(iconOn)
 	}
-	return ""
+	return polybar.Icon(iconOff)
+}
+
+func IsOn() bool {
+	return getState() == 1
 }
 
 func Toggle() error {

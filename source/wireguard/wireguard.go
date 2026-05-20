@@ -22,10 +22,14 @@ func isConfigured() bool {
 	return err == nil
 }
 
-func isRunning() bool {
+func IsRunning() bool {
 	cmd := exec.Command("ifconfig", "wg0")
 	out, _ := cmd.Output()
 	return strings.Contains(string(out), "UP") && strings.Contains(string(out), "RUNNING")
+}
+
+func isRunning() bool {
+	return IsRunning()
 }
 
 // GetTunnelIP returns the IPv4 address assigned to wg0, or empty string if down.
@@ -49,10 +53,7 @@ func GetTunnelIP() string {
 	return ""
 }
 
-// IsRunning reports whether the WireGuard tunnel is active.
-func IsRunning() bool {
-	return isRunning()
-}
+// GetTunnelIP returns the IPv4 address assigned to wg0, or empty string if down.
 
 func isAutostartEnabled() bool {
 	home, err := os.UserHomeDir()

@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.5-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-7.6-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -123,6 +123,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.6 — Ctrl+Alt+Del the Desktop](docs/v7.6-Release-Notes.md)
 - [v7.5 — Lock It Down](docs/v7.5-Release-Notes.md)
 - [v7.4 — Lossless at Full Volume](docs/v7.4-Release-Notes.md)
 - [v7.3 — Going Underground](docs/v7.3-Release-Notes.md)
@@ -587,6 +588,7 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | Firefox          |    | Web browser              |
 | Firefox (Private)|    | Private browsing         |
 | Select WiFi      | 󱚹   | Wi-Fi network manager    |
+| Monitor Resolution | 󰹑   | Display resolution picker |
 | Text Editor      | 󰷉   | GNOME text editor        |
 | Helix            |    | Text editor              |
 | Word Processor   | 󰈙   | LibreOffice Writer       |
@@ -612,7 +614,7 @@ Polybar is your status bar. Click on modules for more:
 
 | Module | Click Action |
 | ------ | ------------- |
-|  Launcher | Opens app launcher |
+| 󰀻 Launcher | Opens app launcher |
 | 󰎤󰎧󰎪 Workspaces 1-3 | Click to switch workspace |
 | Window Title | Shows focused window name |
 | 󰃭 Date | Shows date/time |
@@ -638,6 +640,8 @@ Polybar is your status bar. Click on modules for more:
 | 16 | battery | 󰁺→󰂂 / 󰁹 | Level / Full+charging |
 | 17 | power | ⏻ | Power menu |
 | 18 | lock | 󰌾 | Lock screen |
+
+**Separator:** `·` — Visual divider inserted between functional module groups (e.g., between screenrec and cpu, memory and stealth, etc.).
 
 **Workspace Bar:** Shows all 3 workspaces with indicators and app icons.
 
@@ -919,7 +923,7 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 
 | Module | Icon | States | Click Action | Scroll |
 |--------|------|-------|-------------|--------|
-| **launcher** |  | - | Open app launcher (Rofi) | - |
+| **launcher** | 󰀻 | - | Open app launcher (Rofi) | - |
 | **workspaces** | 󰎤󰎧󰎪 | - | Switch to workspace | - |
 | **window-title** | text | - | - | - |
 | **date** | 󰃭 | - | Cycle wallpaper | - |
@@ -953,6 +957,7 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 | **openriot-update** | 󰋻 | Update available | Check for updates | - |
 | | 󰚇 | Up to date | | |
 | **settings** |  | - | Open settings menu | - |
+| **sep** | · | - | Visual separator between module groups | - |
 | **hdmi** | 󰍺 / 󰍹 /  | Both / HDMI only / Laptop only | Toggle display mode | - |
 | **weather** | varies | - | - | - |
 | **power** | ⏻ | - | Open power menu | - |

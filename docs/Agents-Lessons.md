@@ -500,3 +500,118 @@ Batching related edits into a single block — even when they feel "trivial" —
 Skipping the proposal step because a change seems obvious or small leads to unauthorized work. The user rejected an attempt to proceed without an explicit proposal by saying "MAKE ONE CHANGE AT A TIME. WAIT FOR 'go'".
 
 **Rule:** Propose → wait for "go" → execute ONE change → wait for "go" → next change. No exceptions.
+
+---
+
+## v7.5 Critical Lessons — OpenBSD sed, doas Redirections, and fish Heredocs
+
+### OpenBSD `sed -i` Requires a Backup Extension Argument
+
+GNU `sed -i` edits in place with no backup. OpenBSD `sed` is POSIX. `-i` alone treats the next argument as a backup extension:
+
+```sh
+# WRONG — silently no-ops because 's/foo/bar/' becomes the backup suffix
+sed -i 's/foo/bar/' /etc/file
+
+# CORRECT — empty string means no backup
+sed -i '' 's/foo/bar/' /etc/file
+
+# BETTER — avoid sed -i entirely on OpenBSD
+awk '{gsub(/foo/, "bar"); print}' /etc/file > /tmp/file.new && doas cp /tmp/file.new /etc/file
+
+# BEST for single-line replacement — printf pipe to ed
+printf '/^pass/c\npass out\t\t# comment\n.\nw\nq\n' | doas ed -s /etc/pf.conf
+```
+
+**Rule:** Never use `sed -i` on OpenBSD without testing `-i ''` first. Prefer `ed` or `awk` with a temp file for in-place edits.
+
+---
+
+### `doas` Does Not Elevate Shell Redirections
+
+The unprivileged shell opens the output file before `doas` elevates the command:
+
+```sh
+# WRONG — shell tries to open /etc/file before doas runs
+$ doas echo "foo" > /etc/file
+zsh: permission denied: /etc/file
+
+# CORRECT — entire pipeline elevated
+$ doas sh -c 'echo "foo" > /etc/file'
+```
+
+**Rule:** Any redirection to a privileged path must be inside `doas sh -c '...'`.
+
+---
+
+### Heredocs Fail in fish Shell
+
+The `<<'EOF'` syntax is POSIX `sh`, not fish:
+
+```sh
+# WRONG — fish: Expected a string, but found a redirection
+fish> doas ed -s /etc/pf.conf <<'EOF'
+...
+EOF
+
+# CORRECT — pipe commands via stdin, no heredoc
+printf '/^pass/c\npass out\t\t# comment\n.\nw\nq\n' | doas ed -s /etc/pf.conf
+
+# ALSO CORRECT — use sh -c to get a POSIX subshell
+doas sh -c 'ed -s /etc/pf.conf <<EOF
+/^pass/c
+pass out		# comment
+.
+w
+q
+EOF'
+```
+
+**Rule:** Never use heredocs in commands that may run under fish. Use `printf | cmd` or `sh -c`.
+
+---
+
+### Function Signature Changes Require Updating All Call Sites
+
+Changing a function signature (e.g., adding a parameter) breaks every caller, including tests:
+
+```go
+// Changed this
+func createInstallSite(siteDir string) error
+
+// To this
+func createInstallSite(siteDir, repoPath string) error
+
+// But forgot to update the test
+createInstallSite(tmpDir)  // FAIL: not enough arguments
+```
+
+**Rule:** After any signature change, `grep` for every call site and run `make test` before declaring it done.
+
+---
+
+### Run `make test` After Every Edit, Not Just `make`
+
+`make` only compiles. `make test` runs the full test suite and catches signature mismatches, broken tests, and regressions:
+
+```sh
+# WRONG — compiles but misses broken test
+make
+
+# CORRECT
+make test
+```
+
+**Rule:** `make test` is the minimum verification step after any code change. No exceptions.
+
+---
+
+### Stop at Two Failures on the Same Problem
+
+Iterating a broken approach more than twice wastes time and produces worse solutions. After two distinct attempts fail:
+
+1. Stop
+2. State what failed
+3. Ask the user what to do
+
+**Rule:** Two failures on the same problem means stop. Do not attempt a third time unilaterally.

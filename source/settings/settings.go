@@ -73,7 +73,7 @@ func buildEntries() []entry {
 	var entries []entry
 
 	// WireGuard
-	wgOn := wireguard.Status() != ""
+	wgOn := wireguard.IsRunning()
 	entries = append(entries, entry{
 		icon: "󰱓",
 		name: "WireGuard VPN",
@@ -84,13 +84,23 @@ func buildEntries() []entry {
 	})
 
 	// Night Light
-	nlOn := nightlight.Get() != ""
+	nlOn := nightlight.IsOn()
 	entries = append(entries, entry{
 		icon: "󰌵",
 		name: "Night Light",
 		on:   nlOn,
 		toggle: func() {
 			_ = nightlight.Toggle()
+		},
+	})
+
+	// Monitor Resolution
+	entries = append(entries, entry{
+		icon:  "󰹑",
+		name:  "Monitor Resolution",
+		label: "(Change)",
+		toggle: func() {
+			exec.Command("alacritty", "--class", "openriot_resolution", "-e", "openriot", "--resolution-tui").Start()
 		},
 	})
 
