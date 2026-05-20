@@ -33,11 +33,13 @@ Install base OpenBSD 7.9 → run one script → get a fast, dark, beautiful desk
 
 - Read the [original Post on X](https://x.com/CyphrRiot/status/2043140621398127012?s=20)
 
+![Donation QR Code](assets/qr-code.png)
+
 > **Built by one person over hundreds of hours.** OpenRiot is the first truly usable
 > OpenBSD system with a working window manager, curated applications, and a complete
-> desktop workflow — no compromises, no Linux copium. If it saved you time, consider
-> donating: `bc1qscxvn9clw6n3a4kykl2nlu8w2f2aqdftfp4hyq`
-> <p align="right"><img src="assets/qr-code.png" width="150" alt="Donation QR Code"></p>
+> desktop workflow — no compromises, no Linux copium.
+> If it saved you time, consider donating (in Bitcoin):
+> `bc1qscxvn9clw6n3a4kykl2nlu8w2f2aqdftfp4hyq`
 
 ### **Curated to be correct**
 
