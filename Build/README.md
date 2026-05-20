@@ -61,7 +61,6 @@ exclude:
 Old packages are auto-cleaned before downloading fresh ones.
 
 ### packages.yaml sync
-For snapshots, sync packages before building:
 ```bash
 openriot --sync-packages
 make img
@@ -100,20 +99,3 @@ make clean    # Clean Build/work/
 - `Images/openriot.sha256` — SHA256 checksum
 - `Build/work/openriot.tgz` — Also injected into image
 - `Build/work/packages/` — Downloaded .tgz files
-
-## Snapshot Updates
-
-While using OpenBSD snapshots, package versions change frequently:
-
-```bash
-# Update system packages to get current versions
-doas pkg_add -D snapshot -u
-
-# Sync packages.yaml with installed versions
-openriot --sync-packages
-
-# Build the image
-make img
-```
-
-**After stable release**: Skip steps 1-2, packages are frozen by version number.

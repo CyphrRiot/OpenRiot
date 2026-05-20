@@ -80,7 +80,7 @@ func checkUpgrade() {
 			fmt.Println("Action needed to sync base and packages:")
 			fmt.Println("  doas sysupgrade -s")
 			fmt.Println("  (reboot)")
-			fmt.Println("  doas pkg_add -D snap -u")
+			fmt.Println("  doas pkg_add -u")
 		} else {
 			fmt.Println("Status: base and packages appear in sync")
 		}
@@ -200,6 +200,14 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--crush-upgrade", Category: "Tools & Upgrades",
 		Description: "Upgrade crush CLI to latest version",
 		Run: func(args []string) error { return installer.NewCrushUpgrade().Run() },
+	})
+	r.Register(&Command{
+		Name: "--check-release-path", Category: "Tools & Upgrades",
+		Description: "Check if you can safely migrate from -current to 7.9 stable",
+		Run: func(args []string) error {
+			checkReleasePath()
+			return nil
+		},
 	})
 	r.Register(&Command{
 		Name: "--check-upgrade", Category: "Tools & Upgrades",

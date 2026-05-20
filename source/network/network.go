@@ -55,10 +55,12 @@ func GetWifi() string {
 
 func GetEth() string {
 	iface, hasCarrier := getEthInterface()
-	if iface == "" || !hasCarrier {
+	if iface == "" {
 		return ""
 	}
-
+	if hasCarrier {
+		return polybar.Icon("󰌘")
+	}
 	return polybar.Icon("󰈀")
 }
 
@@ -194,6 +196,7 @@ func getEthInterface() (string, bool) {
 
 	var current string
 	var isEth bool
+	var lastEth string
 	lines := strings.Split(string(output), "\n")
 	for _, line := range lines {
 		if ifaceLineRE.MatchString(line) {
@@ -202,10 +205,14 @@ func getEthInterface() (string, bool) {
 		}
 		if strings.Contains(line, "media: Ethernet") {
 			isEth = true
+			lastEth = current
 		}
 		if isEth && strings.Contains(line, "status: active") {
 			return current, true
 		}
+	}
+	if lastEth != "" {
+		return lastEth, false
 	}
 	return "", false
 }

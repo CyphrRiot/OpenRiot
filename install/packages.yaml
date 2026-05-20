@@ -52,7 +52,7 @@ core:
             - ripgrep-15.1.0
             - pv-1.10.5
             - btop-1.4.7
-            - gnupg-2.5.19
+            - gnupg-2.5.20
             - meson-1.11.1v0
             - ninja-1.11.1p1v1
         configs:
@@ -85,7 +85,7 @@ desktop:
             - feh-3.12.2
             - picom-13
             - xclip-0.13p1
-            - ImageMagick-6.9.13.47
+            - ImageMagick-6.9.13.48p0
             - ffmpeg-8.0.2v1
             - dunst-1.13.1
             - clipmenu-6.2.0
@@ -157,8 +157,8 @@ desktop:
         end: "Lock screen images completed"
     apps:
         packages:
-            - firefox-150.0.3p0
-            - tdesktop-6.8.0
+            - firefox-151.0
+            - tdesktop-6.8.2
             - helix-25.07.1
             - lsd-1.1.5p2
             - thunar-4.20.8

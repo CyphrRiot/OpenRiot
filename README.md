@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.6-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-7.7-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -32,6 +32,12 @@ OpenRiot is a clean, minimal, ridiculously polished i3-based OpenBSD 7.9 setup w
 Install base OpenBSD 7.9 → run one script → get a fast, dark, beautiful desktop that respects OpenBSD’s strengths instead of fighting them and adds all the workflow you need to be productive as a user and a developer.
 
 - Read the [original Post on X](https://x.com/CyphrRiot/status/2043140621398127012?s=20)
+
+> **Built by one person over hundreds of hours.** OpenRiot is the first truly usable
+> OpenBSD system with a working window manager, curated applications, and a complete
+> desktop workflow — no compromises, no Linux copium. If it saved you time, consider
+> donating: `bc1qscxvn9clw6n3a4kykl2nlu8w2f2aqdftfp4hyq`
+> <p align="right"><img src="assets/qr-code.png" width="150" alt="Donation QR Code"></p>
 
 ### **Curated to be correct**
 
@@ -87,11 +93,6 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ---
 
-> **Built by one person over hundreds of hours.** OpenRiot is the first truly usable
-> OpenBSD system with a working window manager, curated applications, and a complete
-> desktop workflow — no compromises, no Linux copium. If it saved you time, consider
-> donating: `bc1qscxvn9clw6n3a4kykl2nlu8w2f2aqdftfp4hyq`
-
 ## 📚 Navigate This Guide
 
 - [🚀 Installing OpenRiot](#installing-openriot)
@@ -123,6 +124,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.7 — Color Theory for People Who Hate Color Theory](docs/v7.7-Release-Notes.md)
 - [v7.6 — Ctrl+Alt+Del the Desktop](docs/v7.6-Release-Notes.md)
 - [v7.5 — Lock It Down](docs/v7.5-Release-Notes.md)
 - [v7.4 — Lossless at Full Volume](docs/v7.4-Release-Notes.md)
@@ -333,7 +335,7 @@ There are two ways to install OpenRiot on a fresh machine. **Method 1 is strongl
 **Choosing Between Methods – Nuances and Implications:**
 - **Method 1 (Online)**: Best for reliability and currency. Requires a working network connection during the `setup.sh` phase (packages, firmware, git clone of configs). The `setup.sh` script (a robust Go binary) handles atomic installation, config deployment, and has built-in rollback awareness. Internet also allows `fw_update` and mirror selection for fastest mirrors.
 - **Method 2 (Offline)**: Useful when you cannot or do not want to connect during base install (e.g., privacy-conscious first boot, travel, or metered connections). The image includes a `site79.tgz` set that pre-installs many packages via `install.site`. However, bundled package versions may lag behind the absolute latest snapshots, and some edge-case hardware/firmware detection or post-install tweaks might differ. **It is currently marked as not fully stable** — use primarily for evaluation or when Method 1 is impractical. Always verify checksums and consider it experimental until the note is removed in a future release.
-- **Edge cases**: If your hardware has very new components or you need specific recent fixes, Method 1 + snapshot packages is safer. For reproducible/offline deploys (e.g., multiple machines), Method 2 shines once stabilized. Both paths converge on the same polished desktop after `setup.sh`.
+- **Edge cases**: If your hardware has very new components or you need specific recent fixes, Method 1 is safer. For reproducible/offline deploys (e.g., multiple machines), Method 2 shines once stabilized. Both paths converge on the same polished desktop after `setup.sh`.
 
 ### 1. Download
 
@@ -429,7 +431,7 @@ EOF
 Now log in as **your user** and run:
 
 ```bash
-doas pkg_add -D snapshot curl
+doas pkg_add curl
 curl -fsSL https://openriot.org/setup.sh | sh
 ```
 
@@ -857,9 +859,30 @@ The script automatically detects:
 
 > **Note:** Upgrade also updates OpenBSD packages to the latest stable versions via `pkg_add -u`. This applies to both the Polybar upgrade click and `curl -fsSL https://openriot.org/setup.sh | sh`.
 
-Package installation uses `pkg_add -D snapshot` only when running OpenBSD -current (snapshots). For stable releases (e.g., 7.9, 8.0), packages are fetched from the release CDN without the snapshot flag.
+### Migrating from -current to Stable Release
 
-<a id="advanced-usage"></a>
+If you installed OpenBSD before the release date, you may be on a
+`-current` snapshot even though the release is now available. OpenRiot can
+check if your snapshot is pre-release (safe to migrate) or post-release
+(downgrade — not supported).
+
+```bash
+# Check your migration path
+openriot --check-release-path
+```
+
+**Decision tree:**
+
+| Snapshot Date | Status | Action |
+| --- | --- | --- |
+| Before 7.9 release (May 6, 2026) | Pre-release | `doas sysupgrade -R 7.9`, reboot, `doas pkg_add -u` |
+| After 7.9 release (May 6, 2026) | Post-release | Stay on `-current` with `doas sysupgrade`, or fresh install |
+| Already on 7.9 (no `-current`) | Stable | `doas sysupgrade` for errata, `doas pkg_add -u` for packages |
+
+**Why this matters:** Post-release snapshots contain changes made *after*
+the release freeze. Those changes are not in the release sets. `sysupgrade
+-R` would replace newer code with older code, creating a mismatch that
+OpenBSD does not handle.
 
 ## 🧰 Advanced Usage
 

@@ -13,7 +13,7 @@ import (
 )
 
 // InstallPackages installs packages using pkg_add with doas.
-// On snapshot systems, -D snapshot is passed to pkg_add.
+// On snapshot systems, the installer detects -current and passes the appropriate flag.
 // Falls back to base package name (no version) if exact version fails.
 // Returns (failedCount, error)
 func InstallPackages(cfg *config.Config, packages []string) (int, error) {
@@ -86,7 +86,7 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 				fmt.Println("To fix this, run the following commands:")
 				fmt.Println("  doas sysupgrade -s")
 				fmt.Println("  (reboot when prompted)")
-				fmt.Println("  doas pkg_add -D snap -u")
+				fmt.Println("  doas pkg_add -u")
 				fmt.Println()
 				fmt.Println("Then re-run the OpenRiot installer.")
 				os.Exit(1)

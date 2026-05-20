@@ -660,14 +660,20 @@ func buildWorkspacesPolybar(tree *i3Tree, workspaces []i3Workspace, windowIcons 
 
 		if state == "unfocused" && len(icons) > 0 {
 			for i := 0; i < len(icons); i++ {
-				allSlots[i] = fmt.Sprintf("%%{T0}%%{F#565f89}%s%%{F-}%%{T-}", icons[i])
+				allSlots[i] = fmt.Sprintf("%%{T0}%%{F#344b7a}%s%%{F-}%%{T-}", icons[i])
 			}
 		}
 		if state == "unfocused" {
-			indicator = fmt.Sprintf("%%{F#565f89}%s%%{F-}", indicator)
+			indicator = fmt.Sprintf("%%{F#344b7a}%s%%{F-}", indicator)
 		}
 
 		content := fmt.Sprintf("%s %s", indicator, strings.Join(allSlots, " "))
+		if state == "focused" {
+			content = fmt.Sprintf("%%{F#7aa2f7}%s%%{F-}", content)
+		}
+		if state == "urgent" {
+			content = fmt.Sprintf("%%{F#c084fc}%s%%{F-}", content)
+		}
 		results = append(results,
 			fmt.Sprintf("%%{A:$HOME/.local/share/openriot/install/openriot --workspace-switch %d:}%s%%{A}", wsNum, content))
 	}

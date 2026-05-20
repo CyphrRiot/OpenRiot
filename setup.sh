@@ -18,16 +18,10 @@ NC='\033[0m' # No Color
 OPENBSD_MIN_VERSION="7.9"
 
 # Target OpenBSD branch: "snapshots" for -current, or release version like "7.9", "8.0"
-OPENBSD_BRANCH="snapshots"
+OPENBSD_BRANCH="7.9"
 
 CDN_BRANCH="$OPENBSD_BRANCH"
-if [ "$OPENBSD_BRANCH" = "snapshots" ]; then
-    INSTALLURL="https://cdn.openbsd.org/pub/OpenBSD"
-    PKG_ADD_FLAGS="-D snapshot"
-else
-    INSTALLURL="https://cdn.openbsd.org/pub/OpenBSD"
-    PKG_ADD_FLAGS=""
-fi
+INSTALLURL="https://cdn.openbsd.org/pub/OpenBSD"
 
 REPO_URL="${REPO_URL:-https://github.com/CyphrRiot/OpenRiot}"
 CONFIG_BRANCH="${CONFIG_BRANCH:-main}"
@@ -194,7 +188,7 @@ install_bootstrap_packages() {
         info "git already installed"
     else
         info "Installing git..."
-        doas pkg_add $PKG_ADD_FLAGS git
+        doas pkg_add git
     fi
     git config --global pull.rebase true
     git config --global init.defaultBranch master

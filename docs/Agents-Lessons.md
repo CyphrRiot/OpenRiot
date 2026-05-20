@@ -430,7 +430,7 @@ if err == nil {
 
 A fresh kernel build can still have unverifiable snapshot packages. Probing `pkg_add` output for `signify`, `gpg`, `signature`, or `pubkey` errors is the only reliable signal.
 
-**Rule:** Detect package/base drift with a live `pkg_add -D snap -I` probe, not just kernel date math.
+**Rule:** Detect package/base drift with a live `pkg_add -I` probe, not just kernel date math.
 
 ---
 
@@ -463,7 +463,11 @@ Exec=mpv %f
 
 ### Release Notes Lines Must Never Exceed 80 Characters
 
-`lowdown -Tterm` renders with a fixed terminal width. Lines >80 chars wrap badly in the custom pager. Verify with `awk '{print length, $0}' file | sort -rn | head` before any write.
+`lowdown -Tterm` renders with a fixed terminal width. Lines >80 chars wrap badly in the custom pager.
+
+**Rule: Write within 80 characters from the start.** Do not write long lines and then iteratively shorten them. That is ass-backwards, time-wasting, and produces garbage. Markdown table rows can be split across lines — you do not need to cram an entire row into one line. Think about width *while* you write, not after.
+
+**Verify with:** `awk '{print length, $0}' file | sort -rn | head` before any write.
 
 **Rule:** Run width check before writing release notes. Never submit without verifying.
 

@@ -24,6 +24,34 @@ import (
 func runInstall(testMode *bool) {
 	logger.Info("OpenRiot installer starting...")
 
+	// Pre-install release path check for -current users
+	if config.DetectOpenBSDVersion() == "snapshots" {
+		res, err := installer.CheckReleasePath(installer.ReleaseDate)
+		if err == installer.ErrUpgradeRequired {
+			if installer.PrintReleasePathBanner(res, "7.9") {
+				fmt.Println()
+				logger.Info("Running: doas sysupgrade -R 7.9")
+				fmt.Println()
+				fmt.Println("The system will reboot into the upgrade kernel.")
+				fmt.Println("After boot completes, re-run the installer:")
+				fmt.Println("  curl -fsSL https://OpenRiot.org/setup.sh | sh")
+				fmt.Println()
+				cmd := exec.Command("doas", "sysupgrade", "-R", "7.9")
+				cmd.Stdout = os.Stdout
+				cmd.Stderr = os.Stderr
+				if err := cmd.Run(); err != nil {
+					logger.Warn(fmt.Sprintf("sysupgrade failed: %v", err))
+					fmt.Println("Please run manually: doas sysupgrade -R 7.9")
+				}
+				os.Exit(0)
+			}
+			logger.Info("Continuing with -current installation.")
+		} else if err == installer.ErrDowngradeRisk {
+			logger.Info("Running on post-release snapshot. sysupgrade -R would downgrade.")
+			logger.Info("Staying on -current branch.")
+		}
+	}
+
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		logger.Fail(fmt.Sprintf("Could not determine home directory: %v", err))
@@ -82,7 +110,7 @@ func runInstall(testMode *bool) {
 			logger.Info("To keep base and packages in sync, run:")
 			fmt.Println("  doas sysupgrade -s")
 			fmt.Println("  (reboot)")
-			fmt.Println("  doas pkg_add -D snap -u")
+			fmt.Println("  doas pkg_add -u")
 		}
 	}
 }
@@ -109,6 +137,47 @@ func hasPackageDrift() (bool, time.Time) {
 	}
 
 	return time.Since(buildDate) > 7*24*time.Hour, buildDate
+}
+
+// checkReleasePath determines if a -current system can safely migrate to the
+// 7.9 release. Pre-release snapshots (built before the release date) can use
+// sysupgrade -R. Post-release snapshots cannot; fresh install is required.
+func checkReleasePath() {
+	res, err := installer.CheckReleasePath(installer.ReleaseDate)
+
+	if err != nil && err != installer.ErrUpgradeRequired && err != installer.ErrDowngradeRisk {
+		fmt.Printf("Cannot determine system status: %v\n", err)
+		return
+	}
+
+	switch res.Status {
+	case "stable":
+		fmt.Println("You are already on a stable/release build.")
+		fmt.Println("Run: doas sysupgrade")
+		fmt.Println("Then: doas pkg_add -u")
+	case "pre-release":
+		fmt.Printf("Kernel build date: %s\n", res.BuildDate.Format("2006-01-02"))
+		fmt.Printf("7.9 release date:  %s\n", res.ReleaseDate.Format("2006-01-02"))
+		fmt.Println()
+		fmt.Println("Status: PRE-RELEASE snapshot")
+		fmt.Println("You can safely upgrade to the 7.9 release.")
+		fmt.Println()
+		fmt.Println("Run these commands:")
+		fmt.Println("  doas sysupgrade -R 7.9")
+		fmt.Println("  (reboot when prompted)")
+		fmt.Println("  doas pkg_add -u")
+	case "post-release":
+		fmt.Printf("Kernel build date: %s\n", res.BuildDate.Format("2006-01-02"))
+		fmt.Printf("7.9 release date:  %s\n", res.ReleaseDate.Format("2006-01-02"))
+		fmt.Println()
+		fmt.Println("Status: POST-RELEASE snapshot")
+		fmt.Println("WARNING: sysupgrade -R 7.9 would be a DOWNGRADE.")
+		fmt.Println("OpenBSD does not support downgrades. Do NOT run it.")
+		fmt.Println()
+		fmt.Println("Your options:")
+		fmt.Println("  1. Stay on -current: doas sysupgrade (no -R)")
+		fmt.Println("  2. Fresh install 7.9 release from install79.img")
+	}
 }
 
 func runNotify(args []string) error {
