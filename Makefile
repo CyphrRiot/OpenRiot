@@ -63,12 +63,18 @@ release:
 	echo ""; \
 	MAJOR=`echo $$OPENRIOT_VERSION | cut -d. -f1` && \
 	MINOR=`echo $$OPENRIOT_VERSION | cut -d. -f2` && \
+	PATCH=`echo $$OPENRIOT_VERSION | cut -d. -f3` && \
+	[ -n "$$PATCH" ] || PATCH=0 && \
 	if [ "$(BUMP)" = "major" ]; then \
-		NEW_VERSION=$$((MAJOR+1)).0; \
+		if [ "$$MINOR" -eq 9 ]; then \
+			NEW_VERSION=$$((MAJOR+1)).0.0; \
+		else \
+			NEW_VERSION=$$MAJOR.$$((MINOR+1)).0; \
+		fi; \
 		echo "Bump type: major"; \
 	else \
-		NEW_VERSION=$$MAJOR.$$((MINOR+1)); \
-		echo "Bump type: minor (default)"; \
+		NEW_VERSION=$$MAJOR.$$MINOR.$$((PATCH+1)); \
+		echo "Bump type: patch (default)"; \
 	fi && \
 	echo "New version: v$$NEW_VERSION"; \
 	echo ""; \
@@ -119,12 +125,18 @@ create-release:
 	@OPENRIOT_VERSION=`cat VERSION` && \
 	MAJOR=`echo $$OPENRIOT_VERSION | cut -d. -f1` && \
 	MINOR=`echo $$OPENRIOT_VERSION | cut -d. -f2` && \
+	PATCH=`echo $$OPENRIOT_VERSION | cut -d. -f3` && \
+	[ -n "$$PATCH" ] || PATCH=0 && \
 	if [ "$(BUMP)" = "major" ]; then \
-		NEW_VERSION=$$((MAJOR+1)).0; \
+		if [ "$$MINOR" -eq 9 ]; then \
+			NEW_VERSION=$$((MAJOR+1)).0.0; \
+		else \
+			NEW_VERSION=$$MAJOR.$$((MINOR+1)).0; \
+		fi; \
 		echo "Bump type: major"; \
 	else \
-		NEW_VERSION=$$MAJOR.$$((MINOR+1)); \
-		echo "Bump type: minor (default)"; \
+		NEW_VERSION=$$MAJOR.$$MINOR.$$((PATCH+1)); \
+		echo "Bump type: patch (default)"; \
 	fi && \
 	echo "Updating VERSION: v$$OPENRIOT_VERSION -> v$$NEW_VERSION"; \
 	echo $$NEW_VERSION > VERSION && \

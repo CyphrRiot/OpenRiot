@@ -25,11 +25,19 @@ func getReleaseNotesPath() (string, error) {
 	if version == "" || version == "unknown" {
 		return "", fmt.Errorf("version unknown")
 	}
-	notesPath := filepath.Join(homeDir, ".local", "share", "openriot", "docs", fmt.Sprintf("v%s-Release-Notes.md", version))
-	if _, err := os.Stat(notesPath); err != nil {
-		return "", err
+	docsDir := filepath.Join(homeDir, ".local", "share", "openriot", "docs")
+	notesPath := filepath.Join(docsDir, fmt.Sprintf("v%s-Release-Notes.md", version))
+	if _, err := os.Stat(notesPath); err == nil {
+		return notesPath, nil
 	}
-	return notesPath, nil
+	parts := strings.Split(version, ".")
+	if len(parts) >= 3 {
+		legacyPath := filepath.Join(docsDir, fmt.Sprintf("v%s.%s-Release-Notes.md", parts[0], parts[1]))
+		if _, err := os.Stat(legacyPath); err == nil {
+			return legacyPath, nil
+		}
+	}
+	return "", fmt.Errorf("release notes not found for v%s", version)
 }
 
 // ShowReleaseNotes renders the current version's release notes using lowdown

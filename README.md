@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.7-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-7.9.0-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -30,6 +30,11 @@
 OpenRiot is a clean, minimal, ridiculously polished i3-based OpenBSD 7.9 setup with fish, Helix, and Polybar — all tuned so things just work. No more config drama, no more obscure package fights, no more “works on Linux” copium.
 
 Install base OpenBSD 7.9 → run one script → get a fast, dark, beautiful desktop that respects OpenBSD’s strengths instead of fighting them and adds all the workflow you need to be productive as a user and a developer.
+
+OpenRiot versions track OpenBSD releases directly. OpenBSD 7.9
+= OpenRiot 7.9.x. The patch digit is for OpenRiot-specific fixes
+between OS releases. When OpenBSD ships 8.0, OpenRiot becomes 8.0.0.
+This is not complicated. It just took us a lot of code to realize it.
 
 - Read the [original Post on X](https://x.com/CyphrRiot/status/2043140621398127012?s=20)
 
@@ -126,6 +131,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.9.0 — The Version Number Finally Makes Sense](docs/v7.9.0-Release-Notes.md)
 - [v7.7 — Color Theory for People Who Hate Color Theory](docs/v7.7-Release-Notes.md)
 - [v7.6 — Ctrl+Alt+Del the Desktop](docs/v7.6-Release-Notes.md)
 - [v7.5 — Lock It Down](docs/v7.5-Release-Notes.md)

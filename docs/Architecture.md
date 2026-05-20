@@ -201,7 +201,7 @@ make install
 
 ## Version System
 
-Version is in `VERSION` file (e.g., "1.4"). Injected at build time via ldflags:
+Version is in `VERSION` file (e.g., "7.8.0"). Injected at build time via ldflags:
 ```
 -X main.version=$(cat VERSION)
 ```
