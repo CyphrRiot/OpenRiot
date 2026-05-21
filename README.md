@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.0-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-7.9.1-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -131,6 +131,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.9.1 — The One Where We Fixed the Menu and Invented a Switcher](docs/v7.9.1-Release-Notes.md)
 - [v7.9.0 — The Version Number Finally Makes Sense](docs/v7.9.0-Release-Notes.md)
 - [v7.7 — Color Theory for People Who Hate Color Theory](docs/v7.7-Release-Notes.md)
 - [v7.6 — Ctrl+Alt+Del the Desktop](docs/v7.6-Release-Notes.md)

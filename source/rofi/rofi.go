@@ -66,8 +66,10 @@ func runAppsFile(appsFile, prompt string) error {
 		fmt.Fprintf(&rofiInput, "%s  %s\n", entry.Icon, entry.Name)
 	}
 
-	// Run rofi
-	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", prompt, "-format", "i", "-theme", theme)
+	// Run rofi with dynamically balanced two-column layout
+	lines := (len(entries) + 1) / 2
+	themeStr := fmt.Sprintf("window { width: 580px; border: 2px; border-color: #997de1; } listview { columns: 2; lines: %d; flow: vertical; scrollbar: false; padding: 8px 0px; } element { padding: 6px 8px; border-radius: 4px; } inputbar { padding: 8px 12px; } icon-search { size: 14px; }", lines)
+	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", prompt, "-format", "i", "-theme", theme, "-theme-str", themeStr)
 	cmd.Stdin = &rofiInput
 	var out bytes.Buffer
 	cmd.Stdout = &out
@@ -98,6 +100,10 @@ func runAppsFile(appsFile, prompt string) error {
 	}
 
 	// Check if already running
+	if strings.Contains(entry.Cmd, "gurk") && IsProcessRunning("gurk") {
+		go notify.SendNotify("applications", "Signal", "Already Running", "normal", 2000, 0)
+		return nil
+	}
 	if entry.Cmd == "transmission-gtk" && IsTransmissionRunning() {
 		go notify.SendNotify("applications", "Transmission", "Already Running", "normal", 2000, 0)
 		return nil
@@ -175,6 +181,12 @@ func parseAppsFile(path string) ([]appEntry, error) {
 
 func IsTransmissionRunning() bool {
 	cmd := exec.Command("pgrep", "-u", os.Getenv("USER"), "transmission-gtk")
+	err := cmd.Run()
+	return err == nil
+}
+
+func IsProcessRunning(name string) bool {
+	cmd := exec.Command("pgrep", "-f", name)
 	err := cmd.Run()
 	return err == nil
 }

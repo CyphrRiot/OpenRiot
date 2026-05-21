@@ -99,9 +99,12 @@ func copyDir(src, dst string) error {
 		if err != nil {
 			return err
 		}
-		defer dstFile.Close()
-		_, err = io.Copy(dstFile, srcFile)
-		return err
+		_, copyErr := io.Copy(dstFile, srcFile)
+		closeErr := dstFile.Close()
+		if copyErr != nil {
+			return copyErr
+		}
+		return closeErr
 	})
 }
 

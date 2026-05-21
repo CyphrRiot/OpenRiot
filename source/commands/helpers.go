@@ -334,7 +334,6 @@ func bindTransmissionToWireGuard() {
 	if strings.Contains(content, `"bind-address-ipv6"`) {
 		content = regexp.MustCompile(`"bind-address-ipv6"\s*:\s*"[^"]*"`).ReplaceAllString(content, `"bind-address-ipv6": ""`)
 	} else {
-		content = strings.Replace(content, `"bind-address-ipv4"`, `"bind-address-ipv4"`, 1)
 		content = strings.Replace(content, `"bind-address-ipv4": "`+tunnelIP+`"`, `"bind-address-ipv4": "`+tunnelIP+`",\n    "bind-address-ipv6": ""`, 1)
 	}
 	os.WriteFile(settingsPath, []byte(content), 0644)

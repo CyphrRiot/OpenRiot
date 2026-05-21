@@ -222,15 +222,16 @@ func downloadFile(pkgPath, url string) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-
-	_, err = io.Copy(f, resp.Body)
-	if err != nil {
+	_, copyErr := io.Copy(f, resp.Body)
+	closeErr := f.Close()
+	if copyErr != nil {
 		os.Remove(tmpPath)
-		return err
+		return copyErr
 	}
-
-	f.Close()
+	if closeErr != nil {
+		os.Remove(tmpPath)
+		return closeErr
+	}
 	return os.Rename(tmpPath, pkgPath)
 }
 

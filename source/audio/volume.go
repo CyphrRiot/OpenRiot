@@ -26,10 +26,10 @@ func saveVolumeState() {
 	if path == "" {
 		return
 	}
-	level, _ := exec.Command("sh", "-c", "sndioctl -n output.level 2>/dev/null").Output()
-	mute, _ := exec.Command("sh", "-c", "sndioctl -n output.mute 2>/dev/null").Output()
-	micLevel, _ := exec.Command("sh", "-c", "sndioctl -n input.level 2>/dev/null").Output()
-	micMute, _ := exec.Command("sh", "-c", "sndioctl -n input.mute 2>/dev/null").Output()
+	level, _ := exec.Command("sndioctl", "-n", "output.level").Output()
+	mute, _ := exec.Command("sndioctl", "-n", "output.mute").Output()
+	micLevel, _ := exec.Command("sndioctl", "-n", "input.level").Output()
+	micMute, _ := exec.Command("sndioctl", "-n", "input.mute").Output()
 
 	content := fmt.Sprintf("output.level=%s\noutput.mute=%s\ninput.level=%s\ninput.mute=%s\n",
 		strings.TrimSpace(string(level)),
@@ -69,6 +69,22 @@ func restoreVolumeState() {
 	}
 }
 
+func sndioctlValue(ctrl string) string {
+	out, _ := exec.Command("sndioctl", "-n", ctrl).Output()
+	return strings.TrimSpace(string(out))
+}
+
+func vol() string    { return sndioctlValue("output.level") }
+func micVol() string { return sndioctlValue("input.level") }
+func isMuted() bool {
+	v, err := strconv.ParseFloat(sndioctlValue("output.mute"), 64)
+	return err == nil && v == 1.0
+}
+func micMuted() bool {
+	v, err := strconv.ParseFloat(sndioctlValue("input.mute"), 64)
+	return err == nil && v == 1.0
+}
+
 // Run executes volume subcommands using OpenBSD's sndioctl.
 // Supported: toggle, inc, dec, get, restore, mic-toggle, mic-inc, mic-dec, mic-get
 func Run(args []string) int {
@@ -84,22 +100,11 @@ func Run(args []string) int {
 	sndioctl := func(cmd string) error {
 		parts := strings.Fields(cmd)
 		c := exec.Command("sndioctl", parts...)
-		return c.Run()
-	}
-
-	vol := func() string {
-		out, _ := exec.Command("sh", "-c", "sndioctl output.level 2>/dev/null | cut -d= -f2").Output()
-		return strings.TrimSpace(string(out))
-	}
-
-	micVol := func() string {
-		out, _ := exec.Command("sh", "-c", "sndioctl input.level 2>/dev/null | cut -d= -f2").Output()
-		return strings.TrimSpace(string(out))
-	}
-
-	isMuted := func() bool {
-		out, _ := exec.Command("sh", "-c", "sndioctl output.mute 2>/dev/null | cut -d= -f2").Output()
-		return strings.TrimSpace(string(out)) == "1"
+		out, err := c.CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("sndioctl %s: %w: %s", cmd, err, string(out))
+		}
+		return nil
 	}
 
 	// toPercent converts sndioctl float (0-1) to percentage string (0-100)
@@ -111,20 +116,29 @@ func Run(args []string) int {
 		return strconv.Itoa(int(f * 100))
 	}
 
-	micMuted := func() bool {
-		out, _ := exec.Command("sh", "-c", "sndioctl input.mute 2>/dev/null | cut -d= -f2").Output()
-		return strings.TrimSpace(string(out)) == "1"
-	}
-
 	if len(args) < 1 {
 		return usage()
 	}
 
 	switch args[0] {
 	case "toggle":
-		sndioctl("output.mute=!")
+		// Toggle using sh -c like original working code
+		cmd := exec.Command("sh", "-c", "sndioctl output.mute=!")
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			f, _ := os.OpenFile("/tmp/openriot-mute.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if f != nil {
+				fmt.Fprintf(f, "TOGGLE ERROR: %v: %s\n", err, string(out))
+				f.Close()
+			}
+			sendNotify("speaker", fmt.Sprintf("Mute error: %v", err))
+			return 1
+		}
 		saveVolumeState()
-		if isMuted() {
+		// Check mute state after toggle
+		cur, _ := exec.Command("sndioctl", "-n", "output.mute").Output()
+		curStr := strings.TrimSpace(string(cur))
+		if curStr == "1" || curStr == "1.0" {
 			sendNotify("speaker-muted", "Speaker: Muted")
 		} else {
 			sendNotify("speaker", fmt.Sprintf("Speaker: %s%%", toPercent(vol())))

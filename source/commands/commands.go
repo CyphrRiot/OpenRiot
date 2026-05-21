@@ -36,6 +36,7 @@ import (
 	"openriot/settings"
 	"openriot/update"
 	"openriot/weather"
+	"openriot/window"
 	"openriot/windowicon"
 	"openriot/windowtitle"
 	"openriot/wireguard"
@@ -641,6 +642,11 @@ func RegisterAll(r *Registry, testMode *bool) {
 		},
 	})
 	r.Register(&Command{
+		Name: "--window-switch", Category: "Window & Workspace",
+		Description: "Switch to a window via icon picker",
+		Run: func(args []string) error { return window.RunSwitch() },
+	})
+	r.Register(&Command{
 		Name: "--workspace-icons", Category: "Window & Workspace",
 		Description: "Show icons for workspace N",
 		Run: func(args []string) error {
@@ -753,6 +759,11 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--wallpaper-load", Category: "Lock & Power",
 		Description: "Load saved wallpaper",
 		Run: func(args []string) error { os.Exit(backgrounds.Load()); return nil },
+	})
+	r.Register(&Command{
+		Name: "--convert-webp", Category: "System Controls",
+		Description: "Convert backgrounds/*.png and Locked/*.png to .webp",
+		Run: func(args []string) error { return imaging.ConvertPngToWebP() },
 	})
 	r.Register(&Command{
 		Name: "--polybar-setup", Category: "Lock & Power",

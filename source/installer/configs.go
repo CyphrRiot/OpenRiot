@@ -33,6 +33,19 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 		return fmt.Errorf("creating config directory: %w", err)
 	}
 
+	// Track directories already created to avoid redundant syscalls
+	createdDirs := make(map[string]bool)
+	mkdirOnce := func(dir string) error {
+		if createdDirs[dir] {
+			return nil
+		}
+		err := os.MkdirAll(dir, 0755)
+		if err == nil {
+			createdDirs[dir] = true
+		}
+		return err
+	}
+
 	// Track stats per category
 	categoryStats := make(map[string]int)
 
@@ -108,7 +121,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 
 				// Create destination directory
 				destDir := filepath.Dir(destPath)
-				if err := os.MkdirAll(destDir, 0755); err != nil {
+				if err := mkdirOnce(destDir); err != nil {
 					logger.Warn(fmt.Sprintf("Failed to create directory %s: %v", destDir, err))
 					return nil
 				}
@@ -163,7 +176,7 @@ func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
 
 			// Create destination directory
 			destDir := filepath.Dir(destPath)
-			if err := os.MkdirAll(destDir, 0755); err != nil {
+			if err := mkdirOnce(destDir); err != nil {
 				logger.Warn(fmt.Sprintf("Failed to create directory %s: %v", destDir, err))
 				continue
 			}
