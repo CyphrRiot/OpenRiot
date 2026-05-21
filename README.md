@@ -356,7 +356,7 @@ Download the official OpenBSD installer:
 
 **Recommendation**: Prefer Method 1 unless you have a specific need for offline installation. If using Method 2, boot it in a test VM or spare hardware first, monitor the setup log (`~/.cache/openriot/setup.log`), and report any issues. We are actively hardening the offline image and expect to promote it to stable in a near-term release. Download at your own risk and always cross-check the GitHub release assets and checksums.
 
-Download the [OpenRiot Install Image ~1.7G](https://github.com/CyphrRiot/OpenRiot/releases/tag/v7.0)
+Download the [OpenRiot Install Image ~1.7G](https://github.com/CyphrRiot/OpenRiot/releases/tag/v7.9.1)
 
 ### 2. Flash to USB
 
