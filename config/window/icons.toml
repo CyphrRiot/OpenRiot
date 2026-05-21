@@ -284,6 +284,7 @@ iwctl = "󰤨"
 connman = "󰤨"
 gnome-network = "󰤨"
 openriot_wifi = "󱚹"
+openriot_resolution = "󰹑"
 
 [utilities]
 file-roller = "󰗄"

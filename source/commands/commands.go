@@ -211,6 +211,17 @@ func RegisterAll(r *Registry, testMode *bool) {
 		},
 	})
 	r.Register(&Command{
+		Name: "--pkg-update", Category: "Tools & Upgrades",
+		Description: "Update packages from 7.9 stable release",
+		Run: func(args []string) error {
+			fmt.Println("Updating packages from OpenBSD 7.9 stable...")
+			cmd := exec.Command("doas", "sh", "-c", "PKG_PATH=https://cdn.openbsd.org/pub/OpenBSD/7.9/packages/amd64/ pkg_add -u")
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			return cmd.Run()
+		},
+	})
+	r.Register(&Command{
 		Name: "--check-upgrade", Category: "Tools & Upgrades",
 		Description: "Check if system upgrade is needed",
 		Run: func(args []string) error {

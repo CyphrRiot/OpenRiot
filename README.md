@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.1-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-7.9.2-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -131,6 +131,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.9.2 — The One Where the Kernel Was a Replicant](docs/v7.9.2-Release-Notes.md)
 - [v7.9.1 — The One Where We Fixed the Menu and Invented a Switcher](docs/v7.9.1-Release-Notes.md)
 - [v7.9.0 — The Version Number Finally Makes Sense](docs/v7.9.0-Release-Notes.md)
 - [v7.7 — Color Theory for People Who Hate Color Theory](docs/v7.7-Release-Notes.md)
@@ -141,17 +142,8 @@ This makes the underlying X server far more resistant to client-side abuse than 
 - [v7.2 — Drop the Needle](docs/v7.2-Release-Notes.md)
 - [v7.1 — Locked & Loaded](docs/v7.1-Release-Notes.md)
 - [v7.0 — Console Cowboys](docs/v7.0-Release-Notes.md)
-- [v6.12 — fsociety](docs/v6.12-Release-Notes.md)
-- [v6.11 — Wubba Lubba Dub Dub](docs/v6.11-Release-Notes.md)
-- [v6.10 — New Canvas](docs/v6.10-Release-Notes.md)
-- [v6.9 — Gödel, Escher, Wi-Fi](docs/v6.9-Release-Notes.md)
-- [v6.8 — Hello, Friend](docs/v6.8-Release-Notes.md)
-- [v6.7 — Take One](docs/v6.7-Release-Notes.md)
-- [v6.6 — Seed of Riot](docs/v6.6-Release-Notes.md)
-- [v6.5 — Ghost in the Shell](docs/v6.5-Release-Notes.md)
-- [v6.4 — Installer Image](docs/v6.4-Release-Notes.md)
 
-Previous Release Notes can be found at [Github](https://github.com/CyphrRiot/OpenRiot) or at the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) top-level folder.
+Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.
 
 ## ✅ Supported Systems
 

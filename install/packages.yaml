@@ -17,8 +17,8 @@ firmware:
 core:
     base:
         packages:
-            - rsync-3.4.2
-            - python-3.14.4p1
+            - rsync-3.4.1
+            - python-3.13.13
             - fastfetch-2.60.0
             - exfat-fuse-1.4.0
             - xz-5.8.3
@@ -46,14 +46,14 @@ core:
 
     shell:
         packages:
-            - fish-4.7.1
+            - fish-4.6.0
             - bash-5.3.9
-            - alacritty-0.17.0
+            - alacritty-0.16.1
             - ripgrep-15.1.0
             - pv-1.10.5
-            - btop-1.4.7
-            - gnupg-2.5.20
-            - meson-1.11.1v0
+            - btop-1.4.6p0
+            - gnupg-2.5.18
+            - meson-1.10.2v0
             - ninja-1.11.1p1v1
         configs:
             - pattern: fish/*
@@ -82,11 +82,11 @@ desktop:
             - polybar-3.7.2
             - rofi-1.7.9.1
             - maim-5.8.1p0
-            - feh-3.12.2
+            - feh-3.12.1
             - picom-13
             - xclip-0.13p1
-            - ImageMagick-6.9.13.48p0
-            - ffmpeg-8.0.2v1
+            - ImageMagick-6.9.13.43
+            - ffmpeg-8.0.1p1v1
             - dunst-1.13.1
             - clipmenu-6.2.0
             # - clipnotify-1.0.2  # Optional: for clipboard change detection scripts
@@ -157,8 +157,8 @@ desktop:
         end: "Lock screen images completed"
     apps:
         packages:
-            - firefox-151.0
-            - tdesktop-6.8.2
+            - firefox-150.0
+            - tdesktop-6.7.6
             - helix-25.07.1
             - lsd-1.1.5p2
             - thunar-4.20.8
@@ -172,8 +172,8 @@ desktop:
             - lf-41
             - xdg-utils-1.2.1
             - dconf-0.40.0p2
-            - libreoffice-26.2.3.2v0
-            - gnome-text-editor-50.1
+            - libreoffice-26.2.2.2v0
+            - gnome-text-editor-49.1
             - qtquickcontrols-5.15.18pl0
             - qtquickcontrols2-5.15.18pl5
             - qtgraphicaleffects-5.15.18pl0
@@ -252,7 +252,7 @@ desktop:
             - micropolis-20080211p9
             - gottet-1.2.7
             - defendguin-0.0.13
-            - supertux-0.6.3p4
+            - supertux-0.6.3p3
             # - supertuxkart-1.5
             - sdlpop-1.22v0
             - zelda_roth_se-1.1.0p1
@@ -261,7 +261,7 @@ desktop:
             - cataclysm-dda-0.Hp1v0
             - taisei-1.4.4
             - angband-4.2.5-sdl
-            - wesnoth-1.18.7p0
+            - wesnoth-1.18.7
             - boswars-2.7p4
             - slash-3.2.2.e8p8
             - frozen-bubble-2.2.0p17
@@ -306,7 +306,7 @@ crypto:
     bitcoin:
         type: "Package"
         packages:
-            - bitcoin-31.0p0
+            - bitcoin-30.2p0
         configs:
             - pattern: "applications/bitcoin-qt.desktop"
               target: "~/.local/share/applications/bitcoin-qt.desktop"
@@ -318,10 +318,10 @@ media:
     media:
         packages:
             - mpv-0.41.0p0
-            - mpd-0.24.10
+            - mpd-0.24.9
             - socat-1.7.4.1
             - transmission-gtk-4.1.1p0
-            - ffmpeg-8.0.2v1
+            - ffmpeg-8.0.1p1v1
             - ffmpegthumbnailer-2.2.2p0
             - yt-dlp-2026.03.17
             - x264-20250909
@@ -494,7 +494,7 @@ fonts:
 system:
     tools:
         packages:
-            - rclone-1.74.1
+            - rclone-1.73.5
             - wireguard-tools-1.0.20210914p3v0
             - sysbench-0.4.8p17
             - ntfs_3g-2022.10.3p1

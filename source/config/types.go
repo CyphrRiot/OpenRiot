@@ -75,6 +75,12 @@ func (c *Config) ResolveOpenBSDVersion() string {
 }
 
 // IsSnapshot returns true if the target is the -snapshots repository.
+// If OpenBSDVersion is explicitly set to a release (e.g. "7.9"), it returns false
+// regardless of what the running kernel reports. Only fall back to kernel
+// detection when the field is empty or explicitly "snapshots".
 func (c *Config) IsSnapshot() bool {
+	if c.OpenBSDVersion != "" && c.OpenBSDVersion != "snapshots" {
+		return false
+	}
 	return c.ResolveOpenBSDVersion() == "snapshots"
 }
