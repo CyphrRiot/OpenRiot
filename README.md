@@ -121,7 +121,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
     - [📂 Proton Drive](#-proton-drive-sync)
     - [💳 Monero Wallet](#-monero-wallet)
     - [🎵 Music Player](#-music-player)
-- [🖨️ 3D Printing](#-3d-printing)
+    - [🖨️ 3D Printing](#3d-printing)
 - [🔧 Troubleshooting](#troubleshooting)
     - [Harden SSH](#harden-ssh-disable-password-authentication)
 - [🦊 Browser & Data Transfer](#browser--data-transfer)
@@ -1059,7 +1059,7 @@ cp ~/.config/crypto-template.toml ~/.config/crypto.toml
 |---------|-------------|
 | **Polybar** | The `crypto` module icon (󰄨) appears automatically when `~/.config/crypto.toml` exists. Click it to refresh prices. |
 | **Keyboard** | Press `Super + Y` for an on-demand price notification via dunst. |
-| **Terminal** | Run `openriot --crypto` to print prices to stdout. |
+| **Terminal** | Run `openriot --crypto ROWML` to print prices to stdout. |
 | **Refresh** | Run `openriot --crypto-refresh` to clear the cache and fetch fresh data. |
 
 #### Configuration
