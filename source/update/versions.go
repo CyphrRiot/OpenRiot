@@ -4,20 +4,16 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"openriot/paths"
 )
 
 // GetLocalVersion reads the local VERSION file
 func GetLocalVersion() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "unknown"
-	}
-	versionPath := filepath.Join(homeDir, ".local", "share", "openriot", "VERSION")
-	data, err := os.ReadFile(versionPath)
+	data, err := os.ReadFile(paths.OpenRiotDir("VERSION"))
 	if err != nil {
 		return "unknown"
 	}

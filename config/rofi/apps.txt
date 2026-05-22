@@ -16,6 +16,8 @@ System Monitor|alacritty --class btop --title "System Monitor" -e btop|󰍹
 Crush AI|alacritty --class crush --title "Crush AI" -e crush|󰚩
 Transmission|transmission-gtk|󰐻
 Telegram|tdesktop.desktop|󰭹
+Discord|abaddon|󰙯
+SolveSpace 3D|solvespace|󰐫
 Monero|monero-wallet-gui.desktop|
 Bitcoin|bitcoin-qt.desktop|
 Games|@submenu:games|󰊗

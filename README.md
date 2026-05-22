@@ -5,7 +5,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.2-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-7.9.3-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -118,6 +118,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
     - [📂 Proton Drive](#-proton-drive-sync)
     - [💳 Monero Wallet](#-monero-wallet)
     - [🎵 Music Player](#-music-player)
+- [🖨️ 3D Printing](#3d-printing)
 - [🔧 Troubleshooting](#troubleshooting)
     - [Harden SSH](#harden-ssh-disable-password-authentication)
 - [🦊 Browser & Data Transfer](#browser--data-transfer)
@@ -131,6 +132,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.9.3 — The One Where We Mapped the Home Directory to Oblivion](docs/v7.9.3-Release-Notes.md)
 - [v7.9.2 — The One Where the Kernel Was a Replicant](docs/v7.9.2-Release-Notes.md)
 - [v7.9.1 — The One Where We Fixed the Menu and Invented a Switcher](docs/v7.9.1-Release-Notes.md)
 - [v7.9.0 — The Version Number Finally Makes Sense](docs/v7.9.0-Release-Notes.md)
@@ -601,12 +603,14 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | Signal           | 󰬚   | Signal messenger (gurk)  |
 | System Monitor   | 󰍹   | btop resource monitor    |
 | Telegram         | 󰭹   | Messaging app            |
+| Discord          |    | Discord (abaddon client) |
 | Monero Wallet    |    | Monero GUI wallet        |
 | Bitcoin          |    | Bitcoin Core wallet      |
 | Transmission     | 󰐻   | BitTorrent client        |
 | Crush AI         | 󰚩   | AI CLI assistant         |
 | Settings         | 󰒓   | XFCE settings manager    |
-| Benchmark        | 󰓅   | OpenRiot benchmark      |
+| Benchmark        | 󰓅   | OpenRiot benchmark       |
+| SolveSpace 3D    | 󰐫   | 3D CAD modeler           |
 | Games            | 󰊗   | Games sub-menu           |
 
 ![OpenRiot Terminal](assets/terminal.png)
@@ -1690,6 +1694,24 @@ Your music and mic stay clean when not recording. The monitor only exists while 
 | Key | Action |
 |-----|--------|
 | `Super + Shift + N` | Toggle screen recording |
+
+## 🖨️ 3D Printing
+
+OpenRiot includes **SolveSpace** (`solvespace`) — a lightweight parametric 3D CAD modeler perfect for designing parts to print. No heavy install, no cloud lock-in.
+
+- **Docs:** [solvespace.com](https://solvespace.com)
+
+The following printers are known to work with OpenRiot via SD card / USB transfer and open-source slicers:
+
+| Name | Overview | Software | Price (approx., 2026) | URL | OpenBSD Compatible? |
+| ---- | -------- | -------- | --------------------- | --- | ------------------- |
+| Prusa CORE One+ (or CORE One L) | Enclosed CoreXY FDM. Modern high-speed successor to MK4 series with active chamber heating. Excellent reliability, print quality, and upgradability. Quick assembly (kit) or fully assembled. Fast for engineering filaments. | PrusaSlicer (native ports) + PrusaLink web browser control | Assembled ~$1,299; Kit ~$999 | prusa3d.com/product/prusa-core-one-kit/ | Fully Yes — Best in class (native slicer + browser) |
+| Bambu Lab P2S | Top-rated fast enclosed CoreXY FDM. Blazing speeds, multi-color AMS support (optional), AI features, excellent out-of-box quality. Pre-assembled, user-friendly for beginners to pros. | Bambu Studio / OrcaSlicer (Linux builds) or PrusaSlicer custom | Base ~$549; AMS Combo ~$799 | us.store.bambulab.com/products/p2s | Yes (with SD card) — Full features via SD; slicer Linux-compatible but may need build effort on OpenBSD |
+| Elegoo Centauri Carbon | Fastest budget enclosed CoreXY FDM. 500 mm/s+ speeds, auto-leveling, fully pre-assembled. Great value speed demon for everyday printing. | PrusaSlicer (profiles available) or Elegoo slicer | ~$299–$349 | us.elegoo.com/products/centauri-carbon | Yes — SD/USB + PrusaSlicer works perfectly |
+| Prusa SL1S SPEED | Fast Prusa resin (MSLA) printer. Reliable, high-detail, speed-optimized for resin. Part of Prusa ecosystem with easy workflow. Pre-assembled. | PrusaSlicer (excellent resin support) | ~$600–$800 (check current) | prusa3d.com (see resin section) | Fully Yes — Native PrusaSlicer + USB/SD |
+| Anycubic Photon Mono M7 Max | Large-volume fast resin (high-res LCD curing). Intelligent release tech for ultra-fast prints, huge build area rivaling FDM. Pre-assembled with smart features. | PrusaSlicer, Lychee, or Anycubic Workshop | ~$799–$899 (sales common) | anycubic.com / Amazon | Yes — PrusaSlicer slicing + SD/USB card |
+| Elegoo Saturn 4 Ultra | Best-value high-speed resin (tilting release for speed). Exceptional detail, large platform, pre-assembled and beginner-friendly. Top pick for miniatures/jewelry. | PrusaSlicer or Lychee/Chitubox | ~$279–$400 | elegoo.com | Yes — SD card + PrusaSlicer profiles |
+| Bambu Lab A1 Mini (or A1) | Compact, affordable, super-fast FDM. Pre-assembled, quiet, great for small/medium prints and beginners. Multi-color capable. | Bambu Studio / OrcaSlicer | ~$219–$399 | bambulab.com | Yes (SD card best) — Simple file transfer works flawlessly |
 
 ## 🔧 Troubleshooting
 

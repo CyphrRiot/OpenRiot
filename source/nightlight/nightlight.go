@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
 
 	"openriot/notify"
+	"openriot/paths"
 	"openriot/polybar"
 )
 
@@ -52,15 +52,11 @@ func Toggle() error {
 }
 
 func getState() int {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return 0
-	}
-	file := filepath.Join(homeDir, stateFile)
+	file := paths.Join(stateFile)
 	data, err := os.ReadFile(file)
 	if err != nil {
 		// Migrate from old dot-file name
-		oldFile := filepath.Join(homeDir, ".config", "openriot", ".nightlight")
+		oldFile := paths.Join(".config", "openriot", ".nightlight")
 		data, err = os.ReadFile(oldFile)
 		if err != nil {
 			return 0
@@ -75,11 +71,7 @@ func getState() int {
 }
 
 func setState(state int) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return
-	}
-	file := filepath.Join(homeDir, stateFile)
+	file := paths.Join(stateFile)
 	os.WriteFile(file, []byte(strconv.Itoa(state)), 0600)
 }
 

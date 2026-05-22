@@ -6,16 +6,14 @@ import (
 	"os/exec"
 	"path/filepath"
 	"time"
+
+	"openriot/paths"
 )
 
 // Run captures a screenshot using maim and copies to clipboard.
 // If select is true, allows area selection. Otherwise captures full screen.
 func Run(selectArea bool) error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("cannot get home dir: %w", err)
-	}
-	dir := filepath.Join(home, "Screenshots")
+	dir := paths.Join("Screenshots")
 
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return fmt.Errorf("failed to create Screenshots dir: %w", err)

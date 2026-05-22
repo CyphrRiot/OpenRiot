@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"openriot/logger"
+	"openriot/paths"
 )
 
 // CrushUpgrade provides crush auto-upgrade functionality
@@ -137,15 +138,13 @@ func (c *CrushUpgrade) install(version string) error {
 		return fmt.Errorf("chmod failed: %w", err)
 	}
 
-	if homeDir, err := os.UserHomeDir(); err == nil {
-		compDir := filepath.Join(homeDir, ".config", "fish", "completions")
-		os.MkdirAll(compDir, 0755)
-		srcComp := filepath.Join(extractDir, "completions", "crush.fish")
-		dstComp := filepath.Join(compDir, "crush.fish")
-		if _, err := os.Stat(srcComp); err == nil {
-			data, _ := os.ReadFile(srcComp)
-			os.WriteFile(dstComp, data, 0644)
-		}
+	compDir := paths.Join(".config", "fish", "completions")
+	os.MkdirAll(compDir, 0755)
+	srcComp := filepath.Join(extractDir, "completions", "crush.fish")
+	dstComp := filepath.Join(compDir, "crush.fish")
+	if _, err := os.Stat(srcComp); err == nil {
+		data, _ := os.ReadFile(srcComp)
+		os.WriteFile(dstComp, data, 0644)
 	}
 
 	os.RemoveAll(extractDir)

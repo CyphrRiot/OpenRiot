@@ -9,18 +9,13 @@ import (
 
 	"openriot/config"
 	"openriot/logger"
+	"openriot/paths"
 )
 
 // RunSourceBuilds runs only the source builds phase (used by setup.sh).
 // Returns an error on failure instead of calling os.Exit, making it testable.
 func RunSourceBuilds(testMode bool) error {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("could not determine home directory: %w", err)
-	}
-
-	repoDir := filepath.Join(homeDir, ".local", "share", "openriot")
-	configPath := filepath.Join(repoDir, "install", "packages.yaml")
+	configPath := paths.OpenRiotDir("install", "packages.yaml")
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
@@ -40,13 +35,7 @@ func RunInstallPackages() error {
 	// Setup fastest mirror if not already configured
 	SetupMirror()
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("could not determine home directory: %w", err)
-	}
-
-	repoDir := filepath.Join(homeDir, ".local", "share", "openriot")
-	configPath := filepath.Join(repoDir, "install", "packages.yaml")
+	configPath := paths.OpenRiotDir("install", "packages.yaml")
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
@@ -76,13 +65,8 @@ func RunInstallPackages() error {
 
 // findPackagesYaml finds packages.yaml: installed location first, then CWD fallback.
 func findPackagesYaml() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-
 	// 1. Check installed location first
-	installedPath := filepath.Join(homeDir, ".local", "share", "openriot", "install", "packages.yaml")
+	installedPath := paths.OpenRiotDir("install", "packages.yaml")
 	if _, err := os.Stat(installedPath); err == nil {
 		return installedPath
 	}

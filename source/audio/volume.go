@@ -9,15 +9,15 @@ import (
 	"strings"
 
 	"openriot/notify"
+	"openriot/paths"
 )
 
 // stateFile returns the path to the volume state file.
 func stateFile() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
+	if paths.HomeDir() == "" {
 		return ""
 	}
-	return filepath.Join(home, ".config", "openriot", "volume.state")
+	return paths.Join(".config", "openriot", "volume.state")
 }
 
 // saveVolumeState reads current sndioctl values and writes them to disk.

@@ -18,11 +18,7 @@ const (
 
 // ShouldSend checks if enough time has passed since the last notification
 func ShouldSend() bool {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return true
-	}
-	path := filepath.Join(home, ".cache", "openriot", cooldownFile)
+	path := paths.Join(".cache", "openriot", cooldownFile)
 
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -42,11 +38,7 @@ func ShouldSend() bool {
 
 // RecordSend writes the current timestamp to the cooldown file
 func RecordSend() error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
-	dir := filepath.Join(home, ".cache", "openriot")
+	dir := paths.Join(".cache", "openriot")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}

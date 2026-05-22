@@ -13,6 +13,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"openriot/notify"
+	"openriot/paths"
 )
 
 // Config represents the crypto.toml structure
@@ -186,11 +187,7 @@ func RunCrypto(mode string) error {
 }
 
 func loadCryptoConfig() (*Config, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return nil, fmt.Errorf("cannot get home dir: %w", err)
-	}
-	configPath := filepath.Join(homeDir, ".config", "crypto.toml")
+	configPath := paths.Join(".config", "crypto.toml")
 
 	// Default config with default pairs - used when config file doesn't exist
 	config := &Config{
@@ -204,7 +201,7 @@ func loadCryptoConfig() (*Config, error) {
 		},
 	}
 
-	_, err = toml.DecodeFile(configPath, config)
+	_, err := toml.DecodeFile(configPath, config)
 	if err != nil {
 		// Return default config if file doesn't exist
 		if os.IsNotExist(err) {
@@ -217,32 +214,19 @@ func loadCryptoConfig() (*Config, error) {
 }
 
 func ConfigFileExists() bool {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return false
-	}
-	configPath := filepath.Join(homeDir, ".config", "crypto.toml")
-	_, err = os.Stat(configPath)
+	_, err := os.Stat(paths.Join(".config", "crypto.toml"))
 	return err == nil
 }
 
 func getCacheDir() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-	cacheDir := filepath.Join(homeDir, ".cache", "openriot")
+	cacheDir := paths.Join(".cache", "openriot")
 	os.MkdirAll(cacheDir, 0700)
 	return cacheDir
 }
 
 func migrateCacheFiles() {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return
-	}
-	oldDir := filepath.Join(homeDir, ".cache")
-	newDir := filepath.Join(homeDir, ".cache", "openriot")
+	oldDir := paths.Join(".cache")
+	newDir := paths.Join(".cache", "openriot")
 	migrations := map[string]string{
 		"openriot-crypto.json":      "crypto.json",
 		"openriot-crypto-prev.json": "crypto-prev.json",

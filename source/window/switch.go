@@ -9,9 +9,11 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"syscall"
 
+	"openriot/paths"
 	"openriot/windowicon"
 )
 
@@ -105,8 +107,7 @@ func RunSwitch() error {
 		lines,
 	)
 
-	home, _ := os.UserHomeDir()
-	theme := filepath.Join(home, ".config", "rofi", "simple-tokyonight.rasi")
+	theme := paths.Join(".config", "rofi", "simple-tokyonight.rasi")
 
 	args := []string{"-dmenu", "-i", "-p", "Windows", "-format", "i", "-theme", theme, "-theme-str", themeStr}
 	if _, err := os.Stat(theme); os.IsNotExist(err) {
@@ -126,8 +127,8 @@ func RunSwitch() error {
 		return nil
 	}
 
-	var idx int
-	if _, err := fmt.Sscanf(idxStr, "%d", &idx); err != nil {
+	idx, err := strconv.Atoi(idxStr)
+	if err != nil {
 		return fmt.Errorf("invalid selection: %s", idxStr)
 	}
 
@@ -253,12 +254,7 @@ func loadAppNames() (classOverrides, cmdOverrides map[string]string) {
 	classOverrides = make(map[string]string)
 	cmdOverrides = make(map[string]string)
 
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return
-	}
-
-	appsFile := filepath.Join(home, ".config", "rofi", "apps.txt")
+	appsFile := paths.Join(".config", "rofi", "apps.txt")
 	f, err := os.Open(appsFile)
 	if err != nil {
 		return

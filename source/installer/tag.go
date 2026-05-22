@@ -6,18 +6,15 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"openriot/paths"
 )
 
 const repoURL = "https://github.com/CyphrRiot/OpenRiot"
 
 // InstallTag clones a specific tag and runs the installation
 func InstallTag(tag string) error {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("could not determine home directory: %w", err)
-	}
-
-	repoDir := filepath.Join(homeDir, ".local", "share", "openriot")
+	repoDir := paths.OpenRiotDir()
 
 	// Remove existing repo to ensure clean slate
 	if err := os.RemoveAll(repoDir); err != nil {

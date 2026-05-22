@@ -6,7 +6,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"openriot/config"
@@ -16,6 +18,7 @@ import (
 	"openriot/macspoof"
 	"openriot/nightlight"
 	"openriot/notify"
+	"openriot/paths"
 	"openriot/polybar"
 	"openriot/rofi"
 	"openriot/wireguard"
@@ -52,13 +55,13 @@ func runInstall(testMode *bool) {
 		}
 	}
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		logger.Fail(fmt.Sprintf("Could not determine home directory: %v", err))
+	homeDir := paths.HomeDir()
+	if homeDir == "" {
+		logger.Fail("Could not determine home directory")
 		os.Exit(1)
 	}
 
-	deployDir := filepath.Join(homeDir, ".local", "share", "openriot")
+	deployDir := paths.OpenRiotDir()
 	configPath := filepath.Join(deployDir, "install", "packages.yaml")
 
 	cfg, err := config.LoadConfig(configPath)
@@ -180,6 +183,11 @@ func checkReleasePath() {
 	}
 }
 
+var (
+	bindIPv4Re = regexp.MustCompile(`"bind-address-ipv4"\s*:\s*"[^"]*"`)
+	bindIPv6Re = regexp.MustCompile(`"bind-address-ipv6"\s*:\s*"[^"]*"`)
+)
+
 func runNotify(args []string) error {
 	title, body, urgency, iconPath := "", "", "normal", ""
 	expiresIn := 0
@@ -188,7 +196,9 @@ func runNotify(args []string) error {
 			urgency = args[i+1]
 			i++
 		} else if args[i] == "--expires-in" && i+1 < len(args) {
-			fmt.Sscanf(args[i+1], "%d", &expiresIn)
+			if n, err := strconv.Atoi(args[i+1]); err == nil {
+				expiresIn = n
+			}
 			i++
 		} else if args[i] == "--icon" && i+1 < len(args) {
 			iconPath = args[i+1]
@@ -278,18 +288,23 @@ func runProtonDriveInit() error {
 	return nil
 }
 
+func startTransmission() error {
+	if !wireguard.IsRunning() {
+		notify.SendNotify("transmission", "Transmission", "Wireguard is NOT running.\nCannot start Transmission without Wireguard.\n(This is a protective measure)", "critical", 5000, 0)
+		return nil
+	}
+	bindTransmissionToWireGuard()
+	exec.Command("transmission-gtk").Start()
+	notify.SendNotify("transmission", "Transmission", "Starting Transmission...", "normal", 2000, 0)
+	return nil
+}
+
 func runTransmissionToggle() error {
 	if rofi.IsTransmissionRunning() {
 		exec.Command("pkill", "transmission-gtk").Run()
 		notify.SendNotify("transmission", "Transmission", "Stopping Transmission...", "normal", 2000, 0)
 	} else {
-		if !wireguard.IsRunning() {
-			notify.SendNotify("transmission", "Transmission", "Wireguard is NOT running.\nCannot start Transmission without Wireguard.\n(This is a protective measure)", "critical", 5000, 0)
-			return nil
-		}
-		bindTransmissionToWireGuard()
-		exec.Command("transmission-gtk").Start()
-		notify.SendNotify("transmission", "Transmission", "Starting Transmission...", "normal", 2000, 0)
+		return startTransmission()
 	}
 	return nil
 }
@@ -298,13 +313,7 @@ func runTransmissionNotify() error {
 	if rofi.IsTransmissionRunning() {
 		notify.SendNotify("transmission", "Transmission", "Transmission is Enabled\nDisable in Rofi Menu\nOr Super+Shift+G", "normal", 5000, 0)
 	} else {
-		if !wireguard.IsRunning() {
-			notify.SendNotify("transmission", "Transmission", "Wireguard is NOT running.\nCannot start Transmission without Wireguard.\n(This is a protective measure)", "critical", 5000, 0)
-			return nil
-		}
-		bindTransmissionToWireGuard()
-		exec.Command("transmission-gtk").Start()
-		notify.SendNotify("transmission", "Transmission", "Starting Transmission...", "normal", 2000, 0)
+		return startTransmission()
 	}
 	return nil
 }
@@ -316,8 +325,7 @@ func bindTransmissionToWireGuard() {
 	if tunnelIP == "" {
 		return
 	}
-	home, _ := os.UserHomeDir()
-	settingsPath := filepath.Join(home, ".config", "transmission", "settings.json")
+	settingsPath := paths.Join(".config", "transmission", "settings.json")
 	data, err := os.ReadFile(settingsPath)
 	if err != nil {
 		return
@@ -325,18 +333,20 @@ func bindTransmissionToWireGuard() {
 	content := string(data)
 	// Replace bind-address-ipv4
 	if strings.Contains(content, `"bind-address-ipv4"`) {
-		content = regexp.MustCompile(`"bind-address-ipv4"\s*:\s*"[^"]*"`).ReplaceAllString(content, `"bind-address-ipv4": "`+tunnelIP+`"`)
+		content = bindIPv4Re.ReplaceAllString(content, `"bind-address-ipv4": "`+tunnelIP+`"`)
 	} else {
 		// Insert after the first property
 		content = strings.Replace(content, `"alt-speed-down"`, `"bind-address-ipv4": "`+tunnelIP+`",\n    "alt-speed-down"`, 1)
 	}
 	// Replace bind-address-ipv6 (empty — let v4 handle it for now)
 	if strings.Contains(content, `"bind-address-ipv6"`) {
-		content = regexp.MustCompile(`"bind-address-ipv6"\s*:\s*"[^"]*"`).ReplaceAllString(content, `"bind-address-ipv6": ""`)
+		content = bindIPv6Re.ReplaceAllString(content, `"bind-address-ipv6": ""`)
 	} else {
 		content = strings.Replace(content, `"bind-address-ipv4": "`+tunnelIP+`"`, `"bind-address-ipv4": "`+tunnelIP+`",\n    "bind-address-ipv6": ""`, 1)
 	}
-	os.WriteFile(settingsPath, []byte(content), 0644)
+	if err := os.WriteFile(settingsPath, []byte(content), 0644); err != nil {
+		logger.Warn(fmt.Sprintf("failed to write transmission settings: %v", err))
+	}
 }
 
 func runNightLightNotify() error {
@@ -349,8 +359,7 @@ func runNightLightNotify() error {
 }
 
 func runPowerMenu() error {
-	home, _ := os.UserHomeDir()
-	theme := filepath.Join(home, ".local/share/openriot/config/rofi/simple-tokyonight.rasi")
+	theme := paths.ConfigDir("rofi", "simple-tokyonight.rasi")
 	if _, err := os.Stat(theme); os.IsNotExist(err) {
 		theme = "simple-tokyonight"
 	}
@@ -388,12 +397,43 @@ func runAppLauncher(icon, procName string, cmdArgs ...string) error {
 		notify.SendNotify(icon, procName, procName+" already launched", "normal", 2000, 0)
 		return nil
 	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("cannot get home dir: %w", err)
+	home := paths.HomeDir()
+	if home == "" {
+		return fmt.Errorf("cannot get home dir")
 	}
-	binPath := filepath.Join(home, ".local", "share", "openriot", "config", "bin", procName)
+	binPath := paths.OpenRiotDir("config", "bin", procName)
 	notify.SendNotify(icon, procName, "Starting "+procName+"...", "normal", 2000, 0)
 	exec.Command(cmdArgs[0], append(cmdArgs[1:], binPath)...).Start()
 	return nil
+}
+
+// fixNzbgetPerms ensures /etc/nzbget.conf and /var/nzbget are owned by the
+// current user so nzbget can read/write without permission errors.
+// Silently no-op if the paths do not exist.
+func fixNzbgetPerms() {
+	uid := os.Getuid()
+	user := os.Getenv("USER")
+	if user == "" {
+		out, _ := exec.Command("id", "-un").Output()
+		user = strings.TrimSpace(string(out))
+	}
+	if user == "" {
+		return
+	}
+	for _, path := range []string{"/etc/nzbget.conf", "/var/nzbget"} {
+		info, err := os.Stat(path)
+		if err != nil {
+			continue
+		}
+		stat, ok := info.Sys().(*syscall.Stat_t)
+		if !ok {
+			continue
+		}
+		if stat.Uid == uint32(uid) {
+			continue
+		}
+		if err := exec.Command("doas", "chown", "-f", user+":"+user, path).Run(); err != nil {
+			logger.Warn(fmt.Sprintf("nzbget perms: failed to chown %s: %v", path, err))
+		}
+	}
 }

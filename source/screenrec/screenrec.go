@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"openriot/notify"
+	"openriot/paths"
 	"openriot/polybar"
 )
 
@@ -23,11 +24,7 @@ const (
 )
 
 func getCacheDir() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-	return filepath.Join(home, ".cache", "openriot")
+	return paths.Join(".cache", "openriot")
 }
 
 func pidFilePath() string {
@@ -130,17 +127,12 @@ func startRecording() error {
 	// Notify immediately — user should see feedback before any setup work
 	notify.SendNotify("screenrec", "Screen Recorder", "Recording is starting...", "normal", 3000, 0)
 
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("cannot get home dir: %w", err)
-	}
-
 	res, err := getResolution()
 	if err != nil || res == "" {
 		res = "1920x1080"
 	}
 
-	outDir := filepath.Join(home, outputDir)
+	outDir := paths.Join(outputDir)
 	if err := os.MkdirAll(outDir, 0755); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
@@ -209,7 +201,7 @@ func stopRecording(pid int) error {
 
 	msg := "Recording is stopping..."
 	if outPath != "" {
-		home, _ := os.UserHomeDir()
+		home := paths.HomeDir()
 		displayPath := strings.Replace(outPath, home, "~", 1)
 		msg = fmt.Sprintf("Recording is stopping...\nSaved to:\n %s", displayPath)
 	}

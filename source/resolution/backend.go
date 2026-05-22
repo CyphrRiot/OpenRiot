@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
 
 	"openriot/backgrounds"
 	"openriot/lock"
 	"openriot/notify"
+	"openriot/paths"
 )
 
 // Display represents a connected monitor output.
@@ -124,11 +124,7 @@ const stateFile = ".config/openriot/resolution.state"
 
 // statePath returns the full path to the resolution state file.
 func statePath() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-	return filepath.Join(home, stateFile)
+	return paths.Join(stateFile)
 }
 
 // SaveResolution writes the selected display, resolution, and rate to disk.

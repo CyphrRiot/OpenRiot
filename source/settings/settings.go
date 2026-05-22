@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"openriot/macspoof"
 	"openriot/nightlight"
 	"openriot/notify"
+	"openriot/paths"
 	"openriot/polybar"
 	"openriot/wireguard"
 )
@@ -37,7 +37,7 @@ func RunMenu() {
 		fmt.Fprintf(&rofiInput, "%s %s %s\n", e.icon, e.name, stateStr)
 	}
 
-	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", "Settings", "-format", "i", "-theme", theme, "-theme-str", "window { width: 450px; }")
+	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", "Settings", "-format", "i", "-theme", theme, "-theme-str", "window { width: 450px; border: 2px; border-color: #997de1; }")
 	cmd.Stdin = &rofiInput
 	var out bytes.Buffer
 	cmd.Stdout = &out
@@ -115,6 +115,22 @@ func buildEntries() []entry {
 		},
 	})
 
+	// NZBGet — only show if installed and running
+	if _, err := os.Stat("/usr/local/bin/nzbget"); err == nil {
+		if polybar.IsProcessRunning("nzbget") {
+			entries = append(entries, entry{
+				icon:  "󱑤",
+				name:  "NZBGet",
+				label: "(Stop)",
+				on:    true,
+				toggle: func() {
+					exec.Command("pkill", "-x", "nzbget").Run()
+					notify.SendNotify("nzbget", "NZB Server", "NZBGet stopped", "normal", 3000, 0)
+				},
+			})
+		}
+	}
+
 	// Stealth Mode
 	entries = append(entries, entry{
 		icon: "󰝴",
@@ -162,9 +178,7 @@ func buildEntries() []entry {
 
 func findTheme() string {
 	var candidates []string
-	if home, err := os.UserHomeDir(); err == nil {
-		candidates = append(candidates, filepath.Join(home, ".local", "share", "openriot", "config", "rofi", "simple-tokyonight.rasi"))
-	}
+	candidates = append(candidates, paths.OpenRiotDir("config", "rofi", "simple-tokyonight.rasi"))
 	candidates = append(candidates, "/usr/local/share/openriot/config/rofi/simple-tokyonight.rasi")
 	for _, p := range candidates {
 		if _, err := os.Stat(p); err == nil {

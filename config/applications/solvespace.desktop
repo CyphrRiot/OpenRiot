@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=SolveSpace 3D
+GenericName=CAD
+Comment=Parametric 3D CAD and constraint solver
+Icon=solvespace
+Exec=solvespace
+Terminal=false
+Type=Application
+Categories=Graphics;Engineering;
+Keywords=cad;3d;modeling;parametric;

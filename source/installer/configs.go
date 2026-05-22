@@ -11,6 +11,7 @@ import (
 	"openriot/config"
 	"openriot/fsutil"
 	"openriot/logger"
+	"openriot/paths"
 )
 
 // CopyConfigs copies configuration files from the repo to user's home directory.
@@ -18,10 +19,7 @@ import (
 // If dryRun is true, only logs what would be copied without actually copying.
 // Files listed in preserve_if_exists are skipped if they already exist at the destination.
 func CopyConfigs(repoDir string, cfg *config.Config, dryRun bool) error {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("getting home directory: %w", err)
-	}
+	homeDir := paths.HomeDir()
 
 	configSourceDir := filepath.Join(repoDir, "config")
 	configDir := filepath.Join(homeDir, ".config")

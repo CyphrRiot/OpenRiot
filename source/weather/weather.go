@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 	"net/url"
+
+	"openriot/paths"
 )
 
 var cachedConfig *Config
@@ -50,11 +52,7 @@ func Get() string {
 }
 
 func loadConfig() Config {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return Config{}
-	}
-	cfgFile := filepath.Join(homeDir, ".config", "weather.cfg")
+	cfgFile := paths.Join(".config", "weather.cfg")
 	data, err := os.ReadFile(cfgFile)
 	if err != nil {
 		return Config{}
@@ -75,13 +73,9 @@ func loadConfig() Config {
 }
 
 func getCacheFile() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-	cacheDir := filepath.Join(homeDir, ".cache", "openriot")
+	cacheDir := paths.Join(".cache", "openriot")
 	newFile := filepath.Join(cacheDir, "weather.json")
-	oldFile := filepath.Join(homeDir, ".cache", "openriot-weather.json")
+	oldFile := paths.Join(".cache", "openriot-weather.json")
 	if _, err := os.Stat(newFile); os.IsNotExist(err) {
 		if data, err := os.ReadFile(oldFile); err == nil {
 			_ = os.MkdirAll(cacheDir, 0o700)

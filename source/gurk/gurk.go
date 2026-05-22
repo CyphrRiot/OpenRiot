@@ -3,8 +3,9 @@ package gurk
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
+
+	"openriot/paths"
 )
 
 const configPath = "gurk/gurk.toml"
@@ -20,12 +21,7 @@ ctrl-h = "react :purple_heart:"`
 
 // Run is the main entry point for the --gurk-setup command
 func Run() error {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("failed to get home directory: %w", err)
-	}
-
-	configFile := filepath.Join(homeDir, ".config", configPath)
+	configFile := paths.Join(".config", configPath)
 
 	// Check if file exists
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {

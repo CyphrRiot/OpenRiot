@@ -159,6 +159,8 @@ desktop:
         packages:
             - firefox-150.0
             - tdesktop-6.7.6
+            - abaddon-0.2.3
+            - solvespace-3.1p1
             - helix-25.07.1
             - lsd-1.1.5p2
             - thunar-4.20.8

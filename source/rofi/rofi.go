@@ -7,10 +7,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 
 	"openriot/notify"
+	"openriot/paths"
 	"openriot/wireguard"
 )
 
@@ -31,18 +33,9 @@ func RunGames() error {
 }
 
 func findGamesFile() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-	paths := []string{
-		filepath.Join(home, ".config", "rofi", "games.txt"),
-	}
-
-	for _, p := range paths {
-		if _, err := os.Stat(p); err == nil {
-			return p
-		}
+	path := paths.Join(".config", "rofi", "games.txt")
+	if _, err := os.Stat(path); err == nil {
+		return path
 	}
 	return ""
 }
@@ -82,8 +75,8 @@ func runAppsFile(appsFile, prompt string) error {
 		return nil
 	}
 
-	var idx int
-	if _, err := fmt.Sscanf(selected, "%d", &idx); err != nil {
+	idx, err := strconv.Atoi(selected)
+	if err != nil {
 		return fmt.Errorf("invalid selection: %s", selected)
 	}
 
@@ -125,18 +118,9 @@ func runAppsFile(appsFile, prompt string) error {
 }
 
 func findAppsFile() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-	paths := []string{
-		filepath.Join(home, ".config", "rofi", "apps.txt"),
-	}
-
-	for _, p := range paths {
-		if _, err := os.Stat(p); err == nil {
-			return p
-		}
+	path := paths.Join(".config", "rofi", "apps.txt")
+	if _, err := os.Stat(path); err == nil {
+		return path
 	}
 	return ""
 }
@@ -196,11 +180,7 @@ func executeCommand(cmd string) error {
 
 	switch {
 	case strings.HasSuffix(cmd, ".desktop"):
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return fmt.Errorf("cannot get home dir: %w", err)
-		}
-		desktopFile := filepath.Join(home, ".local", "share", "applications", cmd)
+		desktopFile := paths.Join(".local", "share", "applications", cmd)
 		desktopCmd, err := getDesktopExec(desktopFile)
 		if err != nil {
 			return err

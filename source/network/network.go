@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"openriot/paths"
 	"openriot/polybar"
 )
 
@@ -314,9 +315,9 @@ func extractIP(output string) string {
 
 // connectivityPath returns the path to the connectivity state file
 func connectivityPath() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
+	home := paths.HomeDir()
+	if home == "" {
+		return "", fmt.Errorf("cannot get home dir")
 	}
 	return filepath.Join(home, ".cache", "openriot", connectivityFile), nil
 }

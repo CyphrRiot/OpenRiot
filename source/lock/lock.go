@@ -3,7 +3,6 @@ package lock
 import (
 	"fmt"
 	"math/rand"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -12,15 +11,31 @@ import (
 
 	"openriot/macspoof"
 	"openriot/notify"
+	"openriot/paths"
 	"openriot/screen"
 )
 
-func Lock() error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("cannot get home dir: %w", err)
+// filterStealth removes stealth images from matches when stealth is off.
+func filterStealth(matches []string) []string {
+	if macspoof.IsStealthEnabled() {
+		return matches
 	}
+	var normal []string
+	for _, m := range matches {
+		if !strings.HasSuffix(m, "s.png") {
+			normal = append(normal, m)
+		}
+	}
+	return normal
+}
 
+// isProcessRunning returns true if a process with the exact name is active.
+func isProcessRunning(name string) bool {
+	out, _ := exec.Command("pgrep", "-x", name).Output()
+	return len(strings.TrimSpace(string(out))) > 0
+}
+
+func Lock() error {
 	// Check if i3lock is already running
 	if checkLockRunning() {
 		return nil // Already locked, skip
@@ -31,23 +46,12 @@ func Lock() error {
 	res := fmt.Sprintf("%dx%d", w, h)
 
 	// Find random lock image
-	lockDir := filepath.Join(home, ".local/share/openriot/Locked")
+	lockDir := paths.OpenRiotDir("Locked")
 	cacheBase := filepath.Join(lockDir, ".cache", res)
 
 	// Try cached PNGs first (fast path)
 	matches, _ := filepath.Glob(filepath.Join(cacheBase, "*.png"))
-	if macspoof.IsStealthEnabled() {
-		// Stealth: use all images
-	} else {
-		// Non-stealth: filter out stealth images (*s.png)
-		var normal []string
-		for _, m := range matches {
-			if !strings.HasSuffix(m, "s.png") {
-				normal = append(normal, m)
-			}
-		}
-		matches = normal
-	}
+	matches = filterStealth(matches)
 
 	// Cache missing — build it now
 	if len(matches) == 0 {
@@ -59,15 +63,7 @@ func Lock() error {
 
 		// Retry after build
 		matches, _ = filepath.Glob(filepath.Join(cacheBase, "*.png"))
-		if !macspoof.IsStealthEnabled() {
-			var normal []string
-			for _, m := range matches {
-				if !strings.HasSuffix(m, "s.png") {
-					normal = append(normal, m)
-				}
-			}
-			matches = normal
-		}
+		matches = filterStealth(matches)
 	}
 
 	if len(matches) == 0 {
@@ -86,7 +82,7 @@ func Lock() error {
 	cmd.Stdin = nil
 	cmd.Stdout = nil
 	cmd.Stderr = nil
-	err = cmd.Start()
+	err := cmd.Start()
 	if err != nil {
 		notify.SendNotify("lock", "Screen Lock", "Lock failed: i3lock error", "critical", 5000, 0)
 		return err
@@ -97,20 +93,14 @@ func Lock() error {
 
 // checkLockRunning returns true if i3lock is already running
 func checkLockRunning() bool {
-	cmd := exec.Command("pgrep", "-x", "i3lock")
-	output, err := cmd.Output()
-	if err != nil {
-		return false
-	}
-	return len(strings.TrimSpace(string(output))) > 0
+	return isProcessRunning("i3lock")
 }
 
 // SmartLock prevents locking when a known video player is running.
 func SmartLock() error {
 	players := []string{"mpv", "vlc", "mplayer"}
 	for _, p := range players {
-		cmd := exec.Command("pgrep", "-x", p)
-		if output, _ := cmd.Output(); len(strings.TrimSpace(string(output))) > 0 {
+		if isProcessRunning(p) {
 			return nil
 		}
 	}

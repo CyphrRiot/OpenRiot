@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"openriot/assets"
@@ -27,6 +28,7 @@ import (
 	"openriot/nightlight"
 	"openriot/nmtui"
 	"openriot/notify"
+	"openriot/paths"
 	"openriot/polybar"
 	"openriot/resolution"
 	"openriot/rofi"
@@ -43,6 +45,12 @@ import (
 	"openriot/workspace"
 	"openriot/workspaceicons"
 )
+
+// isRunning returns true if any process matching procName is active.
+func isRunning(procName string) bool {
+	out, _ := exec.Command("pgrep", "-f", procName).Output()
+	return len(strings.TrimSpace(string(out))) > 0
+}
 
 // loadConfigOrError finds and loads packages.yaml, returning error if not found
 func loadConfigOrError() (*config.Config, error) {
@@ -238,9 +246,9 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--benchmark", Category: "Tools & Upgrades",
 		Description: "Run system benchmark",
 		Run: func(args []string) error {
-			home, err := os.UserHomeDir()
-			if err != nil {
-				return fmt.Errorf("cannot get home dir: %w", err)
+			home := paths.HomeDir()
+			if home == "" {
+				return fmt.Errorf("cannot get home dir")
 			}
 			script := filepath.Join(os.TempDir(), "openriot-benchmark.sh")
 			content := fmt.Sprintf("#!/bin/sh\n%s\nprintf \"\\n\\nPress any key to continue...\"\nread -r ans\n", filepath.Join(home, ".local", "bin", "benchmark"))
@@ -443,11 +451,7 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Run: func(args []string) error {
 			if network.IsConnected() && network.IsOnline() {
 				details := network.GetWifiDetails()
-				icon := "wifi.png"
-				if !network.IsConnected() {
-					icon = "wifi-off.png"
-				}
-				notify.SendNotify(icon, "WiFi", details, "normal", 5000, 0)
+				notify.SendNotify("wifi", "WiFi", details, "normal", 5000, 0)
 			} else {
 				if !network.IsConnected() {
 					notify.SendNotify("wifi-off", "WiFi", "Not connected", "normal", 2000, 0)
@@ -556,6 +560,33 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--polybar-proton-drive", Category: "Network & Battery",
 		Description: "Show Proton Drive sync status",
 		Run: func(args []string) error { return polybar.RunProtonDrive() },
+	})
+	r.Register(&Command{
+		Name: "--polybar-nzbget", Category: "Network & Battery",
+		Description: "Show nzbget icon",
+		Run: func(args []string) error { return polybar.RunNzbget() },
+	})
+	r.Register(&Command{
+		Name: "--nzbget-open", Category: "Network & Battery",
+		Description: "Open NZBGet web UI or start the daemon",
+		Run: func(args []string) error {
+			if polybar.IsProcessRunning("nzbget") {
+				notify.SendNotify("nzbget", "NZB Server", "Opening NZBGet Website", "normal", 3000, 0)
+				exec.Command("firefox", "http://127.0.0.1:6789").Start()
+				return nil
+			}
+			if _, err := os.Stat("/usr/local/bin/nzbget"); err == nil {
+				notify.SendNotify("nzbget", "NZB Server", "Starting NZBGet daemon...", "normal", 3000, 0)
+				fixNzbgetPerms()
+				cmd := exec.Command("/usr/local/bin/nzbget", "-D")
+				cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+				cmd.Stdout = nil
+				cmd.Stderr = nil
+				return cmd.Start()
+			}
+			notify.SendNotify("nzbget", "NZB Server", "NZBGet not installed", "critical", 5000, 0)
+			return nil
+		},
 	})
 
 	// Drive & Sync
@@ -703,9 +734,7 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--browser", Category: "Lock & Power",
 		Description: "Launch Firefox",
 		Run: func(args []string) error {
-			cmd := exec.Command("pgrep", "-f", "firefox")
-			output, _ := cmd.Output()
-			if len(strings.TrimSpace(string(output))) > 0 {
+			if isRunning("firefox") {
 				notify.SendNotify("firefox", "Firefox", "Already running", "normal", 2000, 0)
 				return nil
 			}
@@ -807,7 +836,9 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Run: func(args []string) error {
 			id := 0
 			if len(args) >= 1 {
-				fmt.Sscanf(args[0], "%d", &id)
+				if n, err := strconv.Atoi(args[0]); err == nil {
+					id = n
+				}
 			}
 			return notify.Dismiss(id)
 		},
@@ -888,12 +919,12 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--crypto-refresh", Category: "Polybar Metrics",
 		Description: "Clear crypto cache and fetch fresh",
 		Run: func(args []string) error {
-			home, err := os.UserHomeDir()
-			if err != nil {
-				return fmt.Errorf("cannot get home dir: %w", err)
+			home := paths.HomeDir()
+			if home == "" {
+				return fmt.Errorf("cannot get home dir")
 			}
-			os.RemoveAll(filepath.Join(home, ".cache", "openriot", "crypto.json"))
-			os.RemoveAll(filepath.Join(home, ".cache", "openriot", "crypto-prev.json"))
+			os.RemoveAll(paths.Join(".cache", "openriot", "crypto.json"))
+			os.RemoveAll(paths.Join(".cache", "openriot", "crypto-prev.json"))
 			return crypto.RunCrypto("ROWML")
 		},
 	})

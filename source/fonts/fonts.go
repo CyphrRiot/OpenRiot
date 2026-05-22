@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"openriot/fsutil"
+	"openriot/paths"
 )
 
 const fontSourceDir = "assets/fonts"
@@ -14,18 +15,13 @@ const fontDestDir = ".local/share/fonts"
 
 // Run installs Nerd Fonts and refreshes the font cache
 func Run() error {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("failed to get home: %w", err)
-	}
-
-	sourcePath := filepath.Join(homeDir, ".local/share/openriot", fontSourceDir)
+	sourcePath := paths.OpenRiotDir(fontSourceDir)
 	sourceFonts, err := os.ReadDir(sourcePath)
 	if err != nil {
 		return fmt.Errorf("font source not found: %w", err)
 	}
 
-	destPath := filepath.Join(homeDir, fontDestDir)
+	destPath := paths.Join(fontDestDir)
 	if err := os.MkdirAll(destPath, 0755); err != nil {
 		return fmt.Errorf("failed to create font directory: %w", err)
 	}

@@ -8,16 +8,13 @@ import (
 	"strings"
 
 	"golang.org/x/sys/unix"
+	"openriot/paths"
 )
 
 // getReleaseNotesPath resolves the path to the current version's release notes.
 // Returns an error if the home dir, VERSION file, or notes file are unavailable.
 func getReleaseNotesPath() (string, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	data, err := os.ReadFile(filepath.Join(homeDir, ".local", "share", "openriot", "VERSION"))
+	data, err := os.ReadFile(paths.OpenRiotDir("VERSION"))
 	if err != nil {
 		return "", err
 	}
@@ -25,7 +22,7 @@ func getReleaseNotesPath() (string, error) {
 	if version == "" || version == "unknown" {
 		return "", fmt.Errorf("version unknown")
 	}
-	docsDir := filepath.Join(homeDir, ".local", "share", "openriot", "docs")
+	docsDir := paths.OpenRiotDir("docs")
 	notesPath := filepath.Join(docsDir, fmt.Sprintf("v%s-Release-Notes.md", version))
 	if _, err := os.Stat(notesPath); err == nil {
 		return notesPath, nil

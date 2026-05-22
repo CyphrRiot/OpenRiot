@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"openriot/logger"
+	"openriot/paths"
 	"openriot/screen"
 )
 
@@ -16,11 +17,10 @@ import (
 // in ~/.local/share/openriot/Locked/.cache/{w}x{h}/, mirroring the
 // source directory layout (default/, stealth/).
 func BuildCache() error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("cannot get home dir: %w", err)
+	lockDir := paths.OpenRiotDir("Locked")
+	if lockDir == "" {
+		return fmt.Errorf("cannot get home dir")
 	}
-	lockDir := filepath.Join(home, ".local", "share", "openriot", "Locked")
 
 	w, h := screen.GetResolution()
 	res := fmt.Sprintf("%dx%d", w, h)

@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"openriot/paths"
 )
 
 const iconDest = "icons"
@@ -29,13 +31,8 @@ func Run(args []string) error {
 }
 
 func installBibata() error {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("failed to get home: %w", err)
-	}
-
 	installedPath := filepath.Join(cursorDest, "Bibata-Modern-Ice")
-	sourcePath := filepath.Join(homeDir, ".local/share/openriot/assets/cursors/Bibata-Modern-Ice")
+	sourcePath := paths.OpenRiotDir("assets", "cursors", "Bibata-Modern-Ice")
 
 	// Check if source exists
 	if _, err := os.Stat(sourcePath); os.IsNotExist(err) {
@@ -71,14 +68,14 @@ func installBibata() error {
 	}
 
 	// Remove stale local copies that shadow the system install
-	localStale := filepath.Join(homeDir, ".local/share/icons/Bibata-Modern-Ice")
+	localStale := paths.Join(".local", "share", "icons", "Bibata-Modern-Ice")
 	if _, err := os.Stat(localStale); err == nil {
 		if err := os.RemoveAll(localStale); err != nil {
 			return fmt.Errorf("failed to remove stale local Bibata: %w", err)
 		}
 	}
 
-	dotIconsStale := filepath.Join(homeDir, ".icons/Bibata-Modern-Ice")
+	dotIconsStale := paths.Join(".icons", "Bibata-Modern-Ice")
 	if _, err := os.Stat(dotIconsStale); err == nil {
 		if err := os.RemoveAll(dotIconsStale); err != nil {
 			return fmt.Errorf("failed to remove stale .icons Bibata: %w", err)
@@ -86,7 +83,7 @@ func installBibata() error {
 	}
 
 	// ALWAYS create ~/.icons/default fallback (Firefox/Electron need this)
-	defaultDir := filepath.Join(homeDir, ".icons", "default")
+	defaultDir := paths.Join(".icons", "default")
 	if err := os.MkdirAll(defaultDir, 0755); err != nil {
 		return fmt.Errorf("failed to create ~/.icons/default: %w", err)
 	}
@@ -107,12 +104,7 @@ func installBibata() error {
 }
 
 func installKora() error {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("failed to get home: %w", err)
-	}
-
-	destPath := filepath.Join(homeDir, ".local/share/icons/kora")
+	destPath := paths.Join(".local", "share", "icons", "kora")
 	panelPath := filepath.Join(destPath, "panel", "22")
 	actionsPath := filepath.Join(destPath, "actions", "16")
 
@@ -137,8 +129,8 @@ func installKora() error {
 	}
 
 	// Extract bundled kora.tgz from assets to ~/.local/share/icons/
-	sourceTgz := filepath.Join(homeDir, ".local/share/openriot/assets/themes/kora.tgz")
-	iconsDir := filepath.Join(homeDir, ".local/share/icons")
+	sourceTgz := paths.OpenRiotDir("assets", "themes", "kora.tgz")
+	iconsDir := paths.Join(".local", "share", "icons")
 
 	if _, err := os.Stat(sourceTgz); os.IsNotExist(err) {
 		fmt.Println("[SKIP] Kora theme archive not found (run setup.sh first)")

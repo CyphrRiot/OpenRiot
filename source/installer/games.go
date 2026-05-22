@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"openriot/logger"
+	"openriot/paths"
 )
 
 // GamesPreference checks whether the user wants games installed.
@@ -15,12 +16,7 @@ import (
 // the user interactively and saves the choice.
 // Returns true if games should be installed.
 func GamesPreference() bool {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return false
-	}
-
-	cfgDir := filepath.Join(home, ".config", "openriot")
+	cfgDir := paths.Join(".config", "openriot")
 	cfgPath := filepath.Join(cfgDir, "games.cfg")
 
 	// If config exists, respect it
@@ -66,13 +62,8 @@ func GamesPreference() bool {
 // StripGamesFromRofi removes the Games entry from rofi apps.txt and deletes
 // games.txt when the user opted out of games installation.
 func StripGamesFromRofi() {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return
-	}
-
-	appsPath := filepath.Join(home, ".config", "rofi", "apps.txt")
-	gamesPath := filepath.Join(home, ".config", "rofi", "games.txt")
+	appsPath := paths.Join(".config", "rofi", "apps.txt")
+	gamesPath := paths.Join(".config", "rofi", "games.txt")
 
 	// Remove games submenu file
 	os.Remove(gamesPath)

@@ -7,15 +7,13 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"openriot/paths"
 )
 
 // ShareLog uploads a file to tmpfiles.org for easy sharing
 func ShareLog(filename string) error {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("cannot get home dir: %w", err)
-	}
-	logPath := filepath.Join(homeDir, ".cache", "openriot", filename)
+	logPath := paths.Join(".cache", "openriot", filename)
 
 	data, err := os.ReadFile(logPath)
 	if err != nil {
@@ -54,11 +52,9 @@ func findFontPath() string {
 	}
 
 	// 3. User's local font installation
-	if home, err := os.UserHomeDir(); err == nil {
-		local := filepath.Join(home, ".local", "share", "fonts", "FiraCode", "FiraCodeNerdFont-Regular.ttf")
-		if _, err := os.Stat(local); err == nil {
-			return local
-		}
+	local := paths.Join(".local", "share", "fonts", "FiraCode", "FiraCodeNerdFont-Regular.ttf")
+	if _, err := os.Stat(local); err == nil {
+		return local
 	}
 
 	return ""
@@ -79,11 +75,7 @@ func MakeIcon(name, symbol string) error {
 		}
 	}
 	if iconDir == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return fmt.Errorf("cannot get home dir: %w", err)
-		}
-		iconDir = filepath.Join(home, ".local", "share", "openriot", "config", "icons")
+		iconDir = paths.IconDir()
 	}
 
 	// Ensure icon directory exists

@@ -14,6 +14,7 @@ import (
 
 	"golang.org/x/sys/unix"
 	"openriot/notify"
+	"openriot/paths"
 	"openriot/screen"
 	"openriot/windowicon"
 	"openriot/windowtitle"
@@ -25,6 +26,25 @@ func Icon(icon string) string {
 		return ""
 	}
 	return icon + "%{O2}"
+}
+
+// IsProcessRunning checks if a process with the exact name is active.
+func IsProcessRunning(name string) bool {
+	out, _ := exec.Command("pgrep", "-x", name).Output()
+	return len(strings.TrimSpace(string(out))) > 0
+}
+
+// RunNzbget outputs the nzbget polybar icon.
+// Running → 󱑤; installed but not running → 󱑥; otherwise empty.
+func RunNzbget() error {
+	if IsProcessRunning("nzbget") {
+		fmt.Print(Icon("󱑤"))
+		return nil
+	}
+	if _, err := os.Stat("/usr/local/bin/nzbget"); err == nil {
+		fmt.Print(Icon("󱑥"))
+	}
+	return nil
 }
 
 // RunMetrics outputs CPU icon for polybar (memory is separate module)
@@ -252,14 +272,10 @@ func IsProtonDriveConfigured() bool {
 }
 
 func isProtonDriveConfigured() bool {
-	home, err := os.UserHomeDir()
-	if err != nil {
+	if _, err := os.Stat(paths.Join("Documents", "ProtonSync")); err != nil {
 		return false
 	}
-	if _, err := os.Stat(filepath.Join(home, "Documents", "ProtonSync")); err != nil {
-		return false
-	}
-	if _, err := os.Stat(filepath.Join(home, ".config", "rclone", "rclone.conf")); err != nil {
+	if _, err := os.Stat(paths.Join(".config", "rclone", "rclone.conf")); err != nil {
 		return false
 	}
 	return true
@@ -267,11 +283,7 @@ func isProtonDriveConfigured() bool {
 
 // checkProtonDriveSync returns "synced" or "needs-sync"
 func checkProtonDriveSync() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "needs-sync"
-	}
-	bisyncDir := filepath.Join(home, ".cache", "rclone", "bisync")
+	bisyncDir := paths.Join(".cache", "rclone", "bisync")
 
 	// Find cache files using glob (works regardless of naming)
 	matches1, _ := filepath.Glob(bisyncDir + "/*path1.lst")
@@ -300,7 +312,7 @@ func checkProtonDriveSync() string {
 	// Check if any local file was modified after last bisync run
 	content1, _ := os.ReadFile(path1)
 	lines1 := strings.Split(string(content1), "\n")
-	syncDir := filepath.Join(home, "Documents", "ProtonSync")
+	syncDir := paths.Join("Documents", "ProtonSync")
 	localFiles := getLocalFileList(syncDir)
 	for _, name := range localFiles {
 		localPath := filepath.Join(syncDir, name)
@@ -447,15 +459,11 @@ func cacheFilesExist(path1, path2 string) bool {
 
 // InitProtonDriveCache runs bisync --dry-run to populate cache files
 func InitProtonDriveCache() error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("cannot get home dir: %w", err)
-	}
 	cmd := exec.Command("rclone", "bisync",
-		filepath.Join(home, "Documents", "ProtonSync"),
+		paths.Join("Documents", "ProtonSync"),
 		"proton:ProtonSync",
 		"--dry-run",
-		"--work-dir", filepath.Join(home, ".cache", "rclone", "bisync"))
+		"--work-dir", paths.Join(".cache", "rclone", "bisync"))
 	return cmd.Run()
 }
 
@@ -484,11 +492,7 @@ func GetProtonDriveTooltipText() string {
 
 // getSyncTime returns the last sync time formatted for display
 func getSyncTime() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "Recently"
-	}
-	bisyncDir := filepath.Join(home, ".cache", "rclone", "bisync")
+	bisyncDir := paths.Join(".cache", "rclone", "bisync")
 
 	// Find path1.lst to get last sync time from mtime
 	matches, _ := filepath.Glob(bisyncDir + "/*path1.lst")
@@ -507,11 +511,6 @@ func getSyncTime() string {
 
 // Setup generates scaled polybar config (doesn't launch polybar - i3 handles that)
 func Setup() int {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return 1
-	}
-
 	// Get screen resolution
 	width := screen.GetWidth()
 
@@ -519,8 +518,8 @@ func Setup() int {
 	height, font0, font1, modMargin := getScaleFactors(width)
 
 	// Read template config
-	templatePath := filepath.Join(home, ".local", "share", "openriot", "config", "polybar", "config.ini")
-	configPath := filepath.Join(home, ".config", "polybar", "config.ini")
+	templatePath := paths.OpenRiotDir("config", "polybar", "config.ini")
+	configPath := paths.Join(".config", "polybar", "config.ini")
 
 	template, err := os.ReadFile(templatePath)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"slices"
 
 	"gopkg.in/yaml.v3"
+	"openriot/paths"
 )
 
 // FindConfigFile looks for packages.yaml in common locations
@@ -27,11 +28,7 @@ func FindConfigFile() string {
 			return path
 		}
 	}
-	homeDir, homeErr := os.UserHomeDir()
-	locations := []string{}
-	if homeErr == nil {
-		locations = append(locations, filepath.Join(homeDir, ".local/share/openriot/install/packages.yaml"))
-	}
+	locations := []string{paths.OpenRiotDir("install", "packages.yaml")}
 	locations = append(locations,
 		filepath.Join("install", "packages.yaml"),
 		filepath.Join("..", "install", "packages.yaml"),

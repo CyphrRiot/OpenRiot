@@ -9,11 +9,13 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"openriot/paths"
 )
 
-func getStateFile(home string) string {
-	newFile := filepath.Join(home, ".config", "openriot", "current-background")
-	oldFile := filepath.Join(home, ".config", "openriot", ".current-background")
+func getStateFile() string {
+	newFile := paths.Join(".config", "openriot", "current-background")
+	oldFile := paths.Join(".config", "openriot", ".current-background")
 	if _, err := os.Stat(newFile); os.IsNotExist(err) {
 		if data, err := os.ReadFile(oldFile); err == nil {
 			_ = os.WriteFile(newFile, data, 0o600)
@@ -54,12 +56,8 @@ func fehArgs(wallpaper string) []string {
 
 // Load restores the last saved wallpaper or falls back to default.
 func Load() int {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return 1
-	}
-	stateFile := getStateFile(home)
-	bgsDir := filepath.Join(home, ".local", "share", "openriot", "backgrounds")
+	stateFile := getStateFile()
+	bgsDir := paths.OpenRiotDir("backgrounds")
 	defaultBg := filepath.Join(bgsDir, "01.png")
 
 	wallpaper := defaultBg
@@ -80,9 +78,9 @@ func Load() int {
 }
 
 // cycle moves delta steps through the wallpaper list and applies the result.
-func cycle(home string, delta int) int {
-	bgsDir := filepath.Join(home, ".local", "share", "openriot", "backgrounds")
-	stateFile := getStateFile(home)
+func cycle(delta int) int {
+	bgsDir := paths.OpenRiotDir("backgrounds")
+	stateFile := getStateFile()
 
 	entries, err := os.ReadDir(bgsDir)
 	if err != nil {
@@ -146,18 +144,10 @@ func cycle(home string, delta int) int {
 
 // Next cycles to the next wallpaper and restarts feh.
 func Next() int {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return 1
-	}
-	return cycle(home, 1)
+	return cycle(1)
 }
 
 // Prev cycles to the previous wallpaper and restarts feh.
 func Prev() int {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return 1
-	}
-	return cycle(home, -1)
+	return cycle(-1)
 }

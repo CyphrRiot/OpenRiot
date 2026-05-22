@@ -2,12 +2,11 @@ package windowicon
 
 import (
 	"encoding/json"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"openriot/paths"
 )
 
 var mappings map[string]string
@@ -89,16 +88,12 @@ func loadMappings() {
 	}
 	mappings = make(map[string]string)
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return
-	}
-	configPath := filepath.Join(homeDir, ".local", "share", "openriot", "config", "window", "icons.toml")
+	configPath := paths.OpenRiotDir("config", "window", "icons.toml")
 
 	// Try multiple locations for config
 	locations := []string{
 		configPath,
-		filepath.Join(homeDir, "Code", "OpenRiot", "config", "window", "icons.toml"),
+		paths.Join("Code", "OpenRiot", "config", "window", "icons.toml"),
 	}
 
 	var data map[string]any

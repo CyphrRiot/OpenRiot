@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"openriot/commands"
+	"openriot/paths"
 )
 
 // Injected at build time via Makefile ldflags:
@@ -26,12 +27,7 @@ func logDebugCall() {
 	if os.Getenv("OPENRIOT_DEBUG") != "1" {
 		return
 	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "DEBUG: cannot get home dir: %v\n", err)
-		return
-	}
-	logDir := filepath.Join(home, ".cache", "openriot")
+	logDir := paths.Join(".cache", "openriot")
 	if err := os.MkdirAll(logDir, 0700); err != nil {
 		fmt.Fprintf(os.Stderr, "DEBUG: cannot create log dir: %v\n", err)
 		return

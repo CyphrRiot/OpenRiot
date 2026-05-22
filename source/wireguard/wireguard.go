@@ -3,11 +3,11 @@ package wireguard
 import (
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"openriot/network"
 	"openriot/notify"
+	"openriot/paths"
 	"openriot/polybar"
 )
 
@@ -56,20 +56,12 @@ func GetTunnelIP() string {
 // GetTunnelIP returns the IPv4 address assigned to wg0, or empty string if down.
 
 func isAutostartEnabled() bool {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return false
-	}
-	_, err = os.Stat(filepath.Join(home, stateFile))
+	_, err := os.Stat(paths.Join(stateFile))
 	return err == nil
 }
 
 func setAutostart(enabled bool) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return
-	}
-	path := filepath.Join(home, stateFile)
+	path := paths.Join(stateFile)
 	if enabled {
 		os.WriteFile(path, []byte("1"), 0600)
 	} else {
