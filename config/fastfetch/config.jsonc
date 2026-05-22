@@ -83,28 +83,28 @@
         {
             "type": "os",
             "key": " OS Ver",
-            "keyColor": "magenta",
+            "keyColor": "green",
         },
         {
             "type": "command",
             "key": " OpenRiot",
-            "keyColor": "magenta",
+            "keyColor": "green",
             "text": "cat $HOME/.local/share/openriot/VERSION 2>/dev/null || echo N/A"
         },
         {
             "type": "shell",
             "key": " Shell",
-            "keyColor": "magenta",
+            "keyColor": "green",
         },
         {
             "type": "wm",
             "key": " WinMgr",
-            "keyColor": "magenta",
+            "keyColor": "green",
         },
         {
             "type": "terminal",
             "key": " Term",
-            "keyColor": "magenta",
+            "keyColor": "green",
         },
         {
             "type": "uptime",
