@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════════
- * OpenRiot GTK3 Custom CSS - CypherRiot Theme
+ * OpenRiot GTK3 Custom CSS - Dark Theme
  * Dark theme overrides for Thunar and other GTK applications
  * ═══════════════════════════════════════════════════════════════════════════════ */
 
@@ -30,7 +30,7 @@ window.thunar {
 /* Thunar sidebar selected items */
 .thunar sidebar row:selected,
 .thunar .sidebar row:selected {
-    background-color: #bb9af7;
+    background-color: #9ECE6A;
     color: #0f1016;
 }
 
@@ -66,7 +66,7 @@ window.thunar {
 
 .thunar headerbar button:active,
 .thunar toolbar button:active {
-    background-color: #bb9af7;
+    background-color: #9ECE6A;
     color: #0f1016;
 }
 
@@ -91,7 +91,7 @@ window.thunar {
 }
 
 .thunar pathbar button:active {
-    background-color: #bb9af7;
+    background-color: #9ECE6A;
     color: #0f1016;
 }
 
@@ -144,7 +144,7 @@ window.thunar {
 
 .thunar menu menuitem:hover,
 .thunar .menu menuitem:hover {
-    background-color: #bb9af7;
+    background-color: #9ECE6A;
     color: #0f1016;
 }
 
@@ -152,7 +152,7 @@ window.thunar {
 .thunar .rubberband,
 .thunar rubberband {
     background-color: rgba(122, 162, 247, 0.2);
-    border: 1px solid #bb9af7;
+    border: 1px solid #9ECE6A;
     color: transparent;
 }
 
@@ -164,14 +164,14 @@ window.thunar {
 
 /* Thunar specific selection - full cell highlight for icon view */
 .thunar .view:selected {
-    background-color: #bb9af7;
+    background-color: #9ECE6A;
     color: #0f1016;
 }
 
 /* Thunar iconview - highlight entire cell including icon */
 .thunar iconview cell:selected,
 .thunar iconview cell:selected:focus {
-    background-color: #bb9af7;
+    background-color: #9ECE6A;
     background-image: none;
     color: #0f1016;
     border: none;
@@ -189,7 +189,7 @@ window.thunar {
 /* FIX: Folder icons specifically */
 .thunar iconview cell:selected:backdrop image,
 .thunar .standard-view cell:selected:backdrop image {
-    background-color: #bb9af7;
+    background-color: #9ECE6A;
     background-image: none;
     -gtk-icon-effect: none;
 }
@@ -202,21 +202,21 @@ window.thunar {
 
 /* Selected items in unfocused windows */
 .thunar .view:selected:backdrop {
-    background-color: #bb9af7;
+    background-color: #9ECE6A;
     color: #0f1016;
 }
 
 /* Thunar iconview selected items - ensure visible when focused/unfocused */
 .thunar iconview cell:selected,
 .thunar iconview cell:selected:focus {
-    background-color: #bb9af7;
+    background-color: #9ECE6A;
     color: #0f1016;
     text-shadow: none;
 }
 
 /* Selected items in unfocused windows - prevent black icons */
 .thunar iconview:selected:not(:focus) {
-    background-color: #bb9af7;
+    background-color: #9ECE6A;
     color: #0f1016;
 }
 
@@ -227,17 +227,17 @@ window.thunar {
 
 /* Thunar selection when window is unfocused (backdrop state) */
 .thunar .view:selected:backdrop {
-    background-color: #bb9af7;
+    background-color: #9ECE6A;
     color: #0f1016;
 }
 
 .thunar iconview:selected:backdrop {
-    background-color: #bb9af7;
+    background-color: #9ECE6A;
     color: #0f1016;
 }
 
 .thunar iconview cell:selected:backdrop {
-    background-color: #bb9af7;
+    background-color: #9ECE6A;
     background-image: none;
 }
 
@@ -251,7 +251,7 @@ window.thunar {
 /* Force icon visibility in backdrop selection */
 window.thunar iconview.view.cell:selected:backdrop {
     color: #0f1016;
-    background-color: #bb9af7;
+    background-color: #9ECE6A;
     text-shadow: none;
     -gtk-icon-effect: none;
 }

@@ -584,7 +584,7 @@ func RunAll() error {
 	wsStr := buildWorkspacesPolybar(tree, workspaces, windowIcons)
 	titleStr := findFocusedTitleInTree(tree)
 
-	fmt.Print(wsStr + "  %{F#565f89}" + titleStr + "%{F-}\n")
+	fmt.Print(wsStr + "  %{F#565F89}" + titleStr + "%{F-}\n")
 	return nil
 }
 
@@ -646,19 +646,20 @@ func buildWorkspacesPolybar(tree *i3Tree, workspaces []i3Workspace, windowIcons 
 
 		if state == "unfocused" && len(icons) > 0 {
 			for i := 0; i < len(icons); i++ {
-				allSlots[i] = fmt.Sprintf("%%{T0}%%{F#344b7a}%s%%{F-}%%{T-}", icons[i])
+				allSlots[i] = fmt.Sprintf("%%{T0}%%{F#565F89}%s%%{F-}%%{T-}", icons[i])
 			}
+			indicator = fmt.Sprintf("%%{F#565F89}%s%%{F-}", indicator)
 		}
-		if state == "unfocused" {
-			indicator = fmt.Sprintf("%%{F#344b7a}%s%%{F-}", indicator)
+		if state == "unfocused" && len(icons) == 0 {
+			indicator = fmt.Sprintf("%%{F#1A1D26}%s%%{F-}", indicator)
 		}
 
 		content := fmt.Sprintf("%s %s", indicator, strings.Join(allSlots, " "))
 		if state == "focused" {
-			content = fmt.Sprintf("%%{F#7aa2f7}%s%%{F-}", content)
+			content = fmt.Sprintf("%%{F#9ECE6A}%s%%{F-} %%{F#8BB85A}%s%%{F-}", indicator, strings.Join(allSlots, " "))
 		}
 		if state == "urgent" {
-			content = fmt.Sprintf("%%{F#c084fc}%s%%{F-}", content)
+			content = fmt.Sprintf("%%{F#F7768E}%s%%{F-}", content)
 		}
 		results = append(results,
 			fmt.Sprintf("%%{A:$HOME/.local/share/openriot/install/openriot --workspace-switch %d:}%s%%{A}", wsNum, content))

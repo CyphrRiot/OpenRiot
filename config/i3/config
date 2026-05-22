@@ -8,8 +8,8 @@ set $browser $HOME/.local/share/openriot/install/openriot --browser
 set $editor gnome-text-editor
 
 font pango:FiraCode Nerd Font 11
-default_border pixel 2
-default_floating_border pixel 2
+default_border pixel 1
+default_floating_border pixel 1
 default_orientation horizontal
 hide_edge_borders smart
 smart_gaps on
@@ -25,7 +25,7 @@ for_window [class="^XConsole$"] kill
 for_window [class="^xconsole$"] kill
 
 # Colors
-client.focused           #4c7899 #285577 #ffffff
+client.focused           #9ECE6A #285577 #ffffff #9ECE6A #9ECE6A
 client.focused_inactive  #333333 #333333 #ffffff
 client.unfocused         #333333 #333333 #888888
 client.urgent            #d12121 #880000 #ffffff

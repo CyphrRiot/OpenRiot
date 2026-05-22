@@ -305,3 +305,21 @@ help:
 	@echo "  convert            Convert PNG backgrounds/lock screens to WebP"
 	@echo "  binary-push        Build + strip history + commit + force-push binary"
 	@echo "  help               Show this message"
+
+# UI refresh — install binary + sync all UI configs + restart bars/daemons
+ui: install
+	@echo "=== Syncing UI configs ==="
+	@cp config/polybar/config.ini $$HOME/.local/share/openriot/config/polybar/config.ini
+	@openriot --polybar-setup
+	@pkill -9 polybar 2>/dev/null || true
+	@cp config/dunst/dunstrc $$HOME/.config/dunst/dunstrc
+	@pkill -9 dunst 2>/dev/null || true
+	@cp config/i3/config $$HOME/.config/i3/config
+	@i3-msg restart 2>/dev/null || true
+	@cp config/rofi/simple-tokyonight.rasi $$HOME/.config/rofi/simple-tokyonight.rasi
+	@cp config/rofi/config.rasi $$HOME/.config/rofi/config.rasi
+	@cp config/picom.conf $$HOME/.config/picom.conf
+	@pkill -9 picom 2>/dev/null || true
+	@pkill -9 rofi 2>/dev/null || true
+	@echo "=== UI refresh complete ==="
+	@echo "Run \`Super+Shift+R\` if anything looks off."

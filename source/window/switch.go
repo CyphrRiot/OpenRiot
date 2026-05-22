@@ -103,7 +103,7 @@ func RunSwitch() error {
 		lines = 16
 	}
 	themeStr := fmt.Sprintf(
-		"window { width: 750px; border: 2px; border-color: #997de1; } listview { columns: 1; lines: %d; flow: vertical; scrollbar: false; padding: 8px 0px; } element { padding: 6px 8px; border-radius: 4px; } inputbar { padding: 8px 12px; } icon-search { size: 14px; }",
+		"window { width: 750px; border: 2px; border-color: #9ECE6A; } listview { columns: 1; lines: %d; flow: vertical; scrollbar: false; padding: 8px 0px; } element { padding: 6px 8px; border-radius: 4px; } inputbar { padding: 8px 12px; } icon-search { size: 14px; }",
 		lines,
 	)
 

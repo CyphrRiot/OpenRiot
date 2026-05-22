@@ -17,12 +17,17 @@ func GetNotifyDetails() string {
 		return "No Battery Installed"
 	}
 
-	timeStr := formatTime(minutes)
-
 	if ac == 1 {
-		return fmt.Sprintf("Charging at %d%%\nEstimated Time: %s", percent, timeStr)
+		if minutes > 0 {
+			return fmt.Sprintf("Plugged In at %d%%\nEstimated Time: %s", percent, formatTime(minutes))
+		}
+		return fmt.Sprintf("Plugged In at %d%%\nOn AC Power", percent)
 	}
-	return fmt.Sprintf("Charged to %d%%\nRemaining Time: %s", percent, timeStr)
+
+	if minutes > 0 {
+		return fmt.Sprintf("Charged to %d%%\nRemaining Time: %s", percent, formatTime(minutes))
+	}
+	return fmt.Sprintf("Charged to %d%%", percent)
 }
 
 func getFullStatus() (percent, ac, minutes int) {
@@ -74,7 +79,15 @@ func Get() string {
 		return "" // No battery info
 	}
 
-	return polybar.Icon(getBatteryIcon(percent, ac))
+	icon := polybar.Icon(getBatteryIcon(percent, ac))
+
+	if ac == 1 {
+		return fmt.Sprintf("%%{F#0DB9D7}%s%%{F-}", icon)
+	}
+	if percent < 20 {
+		return fmt.Sprintf("%%{F#F7768E}%s%%{F-}", icon)
+	}
+	return fmt.Sprintf("%%{F#A3ACC9}%s%%{F-}", icon)
 }
 
 func getBatteryIcon(percent, ac int) string {

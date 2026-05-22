@@ -15,7 +15,7 @@
     highlighted_item_style: (fg: "#7aa2f7", modifiers: "Bold"),
     current_item_style: (fg: "#1a1b26", bg: "#7aa2f7", modifiers: "Bold"),
     borders_style: (fg: "#7aa2f7"),
-    highlight_border_style: (fg: "#bb9af7"),
+    highlight_border_style: (fg: "#9ECE6A"),
     symbols: (
         song: "",
         dir: "",
@@ -40,13 +40,13 @@
         warn: (fg: "#e0af68", bg: "#1a1b26"),
         error: (fg: "#f7768e", bg: "#1a1b26"),
         debug: (fg: "#9ece6a", bg: "#1a1b26"),
-        trace: (fg: "#bb9af7", bg: "#1a1b26"),
+        trace: (fg: "#8BB85A", bg: "#1a1b26"),
     ),
     progress_bar: (
         symbols: ["█", "█", "█", " ", "█"],
         track_style: None,
         elapsed_style: (fg: "#7aa2f7"),
-        thumb_style: (fg: "#bb9af7"),
+        thumb_style: (fg: "#9ECE6A"),
         use_track_when_empty: true,
     ),
     scrollbar: (

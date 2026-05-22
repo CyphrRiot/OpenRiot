@@ -7,9 +7,9 @@ bg = "#000000"
 bg1 = "#1f2335"      # slightly lighter for statusline/panels if needed
 bg2 = "#24283b"
 
-# Your signature purples and blues
-purple = "#bb9af7"
-magenta = "#9d7bd8"
+# Your signature greens and blues
+green1 = "#9ECE6A"
+green2 = "#8BB85A"
 blue = "#7aa2f7"
 cyan = "#0db9d7"
 orange = "#ff9e64"

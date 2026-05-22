@@ -15,7 +15,7 @@
   magenta : #9a7ecc;
   cyan    : #4abaaf;
 
-  accent: @blue;
+  accent: @green;
   urgent: @yellow;
 
   background-color : transparent;
@@ -37,7 +37,7 @@ window {
 
   background-color: @bg1;
   border: 1px;
-  border-color: @bg3;
+  border-color: @accent;
   border-radius: 6px;
 }
 

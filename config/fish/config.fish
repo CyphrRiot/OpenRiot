@@ -90,8 +90,8 @@ set -g __fish_git_prompt_showdirtystate yes
 set -g __fish_git_prompt_showstashstate yes
 set -g __fish_git_prompt_showuntrackedfiles yes
 set -g __fish_git_prompt_showupstream yes
-set -g __fish_git_prompt_color_branch 9d7cd8
-set -g __fish_git_prompt_color_upstream_ahead purple
+set -g __fish_git_prompt_color_branch 8BB85A
+set -g __fish_git_prompt_color_upstream_ahead 9ECE6A
 set -g __fish_git_prompt_color_upstream_behind red
 set -g __fish_git_prompt_color_dirtystate 565f89
 set -g __fish_git_prompt_char_dirtystate "●"
@@ -109,9 +109,9 @@ set -g __fish_git_prompt_char_upstream_equal ""
 function fish_prompt
     set -l last_status $status
     set -l host (hostname -s 2>/dev/null || echo "unknown")
-    set_color bb9af7
+    set_color 9ECE6A
     echo -n '  '
-    set_color 705e97
+    set_color 8BB85A
     printf "%s " $host
     set_color 7dcfff
     printf "%s" (string replace $HOME "~" (pwd))
@@ -123,7 +123,7 @@ function fish_prompt
         printf " [%d]" $last_status
         set_color normal
     end
-    set_color bb9af7
+    set_color 9ECE6A
     printf " ❯ "
     set_color normal
 end

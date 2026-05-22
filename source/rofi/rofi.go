@@ -61,7 +61,7 @@ func runAppsFile(appsFile, prompt string) error {
 
 	// Run rofi with dynamically balanced two-column layout
 	lines := (len(entries) + 1) / 2
-	themeStr := fmt.Sprintf("window { width: 580px; border: 2px; border-color: #997de1; } listview { columns: 2; lines: %d; flow: vertical; scrollbar: false; padding: 8px 0px; } element { padding: 6px 8px; border-radius: 4px; } inputbar { padding: 8px 12px; } icon-search { size: 14px; }", lines)
+	themeStr := fmt.Sprintf("window { width: 580px; border: 2px; border-color: #9ECE6A; } listview { columns: 2; lines: %d; flow: vertical; scrollbar: false; padding: 8px 0px; } element { padding: 6px 8px; border-radius: 4px; } inputbar { padding: 8px 12px; } icon-search { size: 14px; }", lines)
 	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", prompt, "-format", "i", "-theme", theme, "-theme-str", themeStr)
 	cmd.Stdin = &rofiInput
 	var out bytes.Buffer

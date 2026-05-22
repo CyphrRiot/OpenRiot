@@ -147,7 +147,7 @@ func (m model) renderResult() string {
 
 var (
 	titleStyle  = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#7aa2f7"))
-	cursorStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#bb9af7"))
+	cursorStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#9ECE6A"))
 	itemStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#a9b1d6"))
 	helpStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#565f89"))
 	errorStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#f7768e"))

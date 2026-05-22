@@ -4,14 +4,14 @@
 @import "{{ site.theme }}";
 
 /* ArchRiot Dark Theme Override */
-/* Inspired by CypherRiot purple/blue aesthetic */
+/* Inspired by Neo Tokyo + Bondi Green aesthetic */
 
 :root {
     --archriot-dark-bg: #0a0a0f;
     --archriot-darker-bg: #05050a;
-    --archriot-purple: #8b5cf6;
-    --archriot-purple-light: #a78bfa;
-    --archriot-purple-dark: #7c3aed;
+    --archriot-green: #9ECE6A;
+    --archriot-green-light: #9ECE6A;
+    --archriot-green-dark: #9ECE6A;
     --archriot-blue: #3b82f6;
     --archriot-cyan: #06b6d4;
     --archriot-text: #e5e7eb;
@@ -49,7 +49,7 @@ body {
     border-radius: 12px;
     backdrop-filter: blur(10px);
     border: 1px solid var(--archriot-border);
-    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1);
+    box-shadow: 0 8px 32px rgba(158, 206, 106, 0.1);
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0;
@@ -75,7 +75,7 @@ body {
     line-height: 1.7;
 }
 
-/* Headings with purple gradient */
+/* Headings with green gradient */
 h1,
 h2,
 h3,
@@ -84,7 +84,7 @@ h5,
 h6 {
     background: linear-gradient(
         45deg,
-        var(--archriot-purple),
+        var(--archriot-green),
         var(--archriot-cyan)
     );
     background-clip: text;
@@ -110,7 +110,7 @@ h3 code,
 h4 code,
 h5 code,
 h6 code {
-    -webkit-text-fill-color: var(--archriot-purple-light) !important;
+    -webkit-text-fill-color: var(--archriot-green-light) !important;
     background: none !important;
     border: none !important;
     padding: 0 !important;
@@ -118,8 +118,8 @@ h6 code {
 
 /* Override for the main title */
 h1:first-child {
-    color: var(--archriot-purple-light) !important;
-    -webkit-text-fill-color: var(--archriot-purple-light) !important;
+    color: var(--archriot-green-light) !important;
+    -webkit-text-fill-color: var(--archriot-green-light) !important;
     font-size: 2.5rem;
     text-align: center;
     margin-bottom: 2rem;
@@ -135,9 +135,9 @@ td {
     line-height: 1.7;
 }
 
-/* Links with purple theme */
+/* Links with green theme */
 a {
-    color: var(--archriot-purple-light) !important;
+    color: var(--archriot-green-light) !important;
     text-decoration: none;
     transition: all 0.3s ease;
 }
@@ -150,7 +150,7 @@ a:hover {
 /* Code blocks and inline code */
 code {
     background: var(--archriot-code-bg) !important;
-    color: var(--archriot-purple-light) !important;
+    color: var(--archriot-green-light) !important;
     padding: 0.2rem 0.4rem;
     border-radius: 4px;
     border: 1px solid var(--archriot-border);
@@ -184,7 +184,7 @@ table {
 }
 
 th {
-    background: var(--archriot-purple-dark) !important;
+    background: var(--archriot-green-dark) !important;
     color: white !important;
     padding: 0.5rem 1rem;
     font-weight: 600;
@@ -197,7 +197,7 @@ td {
 }
 
 tr:hover td {
-    background: rgba(139, 92, 246, 0.1) !important;
+    background: rgba(158, 206, 106, 0.1) !important;
 }
 
 /* Badges and shields.io images */
@@ -210,7 +210,7 @@ img[src*="badge"] {
 /* Blockquotes */
 blockquote {
     background: var(--archriot-dark-bg) !important;
-    border-left: 4px solid var(--archriot-purple) !important;
+    border-left: 4px solid var(--archriot-green) !important;
     color: var(--archriot-text) !important;
     padding: 0.5rem 1rem;
     margin: 0.5rem 0;
@@ -224,7 +224,7 @@ ol {
 }
 
 li::marker {
-    color: var(--archriot-purple-light);
+    color: var(--archriot-green-light);
 }
 
 /* Horizontal rules */
@@ -234,7 +234,7 @@ hr {
     background: linear-gradient(
         90deg,
         transparent,
-        var(--archriot-purple),
+        var(--archriot-green),
         transparent
     );
     margin: 2rem 0;
@@ -247,7 +247,7 @@ a[href*="download"]:not([href^="#"]),
 a[href*="install"]:not([href^="#"]) {
     background: linear-gradient(
         45deg,
-        var(--archriot-purple),
+        var(--archriot-green),
         var(--archriot-blue)
     ) !important;
     color: white !important;
@@ -256,7 +256,7 @@ a[href*="install"]:not([href^="#"]) {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(158, 206, 106, 0.3);
     transition: all 0.3s ease;
     border: none;
     display: inline-block;
@@ -268,7 +268,7 @@ a[href*="install"]:not([href^="#"]) {
 a[href*="download"]:not([href^="#"]):hover,
 a[href*="install"]:not([href^="#"]):hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4) !important;
+    box-shadow: 0 6px 20px rgba(158, 206, 106, 0.4) !important;
     color: white !important;
 }
 
@@ -276,7 +276,7 @@ a[href*="install"]:not([href^="#"]):hover {
 footer {
     background: var(--archriot-darker-bg) !important;
     color: var(--archriot-text-dim) !important;
-    border-top: 2px solid var(--archriot-purple);
+    border-top: 2px solid var(--archriot-green);
     padding: 2rem 0;
     text-align: center;
 }
@@ -315,7 +315,7 @@ footer {
 ::-webkit-scrollbar-thumb {
     background: linear-gradient(
         45deg,
-        var(--archriot-purple),
+        var(--archriot-green),
         var(--archriot-blue)
     );
     border-radius: 6px;
@@ -324,19 +324,19 @@ footer {
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(
         45deg,
-        var(--archriot-purple-light),
+        var(--archriot-green-light),
         var(--archriot-cyan)
     );
 }
 
 /* Selection styling */
 ::selection {
-    background: var(--archriot-purple);
+    background: var(--archriot-green);
     color: white;
 }
 
 ::-moz-selection {
-    background: var(--archriot-purple);
+    background: var(--archriot-green);
     color: white;
 }
 
@@ -357,7 +357,7 @@ strong:contains("Important") {
 
 /* GitHub corner ribbon (if present) */
 .github-corner svg {
-    fill: var(--archriot-purple);
+    fill: var(--archriot-green);
     color: var(--archriot-dark-bg);
 }
 
@@ -366,7 +366,7 @@ strong:contains("Important") {
     position: relative;
     display: inline;
     cursor: help;
-    color: var(--archriot-purple-light) !important;
+    color: var(--archriot-green-light) !important;
     text-decoration: underline;
     text-decoration-style: dotted;
     text-underline-offset: 3px;
@@ -394,8 +394,8 @@ strong:contains("Important") {
     text-align: left;
     border-radius: 8px;
     padding: 1rem;
-    border: 1px solid var(--archriot-purple);
-    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
+    border: 1px solid var(--archriot-green);
+    box-shadow: 0 8px 32px rgba(158, 206, 106, 0.3);
 
     /* Position the tooltip */
     z-index: 999;
@@ -422,7 +422,7 @@ strong:contains("Important") {
     margin-left: -8px;
     border-width: 8px;
     border-style: solid;
-    border-color: var(--archriot-purple) transparent transparent transparent;
+    border-color: var(--archriot-green) transparent transparent transparent;
 }
 
 .tooltip:hover .tooltiptext {
@@ -462,7 +462,7 @@ strong:contains("Important") {
 
 /* Footnote definitions */
 .footnotes li:target {
-    background: rgba(139, 92, 246, 0.1);
+    background: rgba(158, 206, 106, 0.1);
     border-radius: 4px;
     padding: 0.5rem;
     margin: 0.5rem 0;
@@ -471,10 +471,10 @@ strong:contains("Important") {
 
 @keyframes highlight-footnote {
     0% {
-        background: rgba(139, 92, 246, 0.3);
+        background: rgba(158, 206, 106, 0.3);
     }
     100% {
-        background: rgba(139, 92, 246, 0.1);
+        background: rgba(158, 206, 106, 0.1);
     }
 }
 
@@ -485,14 +485,14 @@ sup a[href^="#fn:"],
 sup a[href^="#fn"][href*=":"],
 .footnote-ref a,
 .footnote a {
-    color: var(--archriot-purple-light) !important;
+    color: var(--archriot-green-light) !important;
     text-decoration: none;
     font-weight: normal;
     position: relative;
     top: -0.4em;
     font-size: 0.65em !important;
     padding: 0.1em 0.25em;
-    background: rgba(139, 92, 246, 0.1);
+    background: rgba(158, 206, 106, 0.1);
     border-radius: 2px;
     transition: all 0.2s ease;
     cursor: pointer;
@@ -506,16 +506,16 @@ sup a[href^="#fn"][href*=":"]:hover,
 .footnote-ref a:hover,
 .footnote a:hover {
     color: var(--archriot-cyan) !important;
-    background: rgba(139, 92, 246, 0.2);
+    background: rgba(158, 206, 106, 0.2);
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 2px 4px rgba(158, 206, 106, 0.3);
 }
 
 /* Footnote backlinks - all possible formats */
 a[href^="#fnref:"],
 a[href^="#fnref"],
 .footnote-backref {
-    color: var(--archriot-purple-light) !important;
+    color: var(--archriot-green-light) !important;
     text-decoration: none;
     margin-left: 0.5em;
     font-size: 0.9em;

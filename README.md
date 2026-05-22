@@ -1,8 +1,10 @@
 <div align="center">
 
+# 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥
+
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.3-blue?labelColor=0052cc)
+![Version](https://img.shields.io/badge/version-7.9.4-blue?labelColor=0052cc)
 ![License](https://img.shields.io/github/license/CyphrRiot/OpenRiot?color=4338ca&labelColor=3730a3)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-4338ca?logo=openbsd&logoColor=white&labelColor=3730a3)
 ![i3](https://img.shields.io/badge/i3-X11-312e81?logo=x11&logoColor=a855f7&labelColor=1e1b4b)
@@ -17,9 +19,10 @@
 
 ---
 
-![OpenRiot](assets/screenshot.webp)
+![OpenRiot](assets/desktop.png)
 
 ---
+
 
 ## 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥
 
@@ -30,7 +33,6 @@ Install base OpenBSD 7.9 → run one script → get a fast, dark, beautiful desk
 OpenRiot versions track OpenBSD releases directly. OpenBSD 7.9
 = OpenRiot 7.9.x. The patch digit is for OpenRiot-specific fixes
 between OS releases. When OpenBSD ships 8.0, OpenRiot becomes 8.0.0.
-This is not complicated. It just took us a lot of code to realize it.
 
 - Read the [original Post on X](https://x.com/CyphrRiot/status/2043140621398127012?s=20)
 
@@ -121,6 +123,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.9.4 — The One That Went Bondi Green](docs/v7.9.4-Release-Notes.md)
 - [v7.9.3 — The One Where We Mapped the Home Directory to Oblivion](docs/v7.9.3-Release-Notes.md)
 - [v7.9.2 — The One Where the Kernel Was a Replicant](docs/v7.9.2-Release-Notes.md)
 - [v7.9.1 — The One Where We Fixed the Menu and Invented a Switcher](docs/v7.9.1-Release-Notes.md)
@@ -1959,4 +1962,3 @@ doas rcctl restart sshd
 > `bc1qscxvn9clw6n3a4kykl2nlu8w2f2aqdftfp4hyq`
 
 ![Donation QR Code](assets/qr-code.webp)
-

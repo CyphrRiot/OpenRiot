@@ -1,6 +1,6 @@
 # =============================================================================
 # OpenRiot — LF (Ranger-style File Manager) Configuration
-# CypherRiot / Tokyo Night Aesthetic
+# Neo Tokyo + Bondi Green Aesthetic
 # =============================================================================
 # lf(1) configuration — place at ~/.config/lf/lfrc
 # Run `lf` in a terminal. Use ? for help.
@@ -37,7 +37,7 @@ set promptfmt "\033[38;5;183m%w\033[0m %%(r)\033[0m"
 # 09 = bright black (565f89 — comment grey)
 # =============================================================================
 
-# Directory colours — purple/magenta
+# Directory colours — green
 map <esc> cd
 map gh cd ~
 map g/ cd /
