@@ -910,7 +910,7 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Description: "Show crypto polybar icon if configured",
 		Run: func(args []string) error {
 			if crypto.ConfigFileExists() {
-				fmt.Print("%{T1}󰄨%{T-}%{O2}")
+				fmt.Print("%{T1}%{T-}%{O2}")
 			}
 			return nil
 		},

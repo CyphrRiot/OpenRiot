@@ -226,27 +226,32 @@ var (
 )
 
 // scaleDunstrc parses the template for actual width/font values and scales
-// them proportionally for screens > 1920px. This survives template changes.
+// them proportionally for screen resolution. This survives template changes.
 func scaleDunstrc(content string, screenWidth int) string {
-	if screenWidth <= 1920 {
+	if screenWidth < 1920 {
 		return content
 	}
 
-	// Add 70px to base width for hi-DPI screens (450→520, 420→490).
-	content = widthRe.ReplaceAllStringFunc(content, func(match string) string {
-		m := widthRe.FindStringSubmatch(match)
-		if len(m) < 2 {
-			return match
-		}
-		baseW, _ := strconv.Atoi(m[1])
-		if baseW <= 0 {
-			return match
-		}
-		newW := baseW + 70
-		return fmt.Sprintf("width = %d", newW)
-	})
+	// 1080p: +1pt font size (10→11)
+	// >1920: +2pt font size (10→12) and +70px width
+	fontDelta := 1
+	if screenWidth > 1920 {
+		fontDelta = 2
+		// Add 70px to base width for hi-DPI screens (450→520, 420→490).
+		content = widthRe.ReplaceAllStringFunc(content, func(match string) string {
+			m := widthRe.FindStringSubmatch(match)
+			if len(m) < 2 {
+				return match
+			}
+			baseW, _ := strconv.Atoi(m[1])
+			if baseW <= 0 {
+				return match
+			}
+			newW := baseW + 70
+			return fmt.Sprintf("width = %d", newW)
+		})
+	}
 
-	// Add 2pt to base font size for hi-DPI screens (10→12, 11→13).
 	content = fontSizeRe.ReplaceAllStringFunc(content, func(match string) string {
 		m := fontSizeRe.FindStringSubmatch(match)
 		if len(m) < 2 {
@@ -256,7 +261,7 @@ func scaleDunstrc(content string, screenWidth int) string {
 		if baseSize <= 0 {
 			return match
 		}
-		newSize := baseSize + 2
+		newSize := baseSize + fontDelta
 		return fmt.Sprintf("FiraCode Nerd Font %d", newSize)
 	})
 

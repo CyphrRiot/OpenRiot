@@ -632,7 +632,7 @@ Polybar is your status bar. Click on modules for more:
 
 | No. | Module | Icon | Meaning |
 |-----|--------|------|---------|
-| 1 | crypto | 󰄨 | Crypto prices (hidden when no config) |
+| 1 | crypto |  | Crypto prices (hidden when no config) |
 | 2 | proton-drive | 󱥾 / 󰴋 | Synced / Syncing (auto-hides when not configured) |
 | 3 | transmission | 󰐻 | Running (auto-hides when stopped) |
 | 4 | night-light | 󰌵 /  | Night light ON / OFF |
@@ -976,7 +976,7 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 | |  | Muted | | |
 | **battery** | 󰁺-󰂂 | Discharging | Battery notification | - |
 | | 󰢜-󰂋 | Charging | | |
-| **crypto** | 󰄨 | - | Show crypto prices (hidden when no config) | - |
+| **crypto** |  | - | Show crypto prices (hidden when no config) | - |
 | **night-light** |  | OFF | Toggle redshift | - |
 | | 󰌵 | ON | | |
 | **cpu** | 󰡳→󰡵→󰊚→󰡴 | - | CPU notification | - |
@@ -1057,7 +1057,7 @@ cp ~/.config/crypto-template.toml ~/.config/crypto.toml
 
 | Trigger | What Happens |
 |---------|-------------|
-| **Polybar** | The `crypto` module icon (󰄨) appears automatically when `~/.config/crypto.toml` exists. Click it to refresh prices. |
+| **Polybar** | The `crypto` module icon () appears automatically when `~/.config/crypto.toml` exists. Click it to refresh prices. |
 | **Keyboard** | Press `Super + Y` for an on-demand price notification via dunst. |
 | **Terminal** | Run `openriot --crypto ROWML` to print prices to stdout. |
 | **Refresh** | Run `openriot --crypto-refresh` to clear the cache and fetch fresh data. |

@@ -173,7 +173,7 @@ func RunCrypto(mode string) error {
 	case "NOTIFY":
 		return outputNotify(items)
 	case "NOTIFY_SEND":
-		return outputNotifySend(items)
+		return outputNotifySend(items, config.Display.ShowTotals)
 	default:
 		// Single symbol mode
 		for _, item := range items {
@@ -951,10 +951,11 @@ func getCryptoIcon(sym string) string {
 }
 
 // outputNotifySend sends crypto prices as a dunst notification
-func outputNotifySend(items []CryptoItem) error {
+func outputNotifySend(items []CryptoItem, showTotals bool) error {
 	sorted := sortCryptoItems(items)
 
 	var lines []string
+	lines = append(lines, "")
 	for _, item := range sorted {
 		if item.Sym == "USD" {
 			continue
@@ -965,7 +966,7 @@ func outputNotifySend(items []CryptoItem) error {
 			glPct := ((item.Price - item.Entry) / item.Entry) * 100
 			pct = fmt.Sprintf("%.2f%%", glPct)
 		}
-		lines = append(lines, fmt.Sprintf("%s %-5s %6s x $%10s %s %7s", getCryptoIcon(item.Sym), item.Sym, fmt.Sprintf("%.2f", item.Held), formatNumberSimple(item.Price), arrow, pct))
+		lines = append(lines, fmt.Sprintf("%s %-5s %6s x $ %10s %s %7s", getCryptoIcon(item.Sym), item.Sym, fmt.Sprintf("%.2f", item.Held), formatNumberSimple(item.Price), arrow, pct))
 	}
 
 	var totalValue, totalCost float64
@@ -984,11 +985,16 @@ func outputNotifySend(items []CryptoItem) error {
 		gainArrow = "▼"
 	}
 	numStr := strings.TrimPrefix(formatSignedNumber(totalGain), "$ ")
-	lines = append(lines, fmt.Sprintf("󰪚 Total Gains  %s $%10s", gainArrow, numStr))
+	lines = append(lines, "")
+	lines = append(lines, fmt.Sprintf("󰪚 Total Gains  %s $ %10s", gainArrow, numStr))
+	if showTotals {
+		heldStr := formatNumberSimple(totalValue)
+		lines = append(lines, fmt.Sprintf("󰨖 Total Held     $ %10s", heldStr))
+	}
 
 	lines = append(lines, "\n󰳽 Click to Close")
 	body := strings.Join(lines, "\n")
-	notify.SendNotify("chart", "Crypto", body, "normal", 0, 1)
+	notify.SendNotify("chart", "Crypto Portfolio", body, "normal", 0, 1)
 	return nil
 }
 
