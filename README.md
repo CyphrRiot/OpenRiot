@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="OpenRiot.png" alt="OpenRiot" width="100%"/>
+<img src="OpenRiot.webp" alt="OpenRiot" width="100%"/>
 
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
