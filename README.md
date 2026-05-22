@@ -34,13 +34,6 @@ This is not complicated. It just took us a lot of code to realize it.
 
 - Read the [original Post on X](https://x.com/CyphrRiot/status/2043140621398127012?s=20)
 
-> **Built by one person over hundreds of hours.** OpenRiot is the first truly usable
-> OpenBSD system with a working window manager, curated applications, and a complete
-> desktop workflow — no compromises, no Linux copium.
-> If it saved you time, consider donating (in Bitcoin):
-> `bc1qscxvn9clw6n3a4kykl2nlu8w2f2aqdftfp4hyq`
-
-![Donation QR Code](assets/qr-code.webp)
 
 ### **Curated to be correct**
 
@@ -1955,4 +1948,15 @@ doas rcctl restart sshd
 ```
 
 > **Note:** `PermitRootLogin no` is already set by OpenBSD default. This section hardens normal user access.
+
+## Donations
+
+> **OpenRiot was build by one person over hundreds of hours.**
+> OpenRiot is the first truly usable
+> OpenBSD system with a working window manager, curated applications,
+> and a complete desktop workflow -- no compromises, no Linux copium.
+> If it saved you time, consider donating (in Bitcoin):
+> `bc1qscxvn9clw6n3a4kykl2nlu8w2f2aqdftfp4hyq`
+
+![Donation QR Code](assets/qr-code.webp)
 
