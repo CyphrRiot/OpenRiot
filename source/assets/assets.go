@@ -104,7 +104,8 @@ func installBibata() error {
 }
 
 func installKora() error {
-	destPath := paths.Join(".local", "share", "icons", "kora")
+	destPath := paths.Join(".local", "share", "icons", "kora-green")
+	oldPath := paths.Join(".local", "share", "icons", "kora")
 	panelPath := filepath.Join(destPath, "panel", "22")
 	actionsPath := filepath.Join(destPath, "actions", "16")
 
@@ -124,6 +125,12 @@ func installKora() error {
 		if _, err := os.Stat(destPath); err == nil {
 			if err := os.RemoveAll(destPath); err != nil {
 				return fmt.Errorf("failed to remove stale Kora: %w", err)
+			}
+		}
+		// Remove old blue kora on upgrade
+		if _, err := os.Stat(oldPath); err == nil {
+			if err := os.RemoveAll(oldPath); err != nil {
+				return fmt.Errorf("failed to remove old kora: %w", err)
 			}
 		}
 	}
