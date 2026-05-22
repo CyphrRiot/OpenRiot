@@ -24,7 +24,7 @@
 
 ---
 
-![OpenRiot Desktop](assets/screenshot.png)
+![OpenRiot Desktop](assets/screenshot.webp)
 
 ---
 
@@ -47,7 +47,7 @@ This is not complicated. It just took us a lot of code to realize it.
 > If it saved you time, consider donating (in Bitcoin):
 > `bc1qscxvn9clw6n3a4kykl2nlu8w2f2aqdftfp4hyq`
 
-![Donation QR Code](assets/qr-code.png)
+![Donation QR Code](assets/qr-code.webp)
 
 ### **Curated to be correct**
 
@@ -494,7 +494,7 @@ This hybrid approach (manual during install + polished rofi/polybar tools after)
 
 <a id="master-your-openriot-desktop"></a>
 
-![OpenRiot Desktop](assets/menu.png)
+![OpenRiot Desktop](assets/menu.webp)
 
 ## ⌨️ Master Your OpenRiot Desktop
 
@@ -616,7 +616,7 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | SolveSpace 3D    | 󰐫   | 3D CAD modeler           |
 | Games            | 󰊗   | Games sub-menu           |
 
-![OpenRiot Terminal](assets/terminal.png)
+![OpenRiot Terminal](assets/terminal.webp)
 
 ### Top Menu (Polybar)
 
@@ -922,7 +922,7 @@ Edit this file to customize. After saving, press `Super + Shift + R` to reload i
 
 OpenRiot includes automatic MAC address randomization for network interfaces. This prevents network operators and observers from tracking your device across different networks by using a randomly generated MAC address on each connection.
 
-![Stealth Mode](assets/stealth.png)
+![Stealth Mode](assets/stealth.webp)
 
 #### How It Works
 
@@ -1205,7 +1205,7 @@ _See the [helix-cheat-sheet](https://github.com/stevenhoy/helix-cheat-sheet) pro
 
 OpenRiot bundles **Crush** for AI-assisted coding. Crush is a modern, lightweight, Go-based terminal AI coding agent with excellent OpenBSD support. It is built automatically during setup and installed to `/usr/local/bin/crush`.
 
-![Crush AI in action](assets/crush.png)
+![Crush AI in action](assets/crush.webp)
 
 #### Configure Crush
 
@@ -1569,7 +1569,7 @@ Or just paste Unicode emoji with `ctrl+Shift+V`.
 
 OpenRiot includes the Monero GUI wallet pre-built for OpenBSD with full desktop integration.
 
-![Monero Wallet](assets/xmr.png)
+![Monero Wallet](assets/xmr.webp)
 
 ### Launch
 
@@ -1605,7 +1605,7 @@ the background, indexing your library and serving tracks over a local
 Unix socket. **rmpc** — a Rust TUI client — gives you fast,
 keyboard-driven control without ever leaving the terminal.
 
-![Music Player](assets/music.png)
+![Music Player](assets/music.webp)
 
 The stack comes with a **Neo Tokyo** theme that matches the rest of the
 desktop. Launch it from the app launcher with `Super + D` → **Music
