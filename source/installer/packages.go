@@ -21,12 +21,18 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 		return 0, nil
 	}
 
-	// Filter out already-installed packages using pkg_info
+	// Filter out already-installed packages using a single pkg_info -a call
+	installed := GetInstalledPackages()
 	var toInstall []string
 	for _, pkg := range packages {
-		if !isPackageInstalled(pkg) {
-			toInstall = append(toInstall, pkg)
+		base := config.GetBaseName(pkg)
+		if installedVer, ok := installed[base]; ok {
+			if installedVer != pkg {
+				logger.Warn(fmt.Sprintf("Newer version of %s installed", pkg))
+			}
+			continue
 		}
+		toInstall = append(toInstall, pkg)
 	}
 
 	if len(toInstall) == 0 {
@@ -38,9 +44,13 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 
 	failed := 0
 	for _, pkg := range toInstall {
+		// On snapshot systems the exact version from packages.yaml won't exist
+		// on the snapshot mirror. Install by base name directly.
 		installName := pkg
-		logger.Info(fmt.Sprintf("Installing %s...", pkg))
-
+		if cfg.IsSnapshot() {
+			installName = config.GetBaseName(pkg)
+		}
+		logger.Info(fmt.Sprintf("Installing %s...", installName))
 
 		// Build pkg_add command: use -D snapshot only for snapshot systems
 		installCmd := []string{"doas", "pkg_add"}
@@ -57,25 +67,7 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 		if err != nil {
 			outputStr := truncateOutput(output)
 			if ctx.Err() == context.DeadlineExceeded {
-				logger.Warn(fmt.Sprintf("Timed out after 10m: %s", pkg))
-			}
-			// Retry with base name (without version) on failure
-			base := config.GetBaseName(pkg)
-			if base != pkg {
-				logger.Info(fmt.Sprintf("Retrying %s with latest version...", base))
-				installCmd[len(installCmd)-1] = base
-				ctx, cancel = context.WithTimeout(context.Background(), 10*time.Minute)
-				cmd = exec.CommandContext(ctx, installCmd[0], installCmd[1:]...)
-				output, err = cmd.CombinedOutput()
-				cancel()
-				if err == nil {
-					logger.Done(fmt.Sprintf("%s installed (latest version)", base))
-					continue
-				}
-				outputStr = truncateOutput(output)
-				if ctx.Err() == context.DeadlineExceeded {
-					logger.Warn(fmt.Sprintf("Timed out after 10m: %s", base))
-				}
+				logger.Warn(fmt.Sprintf("Timed out after 10m: %s", installName))
 			}
 			if cfg.IsSnapshot() && isSignatureError(outputStr) {
 				logger.Fail("OpenBSD base and packages are out of sync.")
@@ -91,10 +83,30 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 				fmt.Println("Then re-run the OpenRiot installer.")
 				os.Exit(1)
 			}
-			logger.Warn(fmt.Sprintf("Failed to install %s:\n    %s", pkg, outputStr))
+			// On stable: retry with base name if exact version failed
+			if !cfg.IsSnapshot() {
+				base := config.GetBaseName(pkg)
+				if base != pkg {
+					logger.Info(fmt.Sprintf("Retrying %s with latest version...", base))
+					installCmd[len(installCmd)-1] = base
+					ctx, cancel = context.WithTimeout(context.Background(), 10*time.Minute)
+					cmd = exec.CommandContext(ctx, installCmd[0], installCmd[1:]...)
+					output, err = cmd.CombinedOutput()
+					cancel()
+					if err == nil {
+						logger.Done(fmt.Sprintf("%s installed (latest version)", base))
+						continue
+					}
+					outputStr = truncateOutput(output)
+					if ctx.Err() == context.DeadlineExceeded {
+						logger.Warn(fmt.Sprintf("Timed out after 10m: %s", base))
+					}
+				}
+			}
+			logger.Warn(fmt.Sprintf("Failed to install %s:\n    %s", installName, outputStr))
 			failed++
 		} else {
-			logger.Done(fmt.Sprintf("%s installed", pkg))
+			logger.Done(fmt.Sprintf("%s installed", installName))
 		}
 	}
 
@@ -114,25 +126,6 @@ func truncateOutput(output []byte) string {
 		return s[:300] + "..."
 	}
 	return s
-}
-
-// isPackageInstalled checks if a package is already installed.
-// Handles both exact version ("firefox-149.0.2p0") and base name ("firefox").
-func isPackageInstalled(pkg string) bool {
-	// Check with exact name first
-	cmd := exec.Command("pkg_info", "-e", pkg)
-	if cmd.Run() == nil {
-		return true
-	}
-	// Check with base name (for packages installed as latest version)
-	base := config.GetBaseName(pkg)
-	if base != pkg {
-		cmd = exec.Command("pkg_info", "-e", base)
-		if cmd.Run() == nil {
-			return true
-		}
-	}
-	return false
 }
 
 // isSignatureError checks whether pkg_add output indicates a base/package

@@ -19,7 +19,10 @@
 </div>
 
 ---
+
 > “I just want OpenBSD to install and actually feel like a usable desktop without 100 hours of pain.”
+
+---
 
 ![OpenRiot Desktop](assets/screenshot.png)
 
