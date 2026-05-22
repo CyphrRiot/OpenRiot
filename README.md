@@ -13,8 +13,11 @@
 ![Language](https://img.shields.io/badge/language-Go-4338ca?logo=go&logoColor=c7d2fe&labelColor=3730a3)
 ![Language](https://img.shields.io/badge/language-YAML-5b21b6?logo=yaml&logoColor=e0e7ff&labelColor=4c1d95)
 
-<img src="assets/screenshot.webp" alt="OpenRiot" width="100%"/>
 </div>
+
+---
+
+![OpenRiot](assets/screenshot.webp)
 
 ---
 
