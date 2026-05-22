@@ -50,8 +50,7 @@ func RunNzbget() error {
 // RunMetrics outputs CPU icon for polybar (memory is separate module)
 func RunMetrics() error {
 	cpu := getCPU()
-	cpuPct := getCPUPercent()
-	fmt.Printf("%s\nCPU: %s%%\n", Icon(cpu), cpuPct)
+	fmt.Print(Icon(cpu))
 	return nil
 }
 
@@ -219,8 +218,8 @@ func RunVolume() error {
 		icon = ""
 	}
 
-	// Output: icon + tooltip with percentage
-	fmt.Printf("%s\nVolume: %d%%\n", Icon(icon), vol)
+	// Output: icon only
+	fmt.Print(Icon(icon))
 	return nil
 }
 
@@ -249,8 +248,7 @@ func RunProtonDrive() error {
 	if !isProtonDriveConfigured() {
 		return nil
 	}
-	icon := GetProtonDriveIcon()
-	fmt.Printf("%s\nProton Drive: %s\n", Icon(icon), getProtonDriveTooltip())
+	fmt.Print(Icon(GetProtonDriveIcon()))
 	return nil
 }
 
@@ -465,17 +463,6 @@ func InitProtonDriveCache() error {
 		"--dry-run",
 		"--work-dir", paths.Join(".cache", "rclone", "bisync"))
 	return cmd.Run()
-}
-
-func getProtonDriveTooltip() string {
-	if !isProtonDriveConfigured() {
-		return "Not configured"
-	}
-	state := checkProtonDriveSync()
-	if state == "synced" {
-		return "Synced"
-	}
-	return "Needs sync"
 }
 
 // GetProtonDriveTooltipText returns a formatted sync status string for notifications

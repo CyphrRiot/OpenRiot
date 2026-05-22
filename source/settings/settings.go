@@ -115,22 +115,6 @@ func buildEntries() []entry {
 		},
 	})
 
-	// NZBGet — only show if installed and running
-	if _, err := os.Stat("/usr/local/bin/nzbget"); err == nil {
-		if polybar.IsProcessRunning("nzbget") {
-			entries = append(entries, entry{
-				icon:  "󱑤",
-				name:  "NZBGet",
-				label: "(Stop)",
-				on:    true,
-				toggle: func() {
-					exec.Command("pkill", "-x", "nzbget").Run()
-					notify.SendNotify("nzbget", "NZB Server", "NZBGet stopped", "normal", 3000, 0)
-				},
-			})
-		}
-	}
-
 	// Stealth Mode
 	entries = append(entries, entry{
 		icon: "󰝴",

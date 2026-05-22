@@ -43,7 +43,7 @@ Click action - reads state, performs appropriate action.
 |-------|--------|
 | Not Configured | Notify "Not configured\nSee OpenRiot.org for setup info" |
 | Needs Sync | Open floating terminal with interactive sync prompt |
-| Synced | Notify "Synchronized: <tooltip>" |
+| Synced | Notify "Synchronized: <status>" |
 
 **Sync command (interactive terminal):**
 ```
@@ -157,7 +157,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --proton-drive-sync
 | Trigger | Message |
 |---------|---------|
 | Not configured (click) | "Not configured\nSee OpenRiot.org for setup info" |
-| Synced (click) | "Synchronized: <tooltip>" |
+| Synced (click) | "Synchronized: <status>" |
 | Sync started | "Syncing..." |
 | Init cache failed | "Failed to init cache" |
 | Init cache success | "Cache initialized" |

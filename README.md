@@ -1,8 +1,5 @@
 <div align="center">
 
-<img src="OpenRiot.webp" alt="OpenRiot" width="100%"/>
-
-
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
 ![Version](https://img.shields.io/badge/version-7.9.3-blue?labelColor=0052cc)
@@ -16,15 +13,8 @@
 ![Language](https://img.shields.io/badge/language-Go-4338ca?logo=go&logoColor=c7d2fe&labelColor=3730a3)
 ![Language](https://img.shields.io/badge/language-YAML-5b21b6?logo=yaml&logoColor=e0e7ff&labelColor=4c1d95)
 
+<img src="assets/screenshot.webp" alt="OpenRiot" width="100%"/>
 </div>
-
----
-
-> “I just want OpenBSD to install and actually feel like a usable desktop without 100 hours of pain.”
-
----
-
-![OpenRiot Desktop](assets/screenshot.webp)
 
 ---
 

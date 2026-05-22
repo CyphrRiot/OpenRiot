@@ -568,21 +568,25 @@ func RegisterAll(r *Registry, testMode *bool) {
 	})
 	r.Register(&Command{
 		Name: "--nzbget-open", Category: "Network & Battery",
-		Description: "Open NZBGet web UI or start the daemon",
+		Description: "Toggle NZBGet daemon and open web UI",
 		Run: func(args []string) error {
 			if polybar.IsProcessRunning("nzbget") {
-				notify.SendNotify("nzbget", "NZB Server", "Opening NZBGet Website", "normal", 3000, 0)
-				exec.Command("firefox", "http://127.0.0.1:6789").Start()
+				notify.SendNotify("nzbget", "NZB Server", "Stopping NZBGet...", "normal", 3000, 0)
+				exec.Command("pkill", "-x", "nzbget").Run()
 				return nil
 			}
 			if _, err := os.Stat("/usr/local/bin/nzbget"); err == nil {
-				notify.SendNotify("nzbget", "NZB Server", "Starting NZBGet daemon...", "normal", 3000, 0)
 				fixNzbgetPerms()
 				cmd := exec.Command("/usr/local/bin/nzbget", "-D")
 				cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 				cmd.Stdout = nil
 				cmd.Stderr = nil
-				return cmd.Start()
+				if err := cmd.Start(); err != nil {
+					return err
+				}
+				notify.SendNotify("nzbget", "NZB Server", "Launching URL http://127.0.0.1:6789", "normal", 3000, 0)
+				exec.Command("firefox", "http://127.0.0.1:6789").Start()
+				return nil
 			}
 			notify.SendNotify("nzbget", "NZB Server", "NZBGet not installed", "critical", 5000, 0)
 			return nil
