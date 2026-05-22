@@ -1217,7 +1217,7 @@ model: minimax/minimax-m2.7
 api_key: sk-or-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
-Replace `sk-or-XXXXXXXX...` with your actual OpenRouter API key from https://openrouter.ai/settings
+Replace `sk-or-XXXXXXXX...` with your actual OpenRouter API key from [openrouter.ai/settings](https://openrouter.ai/settings)
 
 #### How to Use
 
