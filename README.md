@@ -121,7 +121,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
     - [📂 Proton Drive](#-proton-drive-sync)
     - [💳 Monero Wallet](#-monero-wallet)
     - [🎵 Music Player](#-music-player)
-- [🖨️ 3D Printing](#3d-printing)
+- [🖨️ 3D Printing](#-3d-printing)
 - [🔧 Troubleshooting](#troubleshooting)
     - [Harden SSH](#harden-ssh-disable-password-authentication)
 - [🦊 Browser & Data Transfer](#browser--data-transfer)
@@ -1706,15 +1706,21 @@ OpenRiot includes **SolveSpace** (`solvespace`) — a lightweight parametric 3D 
 
 The following printers are known to work with OpenRiot via SD card / USB transfer and open-source slicers:
 
-| Name | Overview | Software | Price (approx., 2026) | URL | OpenBSD Compatible? |
-| ---- | -------- | -------- | --------------------- | --- | ------------------- |
-| Prusa CORE One+ (or CORE One L) | Enclosed CoreXY FDM. Modern high-speed successor to MK4 series with active chamber heating. Excellent reliability, print quality, and upgradability. Quick assembly (kit) or fully assembled. Fast for engineering filaments. | PrusaSlicer (native ports) + PrusaLink web browser control | Assembled ~$1,299; Kit ~$999 | prusa3d.com/product/prusa-core-one-kit/ | Fully Yes — Best in class (native slicer + browser) |
-| Bambu Lab P2S | Top-rated fast enclosed CoreXY FDM. Blazing speeds, multi-color AMS support (optional), AI features, excellent out-of-box quality. Pre-assembled, user-friendly for beginners to pros. | Bambu Studio / OrcaSlicer (Linux builds) or PrusaSlicer custom | Base ~$549; AMS Combo ~$799 | us.store.bambulab.com/products/p2s | Yes (with SD card) — Full features via SD; slicer Linux-compatible but may need build effort on OpenBSD |
-| Elegoo Centauri Carbon | Fastest budget enclosed CoreXY FDM. 500 mm/s+ speeds, auto-leveling, fully pre-assembled. Great value speed demon for everyday printing. | PrusaSlicer (profiles available) or Elegoo slicer | ~$299–$349 | us.elegoo.com/products/centauri-carbon | Yes — SD/USB + PrusaSlicer works perfectly |
-| Prusa SL1S SPEED | Fast Prusa resin (MSLA) printer. Reliable, high-detail, speed-optimized for resin. Part of Prusa ecosystem with easy workflow. Pre-assembled. | PrusaSlicer (excellent resin support) | ~$600–$800 (check current) | prusa3d.com (see resin section) | Fully Yes — Native PrusaSlicer + USB/SD |
-| Anycubic Photon Mono M7 Max | Large-volume fast resin (high-res LCD curing). Intelligent release tech for ultra-fast prints, huge build area rivaling FDM. Pre-assembled with smart features. | PrusaSlicer, Lychee, or Anycubic Workshop | ~$799–$899 (sales common) | anycubic.com / Amazon | Yes — PrusaSlicer slicing + SD/USB card |
-| Elegoo Saturn 4 Ultra | Best-value high-speed resin (tilting release for speed). Exceptional detail, large platform, pre-assembled and beginner-friendly. Top pick for miniatures/jewelry. | PrusaSlicer or Lychee/Chitubox | ~$279–$400 | elegoo.com | Yes — SD card + PrusaSlicer profiles |
-| Bambu Lab A1 Mini (or A1) | Compact, affordable, super-fast FDM. Pre-assembled, quiet, great for small/medium prints and beginners. Multi-color capable. | Bambu Studio / OrcaSlicer | ~$219–$399 | bambulab.com | Yes (SD card best) — Simple file transfer works flawlessly |
+| Printer | Type | Slicer | Price | Link |
+| ------- | ---- | ------ | ----- | ---- |
+| Prusa CORE One+ | Enclosed CoreXY FDM, active chamber heating | PrusaSlicer (native) | $999–$1,299 | [prusa3d.com](https://www.prusa3d.com/product/prusa-core-one) |
+| Bambu Lab P2S | Fast CoreXY FDM, optional AMS multi-color | Bambu Studio / OrcaSlicer | $549–$799 | [bambulab.com](https://us.store.bambulab.com/products/p2s) |
+| Elegoo Centauri Carbon | Budget CoreXY FDM, 500 mm/s+ | PrusaSlicer | $299–$349 | [elegoo.com](https://us.elegoo.com/products/centauri-carbon) |
+| Prusa SL1S SPEED | Resin MSLA, high detail | PrusaSlicer | ~$700 | [prusa3d.com](https://www.prusa3d.com/category/original-prusa-sl1s-speed) |
+| Anycubic Photon Mono M7 Max | Large resin LCD, fast curing | PrusaSlicer / Lychee | $799–$899 | [anycubic.com](https://www.anycubic.com) |
+| Elegoo Saturn 4 Ultra | Resin, tilting release, large platform | PrusaSlicer / Lychee | $279–$400 | [elegoo.com](https://www.elegoo.com) |
+| Bambu Lab A1 Mini | Compact FDM, quiet, multi-color capable | Bambu Studio / OrcaSlicer | $219–$399 | [bambulab.com](https://www.bambulab.com) |
+
+Install PrusaSlicer if needed:
+
+```bash
+doas pkg_add prusaslicer-2.9.4p2
+```
 
 ## 🔧 Troubleshooting
 
