@@ -116,6 +116,53 @@ window.thunar {
     background-color: #565f89;
 }
 
+/* Thunar notebook tabs */
+.thunar notebook {
+    background-color: #1a1b26;
+    border: none;
+}
+
+.thunar notebook header {
+    background-color: #1a1b26;
+    border-bottom: 1px solid #292e42;
+}
+
+.thunar notebook tab {
+    background-color: #1a1b26;
+    color: #a9b1d6;
+    border: none;
+    border-bottom: 2px solid transparent;
+    box-shadow: none;
+    padding: 4px 12px;
+}
+
+.thunar notebook tab:hover {
+    background-color: #292e42;
+    color: #c0caf5;
+    border-bottom: 2px solid transparent;
+}
+
+.thunar notebook tab:checked,
+.thunar notebook tab:active {
+    background-color: #1a1b26;
+    color: #ffffff;
+    border-bottom: 2px solid #9ECE6A;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+.thunar notebook tab button {
+    background-color: transparent;
+    color: inherit;
+    border: none;
+}
+
+.thunar notebook tab:checked button:hover,
+.thunar notebook tab:active button:hover {
+    background-color: rgba(15, 16, 22, 0.2);
+    color: #0f1016;
+}
+
 /* Thunar file/folder icons hover */
 .thunar .view:hover,
 .thunar iconview:hover,
