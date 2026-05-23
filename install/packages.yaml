@@ -347,6 +347,12 @@ media:
                   state_file "$HOME/.mpd/state"
                   sticker_file "$HOME/.mpd/sticker.sql"
                   bind_to_address "$HOME/.mpd/socket"
+                  audio_output {
+                      type "fifo"
+                      name "my_fifo"
+                      path "/tmp/mpd.fifo"
+                      format "44100:16:2"
+                  }
                   EOF
                   fi
             - desc: "Write rmpc config with correct socket path"
@@ -376,7 +382,7 @@ media:
                       keep_state_on_song_change: true,
                       reflect_changes_to_playlist: false,
                       select_current_song_on_change: false,
-                      on_exit: None,
+                      on_exit: Some(["rmpc", "stop"]),
                       ignore_leading_the: false,
                       browser_song_sort: [Disc, Track, Artist, Title],
                       directories_sort: SortFormat(group_by_type: true, reverse: false),
@@ -390,12 +396,53 @@ media:
                           vertical_align: Center,
                           horizontal_align: Center,
                       ),
+                      cava: (
+                          framerate: 60,
+                          autosens: true,
+                          sensitivity: 100,
+                          input: (
+                              method: Fifo,
+                              source: "/tmp/mpd.fifo",
+                              sample_rate: 44100,
+                              channels: 2,
+                              sample_bits: 16,
+                          ),
+                          smoothing: (
+                              noise_reduction: 77,
+                              monstercat: false,
+                              waves: false,
+                          ),
+                          eq: [],
+                      ),
+                      keybinds: (
+                          global: {
+                              "1": SwitchToTab("Folders"),
+                              "2": SwitchToTab("Artists"),
+                              "3": SwitchToTab("Albums"),
+                              "4": SwitchToTab("Search"),
+                          },
+                          navigation: {
+                              "<CR>": Confirm,
+                          },
+                      ),
                       tabs: [
                           (
                               name: "Folders",
                               borders: "ALL",
                               border_symbols: Rounded,
-                              pane: Pane(Directories)
+                              pane: Split(
+                                  direction: Vertical,
+                                  panes: [
+                                      (
+                                          size: "70%",
+                                          pane: Pane(Directories)
+                                      ),
+                                      (
+                                          size: "30%",
+                                          pane: Pane(Cava)
+                                      ),
+                                  ],
+                              )
                           ),
                           (
                               name: "Artists",
@@ -418,6 +465,14 @@ media:
                       ],
                   )
                   EOF
+                  fi
+            - desc: "Install cava binary"
+              cmd: |
+                  if [ ! -f /usr/local/bin/cava ]; then
+                      doas mkdir -p /usr/local/bin
+                      doas cp "$HOME/.local/share/openriot/config/bin/cava" /usr/local/bin/cava
+                      doas chown root:bin /usr/local/bin/cava
+                      doas chmod 0755 /usr/local/bin/cava
                   fi
             - desc: "Start mpd and scan music"
               cmd: "mpd ~/.mpd/mpd.conf 2>/dev/null || true"

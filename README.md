@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.5-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.6-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -123,6 +123,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.9.6 — The One With The Proper Sound](docs/v7.9.6-Release-Notes.md)
 - [v7.9.5 — The One That Finished The Job](docs/v7.9.5-Release-Notes.md)
 - [v7.9.4 — The One That Went Bondi Green](docs/v7.9.4-Release-Notes.md)
 - [v7.9.3 — The One Where We Mapped the Home Directory to Oblivion](docs/v7.9.3-Release-Notes.md)
@@ -606,7 +607,7 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | SolveSpace 3D    | 󰐫   | 3D CAD modeler           |
 | Games            | 󰊗   | Games sub-menu           |
 
-![OpenRiot Terminal](assets/terminal.webp)
+![OpenRiot Terminal](assets/terminal.png)
 
 ### Top Menu (Polybar)
 
@@ -1595,7 +1596,7 @@ the background, indexing your library and serving tracks over a local
 Unix socket. **rmpc** — a Rust TUI client — gives you fast,
 keyboard-driven control without ever leaving the terminal.
 
-![Music Player](assets/music.webp)
+![Music Player](assets/music.png)
 
 The stack comes with a **Neo Tokyo** theme that matches the rest of the
 desktop. Launch it from the app launcher with `Super + D` → **Music

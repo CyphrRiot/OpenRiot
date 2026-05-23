@@ -12,10 +12,10 @@
     modal_backdrop: false,
     preview_label_style: (fg: "#ff9e64"),
     preview_metadata_group_style: (fg: "#ff9e64", modifiers: "Bold"),
-    highlighted_item_style: (fg: "#9ECE6A", modifiers: "Bold"),
-    current_item_style: (fg: "#1a1b26", bg: "#9ECE6A", modifiers: "Bold"),
-    borders_style: (fg: "#9ECE6A"),
-    highlight_border_style: (fg: "#9ECE6A"),
+    highlighted_item_style: (fg: "{{PRIMARY}}", modifiers: "Bold"),
+    current_item_style: (fg: "#1a1b26", bg: "{{PRIMARY}}", modifiers: "Bold"),
+    borders_style: (fg: "{{PRIMARY}}"),
+    highlight_border_style: (fg: "{{PRIMARY}}"),
     symbols: (
         song: "",
         dir: "",
@@ -36,28 +36,28 @@
         marker_current_style: None,
     ),
     level_styles: (
-        info: (fg: "#9ECE6A", bg: "#1a1b26"),
+        info: (fg: "{{PRIMARY}}", bg: "#1a1b26"),
         warn: (fg: "#e0af68", bg: "#1a1b26"),
         error: (fg: "#f7768e", bg: "#1a1b26"),
-        debug: (fg: "#9ece6a", bg: "#1a1b26"),
-        trace: (fg: "#8BB85A", bg: "#1a1b26"),
+        debug: (fg: "{{PRIMARY}}", bg: "#1a1b26"),
+        trace: (fg: "{{PRIMARY_DIM}}", bg: "#1a1b26"),
     ),
     progress_bar: (
         symbols: ["█", "█", "█", " ", "█"],
         track_style: None,
-        elapsed_style: (fg: "#9ECE6A"),
-        thumb_style: (fg: "#9ECE6A"),
+        elapsed_style: (fg: "{{PRIMARY}}"),
+        thumb_style: (fg: "{{PRIMARY}}"),
         use_track_when_empty: true,
     ),
     scrollbar: (
         symbols: ["│", "█", "▲", "▼"],
         track_style: (),
         ends_style: (),
-        thumb_style: (fg: "#9ECE6A"),
+        thumb_style: (fg: "{{PRIMARY}}"),
     ),
     tab_bar: (
-        active_style: (fg: "#1a1b26", bg: "#9ECE6A", modifiers: "Bold"),
-        inactive_style: (fg: "#8BB85A", bg: "#1a1b26"),
+        active_style: (fg: "#1a1b26", bg: "{{PRIMARY}}", modifiers: "Bold"),
+        inactive_style: (fg: "{{PRIMARY_DIM}}", bg: "#1a1b26"),
     ),
     lyrics: (
         timestamp: false
@@ -69,7 +69,7 @@
         bar_width: 1,
         bar_spacing: 1,
         orientation: Bottom,
-        bar_color: Single("#9ECE6A"),
+        bar_color: Single("{{PRIMARY}}"),
     ),
     browser_song_format: [
         (
@@ -200,8 +200,8 @@
             panes: [
                 (size: "1", pane: Pane(Property(content: [(kind: Text(""))]))),
                 (size: "100%", pane: Pane(Volume(kind: Slider(symbols: (filled: "─", thumb: "●", track: "─"))))),
-                (size: "3", pane: Pane(Property(content: [(kind: Property(Status(Volume)), style: (fg: "#9ECE6A"))], align: Right))),
-                (size: "2", pane: Pane(Property(content: [(kind: Text("%"), style: (fg: "#9ECE6A"))]))),
+                (size: "3", pane: Pane(Property(content: [(kind: Property(Status(Volume)), style: (fg: "{{PRIMARY}}"))], align: Right))),
+                (size: "2", pane: Pane(Property(content: [(kind: Text("%"), style: (fg: "{{PRIMARY}}"))]))),
             ]
         ),
         "elapsed_and_bitrate": Pane(Property(
@@ -234,30 +234,30 @@
                 ),
                 (
                     size: "100%",
-                    pane: Pane(Property(content: [(kind: Property(Status(InputBuffer())), style: (fg: "#9ECE6A"), align: Left)]))
+                    pane: Pane(Property(content: [(kind: Property(Status(InputBuffer())), style: (fg: "{{PRIMARY}}"), align: Left)]))
                 ),
                 (
                     size: "6",
                     pane: Pane(Property(content: [
-                        (kind: Text("["), style: (fg: "#9ECE6A", modifiers: "Bold")),
+                        (kind: Text("["), style: (fg: "{{PRIMARY}}", modifiers: "Bold")),
                         (kind: Property(Status(RepeatV2(
                             on_label: "z",
                             off_label: "z",
                             on_style: (fg: "#e0af68", modifiers: "Bold"),
-                            off_style: (fg: "#9ECE6A", modifiers: "Dim"),
+                            off_style: (fg: "{{PRIMARY}}", modifiers: "Dim"),
                         )))),
                         (kind: Property(Status(RandomV2(
                             on_label: "x",
                             off_label: "x",
                             on_style: (fg: "#e0af68", modifiers: "Bold"),
-                            off_style: (fg: "#9ECE6A", modifiers: "Dim"),
+                            off_style: (fg: "{{PRIMARY}}", modifiers: "Dim"),
                         )))),
                         (kind: Property(Status(ConsumeV2(
                             on_label: "c",
                             off_label: "c",
                             oneshot_label: "c",
                             on_style: (fg: "#e0af68", modifiers: "Bold"),
-                            off_style: (fg: "#9ECE6A", modifiers: "Dim"),
+                            off_style: (fg: "{{PRIMARY}}", modifiers: "Dim"),
                             oneshot_style: (fg: "#f7768e", modifiers: "Dim"),
                         )))),
                         (kind: Property(Status(SingleV2(
@@ -265,10 +265,10 @@
                             off_label: "v",
                             oneshot_label: "v",
                             on_style: (fg: "#e0af68", modifiers: "Bold"),
-                            off_style: (fg: "#9ECE6A", modifiers: "Dim"),
+                            off_style: (fg: "{{PRIMARY}}", modifiers: "Dim"),
                             oneshot_style: (fg: "#f7768e", modifiers: "Bold"),
                         )))),
-                        (kind: Text("]"), style: (fg: "#9ECE6A", modifiers: "Bold"))
+                        (kind: Text("]"), style: (fg: "{{PRIMARY}}", modifiers: "Bold"))
                         ],
                         align: Right
                     ))
@@ -278,8 +278,8 @@
         "input_mode": Pane(Property(
             content: [
                 (kind: Transform(Replace(content: (kind: Property(Status(InputMode()))), replacements: [
-                    (match: "Normal", replace: (kind: Text(" NORMAL "), style: (fg: "#1a1b26", bg: "#9ECE6A"))),
-                    (match: "Insert", replace: (kind: Text(" INSERT "), style: (fg: "#1a1b26", bg: "#9ece6a")))
+                    (match: "Normal", replace: (kind: Text(" NORMAL "), style: (fg: "#1a1b26", bg: "{{PRIMARY}}"))),
+                    (match: "Insert", replace: (kind: Text(" INSERT "), style: (fg: "#1a1b26", bg: "{{PRIMARY}}")))
                 ])))
             ], align: Center
         )),
