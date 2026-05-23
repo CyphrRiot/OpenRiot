@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.7-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.8-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -123,6 +123,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.9.8 — The One Where We Actually Looked at the Polybar](docs/v7.9.8-Release-Notes.md)
 - [v7.9.7 — The One That Wraps Up The Loose Ends](docs/v7.9.7-Release-Notes.md)
 - [v7.9.6 — The One With The Proper Sound](docs/v7.9.6-Release-Notes.md)
 - [v7.9.5 — The One That Finished The Job](docs/v7.9.5-Release-Notes.md)

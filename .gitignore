@@ -8,6 +8,9 @@ dev
 *.core
 *.img
 
+# hooks
+.hooks/
+
 # audit docs + agents
 docs/audit*.md
 docs/agents-lessons.md

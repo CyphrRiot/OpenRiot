@@ -16,6 +16,31 @@ headerbar {
     padding: 2px 6px;
 }
 
+headerbar:focus,
+headerbar:active,
+headerbar:focus-within {
+    background-color: #16161e;
+}
+
+.center-box > * {
+    background-color: #16161e;
+}
+
+decoration:active {
+    background-color: #16161e;
+}
+
+window.titlebar navigationbar,
+window.titlebar headerbar,
+.navigationbar {
+    background-color: #16161e;
+}
+
+headerbar button {
+    min-height: 18px;
+    padding: 0 6px;
+}
+
 tabbar {
     background-color: transparent;
 }

@@ -502,7 +502,7 @@ func Setup() int {
 	width := screen.GetWidth()
 
 	// Determine scale factors based on resolution
-	height, font0, font1, modMargin := getScaleFactors(width)
+	height, font0, font1, font2, modMargin := getScaleFactors(width)
 
 	// Read template config
 	templatePath := paths.OpenRiotDir("config", "polybar", "config.ini")
@@ -520,6 +520,7 @@ func Setup() int {
 		{"module-margin = 1", "module-margin = " + modMargin},
 		{"Hurmit Nerd Font:size=20", "Hurmit Nerd Font:" + font1},
 		{"Hurmit Nerd Font:size=11", "Hurmit Nerd Font:" + font0},
+		{"Hurmit Nerd Font:size=13", "Hurmit Nerd Font:" + font2},
 	}
 
 	for _, r := range replacements {
@@ -543,27 +544,31 @@ func Setup() int {
 	return 0
 }
 
-func getScaleFactors(width int) (height, font0, font1, modMargin string) {
+func getScaleFactors(width int) (height, font0, font1, font2, modMargin string) {
 	switch {
 	case width >= 2560: // 1440p or 4K
 		height = "32"
 		font0 = "size=13"
 		font1 = "size=17"
+		font2 = "size=16"
 		modMargin = "1"
 	case width >= 1920: // 1080p
 		height = "28"
 		font0 = "size=11"
 		font1 = "size=15"
+		font2 = "size=13"
 		modMargin = "1"
 	case width >= 1360: // WXGA+ / 900p
 		height = "26"
 		font0 = "size=10"
 		font1 = "size=13"
+		font2 = "size=11"
 		modMargin = "1"
 	default: // Below 1360 — e.g. 1280x720
 		height = "22"
 		font0 = "size=8.5"
 		font1 = "size=12"
+		font2 = "size=9"
 		modMargin = "0"
 	}
 	return
