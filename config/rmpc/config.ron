@@ -1,0 +1,104 @@
+#![enable(implicit_some)]
+#![enable(unwrap_newtypes)]
+#![enable(unwrap_variant_newtypes)]
+(
+    address: "$HOME/.mpd/socket",
+    password: None,
+    theme: "neo-tokyo",
+    cache_dir: None,
+    on_song_change: None,
+    volume_step: 5,
+    max_fps: 30,
+    scrolloff: 0,
+    wrap_navigation: false,
+    enable_mouse: true,
+    scroll_amount: 1,
+    enable_config_hot_reload: true,
+    enable_lyrics_hot_reload: false,
+    status_update_interval_ms: 1000,
+    rewind_to_start_sec: None,
+    keep_state_on_song_change: true,
+    reflect_changes_to_playlist: false,
+    select_current_song_on_change: false,
+    on_exit: Some(["rmpc", "stop"]),
+    ignore_leading_the: false,
+    browser_song_sort: [Disc, Track, Artist, Title],
+    directories_sort: SortFormat(group_by_type: true, reverse: false),
+    auto_open_downloads: true,
+    quit_closes_modal: false,
+    queue_disable_current_item_style_timeout_ms: None,
+    album_art: (
+        method: Auto,
+        max_size_px: (width: 1200, height: 1200),
+        disabled_protocols: ["http://", "https://"],
+        vertical_align: Center,
+        horizontal_align: Center,
+    ),
+    cava: (
+        framerate: 60,
+        autosens: true,
+        sensitivity: 100,
+        input: (
+            method: Fifo,
+            source: "/tmp/mpd.fifo",
+            sample_rate: 44100,
+            channels: 2,
+            sample_bits: 16,
+        ),
+        smoothing: (
+            noise_reduction: 77,
+            monstercat: false,
+            waves: false,
+        ),
+        eq: [],
+    ),
+    keybinds: (
+        global: {
+            "1": SwitchToTab("Folders"),
+            "2": SwitchToTab("Artists"),
+            "3": SwitchToTab("Albums"),
+            "4": SwitchToTab("Search"),
+        },
+        navigation: {
+            "<CR>": Confirm,
+        },
+    ),
+    tabs: [
+        (
+            name: "Folders",
+            borders: "ALL",
+            border_symbols: Rounded,
+            pane: Split(
+                direction: Vertical,
+                panes: [
+                    (
+                        size: "70%",
+                        pane: Pane(Directories)
+                    ),
+                    (
+                        size: "30%",
+                        pane: Pane(Cava)
+                    ),
+                ],
+            )
+        ),
+        (
+            name: "Artists",
+            borders: "ALL",
+            border_symbols: Rounded,
+            pane: Pane(Artists)
+        ),
+        (
+            name: "Albums",
+            borders: "ALL",
+            border_symbols: Rounded,
+            pane: Pane(Albums)
+        ),
+        (
+            name: "Search",
+            borders: "ALL",
+            border_symbols: Rounded,
+            pane: Pane(Search)
+        ),
+    ],
+)

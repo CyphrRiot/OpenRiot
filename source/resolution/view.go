@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+
+	"openriot/theme"
 )
 
 // view renders the TUI based on the current state.
@@ -146,10 +148,10 @@ func (m model) renderResult() string {
 }
 
 var (
-	titleStyle  = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#7aa2f7"))
-	cursorStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#9ECE6A"))
-	itemStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#a9b1d6"))
-	helpStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#565f89"))
-	errorStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#f7768e"))
-	resultStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#9ece6a"))
+	titleStyle  = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(theme.Palette.Semantic.Info))
+	cursorStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(theme.Palette.Accent.FG))
+	itemStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color(theme.Palette.Base.FG2))
+	helpStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color(theme.Palette.Base.FG3))
+	errorStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color(theme.Palette.Semantic.Error))
+	resultStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(theme.Palette.Accent.FG))
 )

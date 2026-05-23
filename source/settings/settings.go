@@ -12,6 +12,7 @@ import (
 	"openriot/notify"
 	"openriot/paths"
 	"openriot/polybar"
+	"openriot/theme"
 	"openriot/wireguard"
 )
 
@@ -23,7 +24,7 @@ func RunMenu() {
 		return
 	}
 
-	theme := findTheme()
+	themePath := findTheme()
 
 	var rofiInput bytes.Buffer
 	for _, e := range entries {
@@ -37,7 +38,7 @@ func RunMenu() {
 		fmt.Fprintf(&rofiInput, "%s %s %s\n", e.icon, e.name, stateStr)
 	}
 
-	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", "Settings", "-format", "i", "-theme", theme, "-theme-str", "window { width: 450px; border: 2px; border-color: #997de1; }")
+	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", "Settings", "-format", "i", "-theme", themePath, "-theme-str", fmt.Sprintf("window { width: 450px; border: 2px; border-color: %s; }", theme.GetAccent()))
 	cmd.Stdin = &rofiInput
 	var out bytes.Buffer
 	cmd.Stdout = &out

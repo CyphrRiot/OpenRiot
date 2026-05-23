@@ -5,22 +5,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-)
 
-var (
-	titleStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#7D56F4"))
-	itemStyle  = lipgloss.NewStyle()
-	selectedStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#04B575")).
-		Bold(true)
-	dimStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("#626262"))
-	errStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF5F5F")).Bold(true)
-	successStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#04B575")).Bold(true)
-	headerStyle   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FAFAFA")).Background(lipgloss.Color("#7D56F4")).Padding(0, 1)
-	helpStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#626262"))
-	infoLabelStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Bold(true)
-	infoValueStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FAFAFA"))
-	boxStyle      = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(1, 2)
+	"openriot/theme"
 )
 
 func (m model) View() string {
@@ -48,6 +34,14 @@ func (m model) View() string {
 
 func (m model) listView() string {
 	var b strings.Builder
+
+	// Styles
+	dimStyle := theme.Lipgloss.Base.Dim
+	successStyle := theme.Lipgloss.Semantic.Success
+	headerStyle := theme.Lipgloss.Accent.Header
+	helpStyle := theme.Lipgloss.Base.FG3
+	itemStyle := lipgloss.NewStyle()
+	selectedStyle := theme.Lipgloss.Accent.Selected
 
 	// Header
 	header := headerStyle.Render(fmt.Sprintf(" %s ", m.iface))
@@ -113,15 +107,13 @@ func (m model) listView() string {
 			var secColor string
 			switch ap.Security {
 			case "wpa3":
-				secColor = "#04B575"
+				secColor = theme.GetSecColor(0)
 			case "wpa2":
-				secColor = "#F4D03F"
-			case "wep":
-				secColor = "#FF8844"
-			case "open":
-				secColor = "#626262"
+				secColor = theme.GetSecColor(1)
+			case "wep", "open", "":
+				secColor = theme.GetSecColor(2)
 			default:
-				secColor = "#626262"
+				secColor = theme.GetSecColor(3)
 			}
 			secLabel := fmt.Sprintf("[%s]", strings.ToUpper(ap.Security))
 			secStyled := lipgloss.NewStyle().Foreground(lipgloss.Color(secColor)).Render(secLabel)
@@ -158,6 +150,9 @@ func (m model) listView() string {
 }
 
 func (m model) passwordView() string {
+	titleStyle := theme.Lipgloss.Accent.Title
+	dimStyle := theme.Lipgloss.Base.Dim
+	boxStyle := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(1, 2)
 	var b strings.Builder
 	b.WriteString(m.renderHeader())
 	b.WriteString("\n\n")
@@ -175,6 +170,7 @@ func (m model) passwordView() string {
 }
 
 func (m model) connectingView() string {
+	titleStyle := theme.Lipgloss.Accent.Title
 	var b strings.Builder
 	b.WriteString(m.renderHeader())
 	b.WriteString("\n\n")
@@ -192,6 +188,10 @@ func (m model) connectingView() string {
 }
 
 func (m model) resultView() string {
+	errStyle := theme.Lipgloss.Semantic.Error
+	successStyle := theme.Lipgloss.Semantic.Success
+	dimStyle := theme.Lipgloss.Base.Dim
+	boxStyle := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(1, 2)
 	var b strings.Builder
 	b.WriteString(m.renderHeader())
 	b.WriteString("\n\n")
@@ -209,6 +209,10 @@ func (m model) resultView() string {
 }
 
 func (m model) activeInfoView() string {
+	infoLabelStyle := theme.Lipgloss.Accent.InfoLabel
+	infoValueStyle := theme.Lipgloss.Accent.InfoValue
+	dimStyle := theme.Lipgloss.Base.Dim
+	boxStyle := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(1, 2)
 	var b strings.Builder
 	b.WriteString(m.renderHeader())
 	b.WriteString("\n\n")
@@ -248,6 +252,9 @@ func (m model) activeInfoView() string {
 }
 
 func (m model) confirmDisconnectView() string {
+	titleStyle := theme.Lipgloss.Accent.Title
+	dimStyle := theme.Lipgloss.Base.Dim
+	boxStyle := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(1, 2)
 	var b strings.Builder
 	b.WriteString(m.renderHeader())
 	b.WriteString("\n\n")
@@ -265,6 +272,10 @@ func (m model) confirmDisconnectView() string {
 }
 
 func (m model) renderHeader() string {
+	dimStyle := theme.Lipgloss.Base.Dim
+	successStyle := theme.Lipgloss.Semantic.Success
+	headerStyle := theme.Lipgloss.Accent.Header
+
 	h := headerStyle.Render(fmt.Sprintf(" %s ", m.iface))
 	if m.conn != nil && m.conn.SSID != "" {
 		h += " " + successStyle.Render("● "+m.conn.SSID)

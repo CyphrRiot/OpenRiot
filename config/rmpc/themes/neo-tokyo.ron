@@ -138,12 +138,6 @@
                             border_symbols: Rounded,
                             pane: Component("header_center")
                         ),
-                        (
-                            size: "35",
-                            borders: "RIGHT | TOP | BOTTOM",
-                            border_symbols: Rounded,
-                            pane: Component("header_right")
-                        ),
                     ]
                 )
             ),
@@ -170,11 +164,17 @@
                         ),
                         (
                             size: "100%",
-                            borders: "TOP | BOTTOM | RIGHT",
+                            borders: "ALL",
                             border_symbols: Rounded,
                             border_title: [(kind: Text(" ")), (kind: Property(Status(QueueLength()))), (kind: Text(" songs / ")), (kind: Property(Status(QueueTimeTotal()))), (kind: Text(" total time "))],
                             border_title_alignment: Right,
                             pane: Component("progress_bar"),
+                        ),
+                        (
+                            size: "20",
+                            borders: "ALL",
+                            border_symbols: Rounded,
+                            pane: Component("volume"),
                         ),
                     ]
                 ),
@@ -300,7 +300,6 @@
         "header_right": Split(
             direction: Vertical,
             panes: [
-                (size: "1", pane: Component("volume")),
                 (size: "1", pane: Component("states")),
             ]
         ),

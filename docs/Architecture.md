@@ -704,7 +704,7 @@ show_totals = false
 
 # 📋 ICON REFERENCE
 
-See: `docs/Icons.md`
+See: `docs/Agents-Icons.md`
 
 ---
 

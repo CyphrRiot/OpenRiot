@@ -230,7 +230,7 @@ Either reinstall the package or remove the LSP entry from `crush.json`.
 
 **Do NOT use `find`, `grep`, or guess when you can read the exact function.**
 
-I used `find /home/grendel -name screenrec.png` to locate where `--make-icon` writes files, when the answer was 10 lines into `source/installer/utils.go` → `MakeIcon()`:
+I used `find $HOME -name screenrec.png` to locate where `--make-icon` writes files, when the answer was 10 lines into `source/installer/utils.go` → `MakeIcon()`:
 
 ```go
 repoDir := filepath.Join(filepath.Dir(ex), "..", "config", "icons")
@@ -276,7 +276,7 @@ openriot --make-icon screenrec ""
 
 ### Never Modify Files Without a Proposal (Even "Trivial" Changes)
 
-I wrote `gurk-patch.diff` from scratch without proposing, corrupted it, and had to be rescued. I flattened `~/Code/gurk/gurk-rs/` without proposing. I updated `docs/Gurk.md` without proposing. Every unauthorized change introduced a problem that required cleanup.
+I wrote `gurk-patch.diff` from scratch without proposing, corrupted it, and had to be rescued. I flattened `$HOME/Code/gurk/gurk-rs/` without proposing. I updated `scripts/Gurk.md` without proposing. Every unauthorized change introduced a problem that required cleanup.
 
 **Rule:** Propose → wait for "go" → execute. No exceptions. Not for docs, not for patches, not for one-line fixes.
 

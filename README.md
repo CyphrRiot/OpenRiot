@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.6-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.7-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -123,6 +123,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.9.7 — The One That Wraps Up The Loose Ends](docs/v7.9.7-Release-Notes.md)
 - [v7.9.6 — The One With The Proper Sound](docs/v7.9.6-Release-Notes.md)
 - [v7.9.5 — The One That Finished The Job](docs/v7.9.5-Release-Notes.md)
 - [v7.9.4 — The One That Went Bondi Green](docs/v7.9.4-Release-Notes.md)
@@ -130,14 +131,8 @@ This makes the underlying X server far more resistant to client-side abuse than 
 - [v7.9.2 — The One Where the Kernel Was a Replicant](docs/v7.9.2-Release-Notes.md)
 - [v7.9.1 — The One Where We Fixed the Menu and Invented a Switcher](docs/v7.9.1-Release-Notes.md)
 - [v7.9.0 — The Version Number Finally Makes Sense](docs/v7.9.0-Release-Notes.md)
-- [v7.7 — Color Theory for People Who Hate Color Theory](docs/v7.7-Release-Notes.md)
-- [v7.6 — Ctrl+Alt+Del the Desktop](docs/v7.6-Release-Notes.md)
-- [v7.5 — Lock It Down](docs/v7.5-Release-Notes.md)
-- [v7.4 — Lossless at Full Volume](docs/v7.4-Release-Notes.md)
-- [v7.3 — Going Underground](docs/v7.3-Release-Notes.md)
-- [v7.2 — Drop the Needle](docs/v7.2-Release-Notes.md)
-- [v7.1 — Locked & Loaded](docs/v7.1-Release-Notes.md)
-- [v7.0 — Console Cowboys](docs/v7.0-Release-Notes.md)
+
+Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.
 
 Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.
 

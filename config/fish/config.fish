@@ -162,6 +162,9 @@ alias ls='lsd'
 alias ll='lsd -l'
 alias la='lsd -la'
 
+# Music!
+alias music='rmpc'
+
 # more sucks without this
 alias more='more -e'
 

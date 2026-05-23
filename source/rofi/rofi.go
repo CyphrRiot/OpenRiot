@@ -13,6 +13,7 @@ import (
 
 	"openriot/notify"
 	"openriot/paths"
+	"openriot/theme"
 	"openriot/wireguard"
 )
 
@@ -51,7 +52,7 @@ func runAppsFile(appsFile, prompt string) error {
 	}
 
 	configDir := filepath.Dir(appsFile)
-	theme := filepath.Join(configDir, "simple-tokyonight.rasi")
+	themePath := filepath.Join(configDir, "simple-tokyonight.rasi")
 
 	// Build rofi input: "Icon Name" per line
 	var rofiInput bytes.Buffer
@@ -61,8 +62,8 @@ func runAppsFile(appsFile, prompt string) error {
 
 	// Run rofi with dynamically balanced two-column layout
 	lines := (len(entries) + 1) / 2
-	themeStr := fmt.Sprintf("window { width: 580px; border: 2px; border-color: #9ECE6A; } listview { columns: 2; lines: %d; flow: vertical; scrollbar: false; padding: 8px 0px; } element { padding: 6px 8px; border-radius: 4px; } inputbar { padding: 8px 12px; } icon-search { size: 14px; }", lines)
-	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", prompt, "-format", "i", "-theme", theme, "-theme-str", themeStr)
+	themeStr := fmt.Sprintf("window { width: 580px; border: 2px; border-color: %s; } listview { columns: 2; lines: %d; flow: vertical; scrollbar: false; padding: 8px 0px; } element { padding: 6px 8px; border-radius: 4px; } inputbar { padding: 8px 12px; } icon-search { size: 14px; }", theme.GetAccent(), lines)
+	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", prompt, "-format", "i", "-theme", themePath, "-theme-str", themeStr)
 	cmd.Stdin = &rofiInput
 	var out bytes.Buffer
 	cmd.Stdout = &out

@@ -1,0 +1,34 @@
+# OpenRiot Color System — Canonical Source
+# All Go TUIs, polybar, rofi, and CSS reference this file.
+# Change [accent] to cycle the color wheel.
+
+[base]
+bg = "#1a1b26"
+bg2 = "#24283b"
+fg = "#c0caf5"
+fg2 = "#a3acc9"
+fg3 = "#565f89"
+dim = "#3b4261"
+
+[accent]
+# Cycle through: green → violet → cyan → blue → orange
+# Each accent* key gets the new palette when wheel rotates
+name = "bondi-green"
+fg = "#9ECE6A"
+fg-light = "#8BB85A"
+bg = "#2B3A1A"
+
+[semantic]
+error = "#F7768E"
+warning = "#E0AF68"
+success = "#04B575"
+info = "#7AA2F7"
+cyan = "#0DB9D7"
+
+[compat]
+# Legacy names used across codebase — not for new code
+green = "#9ECE6A"
+violet = "#7D56F4"
+blue = "#7AA2F7"
+dim-gray = "#565F89"
+white = "#FAFAFA"
