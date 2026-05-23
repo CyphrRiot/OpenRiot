@@ -17,7 +17,7 @@ alt-e = "edit_message"
 alt-y = "copy_message selected"
 ctrl-t = "react :thumbsup:"
 ctrl-f = "react 🔥"
-ctrl-h = "react :purple_heart:"`
+ctrl-h = "react :green_heart:"`
 
 // Run is the main entry point for the --gurk-setup command
 func Run() error {
