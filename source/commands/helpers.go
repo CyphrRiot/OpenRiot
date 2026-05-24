@@ -372,10 +372,11 @@ func bindTransmissionToWireGuard() {
 }
 
 func runNightLightNotify() error {
+	nightlight.Toggle()
 	if nightlight.IsOn() {
-		notify.SendNotify("nightlight", "Night Light", "Night Light is Enabled\nDisable in Settings Menu\nOr Super+Shift+G", "normal", 5000, 0)
+		notify.SendNotify("nightlight-on", "Night Light", "Night Light is On", "normal", 3000, 0)
 	} else {
-		nightlight.Toggle()
+		notify.SendNotify("nightlight-off", "Night Light", "Night Light is Off", "normal", 3000, 0)
 	}
 	return nil
 }

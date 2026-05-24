@@ -1,7 +1,6 @@
 package nightlight
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
@@ -13,19 +12,13 @@ import (
 )
 
 const (
-	stateFile    = ".config/openriot/nightlight.state"
-	iconOn       = "󰌵"
-	iconOff      = ""
-	defaultLat   = "40.71"
-	defaultLon   = "-74.00"
-	tempDay      = "6500"
-	tempNight    = "4000"
+	stateFile = ".config/openriot/nightlight.state"
+	iconOn    = "󰌵"
+	iconOff   = ""
 )
 
 func Get() string {
-	state := getState()
-	ensureRedshift(state)
-	if state == 1 {
+	if IsOn() {
 		return polybar.Icon(iconOn)
 	}
 	return polybar.Icon(iconOff)
@@ -36,15 +29,14 @@ func IsOn() bool {
 }
 
 func Toggle() error {
-	currentState := getState()
-	if currentState == 1 {
+	if IsOn() {
 		// Turn off
-		exec.Command("pkill", "redshift").Run()
+		exec.Command("sct").Run() // reset
 		setState(0)
 		sendNotify("Night Light: Off", "nightlight-off")
 	} else {
 		// Turn on
-		startRedshift()
+		exec.Command("sct", "4000").Run()
 		setState(1)
 		sendNotify("Night Light: On", "nightlight-on")
 	}
@@ -73,24 +65,6 @@ func getState() int {
 func setState(state int) {
 	file := paths.Join(stateFile)
 	os.WriteFile(file, []byte(strconv.Itoa(state)), 0600)
-}
-
-func isRedshiftRunning() bool {
-	cmd := exec.Command("pgrep", "-x", "redshift")
-	return cmd.Run() == nil
-}
-
-func ensureRedshift(state int) {
-	running := isRedshiftRunning()
-	if state == 1 && !running {
-		startRedshift()
-	} else if state == 0 && running {
-		exec.Command("pkill", "redshift").Run()
-	}
-}
-
-func startRedshift() {
-	exec.Command("sh", "-c", fmt.Sprintf("redshift -l %s:%s -t %s:%s &", defaultLat, defaultLon, tempNight, tempNight)).Run()
 }
 
 func sendNotify(message, icon string) {

@@ -89,7 +89,7 @@ desktop:
             - clipmenu-6.2.0
             # - clipnotify-1.0.2  # Optional: for clipboard change detection scripts
             - libqalculate-5.8.0p1
-            - redshift-1.12p11
+            - sct-0.5
             - noto-emoji-2.051v0
             - zathura-0.5.14
             - zathura-pdf-poppler-0.3.4
@@ -124,6 +124,19 @@ desktop:
               cmd: "rm -f ~/.config/polybar/config"
             - desc: "Remove deprecated polybar scripts"
               cmd: "rm -f ~/.config/polybar/scripts/*.sh"
+            - desc: "Install xenodm greeter display setup (mirrors on login)"
+              cmd: |
+                  if [ -f /etc/X11/xenodm/Xsetup_0 ]; then
+                      if ! grep -q "OpenRiot xenodm greeter setup" /etc/X11/xenodm/Xsetup_0 2>/dev/null; then
+                          if [ ! -f /etc/X11/xenodm/Xsetup_0.orig ]; then
+                              doas cp /etc/X11/xenodm/Xsetup_0 /etc/X11/xenodm/Xsetup_0.orig
+                          fi
+                      else
+                          exit 0
+                      fi
+                  fi
+                  doas cp $HOME/.local/share/openriot/config/xenodm/Xsetup_0 /etc/X11/xenodm/Xsetup_0
+                  doas chmod +x /etc/X11/xenodm/Xsetup_0
         depends: [core.base, fonts.all]
         start: "Installing i3 desktop"
         end: "i3 desktop installed"
@@ -246,9 +259,9 @@ desktop:
                   doas sh -c 'gdk-pixbuf-query-loaders > /usr/local/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache'
     games:
         packages:
-            # - xonotic-0.8.6
-            # - katomic-25.12.3
             - kdiamond-25.12.3
+            - 0ad-0.28.0
+            - extremetuxracer-0.8.4
             - nudoku-8.0.0
             - xgalaga-sdl-2.1.1.0p0
             - openclonk-8.1p7
@@ -256,7 +269,6 @@ desktop:
             - gottet-1.2.7
             - defendguin-0.0.13
             - supertux-0.6.3p3
-            # - supertuxkart-1.5
             - sdlpop-1.22v0
             - zelda_roth_se-1.1.0p1
             - endless-sky-0.10.12p0

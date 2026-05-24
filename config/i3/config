@@ -38,12 +38,11 @@ include keybindings.conf
 # AUTOSTART
 # =============================================================================
 
-# Status bar - generate scaled config, then launch polybar (delay for Xorg readiness)
+# Status bar - generate scaled config, wait for i3 IPC readiness, then launch polybar
 exec --no-startup-id $openriot_bin --polybar-setup
-exec --no-startup-id sh -c '$openriot_bin --notify info "Polybar" "Starting Polybar..." normal 5000; sleep 5; polybar main'
-# Restart polybar after startup to ensure icons/fonts are loaded
-exec --no-startup-id sh -c 'sleep 10; polybar-msg cmd restart'
-exec --no-startup-id sh -c 'sleep 10; while true; do pgrep polybar >/dev/null || polybar main; sleep 5; done'
+exec --no-startup-id sh -c 'while ! i3-msg -t get_version >/dev/null 2>&1; do sleep 1; done; sleep 2; $openriot_bin --notify info "Polybar" "Starting Polybar..." normal 5000; polybar main'
+# Defensive: if polybar crashes, restart it quickly
+exec --no-startup-id sh -c 'sleep 10; while true; do pgrep -x polybar >/dev/null || polybar main; sleep 5; done'
 
 # Wallpaper
 exec --no-startup-id $openriot_bin --wallpaper-load

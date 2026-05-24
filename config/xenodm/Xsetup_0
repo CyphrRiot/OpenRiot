@@ -1,0 +1,20 @@
+#!/bin/sh
+# OpenRiot xenodm greeter setup — mirrors displays so login widget is visible everywhere
+
+# Set dark background
+/usr/X11R6/bin/xsetroot -solid "#1a1b26"
+
+# Activate all connected outputs
+/usr/X11R6/bin/xrandr --auto
+
+# Find laptop and external displays
+LAPTOP=$(/usr/X11R6/bin/xrandr | /usr/bin/awk '/ connected/ && ($1 ~ /^eDP/ || $1 ~ /^LVDS/) { print $1; exit }')
+EXTERNAL=$(/usr/X11R6/bin/xrandr | /usr/bin/awk '/ connected/ && ($1 !~ /^eDP/ && $1 !~ /^LVDS/) { print $1; exit }')
+
+if [ -n "$LAPTOP" ] && [ -n "$EXTERNAL" ]; then
+    # Mirror external onto laptop so greeter is visible on both
+    /usr/X11R6/bin/xrandr --output "$LAPTOP" --primary --auto \
+           --output "$EXTERNAL" --same-as "$LAPTOP" --auto
+fi
+
+# xconsole is intentionally NOT started here — OpenRiot never wants it

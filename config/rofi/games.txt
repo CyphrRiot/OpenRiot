@@ -11,7 +11,6 @@ Angband|angband|
 Cataclysm|cataclysm-tiles|
 Taisei|taisei|
 Transport Tycoon|openttd|
-# Xonotic|xonotic-sdl|󰊗
 Prince of Persia|sdlpop|
 Wesnoth|wesnoth|󰄚
 Bos Wars|boswars|󰴺
@@ -24,5 +23,6 @@ Galaga|xgalaga-sdl|󱎃
 Nudoku|alacritty --class floating_center -e nudoku|󰄺
 Heroes|heroes|󰹂
 Brogue|brogue|
-# 0 A.D.|0ad|󱢿
+Tux Racer|etr|󰻀
+Zero A.D.|0ad|󱢿
 Slash|alacritty --class floating_center -e slash|󰌌

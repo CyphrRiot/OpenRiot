@@ -179,19 +179,20 @@ deps:
 	@echo "=== Dependencies updated ==="
 
 # Testing
+# Use ~/.tmp to avoid /tmp which is mounted noexec on OpenBSD
 test:
 	@echo "=== Running tests ==="
-	@cd $(SOURCE_DIR) && go test ./... 2>&1 | grep -v 'no test files'
+	@mkdir -p $(HOME)/.tmp && cd $(SOURCE_DIR) && TMPDIR=$(HOME)/.tmp go test ./... 2>&1 | grep -v 'no test files' | column -t
 
 # Smoke tests - integration tests for install paths
 smoke-test:
 	@echo "=== Running smoke tests ==="
-	@cd $(SOURCE_DIR) && go test -v -run Smoke .
+	@mkdir -p $(HOME)/.tmp && cd $(SOURCE_DIR) && TMPDIR=$(HOME)/.tmp go test -v -run Smoke .
 
 # Imaging module tests
 test-img:
 	@echo "=== Running imaging tests ==="
-	@cd $(SOURCE_DIR) && go test -v ./imaging/...
+	@mkdir -p $(HOME)/.tmp && cd $(SOURCE_DIR) && TMPDIR=$(HOME)/.tmp go test -v ./imaging/...
 
 # Verify build
 verify: all
