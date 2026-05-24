@@ -30,7 +30,8 @@ func GamesPreference() bool {
 	}
 
 	// Prompt user
-	logger.Ask("Do you want to install Games (~1.75G)? [Y/n] ")
+	logger.Warn("Games are huge. Fun, but massive.")
+	logger.Ask("Do you want to install Games (~3GB)? [Y/n] ")
 	stdin := os.Stdin
 	if tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0); err == nil {
 		stdin = tty

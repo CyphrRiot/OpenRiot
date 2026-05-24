@@ -248,6 +248,10 @@ desktop:
         packages:
             # - xonotic-0.8.6
             # - katomic-25.12.3
+            - kdiamond-25.12.3
+            - nudoku-8.0.0
+            - xgalaga-sdl-2.1.1.0p0
+            - openclonk-8.1p7
             - micropolis-20080211p9
             - gottet-1.2.7
             - defendguin-0.0.13
@@ -263,6 +267,7 @@ desktop:
             - wesnoth-1.18.7
             - boswars-2.7p4
             - slash-3.2.2.e8p8
+            - brogue-1.15.1
             - frozen-bubble-2.2.0p17
             - heroes-0.21p10
         depends: [desktop.i3]

@@ -18,7 +18,11 @@ Bos Wars|boswars|󰴺
 Frozen Bubble|frozen-bubble|󰗣
 Tetris|gottet|󰸹
 Micropolis|micropolis|
+Clonk|openclonk|󰷚
+Diamond|kdiamond|󰇈
+Galaga|xgalaga-sdl|󱎃
+Nudoku|alacritty --class floating_center -e nudoku|󰄺
 Heroes|heroes|󰹂
-# Katomic Sokoban|katomic|󰝨
+Brogue|brogue|
 # 0 A.D.|0ad|󱢿
-Slash|alacritty --class floating_center -e nethack-3.6.6|󰌌
+Slash|alacritty --class floating_center -e slash|󰌌

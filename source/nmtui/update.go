@@ -7,6 +7,8 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+
+	"openriot/wireguard"
 )
 
 // Messages
@@ -48,6 +50,11 @@ func connectToWifiCmd(iface, ssid, password string) tea.Cmd {
 		}
 		if err != nil {
 			return connResultMsg{err: err, msg: ""}
+		}
+		if wireguard.IsRunning() {
+			wireguard.Stop()
+			time.Sleep(500 * time.Millisecond)
+			wireguard.Start()
 		}
 		return connResultMsg{err: nil, msg: fmt.Sprintf("Connected to %s", ssid)}
 	}

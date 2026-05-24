@@ -228,7 +228,7 @@ func writeHostnameIf(iface, ssid, key string) error {
 			if trimmed == "" {
 				continue
 			}
-			if strings.HasPrefix(trimmed, "nwid ") {
+			if strings.HasPrefix(trimmed, "nwid ") || strings.HasPrefix(trimmed, "join ") {
 				continue
 			}
 			lines = append(lines, line)
@@ -267,7 +267,7 @@ func clearHostnameIf(iface string) error {
 		if trimmed == "" {
 			continue
 		}
-		if strings.HasPrefix(trimmed, "nwid ") {
+		if strings.HasPrefix(trimmed, "nwid ") || strings.HasPrefix(trimmed, "join ") {
 			continue
 		}
 		lines = append(lines, line)
