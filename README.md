@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.8-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.9-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -18,7 +18,7 @@
 
 ---
 
-![OpenRiot](assets/desktop.png)
+![OpenRiot](assets/desktop.webp)
 
 ---
 
@@ -123,6 +123,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.9.9 — Self-Copy, Self-Doubt, Self-Respect](docs/v7.9.9-Release-Notes.md)
 - [v7.9.8 — The One Where We Actually Looked at the Polybar](docs/v7.9.8-Release-Notes.md)
 - [v7.9.7 — The One That Wraps Up The Loose Ends](docs/v7.9.7-Release-Notes.md)
 - [v7.9.6 — The One With The Proper Sound](docs/v7.9.6-Release-Notes.md)
@@ -468,6 +469,8 @@ Or use the built-in WiFi manager after first boot (much easier for daily use and
 - **Rofi:** `Super + D` → **Select WiFi** (graphical picker)
 - **Terminal:** `openriot --nmtui` (or the underlying tool)
 
+![OpenRiot Network TUI](assets/nmtui.webp)
+
 **Important nuances & edge cases:**
 - **MAC randomization (Stealth mode)**: If you enable `openriot --random-mac enable` later, it will spoof the MAC on each connection. This is excellent for privacy on public networks but can interfere with captive portals, enterprise 802.1X, or networks that whitelist specific MACs. In those cases, temporarily disable with `openriot --random-mac disable` or use the polybar stealth module.
 - **Captive portals / hotel / airport WiFi**: The CLI `ifconfig` method or `nmtui` usually works, but you may need to open a browser manually (`firefox`) after connecting to complete the login page. Some portals are tricky with randomized MACs — disable stealth temporarily.
@@ -603,7 +606,7 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | SolveSpace 3D    | 󰐫   | 3D CAD modeler           |
 | Games            | 󰊗   | Games sub-menu           |
 
-![OpenRiot Terminal](assets/terminal.png)
+![OpenRiot Terminal](assets/terminal.webp)
 
 ### Top Menu (Polybar)
 
@@ -1592,7 +1595,7 @@ the background, indexing your library and serving tracks over a local
 Unix socket. **rmpc** — a Rust TUI client — gives you fast,
 keyboard-driven control without ever leaving the terminal.
 
-![Music Player](assets/music.png)
+![Music Player](assets/music.webp)
 
 The stack comes with a **Neo Tokyo** theme that matches the rest of the
 desktop. Launch it from the app launcher with `Super + D` → **Music

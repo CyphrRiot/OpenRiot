@@ -29,8 +29,6 @@ core:
         configs:
             - pattern: fastfetch/*
               target: "~/.config/fastfetch"
-            - pattern: docs/*
-              target: "~/.local/share/openriot/docs/"
         depends: []
         commands:
             - desc: "Create XDG user directories if missing"
@@ -97,11 +95,11 @@ desktop:
             - zathura-pdf-poppler-0.3.4
         configs:
             - pattern: i3/*
-            - pattern: icons/*
-              target: "~/.local/share/openriot/config/icons/"
             - pattern: polybar/*
             - pattern: rofi/*
             - pattern: dunst/*
+            - pattern: Xresources
+              target: "~/.Xresources"
             - pattern: Xresources
               target: "~/.Xresources"
             - pattern: xinitrc/openriot-x11
@@ -188,7 +186,6 @@ desktop:
             - pattern: xfce4/*
               target: "~/.config/xfce4/"
             - pattern: helix/*
-              preserve_if_exists: [config.toml]
             - pattern: crypto.toml
               target: "~/.config/crypto-template.toml"
             - pattern: applications/*
@@ -267,6 +264,7 @@ desktop:
             - boswars-2.7p4
             - slash-3.2.2.e8p8
             - frozen-bubble-2.2.0p17
+            - heroes-0.21p10
         depends: [desktop.i3]
         start: "Installing the best games..."
         end: "Games installed"
@@ -328,15 +326,14 @@ media:
             - yt-dlp-2026.03.17
             - x264-20250909
             - x265-4.1p0
+            - cmixer-0.3
         configs:
             - pattern: "rmpc/config.ron"
               target: "~/.config/rmpc/config.ron"
-              preserve_if_exists: [config.ron]
             - pattern: "rmpc/themes/*"
               target: "~/.config/rmpc/themes/"
             - pattern: "transmission/settings.json"
               target: "~/.config/transmission/settings.json"
-              preserve_if_exists: [settings.json]
         commands:
             - desc: "Create mpd directories"
               cmd: "mkdir -p ~/.mpd/playlists ~/Music"
@@ -463,7 +460,7 @@ system:
         type: "Package"
         commands:
             - desc: "Enable and start apmd (adaptive performance)"
-              cmd: "doas rcctl enable apmd && doas rcctl set apmd flags -A && doas rcctl start apmd"
+              cmd: "doas rcctl enable apmd && doas rcctl set apmd flags -A -a -z 5 && doas rcctl start apmd"
             - desc: "Remove stale power/performance sysctls (now runtime-managed)"
               cmd: |
                   if grep -qE '^hw\.(allowpowerdown|perfpolicy)=' /etc/sysctl.conf 2>/dev/null; then

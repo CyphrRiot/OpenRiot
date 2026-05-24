@@ -1,19 +1,19 @@
 * {
   font:   "FiraCode Nerd Font Medium 14";
 
-  bg0     : #1a1b26;
-  bg1     : #1f2335;
-  bg2     : #24283b;
-  bg3     : #414868;
-  fg0     : #c0caf5;
-  fg1     : #a9b1d6;
-  fg2     : #737aa2;
-  red     : #f7768e;
-  green   : #9ece6a;
-  yellow  : #e0af68;
-  blue    : #7aa2f7;
-  magenta : #9a7ecc;
-  cyan    : #4abaaf;
+  bg0     : {{.BaseBG}};
+  bg1     : {{.BaseBG}};
+  bg2     : {{.BaseBG2}};
+  bg3     : {{.ExtendedMuted}};
+  fg0     : {{.BaseFG}};
+  fg1     : {{.BaseFG2}};
+  fg2     : {{.BaseFG3}};
+  red     : {{.SemanticError}};
+  green   : {{.AccentFG}};
+  yellow  : {{.SemanticWarning}};
+  blue    : {{.SemanticInfo}};
+  magenta : {{.ExtendedViolet}};
+  cyan    : {{.SemanticCyan}};
 
   accent: @green;
   urgent: @yellow;

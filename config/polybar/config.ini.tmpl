@@ -1,25 +1,26 @@
 ; OpenRiot Polybar Config — Tokyo Night Theme for OpenBSD X11
 
 [colors]
-bg = #06070B
-bg2 = #0E0F17
-fg = #E0E6F5
-fg2 = #A3ACC9
-fg3 = #565F89
-red = #F7768E
-orange = #FF9E64
-yellow = #E0AF68
-green = #9ECE6A
-cyan = #0DB9D7
-blue = #7AA2F7
-sky = #7DCFFF
-electric = #89B4FA
-purple = #8B7CF6
-violet = #997DE1
-teal = #7d8df7
-intermediate = #8aa2f0
-cyan-dim = #5a95b8
-muted = #414868
+bg = {{.ExtendedBGDark}}
+alpha-bg = {{.ExtendedAlphaBG}}
+bg2 = {{.ExtendedBGMid}}
+fg = {{.ExtendedFGBright}}
+fg2 = {{.BaseFG2}}
+fg3 = {{.BaseFG3}}
+red = {{.SemanticError}}
+orange = {{.ExtendedOrange}}
+yellow = {{.SemanticWarning}}
+green = {{.AccentFG}}
+cyan = {{.SemanticCyan}}
+blue = {{.SemanticInfo}}
+sky = {{.ExtendedSky}}
+electric = {{.ExtendedElectric}}
+purple = {{.ExtendedPurple}}
+violet = {{.ExtendedViolet}}
+teal = {{.ExtendedTeal}}
+intermediate = {{.ExtendedElectric}}
+cyan-dim = {{.ExtendedCyanDim}}
+muted = {{.ExtendedMuted}}
 
 [global/wm]
 margin-bottom = 3
@@ -47,7 +48,7 @@ clickareas = 64
 ; Fonts
 font-0 = "Hurmit Nerd Font:size=11"
 font-1 = "Hurmit Nerd Font:size=18"
-font-2 = "Hurmit Nerd Font:size=13"
+font-2 = "Hurmit Nerd Font:size=12"
 
 ; Separator style
 separator = ""
@@ -59,7 +60,7 @@ modules-center = weather date
 modules-right = crypto transmission nzbget proton-drive night-light sep cpu memory sep wireguard stealth network-wifi network-eth openriot-update sep hdmi volume battery sep screenrec settings power lock
 
 ; Colors
-background = ${colors.bg}
+background = ${colors.alpha-bg}
 foreground = ${colors.fg}
 line-color = ${colors.cyan}
 
@@ -81,7 +82,7 @@ label = %output%
 [module/launcher]
 type = custom/text
 format = "%{T2}%{T-}"
-format-foreground = #9EC8F9
+format-foreground = {{.ExtendedLauncherFG}}
 
 format-padding = 0
 click-left = $HOME/.local/share/openriot/install/openriot --rofi
@@ -89,7 +90,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --rofi
 [module/sep]
 type = custom/text
 format = "·"
-content-foreground = #13141C
+content-foreground = {{.ExtendedSepBG}}
 
 [module/date]
 type = internal/date

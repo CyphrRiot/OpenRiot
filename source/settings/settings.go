@@ -38,7 +38,7 @@ func RunMenu() {
 		fmt.Fprintf(&rofiInput, "%s %s %s\n", e.icon, e.name, stateStr)
 	}
 
-	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", "Settings", "-format", "i", "-theme", themePath, "-theme-str", fmt.Sprintf("window { width: 450px; border: 2px; border-color: %s; }", theme.GetAccent()))
+	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", "Settings", "-format", "i", "-theme", themePath, "-theme-str", fmt.Sprintf("window { width: 450px; border: 2px; border-color: %s; }", theme.GetPurple()))
 	cmd.Stdin = &rofiInput
 	var out bytes.Buffer
 	cmd.Stdout = &out

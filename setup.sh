@@ -300,6 +300,7 @@ main() {
 
     if [ "$LOCAL_MODE" -eq 1 ]; then
         info "Local mode: skipping remote repository setup"
+        export OPENRIOT_LOCAL=1
     else
         setup_repository
     fi

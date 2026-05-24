@@ -18,6 +18,7 @@ Bos Wars|boswars|󰴺
 Frozen Bubble|frozen-bubble|󰗣
 Tetris|gottet|󰸹
 Micropolis|micropolis|
+Heroes|heroes|󰹂
 # Katomic Sokoban|katomic|󰝨
 # 0 A.D.|0ad|󱢿
 Slash|alacritty --class floating_center -e nethack-3.6.6|󰌌

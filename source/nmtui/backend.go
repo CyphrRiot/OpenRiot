@@ -85,7 +85,7 @@ func IsWiFiConnected(iface string) bool {
 	if err != nil {
 		return false
 	}
-	return joinSSIDRE.MatchString(string(out))
+	return nwidRE.MatchString(string(out))
 }
 
 // SignalToPercent returns the percentage signal strength.
@@ -412,7 +412,7 @@ func parseIfconfigConnection(output string) *ConnectionInfo {
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 
-		if m := joinSSIDRE.FindStringSubmatch(line); m != nil {
+		if m := nwidRE.FindStringSubmatch(line); m != nil {
 			info.SSID = stripQuotes(m[1])
 			info.State = "active"
 		}

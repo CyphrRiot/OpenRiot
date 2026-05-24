@@ -11,6 +11,7 @@ import (
 	"strings"
 	"syscall"
 
+	"openriot/installer"
 	"openriot/notify"
 	"openriot/paths"
 	"openriot/theme"
@@ -213,4 +214,32 @@ func getDesktopExec(desktopFile string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("no Exec= line found in %s", desktopFile)
+}
+
+// Setup renders the rofi theme template with canonical colors.
+func Setup() int {
+	templatePath := paths.OpenRiotDir("config", "rofi",
+		"simple-tokyonight.rasi.tmpl")
+	configPath := paths.Join(".config", "rofi",
+		"simple-tokyonight.rasi")
+
+	content, _, err := installer.RenderTemplateString(templatePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "rofi setup: %v\n", err)
+		return 1
+	}
+
+	if err := os.MkdirAll(filepath.Dir(configPath), 0755); err != nil {
+		fmt.Fprintf(os.Stderr, "rofi setup: cannot create dir: %v\n",
+			err)
+		return 1
+	}
+	if err := os.WriteFile(configPath, []byte(content), 0600); err != nil {
+		fmt.Fprintf(os.Stderr, "rofi setup: cannot write config: %v\n",
+			err)
+		return 1
+	}
+
+	fmt.Println("[DONE] Rofi theme rendered.")
+	return 0
 }

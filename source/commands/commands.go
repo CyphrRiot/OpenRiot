@@ -20,6 +20,7 @@ import (
 	"openriot/display"
 	"openriot/fonts"
 	"openriot/gurk"
+	"openriot/helix"
 	"openriot/imaging"
 	"openriot/installer"
 	"openriot/lock"
@@ -522,6 +523,21 @@ func RegisterAll(r *Registry, testMode *bool) {
 		},
 	})
 	r.Register(&Command{
+		Name: "--battery-test", Category: "Network & Battery",
+		Description: "Simulate battery level and trigger alerts",
+		Run: func(args []string) error {
+			if len(args) < 1 {
+				return fmt.Errorf("usage: openriot --battery-test <percent>")
+			}
+			percent, err := strconv.Atoi(args[0])
+			if err != nil || percent < 0 || percent > 100 {
+				return fmt.Errorf("invalid percent: %s", args[0])
+			}
+			battery.TestNotify(percent)
+			return nil
+		},
+	})
+	r.Register(&Command{
 		Name: "--night-light-status", Category: "Network & Battery",
 		Description: "Show night light status",
 		Run: func(args []string) error { fmt.Print(nightlight.Get()); return nil },
@@ -818,6 +834,16 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--dunst-setup", Category: "Lock & Power",
 		Description: "Scale and setup dunst",
 		Run: func(args []string) error { os.Exit(notify.Setup()); return nil },
+	})
+	r.Register(&Command{
+		Name: "--rofi-setup", Category: "Lock & Power",
+		Description: "Render rofi theme from template",
+		Run: func(args []string) error { os.Exit(rofi.Setup()); return nil },
+	})
+	r.Register(&Command{
+		Name: "--helix-setup", Category: "Lock & Power",
+		Description: "Render helix theme from template",
+		Run: func(args []string) error { os.Exit(helix.Setup()); return nil },
 	})
 	r.Register(&Command{
 		Name: "--suspend-if-undocked", Category: "Lock & Power",

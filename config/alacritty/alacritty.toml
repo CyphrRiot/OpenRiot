@@ -17,11 +17,11 @@ bold_italic = { family = "FiraCode Nerd Font", style = "SemiBold" }
 size = 11.0
 
 [colors]
-primary = { background = "#0A0B10", foreground = "#a9b1d6" }
-cursor = { text = "#0A0B10", cursor = "#7AA2F7" }
-normal = { black = "#01060E", red = "#EA6C73", green = "#9ECE6A", yellow = "#E0AF68", blue = "#7AA2F7", magenta = "#BB9AF7", cyan = "#0DB9D7", white = "#C0CAF5" }
-bright = { black = "#565F89", red = "#F7768E", green = "#9ECE6A", yellow = "#E0AF68", blue = "#89B4FA", magenta = "#BB9AF7", cyan = "#0DB9D7", white = "#D8DEE9" }
-selection = { text = "#0A0B10", background = "#7AA2F7" }
+primary = { background = "#0f0f0f", foreground = "#c0caf5" }
+cursor = { text = "#12131b", cursor = "#7AA2F7" }
+normal = { black = "#01060E", red = "#F7768E", green = "#9ECE6A", yellow = "#E0AF68", blue = "#7AA2F7", magenta = "#7D56F4", cyan = "#0DB9D7", white = "#C0CAF5" }
+bright = { black = "#565F89", red = "#F7768E", green = "#9ECE6A", yellow = "#E0AF68", blue = "#7AA2F7", magenta = "#BB9AF7", cyan = "#0DB9D7", white = "#FAFAFA" }
+selection = { text = "#12131b", background = "#7AA2F7" }
 
 [keyboard]
 bindings = [

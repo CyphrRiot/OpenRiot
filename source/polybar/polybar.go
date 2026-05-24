@@ -13,6 +13,7 @@ import (
 	"unsafe"
 
 	"golang.org/x/sys/unix"
+	"openriot/installer"
 	"openriot/notify"
 	"openriot/paths"
 	"openriot/screen"
@@ -496,31 +497,38 @@ func getSyncTime() string {
 	return info.ModTime().Format("January 2, 03:04 PM")
 }
 
-// Setup generates scaled polybar config (doesn't launch polybar - i3 handles that)
+// Setup generates scaled polybar config (doesn't launch polybar - i3
+// handles that)
 func Setup() int {
 	// Get screen resolution
 	width := screen.GetWidth()
 
 	// Determine scale factors based on resolution
-	height, font0, font1, font2, modMargin := getScaleFactors(width)
+	height, font0, font1, font2, modMargin := getScaleFactors(
+		width)
 
-	// Read template config
-	templatePath := paths.OpenRiotDir("config", "polybar", "config.ini")
+	// Render color template
+	templatePath := paths.OpenRiotDir("config", "polybar",
+		"config.ini.tmpl")
 	configPath := paths.Join(".config", "polybar", "config.ini")
 
-	template, err := os.ReadFile(templatePath)
+	content, _, err := installer.RenderTemplateString(templatePath)
 	if err != nil {
 		return 1
 	}
 
-	// Apply scaling transformations (do larger sizes first to avoid collision)
-	content := string(template)
+	// Apply scaling transformations (do larger sizes first to
+	// avoid collision)
 	replacements := []struct{ old, new string }{
 		{"height = 26", "height = " + height},
-		{"module-margin = 1", "module-margin = " + modMargin},
-		{"Hurmit Nerd Font:size=20", "Hurmit Nerd Font:" + font1},
-		{"Hurmit Nerd Font:size=11", "Hurmit Nerd Font:" + font0},
-		{"Hurmit Nerd Font:size=13", "Hurmit Nerd Font:" + font2},
+		{"module-margin = 1",
+			"module-margin = " + modMargin},
+		{"Hurmit Nerd Font:size=20",
+			"Hurmit Nerd Font:" + font1},
+		{"Hurmit Nerd Font:size=11",
+			"Hurmit Nerd Font:" + font0},
+		{"Hurmit Nerd Font:size=13",
+			"Hurmit Nerd Font:" + font2},
 	}
 
 	for _, r := range replacements {
@@ -529,7 +537,8 @@ func Setup() int {
 
 	// On small screens reduce title length and tighten bar padding
 	if width < 1360 {
-		content = strings.ReplaceAll(content, "padding-right = 3", "padding-right = 0")
+		content = strings.ReplaceAll(content,
+			"padding-right = 3", "padding-right = 0")
 		windowtitle.SetMaxLen(24)
 	}
 
@@ -537,10 +546,12 @@ func Setup() int {
 	if err := os.MkdirAll(filepath.Dir(configPath), 0755); err != nil {
 		return 1
 	}
-	if err := os.WriteFile(configPath, []byte(content), 0600); err != nil {
+	if err := os.WriteFile(configPath, []byte(content),
+		0600); err != nil {
 		return 1
 	}
-	fmt.Println("[DONE] Polybar scaled. Run `Super+Shift+R` to apply changes.")
+	fmt.Println("[DONE] Polybar scaled. Run `Super+Shift+R` to " +
+		"apply changes.")
 	return 0
 }
 

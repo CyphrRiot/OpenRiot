@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 // CopyFile copies a file from src to dest, preserving source permissions.
 // Always overwrites dest. Preservation decisions belong in the caller.
 func CopyFile(src, dest string) error {
+	if filepath.Clean(src) == filepath.Clean(dest) {
+		return nil
+	}
+
 	srcInfo, err := os.Stat(src)
 	if err != nil {
 		return fmt.Errorf("stat source file: %w", err)

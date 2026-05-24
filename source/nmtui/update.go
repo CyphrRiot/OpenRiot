@@ -158,6 +158,7 @@ func (m model) updateList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.showHelp = !m.showHelp
 		return m, nil
 	case key.Matches(msg, m.keys.Info):
+		m.state = stateActiveInfo
 		return m, fetchActiveConnInfoCmd(m.iface)
 	case key.Matches(msg, m.keys.Disconnect):
 		if m.conn != nil && m.conn.SSID != "" {

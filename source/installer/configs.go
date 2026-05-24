@@ -1,17 +1,20 @@
 package installer
 
 import (
+	"bytes"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
+	"text/template"
 
 	"openriot/config"
 	"openriot/fsutil"
 	"openriot/logger"
 	"openriot/paths"
+	"openriot/theme"
 )
 
 // CopyConfigs copies configuration files from the repo to user's home directory.
@@ -220,6 +223,115 @@ func shouldPreserve(filename string, preserveList []string, destPath string) boo
 		return true
 	}
 	return false
+}
+
+// renderColorsMap flattens a theme.ColorPalette into a map usable by
+// text/template with keys like BaseBG, AccentFG, SemanticError, etc.
+func renderColorsMap() (map[string]string, error) {
+	homeDir := paths.HomeDir()
+	colorsPath := filepath.Join(homeDir, ".local", "share",
+		"openriot", "config", "colors.toml")
+
+	p, err := theme.LoadColors(colorsPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]string{
+		"BaseBG":          p.Base.BG,
+		"BaseBG2":         p.Base.BG2,
+		"BaseFG":          p.Base.FG,
+		"BaseFG2":         p.Base.FG2,
+		"BaseFG3":         p.Base.FG3,
+		"BaseDim":         p.Base.Dim,
+		"AccentName":      p.Accent.Name,
+		"AccentFG":        p.Accent.FG,
+		"AccentFGLight":   p.Accent.FGLight,
+		"AccentBG":        p.Accent.BG,
+		"SemanticError":   p.Semantic.Error,
+		"SemanticWarning": p.Semantic.Warning,
+		"SemanticSuccess": p.Semantic.Success,
+		"SemanticInfo":    p.Semantic.Info,
+		"SemanticCyan":    p.Semantic.Cyan,
+		"CompatGreen":     p.Compat.Green,
+		"CompatViolet":    p.Compat.Violet,
+		"CompatBlue":      p.Compat.Blue,
+		"CompatDimGray":   p.Compat.DimGray,
+		"CompatWhite":     p.Compat.White,
+		"ExtendedTeal":       p.Extended.Teal,
+		"ExtendedSky":        p.Extended.Sky,
+		"ExtendedElectric":   p.Extended.Electric,
+		"ExtendedPurple":     p.Extended.Purple,
+		"ExtendedViolet":     p.Extended.Violet,
+		"ExtendedOrange":     p.Extended.Orange,
+		"ExtendedCyanDim":    p.Extended.CyanDim,
+		"ExtendedLauncherFG": p.Extended.LauncherFG,
+		"ExtendedSepBG":      p.Extended.SepBG,
+		"ExtendedBGDark":     p.Extended.BGDark,
+		"ExtendedBGMid":      p.Extended.BGMid,
+		"ExtendedFGBright":   p.Extended.FGBright,
+		"ExtendedMuted":      p.Extended.Muted,
+		"ExtendedSecYellow":  p.Extended.SecYellow,
+		"ExtendedSecOrange":  p.Extended.SecOrange,
+		"ExtendedAlphaBG":    p.Extended.AlphaBG,
+	}, nil
+}
+
+// RenderTemplateString reads a .tmpl file and returns the rendered
+// content as a string together with the color map used. Callers can
+// apply further string replacements before writing to disk.
+func RenderTemplateString(srcTmpl string) (string, map[string]string,
+	error) {
+	colors, err := renderColorsMap()
+	if err != nil {
+		return "", nil,
+			fmt.Errorf("loading colors for template %s: %w",
+				srcTmpl, err)
+	}
+
+	data, err := os.ReadFile(srcTmpl)
+	if err != nil {
+		return "", nil,
+			fmt.Errorf("reading template %s: %w", srcTmpl, err)
+	}
+
+	tmpl, err := template.New(filepath.Base(srcTmpl)).Parse(
+		string(data))
+	if err != nil {
+		return "", nil,
+			fmt.Errorf("parsing template %s: %w", srcTmpl, err)
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, colors); err != nil {
+		return "", nil,
+			fmt.Errorf("executing template %s: %w", srcTmpl, err)
+	}
+
+	return buf.String(), colors, nil
+}
+
+// RenderTemplate reads a .tmpl file, executes it with the canonical
+// palette from colors.toml, and writes the result to dst. An empty
+// colors map is returned so callers can extend it with extra
+// variables if needed.
+func RenderTemplate(srcTmpl, dst string) (map[string]string, error) {
+	content, colors, err := RenderTemplateString(srcTmpl)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+		return nil, fmt.Errorf("creating directory for %s: %w",
+			dst, err)
+	}
+
+	if err := os.WriteFile(dst, []byte(content), 0644); err != nil {
+		return nil, fmt.Errorf("writing rendered file %s: %w",
+			dst, err)
+	}
+
+	return colors, nil
 }
 
 

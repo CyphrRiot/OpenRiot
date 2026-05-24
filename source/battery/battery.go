@@ -6,7 +6,13 @@ import (
 	"strconv"
 	"strings"
 
+	"openriot/notify"
 	"openriot/polybar"
+)
+
+var (
+	alerted20 bool
+	alerted10 bool
 )
 
 // GetNotifyDetails returns formatted battery info for notifications.
@@ -79,15 +85,40 @@ func Get() string {
 		return "" // No battery info
 	}
 
+	// Reset alerts when charging or battery recovers
+	if ac == 1 || percent > 20 {
+		alerted20 = false
+		alerted10 = false
+	}
+
+	// Send low-battery notifications only when discharging
+	if ac == 0 {
+		if percent <= 10 && !alerted10 {
+			notify.SendNotify("battery", "Battery Warning",
+				"Battery at 10% - Charge Soon!", "critical", 0, 0)
+			alerted10 = true
+			alerted20 = true
+		} else if percent <= 20 && !alerted20 {
+			notify.SendNotify("battery", "Battery Low",
+				fmt.Sprintf("Battery at %d%%", percent),
+				"normal", 5000, 0)
+			alerted20 = true
+		}
+	}
+
 	icon := polybar.Icon(getBatteryIcon(percent, ac))
 
 	if ac == 1 {
 		return fmt.Sprintf("%%{F#0DB9D7}%s%%{F-}", icon)
 	}
-	if percent < 20 {
+	switch {
+	case percent < 20:
 		return fmt.Sprintf("%%{F#F7768E}%s%%{F-}", icon)
+	case percent < 25:
+		return fmt.Sprintf("%%{F#FF9E64}%s%%{F-}", icon)
+	default:
+		return fmt.Sprintf("%%{F#9ECE6A}%s%%{F-}", icon)
 	}
-	return fmt.Sprintf("%%{F#A3ACC9}%s%%{F-}", icon)
 }
 
 func getBatteryIcon(percent, ac int) string {
@@ -104,4 +135,38 @@ func getBatteryIcon(percent, ac int) string {
 		return chargingIcons[idx]
 	}
 	return batteryIcons[idx]
+}
+
+// TestNotify simulates a battery level and triggers notification logic.
+func TestNotify(percent int) {
+	// Reset state so alerts always fire
+	alerted20 = false
+	alerted10 = false
+
+	_, _, _ = getFullStatus()
+
+	icon := polybar.Icon(getBatteryIcon(percent, 0))
+
+	var color string
+	switch {
+	case percent < 20:
+		color = "#F7768E"
+	case percent < 25:
+		color = "#FF9E64"
+	default:
+		color = "#9ECE6A"
+	}
+	fmt.Printf("%%{F%s}%s%%{F-}\n", color, icon)
+
+	if percent <= 10 {
+		notify.SendNotify("battery", "Battery Warning",
+			"Battery at 10% - Charge Soon!", "critical", 0, 0)
+		alerted10 = true
+		alerted20 = true
+	} else if percent <= 20 {
+		notify.SendNotify("battery", "Battery Low",
+			fmt.Sprintf("Battery at %d%%", percent),
+			"normal", 5000, 0)
+		alerted20 = true
+	}
 }

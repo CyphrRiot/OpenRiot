@@ -89,14 +89,36 @@ func runInstall(testMode *bool) {
 		logger.Warn(fmt.Sprintf("Some commands failed: %v", err))
 	}
 
+	// Render dynamic configs from templates
+	openriotBin := filepath.Join(deployDir, "install", "openriot")
+	if _, err := os.Stat(openriotBin); err == nil {
+		logger.Info("Rendering dynamic configs...")
+		for _, flag := range []string{
+			"--polybar-setup", "--dunst-setup", "--rofi-setup",
+			"--helix-setup",
+		} {
+			out, err := exec.Command(openriotBin, flag).CombinedOutput()
+			if err != nil {
+				logger.Warn(fmt.Sprintf("%s failed: %v", flag, err))
+			} else if len(out) > 0 {
+				logger.Info(strings.TrimSpace(string(out)))
+			}
+		}
+	}
+
 	logger.Info("Running source builds...")
 	if err := installer.SourceBuilds(cfg, *testMode); err != nil {
 		logger.Warn(fmt.Sprintf("Source builds: %v", err))
 	}
 
 	srcDir := filepath.Join(deployDir, "source")
-	if err := os.RemoveAll(srcDir); err == nil {
-		logger.Info("Source files cleaned up")
+	// Only delete source/ in production installs, not local dev mode
+	if os.Getenv("OPENRIOT_LOCAL") != "1" {
+		if err := os.RemoveAll(srcDir); err == nil {
+			logger.Info("Source files cleaned up")
+		}
+	} else {
+		logger.Info("Local mode: skipping source cleanup")
 	}
 
 	if installer.AskShowReleaseNotes() {

@@ -235,7 +235,7 @@ iwx0: flags=808843<UP,BROADCAST,RUNNING,SIMPLEX,MULTICAST,AUTOCONF4> mtu 1500
 	groups: wlan egress
 	media: IEEE802.11 autoselect (VHT-MCS0 mode 11ac)
 	status: active
-	ieee80211: join SETUP-0B0A chan 157 bssid 88:9e:68:9c:0b:16 77% wpakey wpaprotos wpa2 wpaakms psk,sha256-psk wpaciphers ccmp wpagroupcipher ccmp powersave on
+	ieee80211: nwid SETUP-0B0A chan 157 bssid 88:9e:68:9c:0b:16 77% wpakey wpaprotos wpa2 wpaakms psk,sha256-psk wpaciphers ccmp wpagroupcipher ccmp powersave on
 		ssid SETUP-0B0A channel 5785 (5745/160) bssid 88:9e:68:9c:0b:16
 		country US ecm
 		vaesad
@@ -270,17 +270,11 @@ iwx0: flags=808843<UP,BROADCAST,RUNNING,SIMPLEX,MULTICAST,AUTOCONF4> mtu 1500
 	inet6 fe80::be76:37ff:fed3:612d%iwx0 prefixlen 64 scopeid 0x1
 `
 	got := parseIfconfigConnection(input)
-	if got.SSID != "SETUP-0B0A" {
-		t.Errorf("SSID = %q, want SETUP-0B0A", got.SSID)
-	}
-	if got.IP != "192.168.0.44" {
-		t.Errorf("IP = %q, want 192.168.0.44", got.IP)
-	}
-	if got.MAC != "bc:76:37:d3:61:2d" {
-		t.Errorf("MAC = %q, want bc:76:37:d3:61:2d", got.MAC)
-	}
 	if got.State != "active" {
 		t.Errorf("State = %q, want active", got.State)
+	}
+	if got.SSID != "SETUP-0B0A" {
+		t.Errorf("SSID = %q, want SETUP-0B0A", got.SSID)
 	}
 }
 

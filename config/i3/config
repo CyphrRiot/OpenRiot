@@ -96,7 +96,7 @@ for_window [class="^URxvt$" instance="^floating"] floating enable, resize set 90
 
 # Centered floating terminal (Super+Shift+Enter)
 for_window [instance="^floating_center"] floating enable
-for_window [instance="^floating_center"] resize set 50 ppt 75 ppt
+for_window [instance="^floating_center"] resize set 40 ppt 60 ppt
 for_window [instance="^floating_center"] move position center
 
 # Transmission

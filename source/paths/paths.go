@@ -67,3 +67,22 @@ func ExpandTilde(path string) string {
 	}
 	return path
 }
+
+// FindConfigTemplate searches for a config template file in multiple
+// locations and returns the first existing path. Tries the installed
+// OpenRiot config dir first, then falls back to the local dev repo.
+func FindConfigTemplate(elem ...string) string {
+	// 1. Installed location
+	installed := OpenRiotDir(append([]string{"config"}, elem...)...)
+	if _, err := os.Stat(installed); err == nil {
+		return installed
+	}
+	// 2. Dev repo fallback (CWD/config/...)
+	cwd, _ := os.Getwd()
+	dev := filepath.Join(append([]string{cwd, "config"}, elem...)...)
+	if _, err := os.Stat(dev); err == nil {
+		return dev
+	}
+	// Return installed path anyway so callers get a clean error
+	return installed
+}

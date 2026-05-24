@@ -14,6 +14,7 @@ type ColorPalette struct {
 	Accent   AccentColors
 	Semantic SemanticColors
 	Compat   CompatColors
+	Extended ExtendedColors
 }
 
 // BaseColors are the background/foreground foundation.
@@ -37,10 +38,10 @@ type AccentColors struct {
 // SemanticColors are status-driven colors.
 type SemanticColors struct {
 	Error   string
-	Warning  string
-	Success  string
-	Info     string
-	Cyan     string
+	Warning string
+	Success string
+	Info    string
+	Cyan    string
 }
 
 // CompatColors are legacy aliases.
@@ -50,6 +51,27 @@ type CompatColors struct {
 	Blue    string
 	DimGray string
 	White   string
+}
+
+// ExtendedColors are polybar/rofi specific colors beyond the
+// canonical palette.
+type ExtendedColors struct {
+	Teal       string
+	Sky        string
+	Electric   string
+	Purple     string
+	Violet     string
+	Orange     string
+	CyanDim    string
+	LauncherFG string
+	SepBG      string
+	BGDark     string
+	BGMid      string
+	FGBright   string
+	Muted      string
+	SecYellow  string
+	SecOrange  string
+	AlphaBG    string
 }
 
 // ColorStyles wraps lipgloss styles for the color system.
@@ -96,9 +118,6 @@ var (
 
 	// Lipgloss are the derived lipgloss styles.
 	Lipgloss ColorStyles
-
-	// secColors maps security level index to color hex.
-	secColors [5]string
 )
 
 func init() {
@@ -110,7 +129,8 @@ func loadColors() {
 	cfgPath := getColorsPath()
 	data, err := os.ReadFile(cfgPath)
 	if err != nil {
-		setDefaults()
+		fmt.Fprintf(os.Stderr,
+			"colors: cannot read %s: %v\n", cfgPath, err)
 		return
 	}
 
@@ -119,76 +139,112 @@ func loadColors() {
 		Accent   map[string]string `toml:"accent"`
 		Semantic map[string]string `toml:"semantic"`
 		Compat   map[string]string `toml:"compat"`
+		Extended map[string]string `toml:"extended"`
 	}
 	if _, err := toml.Decode(string(data), &raw); err != nil {
-		setDefaults()
+		fmt.Fprintf(os.Stderr,
+			"colors: cannot parse %s: %v\n", cfgPath, err)
 		return
 	}
 
 	Palette.Base = BaseColors{
-		BG:  str(raw.Base, "bg", "#1a1b26"),
-		BG2: str(raw.Base, "bg2", "#24283b"),
-		FG:  str(raw.Base, "fg", "#c0caf5"),
-		FG2: str(raw.Base, "fg2", "#a3acc9"),
-		FG3: str(raw.Base, "fg3", "#565f89"),
-		Dim: str(raw.Base, "dim", "#3b4261"),
+		BG:  str(raw.Base, "bg"),
+		BG2: str(raw.Base, "bg2"),
+		FG:  str(raw.Base, "fg"),
+		FG2: str(raw.Base, "fg2"),
+		FG3: str(raw.Base, "fg3"),
+		Dim: str(raw.Base, "dim"),
 	}
 
 	Palette.Accent = AccentColors{
-		Name:    str(raw.Accent, "name", "bondi-green"),
-		FG:      str(raw.Accent, "fg", "#9ECE6A"),
-		FGLight: str(raw.Accent, "fg-light", "#8BB85A"),
-		BG:      str(raw.Accent, "bg", "#2B3A1A"),
+		Name:    str(raw.Accent, "name"),
+		FG:      str(raw.Accent, "fg"),
+		FGLight: str(raw.Accent, "fg-light"),
+		BG:      str(raw.Accent, "bg"),
 	}
 
 	Palette.Semantic = SemanticColors{
-		Error:   str(raw.Semantic, "error", "#F7768E"),
-		Warning: str(raw.Semantic, "warning", "#E0AF68"),
-		Success: str(raw.Semantic, "success", "#04B575"),
-		Info:    str(raw.Semantic, "info", "#7AA2F7"),
-		Cyan:    str(raw.Semantic, "cyan", "#0DB9D7"),
+		Error:   str(raw.Semantic, "error"),
+		Warning: str(raw.Semantic, "warning"),
+		Success: str(raw.Semantic, "success"),
+		Info:    str(raw.Semantic, "info"),
+		Cyan:    str(raw.Semantic, "cyan"),
 	}
 
 	Palette.Compat = CompatColors{
-		Green:  str(raw.Compat, "green", "#9ECE6A"),
-		Violet: str(raw.Compat, "violet", "#7D56F4"),
-		Blue:   str(raw.Compat, "blue", "#7AA2F7"),
-		DimGray: str(raw.Compat, "dim-gray", "#565F89"),
-		White:  str(raw.Compat, "white", "#FAFAFA"),
+		Green:   str(raw.Compat, "green"),
+		Violet:  str(raw.Compat, "violet"),
+		Blue:    str(raw.Compat, "blue"),
+		DimGray: str(raw.Compat, "dim-gray"),
+		White:   str(raw.Compat, "white"),
 	}
 
-	secColors[0] = Palette.Compat.Green
-	secColors[1] = "#F4D03F"
-	secColors[2] = "#FF8844"
-	secColors[3] = Palette.Semantic.Error
-	secColors[4] = Palette.Base.FG3
+	Palette.Extended = ExtendedColors{
+		Teal:       str(raw.Extended, "teal"),
+		Sky:        str(raw.Extended, "sky"),
+		Electric:   str(raw.Extended, "electric"),
+		Purple:     str(raw.Extended, "purple"),
+		Violet:     str(raw.Extended, "violet"),
+		Orange:     str(raw.Extended, "orange"),
+		CyanDim:    str(raw.Extended, "cyan-dim"),
+		LauncherFG: str(raw.Extended, "launcher-fg"),
+		SepBG:      str(raw.Extended, "sep-bg"),
+		BGDark:     str(raw.Extended, "bg-dark"),
+		BGMid:      str(raw.Extended, "bg-mid"),
+		FGBright:   str(raw.Extended, "fg-bright"),
+		Muted:      str(raw.Extended, "muted"),
+		SecYellow:  str(raw.Extended, "sec-yellow"),
+		SecOrange:  str(raw.Extended, "sec-orange"),
+		AlphaBG:    alpha(str(raw.Extended, "bg-dark"), 0xB3),
+	}
+
+	buildStyles()
 }
 
-func str(m map[string]string, key, fallback string) string {
+// str returns m[key] or empty string if missing.
+func str(m map[string]string, key string) string {
 	if v, ok := m[key]; ok {
 		return v
 	}
-	return fallback
+	return ""
+}
+
+// alpha prepends an alpha channel to a 6-digit hex color.
+func alpha(hex string, a byte) string {
+	if len(hex) == 7 && hex[0] == '#' {
+		return fmt.Sprintf("#%02X%s", a, hex[1:])
+	}
+	return hex
 }
 
 func buildStyles() {
 	Lipgloss.Base = BaseStyles{
-		BG:  lipgloss.NewStyle().Foreground(lipgloss.Color(Palette.Base.BG)),
-		BG2: lipgloss.NewStyle().Foreground(lipgloss.Color(Palette.Base.BG2)),
-		FG:  lipgloss.NewStyle().Foreground(lipgloss.Color(Palette.Base.FG)),
-		FG2: lipgloss.NewStyle().Foreground(lipgloss.Color(Palette.Base.FG2)),
-		FG3: lipgloss.NewStyle().Foreground(lipgloss.Color(Palette.Base.FG3)),
-		Dim: lipgloss.NewStyle().Foreground(lipgloss.Color(Palette.Base.Dim)),
+		BG: lipgloss.NewStyle().Foreground(
+			lipgloss.Color(Palette.Base.BG)),
+		BG2: lipgloss.NewStyle().Foreground(
+			lipgloss.Color(Palette.Base.BG2)),
+		FG: lipgloss.NewStyle().Foreground(
+			lipgloss.Color(Palette.Base.FG)),
+		FG2: lipgloss.NewStyle().Foreground(
+			lipgloss.Color(Palette.Base.FG2)),
+		FG3: lipgloss.NewStyle().Foreground(
+			lipgloss.Color(Palette.Base.FG3)),
+		Dim: lipgloss.NewStyle().Foreground(
+			lipgloss.Color(Palette.Base.Dim)),
 	}
 
 	Lipgloss.Accent = AccentStyles{
-		Title:   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(Palette.Accent.FG)),
-		FG:      lipgloss.NewStyle().Foreground(lipgloss.Color(Palette.Accent.FG)),
-		FGLight: lipgloss.NewStyle().Foreground(lipgloss.Color(Palette.Accent.FGLight)),
-		BG:      lipgloss.NewStyle().Foreground(lipgloss.Color(Palette.Accent.BG)),
+		Title: lipgloss.NewStyle().Bold(true).Foreground(
+			lipgloss.Color(Palette.Accent.FG)),
+		FG: lipgloss.NewStyle().Foreground(
+			lipgloss.Color(Palette.Accent.FG)),
+		FGLight: lipgloss.NewStyle().Foreground(
+			lipgloss.Color(Palette.Accent.FGLight)),
+		BG: lipgloss.NewStyle().Foreground(
+			lipgloss.Color(Palette.Accent.BG)),
 		Header: lipgloss.NewStyle().
 			Bold(true).
-			Foreground(lipgloss.Color(Palette.Base.FG)).
+			Foreground(lipgloss.Color(Palette.Base.BG)).
 			Background(lipgloss.Color(Palette.Accent.FG)).
 			Padding(0, 1),
 		Selected: lipgloss.NewStyle().
@@ -202,37 +258,30 @@ func buildStyles() {
 	}
 
 	Lipgloss.Semantic = SemanticStyles{
-		Error:   lipgloss.NewStyle().Foreground(lipgloss.Color(Palette.Semantic.Error)).Bold(true),
-		Warning: lipgloss.NewStyle().Foreground(lipgloss.Color(Palette.Semantic.Warning)).Bold(true),
-		Success: lipgloss.NewStyle().Foreground(lipgloss.Color(Palette.Semantic.Success)).Bold(true),
-		Info:    lipgloss.NewStyle().Foreground(lipgloss.Color(Palette.Semantic.Info)).Bold(true),
-		Cyan:    lipgloss.NewStyle().Foreground(lipgloss.Color(Palette.Semantic.Cyan)),
+		Error: lipgloss.NewStyle().Foreground(
+			lipgloss.Color(Palette.Semantic.Error)).Bold(true),
+		Warning: lipgloss.NewStyle().Foreground(
+			lipgloss.Color(Palette.Semantic.Warning)).Bold(true),
+		Success: lipgloss.NewStyle().Foreground(
+			lipgloss.Color(Palette.Semantic.Success)).Bold(true),
+		Info: lipgloss.NewStyle().Foreground(
+			lipgloss.Color(Palette.Semantic.Info)).Bold(true),
+		Cyan: lipgloss.NewStyle().Foreground(
+			lipgloss.Color(Palette.Semantic.Cyan)),
 	}
-}
-
-func setDefaults() {
-	Palette.Base = BaseColors{
-		BG: "#1a1b26", BG2: "#24283b",
-		FG: "#c0caf5", FG2: "#a3acc9", FG3: "#565f89", Dim: "#3b4261",
-	}
-	Palette.Accent = AccentColors{Name: "bondi-green", FG: "#9ECE6A", FGLight: "#8BB85A", BG: "#2B3A1A"}
-	Palette.Semantic = SemanticColors{
-		Error: "#F7768E", Warning: "#E0AF68", Success: "#04B575", Info: "#7AA2F7", Cyan: "#0DB9D7",
-	}
-	Palette.Compat = CompatColors{
-		Green: "#9ECE6A", Violet: "#7D56F4", Blue: "#7AA2F7", DimGray: "#565F89", White: "#FAFAFA",
-	}
-	secColors = [5]string{"#9ECE6A", "#F4D03F", "#FF8844", "#F7768E", "#565F89"}
-	buildStyles()
 }
 
 func getColorsPath() string {
 	home, _ := os.UserHomeDir()
-	return fmt.Sprintf("%s/.local/share/openriot/config/colors.toml", home)
+	return fmt.Sprintf(
+		"%s/.local/share/openriot/config/colors.toml", home)
 }
 
 // GetAccent returns the current accent color as a hex string.
 func GetAccent() string { return Palette.Accent.FG }
+
+// GetPurple returns the extended purple color as a hex string.
+func GetPurple() string { return Palette.Extended.Purple }
 
 // GetSemantic returns a semantic color by name.
 func GetSemantic(name string) string {
@@ -270,10 +319,96 @@ func GetCompat(name string) string {
 	}
 }
 
-// GetSecColor returns a WiFi security level color (0=open, 1=WPA, 2=WPA2, 3=unknown, 4=hidden).
+// GetSecColor returns a WiFi security level color
+// (0=open, 1=WPA, 2=WPA2, 3=unknown, 4=hidden).
 func GetSecColor(idx int) string {
-	if idx < 0 || idx >= len(secColors) {
+	switch idx {
+	case 0:
+		return Palette.Compat.Green
+	case 1:
+		return Palette.Extended.SecYellow
+	case 2:
+		return Palette.Extended.SecOrange
+	case 3:
+		return Palette.Semantic.Error
+	case 4:
+		return Palette.Base.FG3
+	default:
 		return Palette.Base.FG3
 	}
-	return secColors[idx]
+}
+
+// LoadColors reads a colors.toml file and returns the parsed palette.
+// It does not modify global state.
+func LoadColors(path string) (ColorPalette, error) {
+	var p ColorPalette
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return p, fmt.Errorf("reading colors.toml: %w", err)
+	}
+
+	var raw struct {
+		Base     map[string]string `toml:"base"`
+		Accent   map[string]string `toml:"accent"`
+		Semantic map[string]string `toml:"semantic"`
+		Compat   map[string]string `toml:"compat"`
+		Extended map[string]string `toml:"extended"`
+	}
+	if _, err := toml.Decode(string(data), &raw); err != nil {
+		return p, fmt.Errorf("parsing colors.toml: %w", err)
+	}
+
+	p.Base = BaseColors{
+		BG:  str(raw.Base, "bg"),
+		BG2: str(raw.Base, "bg2"),
+		FG:  str(raw.Base, "fg"),
+		FG2: str(raw.Base, "fg2"),
+		FG3: str(raw.Base, "fg3"),
+		Dim: str(raw.Base, "dim"),
+	}
+
+	p.Accent = AccentColors{
+		Name:    str(raw.Accent, "name"),
+		FG:      str(raw.Accent, "fg"),
+		FGLight: str(raw.Accent, "fg-light"),
+		BG:      str(raw.Accent, "bg"),
+	}
+
+	p.Semantic = SemanticColors{
+		Error:   str(raw.Semantic, "error"),
+		Warning: str(raw.Semantic, "warning"),
+		Success: str(raw.Semantic, "success"),
+		Info:    str(raw.Semantic, "info"),
+		Cyan:    str(raw.Semantic, "cyan"),
+	}
+
+	p.Compat = CompatColors{
+		Green:   str(raw.Compat, "green"),
+		Violet:  str(raw.Compat, "violet"),
+		Blue:    str(raw.Compat, "blue"),
+		DimGray: str(raw.Compat, "dim-gray"),
+		White:   str(raw.Compat, "white"),
+	}
+
+	p.Extended = ExtendedColors{
+		Teal:       str(raw.Extended, "teal"),
+		Sky:        str(raw.Extended, "sky"),
+		Electric:   str(raw.Extended, "electric"),
+		Purple:     str(raw.Extended, "purple"),
+		Violet:     str(raw.Extended, "violet"),
+		Orange:     str(raw.Extended, "orange"),
+		CyanDim:    str(raw.Extended, "cyan-dim"),
+		LauncherFG: str(raw.Extended, "launcher-fg"),
+		SepBG:      str(raw.Extended, "sep-bg"),
+		BGDark:     str(raw.Extended, "bg-dark"),
+		BGMid:      str(raw.Extended, "bg-mid"),
+		FGBright:   str(raw.Extended, "fg-bright"),
+		Muted:      str(raw.Extended, "muted"),
+		SecYellow:  str(raw.Extended, "sec-yellow"),
+		SecOrange:  str(raw.Extended, "sec-orange"),
+		AlphaBG:    alpha(str(raw.Extended, "bg-dark"), 0xB3),
+	}
+
+	return p, nil
 }
