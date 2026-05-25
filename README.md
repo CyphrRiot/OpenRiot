@@ -51,6 +51,7 @@ OpenRiot versions track OpenBSD releases directly. OpenBSD 7.9 = OpenRiot 7.9.x.
 **Because compromises belong on other operating systems.**
 
 Same principles as [ArchRiot](https://ArchRiot.org), same creator. If you liked ArchRiot, you’ll love OpenRiot.
+
 ---
 
 ## ⚠️ **The Usual Free Software Warning** ⚠️
