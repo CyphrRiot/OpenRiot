@@ -18,7 +18,6 @@ Frozen Bubble|frozen-bubble|󰗣
 Tetris|gottet|󰸹
 Micropolis|micropolis|
 Clonk|openclonk|󰷚
-Diamond|kdiamond|󰇈
 Galaga|xgalaga-sdl|󱎃
 Nudoku|alacritty --class floating_center -e nudoku|󰄺
 Heroes|heroes|󰹂

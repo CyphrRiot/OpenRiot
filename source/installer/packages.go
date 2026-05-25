@@ -97,18 +97,17 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 			if ctx.Err() == context.DeadlineExceeded {
 				logger.Warn(fmt.Sprintf("Timed out after %dm: %s", int(timeout.Minutes()), installName))
 			}
-			if cfg.IsSnapshot() && isSignatureError(outputStr) {
-				logger.Fail("OpenBSD base and packages are out of sync.")
+			if cfg.IsSnapshot() && (isSignatureError(outputStr) || isLibraryMismatch(outputStr)) {
+				logger.Fail("Error in package matching.")
 				fmt.Println()
-				fmt.Println("Your snapshot packages cannot be verified against your current base system.")
-				fmt.Println("This is a known issue on -current when base and package builds drift.")
+				fmt.Println("This can be solved 99.9% of the time with:")
 				fmt.Println()
-				fmt.Println("To fix this, run the following commands:")
-				fmt.Println("  doas sysupgrade -s")
-				fmt.Println("  (reboot when prompted)")
 				fmt.Println("  doas pkg_add -u")
 				fmt.Println()
-				fmt.Println("Then re-run the OpenRiot installer.")
+				fmt.Println("and then re-installing OpenRiot with:")
+				fmt.Println()
+				fmt.Println("  curl -fsSL https://OpenRiot.org/setup.sh | sh")
+				fmt.Println()
 				os.Exit(1)
 			}
 			// On stable: retry with base name if exact version failed
@@ -182,6 +181,19 @@ func isSignatureError(output string) bool {
 		strings.Contains(s, "verification") ||
 		strings.Contains(s, "can't verify") ||
 		strings.Contains(s, "gpg")
+}
+
+// isLibraryMismatch checks whether pkg_add output indicates a library
+// version mismatch, common on -current when Qt or other libs drift.
+func isLibraryMismatch(output string) bool {
+	s := strings.ToLower(output)
+	return strings.Contains(s, "bad major") ||
+		strings.Contains(s, "incompatible") ||
+		strings.Contains(s, "mismatch") ||
+		strings.Contains(s, "depends on") ||
+		strings.Contains(s, "missing") ||
+		strings.Contains(s, "qt") ||
+		strings.Contains(s, "library")
 }
 
 // confirm0ad prompts the user twice before installing the massive Zero A.D.

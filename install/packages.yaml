@@ -259,7 +259,6 @@ desktop:
                   doas sh -c 'gdk-pixbuf-query-loaders > /usr/local/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache'
     games:
         packages:
-            - kdiamond-25.12.3
             - 0ad-0.28.0
             - extremetuxracer-0.8.4
             - nudoku-8.0.0
