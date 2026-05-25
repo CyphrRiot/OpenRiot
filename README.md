@@ -14,7 +14,7 @@
 ![Language](https://img.shields.io/badge/language-Go-9ECE6A?logo=go&logoColor=c7d2fe&labelColor=1a1b26)
 ![Language](https://img.shields.io/badge/language-YAML-9ECE6A?logo=yaml&logoColor=e0e7ff&labelColor=1a1b26)
 
-[![Donate BTC](https://img.shields.io/badge/₿_Donate-Bitcoin-F7931A?logo=bitcoin&logoColor=white&labelColor=1a1b26)](#donations)
+[![Donate BTC](https://img.shields.io/badge/Donate-Bitcoin-F7931A?logo=bitcoin&logoColor=white&labelColor=1a1b26)](#donations)
 
 </div>
 
@@ -82,6 +82,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [💎 Donations](#donations)
 - [🚀 Installing OpenRiot](#installing-openriot)
 - [⌨️ Master Your OpenRiot Desktop](#master-your-openriot-desktop)
+- [🎮 Games](#games)
 - [📝 Using Helix (Editor)](#using-helix)
 - [🔄 System Management](#system-management)
 - [🧰 Advanced Usage](#advanced-usage)
@@ -646,6 +647,16 @@ Polybar is your status bar. Click on modules for more:
 - `` unfocused with windows
 - `` empty workspace
 - Icons show running apps: `` Alacritty, `󰈹` Firefox, `󰝰` Thunar, etc.
+
+<a id="games"></a>
+
+## 🎮 Games
+
+Games are **optional** — the installer asks whether to include them during setup.
+
+Press `Super + Shift + J` (or select **Games** from the app launcher) to open the games menu:
+
+![OpenRiot Games Menu](assets/games.webp)
 
 ## Shell Aliases & Quick Reference
 
