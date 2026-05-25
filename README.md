@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.15-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.16-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -24,37 +24,33 @@
 
 ---
 
-
 ## 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥
 
-OpenRiot is a clean, minimal, ridiculously polished i3-based OpenBSD 7.9 setup with fish, Helix, and Polybar — all tuned so things just work. No more config drama, no more obscure package fights, no more “works on Linux” copium.
+Linux desktops turned into a bloated, politicized mess? OpenRiot is the clean exit.
 
-Install base OpenBSD 7.9 → run one script → get a fast, dark, beautiful desktop that respects OpenBSD’s strengths instead of fighting them and adds all the workflow you need to be productive as a user and a developer.
+A ridiculously polished i3 desktop for OpenBSD 7.9 with fish, Helix, and Polybar — tuned so everything just works. No config drama. No package fights. No Linux copium.
 
-OpenRiot versions track OpenBSD releases directly. OpenBSD 7.9
-= OpenRiot 7.9.x. The patch digit is for OpenRiot-specific fixes
-between OS releases. When OpenBSD ships 8.0, OpenRiot becomes 8.0.0.
+Base OpenBSD 7.9 install → one script → fast, dark, beautiful desktop that respects OpenBSD’s strengths instead of fighting them.
+
+OpenRiot versions track OpenBSD releases directly. OpenBSD 7.9 = OpenRiot 7.9.x. When 8.0 ships, we become 8.0.0.
 
 - Read the [original Post on X](https://x.com/CyphrRiot/status/2043140621398127012?s=20)
 
+### Curated to be correct
 
-### **Curated to be correct**
-
-- **🪟 i3 Tiling** — X11-native tiling that actually gets it right ([tutorial](https://www.youtube.com/watch?v=Wx0eNaGzAZU))
-- **⚡ Robust Binary** — Atomic operations, run-time, rollbacks, no dependency hell
-- **🛡️ Privacy** — Zero telemetry, tracking, data harvesting, or ID requirements
-- **🎨 Aesthetics** — Carefully crafted dark themes that work at any hour
-- **💻 Development** — Helix, shell enhancements, crush, and other upgrades
-- **💳 Monero** — Private by default, GUI wallet with polybar integration
-- **💎 OpenBSD** — The most security-audited OS on the planet
-
+- **🪟 i3 Tiling** — X11-native tiling that actually gets it right.
+- **⚡ Robust Binary** — Atomic operations, rollbacks, zero dependency hell.
+- **🛡️ Privacy** — Zero telemetry or tracking. Your machine stays yours.
+- **🎨 Aesthetics** — Dark themes that work at any hour.
+- **💻 Development** — Helix and fish upgrades that feel native on OpenBSD.
+- **💳 Monero** — Private by default with Polybar integration.
+- **💎 OpenBSD** — The most audited OS on the planet. We amplify it.
 
 #### Built on OpenBSD.
 
 **Because compromises belong on other operating systems.**
 
-Built with the same principles as [ArchRiot](https://ArchRiot.org) and by the same creator. If you liked ArchRiot, you'll love OpenRiot.
-
+Same principles as [ArchRiot](https://ArchRiot.org), same creator. If you liked ArchRiot, you’ll love OpenRiot.
 ---
 
 ## ⚠️ **The Usual Free Software Warning** ⚠️
@@ -83,6 +79,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [🚀 Installing OpenRiot](#installing-openriot)
 - [⌨️ Master Your OpenRiot Desktop](#master-your-openriot-desktop)
 - [🎮 Games](#games)
+- [⛓️ Blockchain](#blockchain)
 - [📝 Using Helix (Editor)](#using-helix)
 - [🔄 System Management](#system-management)
 - [🧰 Advanced Usage](#advanced-usage)
@@ -112,6 +109,8 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.16 — The One Where Errors Stopped Disappearing](docs/v7.9.16-Release-Notes.md)
+- [v7.9.15 — The One Where You Could See It Working](docs/v7.9.15-Release-Notes.md)
 - [v7.9.14 — The One Where the Wallpaper Actually Showed Up](docs/v7.9.14-Release-Notes.md)
 - [v7.9.13 — The One That Respects Your Time](docs/v7.9.13-Release-Notes.md)
 - [v7.9.12 — The One That Stopped Lying to Itself](docs/v7.9.12-Release-Notes.md)
@@ -589,8 +588,7 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | System Monitor   | 󰍹   | btop resource monitor    |
 | Telegram         | 󰭹   | Messaging app            |
 | Discord          |    | Discord (abaddon client) |
-| Monero Wallet    |    | Monero GUI wallet        |
-| Bitcoin          |    | Bitcoin Core wallet      |
+| Blockchain       | 󱕵   | Crypto tools sub-menu    |
 | Transmission     | 󰐻   | BitTorrent client        |
 | Crush AI         | 󰚩   | AI CLI assistant         |
 | Settings         | 󰒓   | XFCE settings manager    |
@@ -656,6 +654,21 @@ Games are **optional** — the installer asks whether to include them during set
 Press `Super + Shift + J` (or select **Games** from the app launcher) to open the games menu:
 
 ![OpenRiot Games Menu](assets/games.webp)
+
+<a id="blockchain"></a>
+
+## ⛓️ Blockchain
+
+Press `Super + D` and select **Blockchain** to open the crypto tools menu:
+
+| App        | Icon | Description |
+| ---------- | ---- | ----------- |
+| Bitcoin    |    | Bitcoin Core GUI wallet |
+| Monero     |    | Monero GUI wallet |
+| GlyphRiot  |    | Password manager (floating terminal) |
+| ZCash Mini | 󰬡   | ZCash address generator (floating terminal) |
+
+GlyphRiot and ZCash Mini launch in floating terminals with a "Press Enter to close..." prompt so you can read the output before the window closes.
 
 ## Shell Aliases & Quick Reference
 

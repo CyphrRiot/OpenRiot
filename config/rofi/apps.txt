@@ -18,8 +18,7 @@ Transmission|transmission-gtk|󰐻
 Telegram|tdesktop.desktop|󰭹
 Discord|abaddon|󰙯
 SolveSpace 3D|solvespace|󰐫
-Monero|monero-wallet-gui.desktop|
-Bitcoin|bitcoin-qt.desktop|
+Blockchain|@submenu:blockchain|󱕵
 Games|@submenu:games|󰊗
 OpenRiot Settings|openriot --settings-menu|󰒓
 WiFi Config|alacritty --class openriot_wifi --title "WiFi Config" -e openriot --nmtui|󱚹

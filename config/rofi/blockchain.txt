@@ -1,0 +1,7 @@
+# OpenRiot Blockchain Sub-menu for Rofi
+# Launched from main apps.txt via @submenu:blockchain
+
+Bitcoin|bitcoin-qt.desktop|
+Monero|monero-wallet-gui.desktop|
+GlyphRiot|alacritty --class glyphriot --title "GlyphRiot" -e sh -c '$HOME/.local/bin/glyphriot --prompt; printf "\n\nPress Enter to close... "; read -r _'|
+ZCash Mini|alacritty --class zcashmini --title "ZCash Mini" -e sh -c '$HOME/.local/bin/zcashmini; printf "\n\nPress Enter to close... "; read -r _'|󰬡

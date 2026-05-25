@@ -139,12 +139,20 @@ func (c *CrushUpgrade) install(version string) error {
 	}
 
 	compDir := paths.Join(".config", "fish", "completions")
-	os.MkdirAll(compDir, 0755)
+	if err := os.MkdirAll(compDir, 0755); err != nil {
+		logger.Warn(fmt.Sprintf("crush completions mkdir: %v", err))
+	}
 	srcComp := filepath.Join(extractDir, "completions", "crush.fish")
 	dstComp := filepath.Join(compDir, "crush.fish")
 	if _, err := os.Stat(srcComp); err == nil {
-		data, _ := os.ReadFile(srcComp)
-		os.WriteFile(dstComp, data, 0644)
+		data, err := os.ReadFile(srcComp)
+		if err != nil {
+			logger.Warn(fmt.Sprintf("crush completions read: %v", err))
+		} else {
+			if err := os.WriteFile(dstComp, data, 0644); err != nil {
+				logger.Warn(fmt.Sprintf("crush completions write: %v", err))
+			}
+		}
 	}
 
 	os.RemoveAll(extractDir)

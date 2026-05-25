@@ -327,6 +327,10 @@ monero = ""
 bitcoin-qt = ""
 bitcoin = ""
 
+# Blockchain tools
+glyphriot = ""
+zcashmini = "󰬡"
+
 [ai_tools]
 crush = "󰚩"
 crush-cli = "󰚩"

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"openriot/logger"
 	"openriot/paths"
 	"openriot/polybar"
 )
@@ -383,11 +384,17 @@ func CheckConnectivity() {
 	}
 	if err == nil {
 		// Success - record timestamp
-		os.MkdirAll(filepath.Dir(path), 0700)
-		os.WriteFile(path, []byte(time.Now().Format(time.RFC3339)), 0600)
+		if mkdirErr := os.MkdirAll(filepath.Dir(path), 0700); mkdirErr != nil {
+			logger.Warn(fmt.Sprintf("connectivity: mkdir: %v", mkdirErr))
+		}
+		if writeErr := os.WriteFile(path, []byte(time.Now().Format(time.RFC3339)), 0600); writeErr != nil {
+			logger.Warn(fmt.Sprintf("connectivity: write: %v", writeErr))
+		}
 	} else {
 		// Failed - clear connectivity file
-		os.Remove(path)
+		if removeErr := os.Remove(path); removeErr != nil {
+			logger.Warn(fmt.Sprintf("connectivity: remove: %v", removeErr))
+		}
 	}
 }
 

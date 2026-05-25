@@ -6,11 +6,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"encoding/binary"
 	"strconv"
 	"strings"
 	"time"
 	"unicode"
-	"unsafe"
 
 	"golang.org/x/sys/unix"
 	"openriot/installer"
@@ -122,7 +122,7 @@ func getCPUPercentInt() int {
 func parseCPTime(raw []byte) []uint64 {
 	counters := make([]uint64, 6)
 	for i := 0; i < 6 && (i+1)*8 <= len(raw); i++ {
-		counters[i] = *(*uint64)(unsafe.Pointer(&raw[i*8]))
+		counters[i] = binary.LittleEndian.Uint64(raw[i*8 : i*8+8])
 	}
 	return counters
 }

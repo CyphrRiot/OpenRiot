@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"openriot/logger"
 	"openriot/notify"
 	"openriot/paths"
 )
@@ -106,7 +107,9 @@ func RunCrypto(mode string) error {
 	}
 	if len(prevData) > 0 {
 		if data, err := json.Marshal(prevData); err == nil {
-			os.WriteFile(prevFile, data, 0600)
+			if writeErr := os.WriteFile(prevFile, data, 0600); writeErr != nil {
+				logger.Warn(fmt.Sprintf("crypto prev snapshot write: %v", writeErr))
+			}
 		}
 	}
 
@@ -272,11 +275,23 @@ func fetchPrices(ids []string, curFile string, apiKey string) {
 		tmp := curFile + ".tmp"
 		f, err := os.Create(tmp)
 		if err != nil {
+			logger.Warn(fmt.Sprintf("crypto price tmp create: %v", err))
 			return
 		}
-		json.NewEncoder(f).Encode(data)
-		f.Close()
-		os.Rename(tmp, curFile)
+		if err := json.NewEncoder(f).Encode(data); err != nil {
+			f.Close()
+			os.Remove(tmp)
+			logger.Warn(fmt.Sprintf("crypto price encode: %v", err))
+			return
+		}
+		if err := f.Close(); err != nil {
+			os.Remove(tmp)
+			logger.Warn(fmt.Sprintf("crypto price close: %v", err))
+			return
+		}
+		if err := os.Rename(tmp, curFile); err != nil {
+			logger.Warn(fmt.Sprintf("crypto price rename: %v", err))
+		}
 	}
 }
 
@@ -286,7 +301,10 @@ func loadJSON(path string) map[string]any {
 		return nil
 	}
 	var result map[string]any
-	json.Unmarshal(data, &result)
+	if err := json.Unmarshal(data, &result); err != nil {
+		logger.Warn(fmt.Sprintf("crypto cache corrupt: %v", err))
+		return nil
+	}
 	return result
 }
 
@@ -335,8 +353,14 @@ func loadOHLCData(items []CryptoItem, ohlcFile string, apiKey string) {
 		}
 		// Save cache only if we got data
 		if len(ohlcCache) > 0 {
-			data, _ := json.Marshal(ohlcCache)
-			os.WriteFile(ohlcFile, data, 0600)
+			data, err := json.Marshal(ohlcCache)
+			if err != nil {
+				logger.Warn(fmt.Sprintf("crypto ohlc marshal: %v", err))
+				return
+			}
+			if err := os.WriteFile(ohlcFile, data, 0600); err != nil {
+				logger.Warn(fmt.Sprintf("crypto ohlc write: %v", err))
+			}
 		}
 	}
 }
@@ -867,8 +891,14 @@ func saveCryptoSnapshot(items []CryptoItem, curFile string) {
 			prevData[item.Sym] = item.Price
 		}
 	}
-	data, _ := json.Marshal(prevData)
-	os.WriteFile(prevFile, data, 0600)
+	data, err := json.Marshal(prevData)
+	if err != nil {
+		logger.Warn(fmt.Sprintf("crypto snapshot marshal: %v", err))
+		return
+	}
+	if err := os.WriteFile(prevFile, data, 0600); err != nil {
+		logger.Warn(fmt.Sprintf("crypto snapshot write: %v", err))
+	}
 }
 
 func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold int) error {
