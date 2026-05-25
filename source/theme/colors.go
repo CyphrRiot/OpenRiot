@@ -129,8 +129,10 @@ func loadColors() {
 	cfgPath := getColorsPath()
 	data, err := os.ReadFile(cfgPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr,
-			"colors: cannot read %s: %v\n", cfgPath, err)
+		if !os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr,
+				"colors: cannot read %s: %v\n", cfgPath, err)
+		}
 		return
 	}
 

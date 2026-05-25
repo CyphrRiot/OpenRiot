@@ -21,8 +21,11 @@ func Get() string {
 }
 
 func iconForComparison(local, remote string) string {
-	if local == "unknown" || remote == "unknown" {
+	if local == "unknown" {
 		return polybar.Icon(unknownIcon)
+	}
+	if remote == "unknown" {
+		return polybar.Icon(noUpdateIcon)
 	}
 	if CompareVersions(local, remote) < 0 {
 		return polybar.Icon(updateIcon)

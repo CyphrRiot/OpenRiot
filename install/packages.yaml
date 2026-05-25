@@ -351,6 +351,7 @@ media:
               target: "~/.config/rmpc/themes/"
             - pattern: "transmission/settings.json"
               target: "~/.config/transmission/settings.json"
+              preserve_if_exists: [settings.json]
         commands:
             - desc: "Create mpd directories"
               cmd: "mkdir -p ~/.mpd/playlists ~/Music"

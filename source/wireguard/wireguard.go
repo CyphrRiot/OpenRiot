@@ -4,8 +4,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
-	"openriot/network"
 	"openriot/notify"
 	"openriot/paths"
 	"openriot/polybar"
@@ -116,18 +116,21 @@ func Status() string {
 func Start() error {
 	notify.SendNotify("wireguard", "VPN", "Starting WireGuard...", "normal", 3000, 0)
 	cmd := exec.Command("doas", "wg-quick", "up", ConfigPath)
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	// wg-quick up kills WiFi; restore it
-	go network.ReconnectWifi()
-	return nil
+	return cmd.Run()
 }
 
 func Stop() error {
 	notify.SendNotify("wireguard", "VPN", "Stopping WireGuard...", "normal", 3000, 0)
 	cmd := exec.Command("doas", "wg-quick", "down", ConfigPath)
 	return cmd.Run()
+}
+
+func Restart() error {
+	if isRunning() {
+		_ = Stop()
+		time.Sleep(500 * time.Millisecond)
+	}
+	return Start()
 }
 
 func Toggle() error {

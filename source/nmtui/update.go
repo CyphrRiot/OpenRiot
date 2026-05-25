@@ -52,9 +52,7 @@ func connectToWifiCmd(iface, ssid, password string) tea.Cmd {
 			return connResultMsg{err: err, msg: ""}
 		}
 		if wireguard.IsRunning() {
-			wireguard.Stop()
-			time.Sleep(500 * time.Millisecond)
-			wireguard.Start()
+			wireguard.Restart()
 		}
 		return connResultMsg{err: nil, msg: fmt.Sprintf("Connected to %s", ssid)}
 	}
