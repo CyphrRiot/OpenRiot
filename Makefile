@@ -241,7 +241,7 @@ clean:
 
 # Custom installer image
 # Requires OpenBSD 7.9 host - cross-compilation not possible for bsd.rd modification
-image:
+image: all
 	@if [ "$$(uname -s)" != "OpenBSD" ]; then \
 		echo "ERROR: image target requires OpenBSD $(OPENBSD_VERSION)"; \
 		echo "Current: $$(uname -s) $$(uname -r)"; \
