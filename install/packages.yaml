@@ -261,6 +261,7 @@ desktop:
         packages:
             - 0ad-0.28.0
             - extremetuxracer-0.8.4
+            - cromagrally-3.0.1
             - nudoku-8.0.0
             - xgalaga-sdl-2.1.1.0p0
             - openclonk-8.1p7

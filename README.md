@@ -14,6 +14,8 @@
 ![Language](https://img.shields.io/badge/language-Go-9ECE6A?logo=go&logoColor=c7d2fe&labelColor=1a1b26)
 ![Language](https://img.shields.io/badge/language-YAML-9ECE6A?logo=yaml&logoColor=e0e7ff&labelColor=1a1b26)
 
+[![Donate BTC](https://img.shields.io/badge/₿_Donate-Bitcoin-F7931A?logo=bitcoin&logoColor=white&labelColor=1a1b26)](#donations)
+
 </div>
 
 ---
@@ -73,25 +75,11 @@ OpenRiot is under active development. It may not work as expected. Some features
 | **RAM** | 4GB+ minimum | 8GB+ Optimal |
 | **Disk** | 25GB+ recommended | 100GB+ Optimal |
 
-> "Linux has never been about quality. There are so many parts of the system that are just these cheap little hacks, and it happens to run." -Theo de Raadt
-
-#### Xenocara's Hardening (OpenBSD's Custom X11 Server)
-
-> "Why it is acceptable to move from Wayland and Sway to a fcking X11 desktop when everyone knows X11 is complete shit."
-
-Xenocara is not vanilla X.Org. It is OpenBSD's integrated, heavily patched build of the X server with these security features:
-
-- **Privilege separation**: The server runs with minimal privileges; input and rendering are isolated.
-- **Pledge(2) and unveil(2)**: The X server itself and many clients are sandboxed.
-- **No unnecessary setuid root**: Modern Xenocara drops privileges aggressively.
-- **Stronger default configuration**: Fewer extensions enabled by default, audited for local attacks.
-
-This makes the underlying X server far more resistant to client-side abuse than stock Xorg on Linux. Xenocara users generally consider it one of the more secure X11 implementations available.
-
 ---
 
 ## 📚 Navigate This Guide
 
+- [💎 Donations](#donations)
 - [🚀 Installing OpenRiot](#installing-openriot)
 - [⌨️ Master Your OpenRiot Desktop](#master-your-openriot-desktop)
 - [📝 Using Helix (Editor)](#using-helix)
@@ -101,18 +89,18 @@ This makes the underlying X server far more resistant to client-side abuse than 
     - [⌨️ Keybindings Customization](#keybindings-customization)
     - [🔒 MAC Address Randomization](#mac-address-randomization)
     - [📊 Polybar Modules](#polybar-modules)
-    - [🌤 Weather Module](#-weather-module-polybar)
-    - [🔐 Crypto Config](#-crypto-config)
-    - [🔒 WireGuard VPN](#-wireguard-vpn)
-    - [📥 Transmission](#-transmission-bittorrent-client)
-    - [📂 Proton Drive](#-proton-drive-sync)
-    - [💳 Monero Wallet](#-monero-wallet)
-    - [🎵 Music Player](#-music-player)
+    - [🌤 Weather Module](#weather-module-polybar)
+    - [🔐 Crypto Config](#crypto-config)
+    - [🔒 WireGuard VPN](#wireguard-vpn)
+    - [📥 Transmission](#transmission-bittorrent-client)
+    - [📂 Proton Drive](#proton-drive-sync)
+    - [💳 Monero Wallet](#monero-wallet)
+    - [🎵 Music Player](#music-player)
     - [🖨️ 3D Printing](#3d-printing)
 - [🔧 Troubleshooting](#troubleshooting)
     - [Harden SSH](#harden-ssh-disable-password-authentication)
 - [🦊 Browser & Data Transfer](#browser--data-transfer)
-- [💎 Donations](#donations)
+- [🛡️ Xenocara's Hardening](#xenocaras-hardening)
 
 ## Why OpenRiot Chose…
 
@@ -889,6 +877,8 @@ OpenBSD does not handle.
 
 ## 🧰 Advanced Usage
 
+<a id="environment-variables"></a>
+
 ### Environment Variables
 
 OpenRiot sets sensible defaults. Key environment variables:
@@ -904,6 +894,8 @@ echo $XDG_DATA_HOME
 # Fish is the default shell
 echo $SHELL  # Should show /usr/local/bin/fish
 ```
+
+<a id="keybindings-customization"></a>
 
 ### Keybindings Customization
 
@@ -940,6 +932,8 @@ openriot --random-mac show      # Check current status
 #### Compatibility
 
 Works with all supported network interfaces in OpenRiot. Some networks with MAC authentication (captive portals, corporate 802.1X) may require disabling randomization.
+
+<a id="polybar-modules"></a>
 
 ### Top Menu (Polybar)
 
@@ -989,6 +983,8 @@ Each module is a custom script that outputs icon + info for display. Modules upd
 | **power** | ⏻ | - | Open power menu | - |
 | **lock** | 󰌾 | - | Lock screen | - |
 
+<a id="weather-module-polybar"></a>
+
 ### 🌤 Weather Module (Polybar)
 
 The weather module shows current temperature and conditions in the polybar status bar using OpenWeatherMap API.
@@ -1026,6 +1022,8 @@ api=85a4e3c55b73909f42c6a23ec35b7147
 | default | Unknown | 󰨹 |
 
 ---
+
+<a id="crypto-config"></a>
 
 ### 🔐 Crypto Config
 
@@ -1230,6 +1228,8 @@ For a Zed-like experience, run Helix and Crush side-by-side in Zellij:
 
 Select code in Helix (`y` to yank), paste into Crush, and ask questions.
 
+<a id="wireguard-vpn"></a>
+
 ### 🔒 WireGuard VPN
 
 OpenRiot includes a polybar module to toggle WireGuard VPN with a single click.
@@ -1340,6 +1340,8 @@ ifconfig wg0
 - Try a different Mullvad server location
 - Some Mullvad servers may have limited bandwidth
 
+<a id="transmission-bittorrent-client"></a>
+
 ## 📥 Transmission BitTorrent Client
 
 OpenRiot includes the Transmission GTK client with polybar and rofi integration.
@@ -1395,6 +1397,8 @@ The app launcher (Rofi) also has a Transmission entry that dynamically shows:
 # Check if running
 pgrep transmission-gtk
 ```
+
+<a id="proton-drive-sync"></a>
 
 ## 📂 Proton Drive Sync
 
@@ -1560,6 +1564,8 @@ React to messages by selecting them (PgUp/PgDn), typing an emoji shortcode, then
 
 Or just paste Unicode emoji with `ctrl+Shift+V`.
 
+<a id="monero-wallet"></a>
+
 ## 💳 Monero Wallet
 
 OpenRiot includes the Monero GUI wallet pre-built for OpenBSD with full desktop integration.
@@ -1592,6 +1598,8 @@ The desktop entry sets `QML2_IMPORT_PATH=/usr/local/lib/qt5/qml` automatically s
 - Full node or remote node wallet support
 - Integrated with polybar crypto module (shows  when `~/.config/crypto.toml` exists)
 - Window icon mapping via `config/window/icons.toml`
+
+<a id="music-player"></a>
 
 ## 🎵 Music Player
 
@@ -1693,6 +1701,8 @@ Your music and mic stay clean when not recording. The monitor only exists while 
 |-----|--------|
 | `Super + Shift + N` | Toggle screen recording |
 
+<a id="3d-printing"></a>
+
 ## 🖨️ 3D Printing
 
 OpenRiot includes **SolveSpace** (`solvespace`) — a lightweight parametric 3D CAD modeler perfect for designing parts to print. No heavy install, no cloud lock-in.
@@ -1716,6 +1726,8 @@ Install PrusaSlicer if needed:
 ```bash
 doas pkg_add prusaslicer-2.9.4p2
 ```
+
+<a id="troubleshooting"></a>
 
 ## 🔧 Troubleshooting
 
@@ -1923,8 +1935,6 @@ Results go to `~/.benchmark/<hostname>-YYYYMMDD-N.log` with full system specs.
 | dd write | 236 MB/s | 335 MB/s | t14 (42% faster) |
 | dd read | 169 MB/s | 2,584 MB/s | t14 (15x faster) |
 
-> "You are absolutely deluded, if not stupid, if you think that a worldwide collection of software engineers who can't write operating systems or applications without security holes, can then turn around and suddenly write virtualization layers without security holes." — Theo de Raadt
-
 ### Harden SSH (Disable Password Authentication)
 
 OpenRiot leaves SSH password authentication enabled by default (the OpenBSD standard). If you plan to expose this machine to the internet or prefer key-only access, disable passwords **before** you remove the ability to log in.
@@ -1958,7 +1968,24 @@ doas rcctl restart sshd
 
 > **Note:** `PermitRootLogin no` is already set by OpenBSD default. This section hardens normal user access.
 
-## Donations
+---
+
+<a id="xenocaras-hardening"></a>
+
+## 🛡️ Xenocara's Hardening (OpenBSD's Custom X11 Server)
+
+Xenocara is not vanilla X.Org. It is OpenBSD's integrated, heavily patched build of the X server with these security features:
+
+- **Privilege separation**: The server runs with minimal privileges; input and rendering are isolated.
+- **Pledge(2) and unveil(2)**: The X server itself and many clients are sandboxed.
+- **No unnecessary setuid root**: Modern Xenocara drops privileges aggressively.
+- **Stronger default configuration**: Fewer extensions enabled by default, audited for local attacks.
+
+This makes the underlying X server far more resistant to client-side abuse than stock Xorg on Linux. Xenocara users generally consider it one of the more secure X11 implementations available.
+
+<a id="donations"></a>
+
+## 💎 Donations
 
 > **OpenRiot was build by one person over hundreds of hours.**
 > OpenRiot is the first truly usable

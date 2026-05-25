@@ -24,4 +24,5 @@ Heroes|heroes|󰹂
 Brogue|brogue|
 Tux Racer|etr|󰻀
 Zero A.D.|0ad|󱢿
+Cromag Rally|CroMagRally|
 Slash|alacritty --class floating_center -e slash|󰌌
