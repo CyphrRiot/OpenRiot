@@ -59,15 +59,31 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 		}
 		installCmd = append(installCmd, installName)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 		cmd := exec.CommandContext(ctx, installCmd[0], installCmd[1:]...)
+
+		done := make(chan struct{})
+		go func() {
+			ticker := time.NewTicker(5 * time.Minute)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ticker.C:
+					logger.Info(fmt.Sprintf("Still running: %s", installName))
+				case <-done:
+					return
+				}
+			}
+		}()
+
 		output, err := cmd.CombinedOutput()
+		close(done)
 		cancel()
 
 		if err != nil {
 			outputStr := truncateOutput(output)
 			if ctx.Err() == context.DeadlineExceeded {
-				logger.Warn(fmt.Sprintf("Timed out after 10m: %s", installName))
+				logger.Warn(fmt.Sprintf("Timed out after 30m: %s", installName))
 			}
 			if cfg.IsSnapshot() && isSignatureError(outputStr) {
 				logger.Fail("OpenBSD base and packages are out of sync.")
@@ -89,9 +105,25 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 				if base != pkg {
 					logger.Info(fmt.Sprintf("Retrying %s with latest version...", base))
 					installCmd[len(installCmd)-1] = base
-					ctx, cancel = context.WithTimeout(context.Background(), 10*time.Minute)
+					ctx, cancel = context.WithTimeout(context.Background(), 30*time.Minute)
 					cmd = exec.CommandContext(ctx, installCmd[0], installCmd[1:]...)
+
+					done := make(chan struct{})
+					go func() {
+						ticker := time.NewTicker(5 * time.Minute)
+						defer ticker.Stop()
+						for {
+							select {
+							case <-ticker.C:
+								logger.Info(fmt.Sprintf("Still running: %s", base))
+							case <-done:
+								return
+							}
+						}
+					}()
+
 					output, err = cmd.CombinedOutput()
+					close(done)
 					cancel()
 					if err == nil {
 						logger.Done(fmt.Sprintf("%s installed (latest version)", base))
@@ -99,7 +131,7 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 					}
 					outputStr = truncateOutput(output)
 					if ctx.Err() == context.DeadlineExceeded {
-						logger.Warn(fmt.Sprintf("Timed out after 10m: %s", base))
+						logger.Warn(fmt.Sprintf("Timed out after 30m: %s", base))
 					}
 				}
 			}
