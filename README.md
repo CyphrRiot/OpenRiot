@@ -949,47 +949,55 @@ Polybar modules are defined in `~/.config/polybar/config`.
 
 Each module is a custom script that outputs an icon + status info. Modules update automatically and respond to clicks (and some to scroll). This section provides the complete reference for states, icons, and behaviors.
 
-| Module | Icon | States | Click Action | Scroll |
-|--------|------|-------|-------------|--------|
-| **launcher** | 󰀻 | - | Open app launcher (Rofi) | - |
-| **workspaces** | 󰎤󰎧󰎪 | - | Switch to workspace | - |
-| **window-title** | text | - | - | - |
-| **date** | 󰃭 | - | Cycle wallpaper | - |
-| **stealth** | 󰝴 | ON | Toggle MAC randomization | - |
-| | 󱊨 | OFF | | |
-| **network-wifi** | 󰤨 | Excellent (70%+) | WiFi info | - |
+| Module | Icon | States | Click Action |
+|--------|------|--------|--------------|
+| **launcher** |  | — | Open app launcher (Rofi) |
+| **workspaces** | 1–3 with app icons | focused / unfocused / urgent | Switch to workspace |
+| **window-title** | text | — | — |
+| **date** | 󰃭 | — | Cycle wallpaper |
+| **stealth** | 󰝴 | ON | Toggle MAC randomization |
+| | | OFF (hidden) | | |
+| **network-wifi** | 󰤨 | Excellent (70%+) | WiFi info or reconnect |
 | | 󰤥 | Good (50-69%) | | |
 | | 󰤢 | Fair (30-49%) | | |
 | | 󰤟 | Poor (20-29%) | | |
 | | 󰤯 | Very poor / no signal | | |
 | | 󱛅 | No internet | | |
-| **network-eth** | 󰈀 | Connected | Ethernet info | - |
-| **wireguard** | 󰱓 | Connected | Toggle VPN | - |
+| **network-eth** | 󰌘 | Connected | Ethernet info |
+| | 󰈀 | No carrier | | |
+| **wireguard** | 󰱓 | Connected | Toggle VPN |
 | | 󰅛 | Disconnected | | |
-| **volume** |  | High (76%+) | Toggle mute | Volume adjust |
-| | 󰕾 | Medium (46-75%) | | |
-| | 󱄠 | Low (11-45%) | | |
+| **volume** |  | High (75%+) | Toggle mute |
+| | 󰕾 | Medium (45-75%) | | |
+| | 󱄠 | Low (10-45%) | | |
 | |  | Very low (1-10%) | | |
 | |  | Muted | | |
-| **battery** | 󰁺-󰂂 | Discharging | Battery notification | - |
-| | 󰢜-󰂋 | Charging | | |
-| **crypto** |  | - | Show crypto prices (hidden when no config) | - |
-| **night-light** |  | OFF | Toggle redshift | - |
+| **battery** | 󰁺–󰂂 | Discharging (green>25, orange<25, red<20) | Battery notification |
+| | 󰢜–󰂋 | Charging (cyan) | | |
+| | 󰁹 | Full | | |
+| **crypto** |  | — | Show price notification (hidden when no config) |
+| **night-light** |  | OFF | Toggle redshift |
 | | 󰌵 | ON | | |
-| **cpu** | 󰡳→󰡵→󰊚→󰡴 | - | CPU notification | - |
-| **memory** | 󰢿→󰢼→󰢽→󰢾 | - | Memory notification | - |
-| **proton-drive** | 󱥾 | Synced | Sync Proton Drive | - |
+| **cpu** | 󰡳 / 󰡵 / 󰊚 / 󰡴 | 0-25 / 25-50 / 50-90 / 90+% | CPU notification |
+| **memory** | 󰢿 / 󰢼 / 󰢽 / 󰢾 | 0-25 / 25-50 / 50-75 / 75-100% | Memory notification |
+| **nzbget** | 󱑤 | Running | Open NZBGet web UI |
+| | 󱑥 | Installed, not running | | |
+| **proton-drive** | 󱥾 | Synced | Sync Proton Drive |
 | | 󰴋 | Syncing | | |
-| **transmission** | 󰐻 | Running | Toggle GTK client | - |
-| **screenrec** |  /  | Idle / Recording | Toggle screen recording | - |
-| **openriot-update** | 󰋻 | Update available | Check for updates | - |
+| **transmission** | 󰐻 | Running | Show state notification |
+| **screenrec** |  | Idle | Toggle screen recording |
+| |  | Recording (red) | | |
+| **openriot-update** | 󰋻 | Update available | Check for updates |
 | | 󰚇 | Up to date | | |
-| **settings** |  | - | Open settings menu | - |
-| **sep** | · | - | Visual separator between module groups | - |
-| **hdmi** | 󰍺 / 󰍹 /  | Both / HDMI only / Laptop only | Toggle display mode | - |
-| **weather** | varies | - | - | - |
-| **power** | ⏻ | - | Open power menu | - |
-| **lock** | 󰌾 | - | Lock screen | - |
+| | ? | Unknown | | |
+| **settings** |  | — | Open settings menu |
+| **sep** | · | — | Visual separator |
+| **hdmi** | 󰍺 | Both active | Toggle display mode |
+| | 󰍹 | HDMI only | | |
+| |  | Laptop only / no external | | |
+| **weather** | *varies* | — | — |
+| **power** | ⏻ | — | Open power menu |
+| **lock** | 󰌾 | — | Lock screen |
 
 <a id="weather-module-polybar"></a>
 

@@ -247,14 +247,15 @@ func DownloadFirmware(cfg *Config, firmwareList []string) error {
 	}
 
 	for _, fw := range firmwareList {
-		fwPath := filepath.Join(fwDir, fw)
+		fwFile := fw + ".tgz"
+		fwPath := filepath.Join(fwDir, fwFile)
 		if _, err := os.Stat(fwPath); err == nil {
 			continue // already cached
 		}
-		url := fmt.Sprintf("http://firmware.openbsd.org/firmware/%s/%s", formatVersion(cfg.Version), fw)
-		logger.Info(fmt.Sprintf("Downloading firmware: %s", fw))
+		url := fmt.Sprintf("http://firmware.openbsd.org/firmware/%s/%s", formatVersion(cfg.Version), fwFile)
+		logger.Info(fmt.Sprintf("Downloading firmware: %s", fwFile))
 		if err := downloadFile(fwPath, url); err != nil {
-			logger.Warn(fmt.Sprintf("Failed to download firmware %s: %v", fw, err))
+			logger.Warn(fmt.Sprintf("Failed to download firmware %s: %v", fwFile, err))
 		}
 	}
 	return nil
