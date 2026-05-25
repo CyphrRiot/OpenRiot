@@ -304,8 +304,6 @@ For the best OpenBSD + i3 experience:
 | **TrackPoint** | Works natively on ThinkPads — no configuration needed        |
 | **Graphics**   | Intel iGPU preferred; AMD Radeon works; NVIDIA not supported |
 
-<a id="choose-your-openriot-experience"></a>
-
 <a id="installing-openriot"></a>
 
 ## 🚀 Installing OpenRiot
@@ -345,7 +343,7 @@ Download the [OpenRiot Install Image ~1.7G](https://github.com/CyphrRiot/OpenRio
 
 ### 2. Flash to USB
 
-**Linux:** `dd if=install79.img of=/dev/sdX bs=4M status=progress oflag=sync`  
+**Linux:** `dd if=install79.img of=/dev/sdX bs=4M status=progress oflag=sync`
 **OpenBSD:** `doas dd if=install79.img of=/dev/rsdXc bs=1M && sync`
 
 (Replace `sdX`/`rsdXc` with your USB device. Find with `dmesg | grep ^sd`.)
@@ -602,7 +600,8 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 
 ### Top Menu (Polybar)
 
-Polybar is your status bar. Click on modules for more:
+**Quick Reference:** Polybar is your status bar. Click on modules for more.
+**For full configuration details, per-module states, scroll actions, and customization reference, see the [Polybar Modules](#polybar-modules) section in Advanced Usage.**
 
 | Module | Click Action |
 | ------ | ------------- |
@@ -944,11 +943,11 @@ Works with all supported network interfaces in OpenRiot. Some networks with MAC 
 
 <a id="polybar-modules"></a>
 
-### Top Menu (Polybar)
+### Top Menu (Polybar) — Module Reference
 
-Polybar modules are in `~/.config/polybar/config`.
+Polybar modules are defined in `~/.config/polybar/config`.
 
-Each module is a custom script that outputs icon + info for display. Modules update automatically and respond to clicks.
+Each module is a custom script that outputs an icon + status info. Modules update automatically and respond to clicks (and some to scroll). This section provides the complete reference for states, icons, and behaviors.
 
 | Module | Icon | States | Click Action | Scroll |
 |--------|------|-------|-------------|--------|
@@ -1196,7 +1195,7 @@ Helix works **beautifully** on OpenBSD:
 
 **Pro tip:** Helix has one of the best default dark themes available. It looks right at home with OpenRiot's dark aesthetic.
 
-For the complete keymap and configuration options, visit the official documentation:  
+For the complete keymap and configuration options, visit the official documentation:
 [https://docs.helix-editor.com/](https://docs.helix-editor.com/)
 
 _See the [helix-cheat-sheet](https://github.com/stevenhoy/helix-cheat-sheet) project for a visual keybinding reference._
@@ -1996,10 +1995,8 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 💎 Donations
 
-> **OpenRiot was build by one person over hundreds of hours.**
-> OpenRiot is the first truly usable
-> OpenBSD system with a working window manager, curated applications,
-> and a complete desktop workflow -- no compromises, no Linux copium.
+> **OpenRiot was built by one person over hundreds of hours.**
+> OpenRiot is the first truly usable OpenBSD system with a working window manager, curated applications, and a complete desktop workflow — no compromises, no Linux copium.
 > If it saved you time, consider donating (in Bitcoin):
 > `bc1qscxvn9clw6n3a4kykl2nlu8w2f2aqdftfp4hyq`
 
