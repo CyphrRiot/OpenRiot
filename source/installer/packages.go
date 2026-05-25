@@ -1,6 +1,7 @@
 package installer
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -59,7 +60,18 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 		}
 		installCmd = append(installCmd, installName)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+		// Special handling for Zero A.D. — massive package, requires
+		// explicit user confirmation and extended timeout.
+		timeout := 30 * time.Minute
+		if config.GetBaseName(pkg) == "0ad" {
+			if !confirm0ad() {
+				logger.Info("Skipping Zero A.D.")
+				continue
+			}
+			timeout = 60 * time.Minute
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		cmd := exec.CommandContext(ctx, installCmd[0], installCmd[1:]...)
 
 		done := make(chan struct{})
@@ -83,7 +95,7 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 		if err != nil {
 			outputStr := truncateOutput(output)
 			if ctx.Err() == context.DeadlineExceeded {
-				logger.Warn(fmt.Sprintf("Timed out after 30m: %s", installName))
+				logger.Warn(fmt.Sprintf("Timed out after %dm: %s", int(timeout.Minutes()), installName))
 			}
 			if cfg.IsSnapshot() && isSignatureError(outputStr) {
 				logger.Fail("OpenBSD base and packages are out of sync.")
@@ -105,7 +117,7 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 				if base != pkg {
 					logger.Info(fmt.Sprintf("Retrying %s with latest version...", base))
 					installCmd[len(installCmd)-1] = base
-					ctx, cancel = context.WithTimeout(context.Background(), 30*time.Minute)
+					ctx, cancel = context.WithTimeout(context.Background(), timeout)
 					cmd = exec.CommandContext(ctx, installCmd[0], installCmd[1:]...)
 
 					done := make(chan struct{})
@@ -131,7 +143,7 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 					}
 					outputStr = truncateOutput(output)
 					if ctx.Err() == context.DeadlineExceeded {
-						logger.Warn(fmt.Sprintf("Timed out after 30m: %s", base))
+						logger.Warn(fmt.Sprintf("Timed out after %dm: %s", int(timeout.Minutes()), base))
 					}
 				}
 			}
@@ -170,4 +182,29 @@ func isSignatureError(output string) bool {
 		strings.Contains(s, "verification") ||
 		strings.Contains(s, "can't verify") ||
 		strings.Contains(s, "gpg")
+}
+
+// confirm0ad prompts the user twice before installing the massive Zero A.D.
+// package. Returns true if the user confirms both prompts.
+func confirm0ad() bool {
+	logger.Warn("Zero A.D. is massive (~500MB+) and takes 30–45 minutes to install.")
+	logger.Ask("Install Zero A.D.? [Y/n] ")
+
+	stdin := os.Stdin
+	if tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0); err == nil {
+		stdin = tty
+		defer tty.Close()
+	}
+	reader := bufio.NewReader(stdin)
+
+	input, _ := reader.ReadString('\n')
+	input = strings.TrimSpace(strings.ToLower(input))
+	if input != "yes" && input != "y" && input != "" {
+		return false
+	}
+
+	logger.Ask("Are you sure? This will take a while. [Y/n] ")
+	input, _ = reader.ReadString('\n')
+	input = strings.TrimSpace(strings.ToLower(input))
+	return input == "yes" || input == "y" || input == ""
 }
