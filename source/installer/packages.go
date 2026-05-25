@@ -11,6 +11,7 @@ import (
 
 	"openriot/config"
 	"openriot/logger"
+	"openriot/paths"
 )
 
 // InstallPackages installs packages using pkg_add with doas.
@@ -66,6 +67,7 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 		if config.GetBaseName(pkg) == "0ad" {
 			if !confirm0ad() {
 				logger.Info("Skipping Zero A.D.")
+				strip0adFromGames()
 				continue
 			}
 			timeout = 60 * time.Minute
@@ -219,4 +221,23 @@ func confirm0ad() bool {
 	input, _ = reader.ReadString('\n')
 	input = strings.TrimSpace(strings.ToLower(input))
 	return input == "yes" || input == "y" || input == ""
+}
+
+// strip0adFromGames removes the Zero A.D. entry from the rofi games menu
+// when the user opted not to install it.
+func strip0adFromGames() {
+	gamesPath := paths.Join(".config", "rofi", "games.txt")
+	data, err := os.ReadFile(gamesPath)
+	if err != nil {
+		return
+	}
+	lines := strings.Split(string(data), "\n")
+	var out []string
+	for _, line := range lines {
+		if strings.Contains(line, "0ad") {
+			continue
+		}
+		out = append(out, line)
+	}
+	os.WriteFile(gamesPath, []byte(strings.Join(out, "\n")), 0644)
 }

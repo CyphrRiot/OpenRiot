@@ -58,9 +58,8 @@ func fehArgs(wallpaper string) []string {
 func Load() int {
 	stateFile := getStateFile()
 	bgsDir := paths.OpenRiotDir("backgrounds")
-	defaultBg := filepath.Join(bgsDir, "01.png")
 
-	wallpaper := defaultBg
+	wallpaper := findFirstBackground(bgsDir)
 	if b, err := os.ReadFile(stateFile); err == nil {
 		candidate := strings.TrimSpace(string(b))
 		if _, err := os.Stat(candidate); err == nil {
@@ -75,6 +74,26 @@ func Load() int {
 	_ = cmd.Start()
 
 	return 0
+}
+
+// findFirstBackground returns the first image file in the backgrounds
+// directory, or empty string if none exist.
+func findFirstBackground(bgsDir string) string {
+	entries, err := os.ReadDir(bgsDir)
+	if err != nil {
+		return ""
+	}
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		name := strings.ToLower(e.Name())
+		if strings.HasSuffix(name, ".jpg") || strings.HasSuffix(name, ".jpeg") ||
+			strings.HasSuffix(name, ".png") || strings.HasSuffix(name, ".webp") {
+			return filepath.Join(bgsDir, e.Name())
+		}
+	}
+	return ""
 }
 
 // cycle moves delta steps through the wallpaper list and applies the result.

@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.13-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.14-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -123,6 +123,7 @@ This makes the underlying X server far more resistant to client-side abuse than 
 
 ## 📋 Release Notes
 
+- [v7.9.14 — The One Where the Wallpaper Actually Showed Up](docs/v7.9.14-Release-Notes.md)
 - [v7.9.13 — The One That Respects Your Time](docs/v7.9.13-Release-Notes.md)
 - [v7.9.12 — The One That Stopped Lying to Itself](docs/v7.9.12-Release-Notes.md)
 - [v7.9.11 — The One Where Everything Actually Starts](docs/v7.9.11-Release-Notes.md)
