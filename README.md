@@ -308,6 +308,8 @@ For the best OpenBSD + i3 experience:
 
 ## 🚀 Installing OpenRiot
 
+![Install](assets/install.webp)
+
 There are two ways to install OpenRiot on a fresh machine. **Method 1 is strongly recommended for most users** because it uses the official, up-to-date OpenBSD installer and fetches the latest packages during setup. This ensures you get current firmware, security patches, and a fully tested base. Method 2 provides an offline experience by bundling everything into a custom image, which is ideal for air-gapped environments, slow/unreliable internet, or initial testing without network exposure — but it comes with caveats (see below).
 
 **Method 1 (Recommended):** Install standard OpenBSD from `install79.img`, then run `setup.sh`.
