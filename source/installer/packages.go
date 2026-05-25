@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 	"time"
 
 	"openriot/config"
@@ -76,22 +77,66 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		cmd := exec.CommandContext(ctx, installCmd[0], installCmd[1:]...)
 
+		// Stream output for massive packages so the user sees real progress
+		is0ad := config.GetBaseName(pkg) == "0ad"
+		if is0ad {
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+		}
+
+		start := time.Now()
 		done := make(chan struct{})
+		var wg sync.WaitGroup
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
+			if is0ad {
+				select {
+				case <-time.After(30 * time.Second):
+				case <-done:
+					return
+				}
+				spinner := []rune{'⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'}
+				ticker := time.NewTicker(1 * time.Second)
+				defer ticker.Stop()
+				i := 0
+				for {
+					select {
+					case <-ticker.C:
+						elapsed := time.Since(start)
+						mins := int(elapsed.Minutes())
+						secs := int(elapsed.Seconds()) % 60
+						fmt.Printf("\r\033[K%s[INFO]%s %s %s (%02dm %02ds elapsed)", logger.Cyan, logger.Reset, string(spinner[i%len(spinner)]), installName, mins, secs)
+						i++
+					case <-done:
+						fmt.Println()
+						return
+					}
+				}
+			}
 			ticker := time.NewTicker(5 * time.Minute)
 			defer ticker.Stop()
 			for {
 				select {
 				case <-ticker.C:
-					logger.Info(fmt.Sprintf("Still running: %s", installName))
+					elapsed := int(time.Since(start).Minutes())
+					logger.Info(fmt.Sprintf("Still running: %s (%dm elapsed)", installName, elapsed))
 				case <-done:
 					return
 				}
 			}
 		}()
 
-		output, err := cmd.CombinedOutput()
+		var output []byte
+		var err error
+		if is0ad {
+			err = cmd.Run()
+		} else {
+			output, err = cmd.CombinedOutput()
+		}
 		close(done)
+		wg.Wait()
 		cancel()
 
 		if err != nil {
@@ -121,6 +166,7 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 					ctx, cancel = context.WithTimeout(context.Background(), timeout)
 					cmd = exec.CommandContext(ctx, installCmd[0], installCmd[1:]...)
 
+					retryStart := time.Now()
 					done := make(chan struct{})
 					go func() {
 						ticker := time.NewTicker(5 * time.Minute)
@@ -128,7 +174,8 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 						for {
 							select {
 							case <-ticker.C:
-								logger.Info(fmt.Sprintf("Still running: %s", base))
+								elapsed := int(time.Since(retryStart).Minutes())
+								logger.Info(fmt.Sprintf("Still running: %s (%dm elapsed)", base, elapsed))
 							case <-done:
 								return
 							}
