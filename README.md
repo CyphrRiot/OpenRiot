@@ -136,23 +136,23 @@ Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/Ope
 
 These ThinkPads have excellent OpenBSD support for WiFi, trackpoints, and suspend/resume:
 
-| Model                 | CPU               | WiFi                         | Notes                                     |
-| --------------------- | ----------------- | ---------------------------- | ----------------------------------------- |
-| **T14s Gen 1+** | Intel i5/i7 or AMD Ryzen | ⭐⭐⭐⭐⭐ `iwm` (AX200 adapter) | Best OpenBSD laptop                       |
-| **T490**              | Intel i5-8265U    | ⭐⭐⭐⭐ `iwm` (Intel 9560)      | Good experience overall                   |
-| **T480**              | Intel i5-8350U    | ⭐⭐⭐⭐ `iwm` (Intel 8265)      | Works well, slightly older                |
-| **X1 Carbon Gen 7**   | Intel i7-8665U    | ⭐⭐⭐⭐ `iwm` (Intel 9560)      | Premium build, good Linux/OpenBSD support |
-| **X270**              | Intel i5-6300U    | ⭐⭐⭐ `iwm` (Intel 8265)        | Small, portable, older but solid          |
+| Model | CPU | WiFi | Notes |
+| --- | --- | --- | --- |
+| **T14s Gen 1+** | Intel i5/i7 or AMD Ryzen | ⭐⭐⭐⭐⭐ | Best OpenBSD laptop |
+| **T490** | Intel i5-8265U | ⭐⭐⭐⭐ | Good experience overall |
+| **T480** | Intel i5-8350U | ⭐⭐⭐⭐ | Works well, slightly older |
+| **X1 Carbon Gen 7** | Intel i7-8665U | ⭐⭐⭐⭐ | Premium build, good Linux/OpenBSD support |
+| **X270** | Intel i5-6300U | ⭐⭐⭐ | Small, portable, older but solid |
 
 You can buy a T14 Gen 1 for ~$300 USD at [Amazon](https://www.amazon.com/dp/B086MD6LTM). You can also buy a [T14s Gen 2](https://www.amazon.com/Lenovo-Thinkpad-T14s-Laptop-1-8Ghz-4-9GHz/dp/B0DKT19DQJ) for around the same price. Both are rock-solid, tested, and work perfectly out of the box.
 
 ### Other Well-Supported Laptops
 
-| Model                   | CPU             | WiFi                    | Notes                                        |
-| ----------------------- | --------------- | ----------------------- | -------------------------------------------- |
-| **Lenovo V14**          | Ryzen 5 3500U   | ⭐⭐⭐⭐⭐ `iwm` (AX200)    | Budget option, excellent OpenBSD support     |
-| **Framework Laptop 13** | Intel i5-1240P  | ⭐⭐⭐⭐⭐ `iwm` (AX211)    | Modular, user-repairable, OpenBSD works well |
-| **Dell XPS 13 9300**    | Intel i7-1065G7 | ⭐⭐⭐⭐ `iwm` (Intel 9560) | Beautiful screen, good Linux/OpenBSD support |
+| Model | CPU | WiFi | Notes |
+| --- | --- | --- | --- |
+| **Lenovo V14** | Ryzen 5 3500U | ⭐⭐⭐⭐⭐ | Budget option, excellent OpenBSD support |
+| **Framework Laptop 13** | Intel i5-1240P | ⭐⭐⭐⭐⭐ | Modular, user-repairable, OpenBSD works well |
+| **Dell XPS 13 9300** | Intel i7-1065G7 | ⭐⭐⭐⭐ | Beautiful screen, good Linux/OpenBSD support |
 
 ### Avoid or Use Caution
 
