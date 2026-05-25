@@ -316,7 +316,7 @@ There are two ways to install OpenRiot on a fresh machine. **Method 1 is strongl
 
 **Method 2 (Offline):** Flash `openriot.img` which bundles packages. Base install happens offline, then run `setup.sh` after first login.
 
-> Typical time: **5 minutes** (Method 1 with fast internet); **10–15 minutes** (Method 2, no downloads during install).
+> Typical time: **20 minutes** (Method 1 with fast internet); **5 minutes** (Method 2, no downloads during install).
 
 **Choosing Between Methods – Nuances and Implications:**
 - **Method 1 (Online)**: Best for reliability and currency. Requires a working network connection during the `setup.sh` phase (packages, firmware, git clone of configs). The `setup.sh` script (a robust Go binary) handles atomic installation, config deployment, and has built-in rollback awareness. Internet also allows `fw_update` and mirror selection for fastest mirrors.
