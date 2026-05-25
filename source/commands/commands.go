@@ -32,6 +32,7 @@ import (
 	"openriot/paths"
 	"openriot/polybar"
 	"openriot/resolution"
+	"openriot/resume"
 	"openriot/rofi"
 	"openriot/roficalc"
 	"openriot/screenshot"
@@ -849,6 +850,11 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--suspend-if-undocked", Category: "Lock & Power",
 		Description: "Auto-suspend when undocked",
 		Run: func(args []string) error { detect.SuspendIfUndocked(); return nil },
+	})
+	r.Register(&Command{
+		Name: "--resume", Category: "Lock & Power",
+		Description: "Restore system state after resume from suspend",
+		Run: func(args []string) error { return resume.Restore() },
 	})
 	r.Register(&Command{
 		Name: "--screenshot", Category: "Lock & Power",

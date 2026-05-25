@@ -177,6 +177,29 @@ func ToggleHDMI() {
 	exec.Command("pkill", "-9", "polybar").Run()
 }
 
+// RestoreDisplays re-detects and enables all connected displays after resume
+// from suspend. It ensures the laptop display is active and updates lid-action
+// sysctls based on whether an external monitor is connected.
+func RestoreDisplays() {
+	exec.Command("xrandr", "--auto").Run()
+
+	outputs := parseI3Outputs()
+	laptop := outputs.laptopName()
+	ext := outputs.externalName()
+
+	if ext != "" && laptop != "" && !outputs.isActive(laptop) {
+		exec.Command("xrandr", "--output", laptop, "--auto").Run()
+	}
+
+	if ext != "" {
+		setLidAction(false)
+	} else {
+		setLidAction(true)
+	}
+
+	exec.Command("pkill", "-9", "polybar").Run()
+}
+
 // HasExternalDisplay returns true if a non-internal monitor is connected.
 func HasExternalDisplay() bool {
 	return parseI3Outputs().externalName() != ""

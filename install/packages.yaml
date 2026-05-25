@@ -480,6 +480,11 @@ system:
         commands:
             - desc: "Enable and start apmd (adaptive performance)"
               cmd: "doas rcctl enable apmd && doas rcctl set apmd flags -A -a -z 5 && doas rcctl start apmd"
+            - desc: "Install apmd resume hook for OpenRiot"
+              cmd: |
+                  doas mkdir -p /etc/apm
+                  doas sh -c 'printf "%s\n" "#!/bin/sh" "/usr/local/bin/openriot --resume" > /etc/apm/resume'
+                  doas chmod 755 /etc/apm/resume
             - desc: "Remove stale power/performance sysctls (now runtime-managed)"
               cmd: |
                   if grep -qE '^hw\.(allowpowerdown|perfpolicy)=' /etc/sysctl.conf 2>/dev/null; then

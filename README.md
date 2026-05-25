@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.16-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.17-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -35,6 +35,8 @@ Base OpenBSD 7.9 install → one script → fast, dark, beautiful desktop that r
 OpenRiot versions track OpenBSD releases directly. OpenBSD 7.9 = OpenRiot 7.9.x. When 8.0 ships, we become 8.0.0.
 
 - Read the [original Post on X](https://x.com/CyphrRiot/status/2043140621398127012?s=20)
+
+- Read the [Register's OpenBSD 7.9 article](https://www.theregister.com/software/2026/05/25/openbsd-79-arrives-a-diamond-in-the-rough-proud-of-every-sharp-edge/5244877)
 
 ### Curated to be correct
 
@@ -80,7 +82,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [🚀 Installing OpenRiot](#installing-openriot)
 - [⌨️ Master Your OpenRiot Desktop](#master-your-openriot-desktop)
 - [🎮 Games](#games)
-- [⛓️ Blockchain](#blockchain)
+- [󱕵 Blockchain](#blockchain)
 - [📝 Using Helix (Editor)](#using-helix)
 - [🔄 System Management](#system-management)
 - [🧰 Advanced Usage](#advanced-usage)
@@ -110,6 +112,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.17 — The One That Woke Up Properly](docs/v7.9.17-Release-Notes.md)
 - [v7.9.16 — The One Where Errors Stopped Disappearing](docs/v7.9.16-Release-Notes.md)
 - [v7.9.15 — The One Where You Could See It Working](docs/v7.9.15-Release-Notes.md)
 - [v7.9.14 — The One Where the Wallpaper Actually Showed Up](docs/v7.9.14-Release-Notes.md)
@@ -648,17 +651,19 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 
 <a id="games"></a>
 
+![OpenRiot Games Menu](assets/games.webp)
+
 ## 🎮 Games
 
 Games are **optional** — the installer asks whether to include them during setup.
 
 Press `Super + Shift + J` (or select **Games** from the app launcher) to open the games menu:
 
-![OpenRiot Games Menu](assets/games.webp)
-
 <a id="blockchain"></a>
 
-## ⛓️ Blockchain
+![OpenRiot Crypto Menu](assets/crypto.webp)
+
+## 󱕵 Blockchain
 
 Press `Super + D` and select **Blockchain** to open the crypto tools menu:
 
