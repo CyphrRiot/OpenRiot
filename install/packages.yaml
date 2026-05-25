@@ -282,6 +282,7 @@ desktop:
             - brogue-1.15.1
             - frozen-bubble-2.2.0p17
             - heroes-0.21p10
+            - teeworlds-0.7.5p1
         depends: [desktop.i3]
         start: "Installing the best games..."
         end: "Games installed"

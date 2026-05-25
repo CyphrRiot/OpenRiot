@@ -25,4 +25,5 @@ Brogue|brogue|
 Tux Racer|etr|󰻀
 Zero A.D.|0ad|󱢿
 Cromag Rally|CroMagRally|
+Teeworlds|teeworlds|󰓥
 Slash|alacritty --class floating_center -e slash|󰌌
