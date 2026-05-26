@@ -85,7 +85,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [󱕵 Blockchain](#blockchain)
 - [📝 Using Helix (Editor)](#using-helix)
 - [🔄 System Management](#system-management)
-- [󰋊 Disk Manager](#disk-manager-experimental)
+- [󰋊 Disk Manager](#disk-manager)
 - [🧰 Advanced Usage](#advanced-usage)
     - [🔄 Environment Variables](#environment-variables)
     - [⌨️ Keybindings Customization](#keybindings-customization)
@@ -911,6 +911,7 @@ the release freeze. Those changes are not in the release sets. `sysupgrade
 -R` would replace newer code with older code, creating a mismatch that
 OpenBSD does not handle.
 
+<a id="disk-manager"></a>
 ## 💿 Disk Manager ⚠️ Experimental
 
 **Experimental — likely broken for now.** Drive detection works on this
