@@ -18,6 +18,7 @@ const (
 	stateDriveList
 	stateConfirm
 	statePassword
+	stateConfirmPassword
 	stateBenchmarkConfig
 	stateRunning
 	stateResult
@@ -122,6 +123,7 @@ type model struct {
 	resultMsg      string
 	confirmMsg     string
 	password       textinput.Model
+	confirmPassword textinput.Model
 	spinner        spinner.Model
 	keys           keyMap
 	help           help.Model
@@ -153,17 +155,23 @@ func NewModel() tea.Model {
 	ti.EchoCharacter = '•'
 	ti.Focus()
 
+	ti2 := textinput.New()
+	ti2.Placeholder = "Confirm passphrase..."
+	ti2.EchoMode = textinput.EchoPassword
+	ti2.EchoCharacter = '•'
+
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 
 	return model{
-		state:       stateMenu,
-		keys:        defaultKeys,
-		help:        help.New(),
-		password:    ti,
-		spinner:     s,
-		cursor:      0,
-		benchCursor: 0,
+		state:          stateMenu,
+		keys:           defaultKeys,
+		help:           help.New(),
+		password:       ti,
+		confirmPassword: ti2,
+		spinner:        s,
+		cursor:         0,
+		benchCursor:    0,
 	}
 }
 

@@ -104,6 +104,7 @@ for_window [class="^Transmission$"] floating enable, resize set 800 600, move po
 # OpenRiot dialogs
 for_window [class="^(openriot_upgrade|OpenRiot Update Available|Proton Sync Update)$"] floating enable, resize set 40 ppt 50 ppt, move position center
 for_window [class="^openriot_wifi$"] floating enable, resize set 40 ppt 50 ppt, move position center
+for_window [class="^openriot_disk$"] floating enable, resize set 40 ppt 50 ppt, move position center
 for_window [class="^openriot_resolution$"] floating enable, resize set 40 ppt 50 ppt, move position center
 for_window [class="^glyphriot$"] floating enable, resize set 40 ppt 50 ppt, move position center
 for_window [class="^zcashmini$"] floating enable, resize set 40 ppt 50 ppt, move position center

@@ -18,9 +18,9 @@ func TestSystemDriveDetection(t *testing.T) {
 
 	t.Logf("Discovered %d drive(s):", len(drives))
 	for _, d := range drives {
-		t.Logf("  %s  %d GB  root=%v mounted=%v chunk=%v encrypted=%v raid=%v",
+		t.Logf("  %s  %d GB  root=%v mounted=%v chunk=%v encrypted=%v raid=%v bus=%s model=%s",
 			d.Device, d.SizeGB, d.IsRoot, d.IsMounted, d.IsChunk,
-			d.IsEncrypted, d.HasRAID)
+			d.IsEncrypted, d.HasRAID, d.BusType, d.ModelName)
 	}
 
 	// Find sd0 and sd1

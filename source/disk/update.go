@@ -2,6 +2,9 @@ package disk
 
 import (
 	"fmt"
+	"os/exec"
+	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -27,49 +30,231 @@ func fetchDrivesCmd() tea.Cmd {
 	}
 }
 
-func mountCmd(device string) tea.Cmd {
+func mountCmd(device, passphrase string) tea.Cmd {
 	return func() tea.Msg {
-		err := MountDrive(device, "")
-		if err != nil {
-			return resultMsg{err: err}
+		var log strings.Builder
+		mountPoint := "/mnt/backup"
+		exec.Command("doas", "-n", "mkdir", "-p", mountPoint).Run()
+
+		raidDev := findRaidDevice(device)
+		hasRAID := hasRAIDPartition(device)
+
+		if raidDev == "" && hasRAID {
+			fmt.Fprintln(&log, "Attaching encrypted volume...")
+			passFile := "/tmp/.openriot_" + device
+			exec.Command("doas", "-n", "sh", "-c",
+				fmt.Sprintf("printf '%%s\\n' '%s' > %s && chmod 600 %s",
+					passphrase, passFile, passFile)).Run()
+			defer exec.Command("doas", "-n", "rm", passFile).Run()
+			cmd := exec.Command("doas", "-n", "bioctl", "-c", "C",
+				"-p", passFile, "-l", device+"a", "softraid0")
+			out, err := cmd.CombinedOutput()
+			if err != nil {
+				return resultMsg{err: fmt.Errorf(
+					"bioctl attach failed: %w\n%s", err, string(out))}
+			}
+			log.Write(out)
+			time.Sleep(500 * time.Millisecond)
+			for _, tok := range strings.Fields(string(out)) {
+				tok = strings.TrimSuffix(tok, ":")
+				if strings.HasPrefix(tok, "sd") && tok != device {
+					raidDev = tok
+					break
+				}
+			}
+			if raidDev == "" {
+				raidDev = findRaidDevice(device)
+			}
 		}
-		return resultMsg{msg: fmt.Sprintf("Mounted %s at /mnt/backup", device)}
+
+		// If no raid device found and no RAID partition, mount directly
+		if raidDev == "" && !hasRAID {
+			raidDev = device
+		}
+
+		if raidDev == "" {
+			return resultMsg{
+				err: fmt.Errorf("no mountable device for %s", device)}
+		}
+
+		source := "/dev/" + raidDev + "a"
+		fmt.Fprintf(&log, "Mounting %s at %s\n", source, mountPoint)
+		cmd := exec.Command("doas", "-n", "mount", source, mountPoint)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return resultMsg{err: fmt.Errorf("mount failed: %w\n%s",
+				err, string(out))}
+		}
+		return resultMsg{
+			msg: fmt.Sprintf("Mounted %s at %s\n%s", device, mountPoint, log.String())}
 	}
 }
 
 func umountCmd(device, mountPoint string) tea.Cmd {
 	return func() tea.Msg {
-		err := UmountDrive(device, mountPoint)
-		if err != nil {
-			return resultMsg{err: err}
+		var log strings.Builder
+		if mountPoint == "" {
+			mountPoint = "/mnt/backup"
 		}
-		return resultMsg{msg: fmt.Sprintf("Unmounted %s", device)}
+		if isMountedAt(mountPoint) {
+			fmt.Fprintf(&log, "Unmounting %s\n", mountPoint)
+			cmd := exec.Command("doas", "-n", "umount", mountPoint)
+			if out, err := cmd.CombinedOutput(); err != nil {
+				return resultMsg{err: fmt.Errorf("umount failed: %w\n%s",
+					err, string(out))}
+			}
+		}
+		raidDev := findRaidDevice(device)
+		if raidDev != "" {
+			fmt.Fprintf(&log, "Detaching %s\n", raidDev)
+			cmd := exec.Command("doas", "-n", "bioctl", "-d", raidDev)
+			if out, err := cmd.CombinedOutput(); err != nil {
+				return resultMsg{err: fmt.Errorf("detach failed: %w\n%s",
+					err, string(out))}
+			}
+		}
+		return resultMsg{
+			msg: fmt.Sprintf("Unmounted %s\n%s", device, log.String())}
 	}
 }
 
 func formatCmd(device string) tea.Cmd {
 	return func() tea.Msg {
-		err := FormatDrive(device)
-		if err != nil {
-			return resultMsg{err: err}
+		var log strings.Builder
+
+		// Detach any existing softraid volume for this chunk
+		detachSoftraidChunk(device, &log)
+
+		fmt.Fprintf(&log, "Wiping /dev/r%sc ...\n", device)
+		cmd := exec.Command("doas", "-n", "dd", "if=/dev/zero",
+			"of=/dev/r"+device+"c", "bs=1m", "count=1")
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return resultMsg{err: fmt.Errorf("dd failed: %w\n%s",
+				err, string(out))}
 		}
-		return resultMsg{msg: fmt.Sprintf("Formatted %s with 4.2BSD", device)}
+		fmt.Fprint(&log, "done\n")
+
+		fmt.Fprintf(&log, "Creating 4.2BSD partition on %s ...\n", device)
+		labelScript := "a a\n\n\n4.2BSD\nw\nq\n"
+		cmd = exec.Command("doas", "-n", "disklabel", "-E", device)
+		cmd.Stdin = strings.NewReader(labelScript)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return resultMsg{err: fmt.Errorf("disklabel failed: %w\n%s",
+				err, string(out))}
+		}
+		fmt.Fprint(&log, "done\n")
+
+		fmt.Fprintf(&log, "newfs /dev/r%sa ...\n", device)
+		cmd = exec.Command("doas", "-n", "newfs", "/dev/r"+device+"a")
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return resultMsg{err: fmt.Errorf("newfs failed: %w\n%s",
+				err, string(out))}
+		}
+		return resultMsg{
+			msg: fmt.Sprintf("Formatted %s with 4.2BSD\n%s", device, log.String())}
 	}
 }
 
 func encryptCmd(device, passphrase string) tea.Cmd {
 	return func() tea.Msg {
-		err := EncryptDrive(device, passphrase)
-		if err != nil {
-			return resultMsg{err: err}
+		var log strings.Builder
+		var raidDev string
+
+		// Detach any existing softraid volume for this chunk
+		detachSoftraidChunk(device, &log)
+
+		// Step 1: dd
+		fmt.Fprintf(&log, "Wiping /dev/r%sc ...\n", device)
+		cmd := exec.Command("doas", "-n", "dd", "if=/dev/zero",
+			"of=/dev/r"+device+"c", "bs=1m", "count=1")
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return resultMsg{err: fmt.Errorf("dd failed: %w\n%s",
+				err, string(out))}
 		}
-		return resultMsg{msg: fmt.Sprintf("Encrypted %s with softraid", device)}
+		fmt.Fprint(&log, "done\n")
+
+		// Step 2: RAID partition
+		fmt.Fprintf(&log, "Creating RAID partition on %s ...\n", device)
+		labelScript := "a a\n\n\nRAID\nw\nq\n"
+		cmd = exec.Command("doas", "-n", "disklabel", "-E", device)
+		cmd.Stdin = strings.NewReader(labelScript)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return resultMsg{err: fmt.Errorf("disklabel failed: %w\n%s",
+				err, string(out))}
+		}
+		fmt.Fprint(&log, "done\n")
+
+		// Step 3: bioctl crypto
+		fmt.Fprintf(&log, "Setting up softraid crypto on %sa ...\n", device)
+		passFile := "/tmp/.openriot_" + device
+		exec.Command("doas", "-n", "sh", "-c",
+			fmt.Sprintf("printf '%%s\\n%%s\\n' '%s' '%s' > %s && chmod 600 %s",
+				passphrase, passphrase, passFile, passFile)).Run()
+		defer exec.Command("doas", "-n", "rm", "-f", passFile).Run()
+		cmd = exec.Command("doas", "-n", "bioctl", "-c", "C",
+			"-p", passFile, "-l", device+"a", "softraid0")
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			return resultMsg{err: fmt.Errorf("bioctl failed: %w\n%s",
+				err, string(out))}
+		}
+		log.Write(out)
+		log.WriteString("\n")
+
+		raidDev = ""
+		for _, tok := range strings.Fields(string(out)) {
+			tok = strings.TrimSuffix(tok, ":")
+			if strings.HasPrefix(tok, "sd") && tok != device {
+				raidDev = tok
+				break
+			}
+		}
+		if raidDev == "" {
+			raidDev = findRaidDevice(device)
+		}
+		if raidDev == "" {
+			return resultMsg{err: fmt.Errorf(
+				"virtual device not found:\n%s", string(out))}
+		}
+		fmt.Fprintf(&log, "Virtual device: %s\n", raidDev)
+		time.Sleep(1 * time.Second)
+
+		// Step 4: dd virtual device
+		fmt.Fprintf(&log, "Wiping /dev/r%sc ...\n", raidDev)
+		exec.Command("doas", "-n", "dd", "if=/dev/zero",
+			"of=/dev/r"+raidDev+"c", "bs=1m", "count=1").Run()
+		fmt.Fprint(&log, "done\n")
+
+		// Step 5: fdisk
+		fmt.Fprintf(&log, "Writing partition table on %s ...\n", raidDev)
+		exec.Command("doas", "-n", "/sbin/fdisk", "-iy", raidDev).Run()
+		fmt.Fprint(&log, "done\n")
+
+		// Step 6: disklabel 4.2BSD on virtual
+		fmt.Fprintf(&log, "Creating 4.2BSD partition on %s ...\n", raidDev)
+		labelScript = "a a\n\n\n4.2BSD\nw\nq\n"
+		cmd = exec.Command("doas", "-n", "disklabel", "-E", raidDev)
+		cmd.Stdin = strings.NewReader(labelScript)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return resultMsg{err: fmt.Errorf("disklabel failed: %w\n%s",
+				err, string(out))}
+		}
+		fmt.Fprint(&log, "done\n")
+
+		// Step 7: newfs
+		fmt.Fprintf(&log, "newfs /dev/r%sa ...\n", raidDev)
+		cmd = exec.Command("doas", "-n", "newfs", "/dev/r"+raidDev+"a")
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return resultMsg{err: fmt.Errorf("newfs failed: %w\n%s",
+				err, string(out))}
+		}
+		return resultMsg{
+			msg: fmt.Sprintf("Encrypted %s with softraid\n%s",
+				device, log.String())}
 	}
 }
 
 func benchmarkCmd(device, writeSize, rwSize string) tea.Cmd {
 	return func() tea.Msg {
-		// Find mount point for device
 		drives, _ := DiscoverDrives()
 		mountPoint := "/mnt/backup"
 		for _, d := range drives {
@@ -106,6 +291,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.updateConfirm(msg)
 		case statePassword:
 			return m.updatePassword(msg)
+		case stateConfirmPassword:
+			return m.updateConfirmPassword(msg)
 		case stateBenchmarkConfig:
 			return m.updateBenchmarkConfig(msg)
 		case stateResult:
@@ -202,8 +389,8 @@ func (m model) updateDriveList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.state = stateResult
 			return m, nil
 		}
-		if d.IsChunk {
-			m.err = fmt.Errorf("cannot %s softraid chunk %s (use the virtual device)", actionName(m.action), d.Device)
+		if d.IsChunk && !d.IsRemovable && m.action != actionDiscover {
+			m.err = fmt.Errorf("cannot %s internal softraid drive %s", actionName(m.action), d.Device)
 			m.state = stateResult
 			return m, nil
 		}
@@ -215,8 +402,15 @@ func (m model) updateDriveList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				m.state = stateResult
 				return m, nil
 			}
+			if hasRAIDPartition(d.Device) && findRaidDevice(d.Device) == "" {
+				m.password.SetValue("")
+				m.password.Focus()
+				m.confirmMsg = fmt.Sprintf("Mount encrypted %s — enter passphrase:", d.Device)
+				m.state = statePassword
+				return m, textinput.Blink
+			}
 			m.state = stateRunning
-			return m, tea.Batch(m.spinner.Tick, mountCmd(d.Device))
+			return m, tea.Batch(m.spinner.Tick, mountCmd(d.Device, ""))
 
 		case actionUmount:
 			if !d.IsMounted && !d.IsEncrypted {
@@ -293,6 +487,7 @@ func (m model) updatePassword(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
 	case key.Matches(msg, m.keys.Back):
 		m.state = stateDriveList
+		m.password.SetValue("")
 		return m, nil
 	case key.Matches(msg, m.keys.Quit):
 		return m, tea.Quit
@@ -305,14 +500,53 @@ func (m model) updatePassword(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		d := m.filteredDrives[m.cursor]
-		m.state = stateRunning
-		return m, tea.Batch(m.spinner.Tick, encryptCmd(d.Device, passphrase))
+
+		if m.action == actionMount {
+			m.state = stateRunning
+			return m, tea.Batch(m.spinner.Tick, mountCmd(d.Device, passphrase))
+		}
+
+		// Encrypt: go to confirmation
+		m.confirmPassword.SetValue("")
+		m.confirmPassword.Focus()
+		m.state = stateConfirmPassword
+		return m, textinput.Blink
 	}
 
-	// Pass through to password input
 	var cmd tea.Cmd
 	newModel, cmd := m.password.Update(msg)
 	m.password = newModel
+	return m, cmd
+}
+
+func (m model) updateConfirmPassword(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch {
+	case key.Matches(msg, m.keys.Back):
+		m.password.Focus()
+		m.state = statePassword
+		return m, nil
+	case key.Matches(msg, m.keys.Quit):
+		return m, tea.Quit
+	case key.Matches(msg, m.keys.Select):
+		if m.confirmPassword.Value() == "" {
+			return m, nil
+		}
+		if m.password.Value() != m.confirmPassword.Value() {
+			m.err = fmt.Errorf("passphrases do not match")
+			m.state = stateResult
+			return m, nil
+		}
+		if m.cursor < 0 || m.cursor >= len(m.filteredDrives) {
+			return m, nil
+		}
+		d := m.filteredDrives[m.cursor]
+		m.state = stateRunning
+		return m, tea.Batch(m.spinner.Tick, encryptCmd(d.Device, m.password.Value()))
+	}
+
+	var cmd tea.Cmd
+	newModel, cmd := m.confirmPassword.Update(msg)
+	m.confirmPassword = newModel
 	return m, cmd
 }
 
@@ -371,5 +605,58 @@ func actionName(a actionType) string {
 		return "benchmark"
 	default:
 		return "use"
+	}
+}
+
+// detachSoftraidChunk tries to detach any softraid volume backed by the given
+// chunk device. It first tries parseSoftraid, then falls back to scanning
+// dmesg for virtual devices at the softraid bus.
+func detachSoftraidChunk(device string, log *strings.Builder) {
+	// Method 1: try bioctl -d on the virtual device from parseSoftraid
+	raidDev := findRaidDevice(device)
+	if raidDev != "" {
+		fmt.Fprintf(log, "Detaching %s ...\n", raidDev)
+		cmd := exec.Command("doas", "-n", "bioctl", "-d", raidDev)
+		if out, err := cmd.CombinedOutput(); err == nil {
+			fmt.Fprintf(log, "Detached\n%s\n", string(out))
+			return
+		}
+	}
+
+	// Method 2: scan dmesg for all virtual devices and try each one
+	dmesgOut, err := exec.Command("dmesg").Output()
+	if err != nil {
+		return
+	}
+	// Find softraid bus from dmesg
+	softraidBus := ""
+	for _, line := range strings.Split(string(dmesgOut), "\n") {
+		if strings.Contains(line, " at softraid") {
+			fields := strings.Fields(line)
+			if len(fields) > 0 {
+				softraidBus = fields[0]
+				break
+			}
+		}
+	}
+	if softraidBus == "" {
+		return
+	}
+	// Find sd devices on that bus (virtual devices)
+	for _, line := range strings.Split(string(dmesgOut), "\n") {
+		line = strings.TrimSpace(line)
+		if !strings.HasPrefix(line, "sd") || !strings.Contains(line, " at "+softraidBus) {
+			continue
+		}
+		virtDev := strings.Fields(line)[0]
+		if virtDev == device || virtDev == "" {
+			continue
+		}
+		// Try detaching this virtual device
+		cmd := exec.Command("doas", "-n", "bioctl", "-d", virtDev)
+		if out, err := cmd.CombinedOutput(); err == nil {
+			fmt.Fprintf(log, "Detached %s\n%s\n", virtDev, string(out))
+			return
+		}
 	}
 }

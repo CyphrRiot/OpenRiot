@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.18-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.19-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -113,6 +113,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.19 — The One That Finally Frees the Drive](docs/v7.9.19-Release-Notes.md)
 - [v7.9.18 — The One Where We Learned to Read dmesg](docs/v7.9.18-Release-Notes.md)
 - [v7.9.17 — The One That Woke Up Properly](docs/v7.9.17-Release-Notes.md)
 - [v7.9.16 — The One Where Errors Stopped Disappearing](docs/v7.9.16-Release-Notes.md)

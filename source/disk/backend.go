@@ -22,6 +22,8 @@ type Drive struct {
 	IsRemovable bool
 	IsEncrypted bool // part of a softraid crypto setup (chunk or virtual)
 	IsChunk     bool // true if this is a physical chunk backing a softraid volume
+	BusType     string // NVMe, USB, CRYPTO, etc.
+	ModelName   string // "SanDisk Extreme 55DD", etc.
 }
 
 // softraidInfo tracks the relationship between physical chunk devices
@@ -179,6 +181,8 @@ func DiscoverDrives() ([]Drive, error) {
 			IsRemovable: removable[device],
 			IsEncrypted: isEncrypted,
 			IsChunk:     isChunk,
+			BusType:     getDeviceBusType(device),
+			ModelName:   getDeviceModel(device),
 		})
 	}
 
@@ -447,7 +451,7 @@ func UmountDrive(device, mountPoint string) error {
 	return nil
 }
 
-// guardDrive prevents operating on root drives or physical chunks.
+// guardDrive prevents operating on root drives or non-removable chunks.
 func guardDrive(device string) error {
 	drives, err := DiscoverDrives()
 	if err != nil {
@@ -458,8 +462,8 @@ func guardDrive(device string) error {
 			if d.IsRoot {
 				return fmt.Errorf("refusing to operate on root drive %s", device)
 			}
-			if d.IsChunk {
-				return fmt.Errorf("refusing to operate on softraid chunk %s (use virtual device)", device)
+			if d.IsChunk && !d.IsRemovable {
+				return fmt.Errorf("refusing to operate on internal softraid drive %s", device)
 			}
 			return nil
 		}
@@ -614,6 +618,87 @@ func extractFioResult(output string) string {
 		return output
 	}
 	return result.String()
+}
+
+// getDeviceModel parses dmesg for the model name of device (e.g. sd2).
+func getDeviceModel(device string) string {
+	dmesgOut, err := exec.Command("dmesg").Output()
+	if err != nil {
+		return ""
+	}
+	prefix := device + " at "
+	for _, line := range strings.Split(string(dmesgOut), "\n") {
+		line = strings.TrimSpace(line)
+		if !strings.HasPrefix(line, prefix) {
+			continue
+		}
+		idx := strings.Index(line, "<")
+		if idx < 0 {
+			return ""
+		}
+		end := strings.Index(line, ">")
+		if end < 0 || end <= idx {
+			return ""
+		}
+		fields := strings.Split(line[idx+1:end], ",")
+		if len(fields) >= 2 {
+			return strings.TrimSpace(fields[0]) + " " + strings.TrimSpace(fields[1])
+		}
+		if len(fields) >= 1 {
+			return strings.TrimSpace(fields[0])
+		}
+	}
+	return ""
+}
+
+// getDeviceBusType determines the bus type (NVMe, USB, CRYPTO, etc.)
+// by checking what controller the device's scsibus is attached to.
+func getDeviceBusType(device string) string {
+	dmesgOut, err := exec.Command("dmesg").Output()
+	if err != nil {
+		return ""
+	}
+	dmesg := string(dmesgOut)
+
+	// Find which scsibus this device is on
+	deviceBus := ""
+	for _, line := range strings.Split(dmesg, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, device+" at scsibus") {
+			fields := strings.Fields(line)
+			if len(fields) >= 3 {
+				deviceBus = fields[2] // e.g. "scsibus4"
+			}
+			break
+		}
+	}
+	if deviceBus == "" {
+		return ""
+	}
+
+	// Find what that scsibus is attached to
+	for _, line := range strings.Split(dmesg, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, deviceBus+" at ") {
+			fields := strings.Fields(line)
+			if len(fields) >= 3 {
+				bus := fields[2] // e.g. "umass0", "nvme0", "softraid0"
+				switch {
+				case strings.HasPrefix(bus, "umass"):
+					return "USB"
+				case strings.HasPrefix(bus, "nvme"):
+					return "NVMe"
+				case strings.HasPrefix(bus, "softraid"):
+					return "CRYPTO"
+				case strings.HasPrefix(bus, "mpath"):
+					return "MPATH"
+				default:
+					return bus
+				}
+			}
+		}
+	}
+	return ""
 }
 
 func isMountedAt(mountPoint string) bool {

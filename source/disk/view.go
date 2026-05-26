@@ -31,6 +31,8 @@ func (m model) View() string {
 		return m.renderConfirm()
 	case statePassword:
 		return m.renderPassword()
+	case stateConfirmPassword:
+		return m.renderConfirmPassword()
 	case stateBenchmarkConfig:
 		return m.renderBenchmarkConfig()
 	case stateRunning:
@@ -198,7 +200,7 @@ func (m model) renderDriveList() string {
 			statusStr = "[MOUNTED]"
 			statusStyle = mountedStyle
 		case d.IsChunk:
-			statusStr = "[CHUNK]"
+			statusStr = "[SOFTRAID]"
 			statusStyle = chunkStyle
 		case d.IsEncrypted:
 			statusStr = "[ENCRYPTED]"
@@ -221,8 +223,11 @@ func (m model) renderDriveList() string {
 		if d.MountPoint != "" {
 			extra = dimStyle.Render(fmt.Sprintf(" → %s", d.MountPoint))
 		}
-		if d.IsRemovable {
-			extra += dimStyle.Render(" [USB]")
+		if d.BusType != "" && d.BusType != "CRYPTO" {
+			extra += dimStyle.Render(fmt.Sprintf(" [%s]", d.BusType))
+		}
+		if d.ModelName != "" {
+			extra += dimStyle.Render(fmt.Sprintf(" (%s)", d.ModelName))
 		}
 
 		line := fmt.Sprintf("%s%s %s %s%s", cursor, nameCol, statusCol, sizeStr, extra)
@@ -285,6 +290,26 @@ func (m model) renderPassword() string {
 	return b.String()
 }
 
+func (m model) renderConfirmPassword() string {
+	var b strings.Builder
+
+	titleStyle := theme.Lipgloss.Accent.Title
+	dimStyle := theme.Lipgloss.Base.Dim
+	boxStyle := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(1, 2)
+
+	b.WriteString(titleStyle.Render("🔐  Encrypt Drive"))
+	b.WriteString("\n\n")
+
+	var content string
+	content += "Confirm passphrase:\n\n"
+	content += m.confirmPassword.View() + "\n\n"
+	content += dimStyle.Render("enter: confirm | esc: back to passphrase")
+
+	centered := lipgloss.Place(m.width, m.height-3, lipgloss.Center, lipgloss.Center, boxStyle.Render(content))
+	b.WriteString(centered)
+	return b.String()
+}
+
 func (m model) renderBenchmarkConfig() string {
 	var b strings.Builder
 
@@ -320,6 +345,7 @@ func (m model) renderRunning() string {
 	var b strings.Builder
 
 	titleStyle := theme.Lipgloss.Accent.Title
+	dimStyle := theme.Lipgloss.Base.Dim
 
 	b.WriteString(titleStyle.Render("Running..."))
 	b.WriteString("\n\n")
@@ -342,7 +368,15 @@ func (m model) renderRunning() string {
 		action = "Working"
 	}
 
-	b.WriteString(action)
+	actionLine := action
+	if len(m.filteredDrives) > 0 && m.cursor < len(m.filteredDrives) {
+		actionLine = fmt.Sprintf("%s — %s", action, m.filteredDrives[m.cursor].Device)
+	}
+	b.WriteString(actionLine)
+	b.WriteString("\n")
+
+	b.WriteString("\n")
+	b.WriteString(dimStyle.Render("Please wait..."))
 	return b.String()
 }
 
