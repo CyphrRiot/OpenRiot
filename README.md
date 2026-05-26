@@ -85,7 +85,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [󱕵 Blockchain](#blockchain)
 - [📝 Using Helix (Editor)](#using-helix)
 - [🔄 System Management](#system-management)
-- [󰋊 Disk Manager](#disk-manager)
+- [󰋊 Disk Manager](#disk-manager-experimental)
 - [🧰 Advanced Usage](#advanced-usage)
     - [🔄 Environment Variables](#environment-variables)
     - [⌨️ Keybindings Customization](#keybindings-customization)
