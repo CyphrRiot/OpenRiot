@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.17-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.18-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -85,6 +85,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [󱕵 Blockchain](#blockchain)
 - [📝 Using Helix (Editor)](#using-helix)
 - [🔄 System Management](#system-management)
+- [󰋊 Disk Manager](#disk-manager)
 - [🧰 Advanced Usage](#advanced-usage)
     - [🔄 Environment Variables](#environment-variables)
     - [⌨️ Keybindings Customization](#keybindings-customization)
@@ -112,6 +113,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.18 — The One Where We Learned to Read dmesg](docs/v7.9.18-Release-Notes.md)
 - [v7.9.17 — The One That Woke Up Properly](docs/v7.9.17-Release-Notes.md)
 - [v7.9.16 — The One Where Errors Stopped Disappearing](docs/v7.9.16-Release-Notes.md)
 - [v7.9.15 — The One Where You Could See It Working](docs/v7.9.15-Release-Notes.md)
@@ -323,7 +325,9 @@ There are two ways to install OpenRiot on a fresh machine. **Method 1 is strongl
 
 **Choosing Between Methods – Nuances and Implications:**
 - **Method 1 (Online)**: Best for reliability and currency. Requires a working network connection during the `setup.sh` phase (packages, firmware, git clone of configs). The `setup.sh` script (a robust Go binary) handles atomic installation, config deployment, and has built-in rollback awareness. Internet also allows `fw_update` and mirror selection for fastest mirrors.
+
 - **Method 2 (Offline)**: Useful when you cannot or do not want to connect during base install (e.g., privacy-conscious first boot, travel, or metered connections). The image includes a `site79.tgz` set that pre-installs many packages via `install.site`. However, bundled package versions may lag behind the absolute latest snapshots, and some edge-case hardware/firmware detection or post-install tweaks might differ. **It is currently marked as not fully stable** — use primarily for evaluation or when Method 1 is impractical. Always verify checksums and consider it experimental until the note is removed in a future release.
+
 - **Edge cases**: If your hardware has very new components or you need specific recent fixes, Method 1 is safer. For reproducible/offline deploys (e.g., multiple machines), Method 2 shines once stabilized. Both paths converge on the same polished desktop after `setup.sh`.
 
 ### 1. Download
@@ -333,8 +337,6 @@ Download the official OpenBSD installer:
 - [install79.img](https://cdn.openbsd.org/pub/OpenBSD/7.9/amd64/install79.img)
 
 #### Method 2: OpenRiot Image (Offline)
-
-### Note: This is NOT YET stable and working.
 
 **Important clarification on stability**: As of the current release, the `openriot.img` (Method 2) has not undergone the same breadth of automated + manual testing as the standard path. Potential areas of variance include:
 - Completeness of pre-bundled packages or firmware for less common hardware.
@@ -349,6 +351,7 @@ Download the [OpenRiot Install Image ~1.8G](https://github.com/CyphrRiot/OpenRio
 ### 2. Flash to USB
 
 **Linux:** `dd if=install79.img of=/dev/sdX bs=4M status=progress oflag=sync`
+
 **OpenBSD:** `doas dd if=install79.img of=/dev/rsdXc bs=1M && sync`
 
 (Replace `sdX`/`rsdXc` with your USB device. Find with `dmesg | grep ^sd`.)
@@ -441,6 +444,8 @@ Packages and firmware install automatically from the USB via `install.site`.
 
 ---
 
+![OpenRiot Network TUI](assets/nmtui.webp)
+
 ---
 
 ### WiFi Setup
@@ -464,13 +469,15 @@ Or use the built-in WiFi manager after first boot (much easier for daily use and
 - **Rofi:** `Super + D` → **Select WiFi** (graphical picker)
 - **Terminal:** `openriot --nmtui` (or the underlying tool)
 
-![OpenRiot Network TUI](assets/nmtui.webp)
-
 **Important nuances & edge cases:**
 - **MAC randomization (Stealth mode)**: If you enable `openriot --random-mac enable` later, it will spoof the MAC on each connection. This is excellent for privacy on public networks but can interfere with captive portals, enterprise 802.1X, or networks that whitelist specific MACs. In those cases, temporarily disable with `openriot --random-mac disable` or use the polybar stealth module.
+
 - **Captive portals / hotel / airport WiFi**: The CLI `ifconfig` method or `nmtui` usually works, but you may need to open a browser manually (`firefox`) after connecting to complete the login page. Some portals are tricky with randomized MACs — disable stealth temporarily.
+
 - **Driver/firmware**: Most Intel `iwm(4)` adapters work out of the box after `fw_update`. If your adapter needs firmware, the setup script or manual `fw_update` handles it. Check `dmesg | grep -i iwm` or `ifconfig` output.
+
 - **USB adapters**: Same `hostname.if` syntax works (e.g., `urtwn0`, `athn0`). See the supported hardware table above.
+
 - **No internet after connect?** Double-check `wpakey` quoting/spelling, run `ifconfig iwx0 down; ifconfig iwx0 up`, or restart with `sh /etc/netstart iwx0`. The polybar network module will show signal strength and internet status once the desktop is up.
 
 This hybrid approach (manual during install + polished rofi/polybar tools after) keeps things "correct" for OpenBSD while making daily life pleasant.
@@ -570,7 +577,7 @@ Control polybar modules and system features directly from the keyboard.
 | `Super + Shift + J`    | Open games menu                 |
 
 
-### App Launcher (Rofi)
+### App Launcher
 
 Press `Super + D` to open the app launcher. Only curated apps are shown — no system clutter.
 
@@ -609,7 +616,7 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 
 | Module | Click Action |
 | ------ | ------------- |
-| 󰀻 Launcher | Opens app launcher |
+|   Launcher | Opens app launcher |
 | 󰎤󰎧󰎪 Workspaces 1-3 | Click to switch workspace |
 | Window Title | Shows focused window name |
 | 󰃭 Date | Shows date/time |
@@ -903,6 +910,37 @@ openriot --check-release-path
 the release freeze. Those changes are not in the release sets. `sysupgrade
 -R` would replace newer code with older code, creating a mismatch that
 OpenBSD does not handle.
+
+## 💿 Disk Manager ⚠️ Experimental
+
+**Experimental — likely broken for now.** Drive detection works on this
+system, but mount/umount/format/encrypt/benchmark operations have not been
+thoroughly tested. Use with caution.
+
+Manage storage devices without leaving the desktop. The Disk Manager TUI
+provides discover, mount, umount, format, encrypt, and benchmark operations
+for all drives — including full softraid awareness.
+
+```bash
+openriot --disk
+```
+
+### What It Does
+
+| Action | Description |
+| --- | --- |
+| **Discover** | Scan all `sd*` / `wd*` drives with softraid virtual↔physical mapping |
+| **Mount** | Mount selected drive at `/mnt/backup` (auto-detects softraid crypto) |
+| **Umount** | Unmount and detach encrypted volumes |
+| **Format** | Newfs with 4.2BSD (root drive protected) |
+| **Encrypt** | Setup softraid crypto with passphrase (root drive protected) |
+| **Benchmark** | Run `fio` IOPS and throughput tests on mounted drives |
+
+- **softraid-aware**: Virtual devices (`sd0`) are mapped back to physical chunks (`sd1`). Mount status and root detection work across both.
+- **Root protection**: Drives marked `[ROOT]` cannot be formatted or encrypted.
+- **Drive filtering**: Each action only shows eligible drives — no confusion.
+
+![Disk Manager](assets/disk.webp)
 
 ## 🧰 Advanced Usage
 

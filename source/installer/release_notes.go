@@ -52,7 +52,7 @@ func ShowReleaseNotes() {
 	out, _ := cmd.Output()
 	content := strings.Split(string(out), "\n")
 
-	// Build full output with header and footer so page accounting is uniform
+	// Build full output with header so page accounting is uniform
 	header := []string{
 		"",
 		strings.Repeat("=", 72),
@@ -60,9 +60,7 @@ func ShowReleaseNotes() {
 		strings.Repeat("=", 72),
 		"",
 	}
-	footer := []string{"", strings.Repeat("=", 72), ""}
 	lines := append(header, content...)
-	lines = append(lines, footer...)
 
 	promptLines := 3 // blank line + prompt + newline after key
 	pageSize := terminalHeight() - promptLines

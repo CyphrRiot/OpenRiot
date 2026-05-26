@@ -105,6 +105,17 @@ func buildEntries() []entry {
 		},
 	})
 
+	// Disk Manager
+	entries = append(entries, entry{
+		icon:  "󰋊",
+		name:  "Disk Manager",
+		label: "(Launch)",
+		on:    false,
+		toggle: func() {
+			exec.Command("alacritty", "--class", "openriot_disk", "-e", "openriot", "--disk").Start()
+		},
+	})
+
 	// Proton Sync
 	entries = append(entries, entry{
 		icon:  "󱥾",

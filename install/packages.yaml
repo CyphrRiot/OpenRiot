@@ -463,6 +463,7 @@ system:
             - wireguard-tools-1.0.20210914p3v0
             - sysbench-0.4.8p17
             - ntfs_3g-2022.10.3p1
+            - fio-3.41
         depends: [core.base]
         start: "Installing system tools"
         end: "System tools installed"

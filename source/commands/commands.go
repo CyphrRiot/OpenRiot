@@ -17,6 +17,7 @@ import (
 	"openriot/config"
 	"openriot/crypto"
 	"openriot/detect"
+	"openriot/disk"
 	"openriot/display"
 	"openriot/fonts"
 	"openriot/gurk"
@@ -496,6 +497,11 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--resolution-tui", Category: "Network & Battery",
 		Description: "Monitor resolution TUI",
 		Run: func(args []string) error { return resolution.Run() },
+	})
+	r.Register(&Command{
+		Name: "--disk", Category: "System Controls",
+		Description: "Disk manager TUI",
+		Run: func(args []string) error { return disk.Run() },
 	})
 	r.Register(&Command{
 		Name: "--resolution-restore", Category: "System",
