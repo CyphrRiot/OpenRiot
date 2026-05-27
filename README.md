@@ -489,9 +489,9 @@ This hybrid approach (manual during install + polished rofi/polybar tools after)
 
 <a id="master-your-openriot-desktop"></a>
 
-![OpenRiot Desktop](assets/menu.webp)
-
 ## ⌨️ Master Your OpenRiot Desktop
+
+![OpenRiot Desktop](assets/menu.webp)
 
 _We use Helix instead of `vi` or `vim`. The essential bindings are documented in [📝 Using Helix](#using-helix). A full OpenRiot keybindings reference is coming._
 
@@ -661,9 +661,9 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 
 <a id="games"></a>
 
-![OpenRiot Games Menu](assets/games.webp)
-
 ## 🎮 Games
+
+![OpenRiot Games Menu](assets/games.webp)
 
 Games are **optional** — the installer asks whether to include them during setup.
 
@@ -671,9 +671,9 @@ Press `Super + Shift + J` (or select **Games** from the app launcher) to open th
 
 <a id="blockchain"></a>
 
-![OpenRiot Crypto Menu](assets/crypto.webp)
-
 ## 󱕵 Blockchain
+
+![OpenRiot Crypto Menu](assets/crypto.webp)
 
 Press `Super + D` and select **Blockchain** to open the crypto tools menu:
 
@@ -916,9 +916,9 @@ OpenBSD does not handle.
 
 <a id="disk-manager"></a>
 
-![Disk Manager](assets/disk.webp)
-
 ## 💿 Disk Manager ⚠️ Experimental
+
+![Disk Manager](assets/disk.webp)
 
 **Experimental — likely broken for now.** Drive detection works on this
 system, but mount/umount/format/encrypt/benchmark operations have not been
@@ -949,9 +949,9 @@ openriot --disk
 
 <a id="backup-restore"></a>
 
-![Migrate](assets/migrate.webp)
+## 🔄 Backup & Restore (Migrate)
 
-## 🔄 Backup & Restore
+![Migrate](assets/migrate.webp)
 
 Full system backup and selective home directory backup via Migrate.
 Pure Go file sync — zero external dependencies.
