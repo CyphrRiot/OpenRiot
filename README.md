@@ -86,6 +86,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [📝 Using Helix (Editor)](#using-helix)
 - [🔄 System Management](#system-management)
 - [󰋊 Disk Manager](#disk-manager)
+- [🔄 Backup & Restore](#backup--restore)
 - [🧰 Advanced Usage](#advanced-usage)
     - [🔄 Environment Variables](#environment-variables)
     - [⌨️ Keybindings Customization](#keybindings-customization)
@@ -944,6 +945,20 @@ openriot --disk
 - **Drive filtering**: Each action only shows eligible drives — no confusion.
 
 ![Disk Manager](assets/disk.webp)
+
+<a id="backup-restore"></a>
+## 🔄 Backup & Restore
+
+Full system backup and selective home directory backup via Migrate.
+Pure Go file sync — zero external dependencies.
+
+```bash
+openriot --sync-system
+```
+
+Or launch from **Utilities** submenu in the Rofi launcher.
+
+![Migrate](assets/migrate.webp)
 
 ## 🧰 Advanced Usage
 
