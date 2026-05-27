@@ -86,7 +86,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [📝 Using Helix (Editor)](#using-helix)
 - [🔄 System Management](#system-management)
 - [󰋊 Disk Manager](#disk-manager)
-- [🔄 Backup & Restore](#backup--restore)
+- [🔄 Backup & Restore](#backup-restore)
 - [🧰 Advanced Usage](#advanced-usage)
     - [🔄 Environment Variables](#environment-variables)
     - [⌨️ Keybindings Customization](#keybindings-customization)
