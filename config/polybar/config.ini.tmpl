@@ -72,7 +72,7 @@ line-color = ${colors.cyan}
 [module/all]
 type = custom/script
 exec = $HOME/.local/share/openriot/install/openriot --polybar-all
-interval = 3
+interval = 4
 tail = false
 format = <label>
 format-foreground = ${colors.fg}
@@ -107,7 +107,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --wallpaper-next
 type = custom/script
 exec = $HOME/.local/share/openriot/install/openriot --polybar-volume
 exec-click = true
-interval = 31
+interval = 29
 tail = false
 format = <label>
 format-foreground = ${colors.cyan}
@@ -134,7 +134,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --wifi-click
 [module/network-eth]
 type = custom/script
 exec = $HOME/.local/share/openriot/install/openriot --network-eth
-interval = 33
+interval = 37
 tail = false
 format = <label>
 format-foreground = ${colors.sky}
@@ -146,7 +146,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --eth-info
 [module/battery]
 type = custom/script
 exec = $HOME/.local/share/openriot/install/openriot --battery
-interval = 32
+interval = 34
 tail = false
 format = <label>
 format-foreground = ${colors.cyan}
@@ -159,7 +159,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --battery-notify
 [module/settings]
 type = custom/text
 format = "%{T1}%{T-}%{O2}"
-format-foreground = ${colors.purple}
+format-foreground = ${colors.cyan-dim}
 
 format-padding = 0
 click-left = $HOME/.local/share/openriot/install/openriot --settings-menu
@@ -242,7 +242,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --crypto-notify
 [module/nzbget]
 type = custom/script
 exec = $HOME/.local/share/openriot/install/openriot --polybar-nzbget
-interval = 30
+interval = 26
 tail = false
 format = <label>
 format-foreground = ${colors.teal}
@@ -268,10 +268,10 @@ click-left = $HOME/.local/share/openriot/install/openriot --night-light
 [module/screenrec]
 type = custom/script
 exec = $HOME/.local/share/openriot/install/openriot --screenrec-status
-interval = 2
+interval = 7
 tail = false
 format = <label>
-format-foreground = ${colors.purple}
+format-foreground = ${colors.cyan-dim}
 
 format-padding = 0
 label = %output%
@@ -330,7 +330,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --mem-notify
 [module/power]
 type = custom/text
 format = ⏻%{O2}
-format-foreground = ${colors.purple}
+format-foreground = ${colors.cyan-dim}
 
 format-padding = 0
 click-left = $HOME/.local/share/openriot/install/openriot --power-menu
@@ -338,7 +338,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --power-menu
 [module/lock]
 type = custom/text
 format = 󰌾%{O2}
-format-foreground = ${colors.purple}
+format-foreground = ${colors.cyan-dim}
 
 format-padding = 0
 click-left = $HOME/.local/share/openriot/install/openriot --lock

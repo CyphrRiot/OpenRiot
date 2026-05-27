@@ -62,8 +62,8 @@ exec --no-startup-id sh -c 'sleep 2; $openriot_bin --resolution-restore'
 # Notifications - watchdog starts dunst on first notification
 exec --no-startup-id sh -c 'while true; do pgrep dunst >/dev/null || nohup /usr/local/bin/dunst >/dev/null 2>&1; sleep 5; done'
 
-# Clipboard manager - disabled: suspected X selection polling causing input lag in Alacritty
-exec --no-startup-id clipmenud
+# Clipboard manager - disabled: confirmed X selection polling causes keyboard input loss in Alacritty
+# exec --no-startup-id clipmenud
 
 # Auto-tiling
 # exec_always --no-startup-id i3-auto-layout
