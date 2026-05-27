@@ -403,9 +403,6 @@ swap    2G (or more)
 
 #### Reboot and Configure
 
-```bash
-reboot
-```
 
 Log in as **root** first:
 
@@ -955,12 +952,9 @@ openriot --disk
 
 Full system backup and selective home directory backup via Migrate.
 Pure Go file sync — zero external dependencies.
+Launch from the **Utilities** submenu in the Rofi launcher, or run `migrate`.
 
-```bash
-openriot --sync-system
-```
 
-Or launch from **Utilities** submenu in the Rofi launcher.
 
 ## 🧰 Advanced Usage
 
@@ -970,9 +964,6 @@ Or launch from **Utilities** submenu in the Rofi launcher.
 
 OpenRiot sets sensible defaults. Key environment variables:
 
-```bash
-# Check OpenRiot version
-openriot --version
 
 # XDG directories (usually correct by default)
 echo $XDG_CONFIG_HOME
@@ -1004,9 +995,6 @@ The system uses `ifconfig` to spoof MAC addresses on both WiFi and Ethernet inte
 
 #### Enable/Disable
 
-```bash
-openriot --random-mac enable    # Enable MAC randomization
-openriot --random-mac disable   # Disable (use real MAC)
 openriot --random-mac show      # Check current status
 ```
 
@@ -1132,9 +1120,6 @@ api=85a4e3c55b73909f42c6a23ec35b7147
 
 1. Copy the template to your live config:
 
-```bash
-cp ~/.config/crypto-template.toml ~/.config/crypto.toml
-```
 
 2. Edit `~/.config/crypto.toml` and set your coins / holdings.
 
@@ -1332,14 +1317,8 @@ OpenRiot includes a polybar module to toggle WireGuard VPN with a single click.
 #### Prerequisites
 
 1. Install WireGuard tools:
-```bash
-pkg_add wireguard-tools
-```
 
 2. Create the config directory:
-```bash
-doas mkdir -p /etc/wireguard
-```
 
 #### Setting Up Mullvad VPN
 
@@ -1351,9 +1330,6 @@ doas mkdir -p /etc/wireguard
    - Download the config file
 
 2. **Install the config:**
-```bash
-# Move the downloaded config to WireGuard directory
-doas mv ~/Downloads/mullvad.conf /etc/wireguard/wg0.conf
 ```
 
 #### Using the VPN
@@ -1372,9 +1348,6 @@ Click the icon to toggle. You'll see notifications for:
 - "WireGuard is not configured. Go to OpenRiot.org Read directions." (if no config)
 
 **Additional status & verification commands (highly recommended):**
-```bash
-# Quick interface status
-ifconfig wg0
 
 # Detailed WireGuard status (peers, latest handshakes, transfer)
 doas wg show
@@ -1390,9 +1363,6 @@ traceroute 1.1.1.1
 
 #### Manual Commands
 
-```bash
-# Connect
-doas wg-quick up /etc/wireguard/wg0.conf
 
 # Disconnect
 doas wg-quick down /etc/wireguard/wg0.conf
@@ -1423,9 +1393,6 @@ No manual configuration required. The state is stored at `~/.config/openriot/wir
 #### Troubleshooting
 
 **VPN won't connect:**
-```bash
-# Check if config exists
-ls -la /etc/wireguard/wg0.conf
 
 # Check interface
 ifconfig wg0
@@ -1488,9 +1455,6 @@ The app launcher (Rofi) also has a Transmission entry that dynamically shows:
 
 ### Manual Commands
 
-```bash
-# Check if running
-pgrep transmission-gtk
 ```
 
 <a id="proton-drive-sync"></a>
@@ -1508,9 +1472,6 @@ OpenBSD has no native Proton Drive client. OpenRiot includes **rclone** for end-
 
 ### 2. Configure rclone
 
-```bash
-rclone config
-```
 
 | Prompt | Action |
 ----------------|
@@ -1523,24 +1484,15 @@ rclone config
 
 ### 3. Create Local Sync Folder
 
-```bash
-mkdir -p ~/Documents/ProtonSync
-```
 
 ### 4. Initial Sync (dry-run first)
 
-```bash
-rclone bisync ~/Documents/ProtonSync proton:ProtonSync --dry-run --resync
-```
 
 If output looks correct, remove `--dry-run --resync` to sync.
 
 ### 5. Set Up Automatic Sync
 
 Edit your crontab:
-```bash
-doas crontab -e
-```
 
 Add this line (replace `username` with your actual username):
 ```cron
@@ -1549,9 +1501,6 @@ Add this line (replace `username` with your actual username):
 
 ### 6. Secure Your Config
 
-```bash
-chmod 600 ~/.config/rclone/rclone.conf
-```
 
 ### How It Works
 
@@ -1818,9 +1767,6 @@ The following printers are known to work with OpenRiot via SD card / USB transfe
 
 Install PrusaSlicer if needed:
 
-```bash
-doas pkg_add prusaslicer-2.9.4p2
-```
 
 <a id="troubleshooting"></a>
 
@@ -1830,9 +1776,6 @@ doas pkg_add prusaslicer-2.9.4p2
 
 If something goes wrong, upload your log file for debugging:
 
-```bash
-# Setup log location
-cat ~/.cache/openriot/setup.log
 
 # Install log location
 cat ~/.cache/openriot/install.log
@@ -1848,9 +1791,6 @@ This will upload the log to tmpfiles.org and give you a URL to share.
 If the hostname prompt was left blank during install, OpenBSD sets a default domain of `my.domain`, making your hostname look like `openriot.my.domain`.
 
 **Fix:**
-```bash
-doas vi /etc/myname
-# Change: openriot.my.domain
 # To:     openriot
 # Then reboot.
 ```
@@ -1870,9 +1810,6 @@ The gap at `wsmouse1` is skipped enumeration. Nothing is broken.
 
 1. **Check if WiFi is recognized:**
 
-    ```bash
-    ifconfig | grep -E "^iwm[0-9]"
-    ```
 
 2. **If no WiFi device shows:**
     - Your adapter may not be supported (see hardware list above)
@@ -1885,9 +1822,6 @@ The gap at `wsmouse1` is skipped enumeration. Nothing is broken.
 
     Click the **network icon in Polybar** or run `ifconfig iwm0 up` + `fw_update` to set up WiFi.
 
-    ```bash
-    # Connect manually via hostname.if(5):
-    doas vi /etc/hostname.iwm0
     # Add: nwid "YourNetworkName" wpakey "YourPassword" dhcp
     # Add: inet autoconf
     # Add: mode 11g
@@ -1895,9 +1829,6 @@ The gap at `wsmouse1` is skipped enumeration. Nothing is broken.
     ```
 
 4. **After connecting:**
-    ```bash
-    # Verify connection
-    ifconfig iwm0
     ping -c 3 cdn.openbsd.org
     ```
 
@@ -1906,9 +1837,6 @@ The gap at `wsmouse1` is skipped enumeration. Nothing is broken.
 If the mouse hangs after idle, then jitters/glitches when moved:
 
 1. **Check for USB conflicts:**
-    ```bash
-    # List all USB devices and their controllers
-    usbdevs -v
 
     # Check if mouse and other devices share the same USB bus
     dmesg | grep -E '^(uhub|usb).*port'
@@ -1923,17 +1851,11 @@ If the mouse hangs after idle, then jitters/glitches when moved:
     - Check `dmesg` for USB errors: `dmesg | grep -i usb`
 
 3. **Verify mouse detection:**
-    ```bash
-    wsconsctl -m
-    ```
 
 ### Firefox can't see Downloads folder
 
 If Firefox shows a blank path instead of `~/Downloads`:
 
-```bash
-# Fix the user-dirs.dirs file
-cat > ~/.config/user-dirs.dirs << 'EOF'
 XDG_DOWNLOAD_DIR="$HOME/Downloads"
 EOF
 
@@ -1963,18 +1885,12 @@ Settings → Performance → uncheck "Use recommended performance settings" → 
 
 1. **Check for errors:**
 
-    ```bash
-    i3 2>&1 | head -50
-    ```
 
 2. **Common fixes:**
     - Graphics driver issue: Check X11 logs at `/var/log/Xorg.0.log`
     - Verify DISPLAY is set: `echo $DISPLAY`
 
 3. **Check dmesg for hardware issues:**
-    ```bash
-    dmesg | grep -E "error|failed|intel|amd|nvidia"
-    ```
 
 ### Package missing
 
@@ -1982,42 +1898,24 @@ If `pkg_add` fails:
 
 1. **Verify installurl is set:**
 
-    ```bash
-    cat /etc/installurl
-    # Should show a mirror URL
     ```
 
 2. **Auto-select fastest mirror:**
 
-    ```bash
-    doas openriot --mirrors
-    ```
 
 3. **Or set it manually:**
 
-    ```bash
-    echo https://cdn.openbsd.org/pub/OpenBSD | doas tee /etc/installurl
-    ```
 
 4. **Try again:**
-    ```bash
-    pkg_add -v <package-name>
-    ```
 
 ### System Benchmark
 
 Run `benchmark` to test CPU, memory, and disk performance. Requires `sysbench`:
 
-```bash
-doas pkg_add sysbench
-benchmark
 ```
 
 Run via terminal or app launcher:
 
-```bash
-openriot --benchmark
-```
 
 Results go to `~/.benchmark/<hostname>-YYYYMMDD-N.log` with full system specs.
 
@@ -2036,29 +1934,17 @@ OpenRiot leaves SSH password authentication enabled by default (the OpenBSD stan
 
 **1. Generate and copy your key first (on your client machine):**
 
-```bash
-cat ~/.ssh/id_ed25519.pub | ssh user@openriot-machine "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
-```
 
 **2. Disable password auth on the OpenRiot machine:**
 
-```bash
-doas sh -c 'echo "PasswordAuthentication no" >> /etc/ssh/sshd_config'
-doas rcctl restart sshd
 ```
 
 **3. Verify you can still log in from your client:**
 
-```bash
-ssh user@openriot-machine
-# Should NOT prompt for a password
 ```
 
 **Locked yourself out?** Access the physical console, log in locally, and re-enable:
 
-```bash
-doas sed -i '/PasswordAuthentication no/d' /etc/ssh/sshd_config
-doas rcctl restart sshd
 ```
 
 > **Note:** `PermitRootLogin no` is already set by OpenBSD default. This section hardens normal user access.
