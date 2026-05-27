@@ -915,6 +915,9 @@ the release freeze. Those changes are not in the release sets. `sysupgrade
 OpenBSD does not handle.
 
 <a id="disk-manager"></a>
+
+![Disk Manager](assets/disk.webp)
+
 ## 💿 Disk Manager ⚠️ Experimental
 
 **Experimental — likely broken for now.** Drive detection works on this
@@ -943,8 +946,6 @@ openriot --disk
 - **softraid-aware**: Virtual devices (`sd0`) are mapped back to physical chunks (`sd1`). Mount status and root detection work across both.
 - **Root protection**: Drives marked `[ROOT]` cannot be formatted or encrypted.
 - **Drive filtering**: Each action only shows eligible drives — no confusion.
-
-![Disk Manager](assets/disk.webp)
 
 <a id="backup-restore"></a>
 ## 🔄 Backup & Restore
