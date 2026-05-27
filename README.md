@@ -948,6 +948,9 @@ openriot --disk
 - **Drive filtering**: Each action only shows eligible drives — no confusion.
 
 <a id="backup-restore"></a>
+
+![Migrate](assets/migrate.webp)
+
 ## 🔄 Backup & Restore
 
 Full system backup and selective home directory backup via Migrate.
@@ -958,8 +961,6 @@ openriot --sync-system
 ```
 
 Or launch from **Utilities** submenu in the Rofi launcher.
-
-![Migrate](assets/migrate.webp)
 
 ## 🧰 Advanced Usage
 
