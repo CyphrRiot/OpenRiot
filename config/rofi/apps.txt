@@ -12,7 +12,6 @@ Text Editor|gnome-text-editor|󰷉
 Word Processor|libreoffice --writer|󰈙
 Media Player|mpv --player-operation-mode=pseudo-gui|
 Music Player|alacritty --class rmpc --title "Music Player" -e ~/.local/bin/rmpc|
-System Monitor|alacritty --class btop --title "System Monitor" -e btop|󰍹
 Crush AI|alacritty --class crush --title "Crush AI" -e crush|󰚩
 Transmission|transmission-gtk|󰐻
 Telegram|tdesktop.desktop|󰭹
@@ -20,8 +19,5 @@ Discord|abaddon|󰙯
 SolveSpace 3D|solvespace|󰐫
 Blockchain|@submenu:blockchain|󱕵
 Games|@submenu:games|󰊗
+Utilities|@submenu:utilities|󰢮
 OpenRiot Settings|openriot --settings-menu|󰒓
-WiFi Config|alacritty --class openriot_wifi --title "WiFi Config" -e openriot --nmtui|󱚹
-Monitor Config|alacritty --class openriot_resolution --title "Monitor Config" -e openriot --resolution-tui|󰹑
-Drive Manager|alacritty --class openriot_disk --title "Drive Manager" -e openriot --disk|󰋊
-System Settings|xfce4-settings-manager|󰒓
