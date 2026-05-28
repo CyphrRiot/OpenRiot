@@ -257,6 +257,15 @@ desktop:
             - desc: "Regenerate gdk-pixbuf loader cache for WebP thumbnails"
               cmd: |
                   doas sh -c 'gdk-pixbuf-query-loaders > /usr/local/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache'
+    kate:
+        packages:
+            - kate-26.04.1
+        depends: [desktop.apps]
+        start: "Installing Kate (Code IDE)..."
+        end: "Kate IDE installed"
+        type: "Package"
+        critical: false
+
     games:
         packages:
             - 0ad-0.28.0

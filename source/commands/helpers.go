@@ -84,6 +84,16 @@ func runInstall(testMode *bool) {
 		installer.StripGamesFromRofi()
 	}
 
+	installKate := installer.KatePreference()
+	if !installKate {
+		delete(cfg.Desktop, "kate")
+		installer.StripKateFromRofi()
+	} else {
+		if err := installer.SetupKateConfig(); err != nil {
+			logger.Warn(fmt.Sprintf("Kate config setup: %v", err))
+		}
+	}
+
 	logger.Info("Running post-install commands...")
 	if err := installer.ExecCommands(cfg, *testMode); err != nil {
 		logger.Warn(fmt.Sprintf("Some commands failed: %v", err))

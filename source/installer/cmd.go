@@ -47,6 +47,11 @@ func RunInstallPackages() error {
 		delete(cfg.Desktop, "games")
 	}
 
+	// Check Kate preference before package installation
+	if !KatePreference() {
+		delete(cfg.Desktop, "kate")
+	}
+
 	logger.Info("Installing packages (safe one-by-one mode)...")
 
 	packages := cfg.GetPackages()
