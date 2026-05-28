@@ -105,7 +105,7 @@ func runInstall(testMode *bool) {
 		logger.Info("Rendering dynamic configs...")
 		for _, flag := range []string{
 			"--polybar-setup", "--dunst-setup", "--rofi-setup",
-			"--helix-setup",
+			"--helix-setup", "--kate-setup",
 		} {
 			out, err := exec.Command(openriotBin, flag).CombinedOutput()
 			if err != nil {

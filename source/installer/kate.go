@@ -133,7 +133,7 @@ func SetupKateConfig() error {
 		sections["KTextEditor Renderer"] = make(sectionMap)
 	}
 	sections["KTextEditor Renderer"]["Auto Color Theme Selection"] = "false"
-	sections["KTextEditor Renderer"]["Color Theme"] = "Ayu Dark"
+	sections["KTextEditor Renderer"]["Color Theme"] = "ayu Dark"
 	sections["KTextEditor Renderer"]["Text Font"] = "FiraCode Nerd Font,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,FiraCode Nerd Font"
 
 	if sections["UiSettings"] == nil {

@@ -853,6 +853,18 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Run: func(args []string) error { os.Exit(helix.Setup()); return nil },
 	})
 	r.Register(&Command{
+		Name: "--kate-setup", Category: "Lock & Power",
+		Description: "Configure Kate IDE theme and settings",
+		Run: func(args []string) error {
+			if err := installer.SetupKateConfig(); err != nil {
+				fmt.Fprintf(os.Stderr, "kate setup: %v\n", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+			return nil
+		},
+	})
+	r.Register(&Command{
 		Name: "--suspend-if-undocked", Category: "Lock & Power",
 		Description: "Auto-suspend when undocked",
 		Run: func(args []string) error { detect.SuspendIfUndocked(); return nil },
