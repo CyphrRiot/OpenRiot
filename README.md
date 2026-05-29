@@ -20,7 +20,7 @@
 
 ---
 
-![OpenRiot](assets/desktop.webp)
+![OpenRiot Header](assets/header.jpg)
 
 ---
 
@@ -65,6 +65,12 @@ OpenRiot is under active development. It may not work as expected. Some features
 **Found an issue?** [Open an issue on GitHub](https://github.com/CyphrRiot/OpenRiot/issues) and we'll work through it together.
 
 **Repository:** [github.com/CyphrRiot/OpenRiot](https://github.com/CyphrRiot/OpenRiot)
+
+---
+
+![OpenRiot](assets/desktop.webp)
+
+---
 
 ### System Requirements
 
