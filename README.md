@@ -22,6 +22,8 @@
 
 ![OpenRiot Header](assets/header.jpg)
 
+<p align="center"><small>Image created by <a href="https://x.com/HeroToshi19">Hero</a></small></p>
+
 ---
 
 ## 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥
