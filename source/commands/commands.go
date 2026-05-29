@@ -26,6 +26,7 @@ import (
 	"openriot/installer"
 	"openriot/lock"
 	"openriot/macspoof"
+	"openriot/migrate"
 	"openriot/network"
 	"openriot/nightlight"
 	"openriot/nmtui"
@@ -980,6 +981,13 @@ func RegisterAll(r *Registry, testMode *bool) {
 			os.RemoveAll(paths.Join(".cache", "openriot", "crypto.json"))
 			os.RemoveAll(paths.Join(".cache", "openriot", "crypto-prev.json"))
 			return crypto.RunCrypto("ROWML")
+		},
+	})
+	r.Register(&Command{
+		Name: "--backup", Category: "Installation",
+		Description: "Launch the Migrate backup/restore TUI",
+		Run: func(args []string) error {
+			return migrate.RunBackup()
 		},
 	})
 }

@@ -1,0 +1,2077 @@
+// Package internal provides the core application model and state management for Migrate's TUI.
+//
+// This package implements the Bubble Tea model pattern for the interactive terminal user interface.
+// The model handles:
+//   - Application state management across different screens (main, backup, restore, verify, etc.)
+//   - Message handling for user input, system events, and background operations
+//   - Screen transitions and navigation logic
+//   - Progress tracking for long-running operations (backup, restore, verification)
+//   - Drive selection and mounting workflows
+//   - Home folder selection for selective backups
+//
+// The main Model struct contains all UI state and implements the tea.Model interface
+// for integration with the Bubble Tea framework.
+package migrate
+
+import (
+	"fmt"
+	"openriot/migrate/handlers"
+	"openriot/migrate/platform"
+	"openriot/migrate/screens"
+	"openriot/migrate/state"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	tea "github.com/charmbracelet/bubbletea"
+)
+
+// Model represents the complete application state for the Migrate TUI.
+// It implements the tea.Model interface and contains all data needed to
+// render screens and handle user interactions.
+type Model struct {
+	// Screen and navigation state
+	screen     screens.Screen // Current active screen
+	lastScreen screens.Screen // Previous screen for back navigation
+	cursor     int            // Current cursor/selection position
+	choices    []string       // Available menu options for current screen
+
+	// Selection and confirmation state
+	selected     map[int]struct{} // Multi-select state (legacy, may be unused)
+	confirmation string           // Confirmation dialog text
+
+	// Operation state
+	progress  float64 // Progress percentage (0.0 to 1.0, or -1 for indeterminate)
+	operation string  // Current operation identifier (e.g., "system_backup", "home_restore")
+	message   string  // Status or error message to display
+	canceling bool    // Flag indicating operation cancellation in progress
+	// Backup timing
+	backupElapsed time.Duration // Time since backup started
+	backupETA     time.Duration // Estimated remaining time
+
+	// Display dimensions
+	width  int // Terminal width for rendering
+	height int // Terminal height for rendering
+
+	// Drive management
+	drives        []DriveInfo // List of available external drives
+	selectedDrive string      // Currently selected drive path/mount point
+
+	// Animation state
+	cylonFrame int // Current frame number for progress bar animation (0-19)
+
+	// Error handling
+	errorRequiresManualDismissal bool // True for critical errors needing user acknowledgment
+
+	// Home folder selection state (for selective backups)
+	homeFolders     []HomeFolderInfo // Discovered home directory folders
+	selectedFolders map[string]bool  // User's folder selections (path -> selected)
+	totalBackupSize int64            // Calculated total size of selected content
+
+	// NEW: Navigation state for sub-folder drilling
+	currentFolderPath string                      // "" = root, "/Videos" = in Videos submenu
+	folderBreadcrumb  []string                    // ["Home", "Videos"] for navigation
+	subfolderCache    map[string][]HomeFolderInfo // Cache discovered subfolders
+
+	// Privilege level
+	privilege platform.PrivLevel
+
+	// Restore options
+	restoreConfig     bool // Restore ~/.config directory
+	restoreWindowMgrs bool // Restore window managers (Hyprland, GNOME, etc.)
+
+	// NEW: Track if user has already been through restore options
+	restoreOptionsConfigured bool // True if user has already configured restore options
+
+	// Restore folder selection state (for selective restores)
+	restoreFolders         []HomeFolderInfo // Discovered folders from backup
+	selectedRestoreFolders map[string]bool  // User's restore folder selections
+	totalRestoreSize       int64            // Calculated total size of selected restore content
+
+	// Verification error display
+	verificationErrors []string // List of verification errors for display
+	errorScrollOffset  int      // Current scroll position in error list
+}
+
+// InitialModel creates and returns a new Model instance with default values.
+// This sets up the initial application state with the main menu active
+// and initializes all required maps and default dimensions.
+func InitialModel(perm platform.PrivLevel) Model {
+	// Log initial model creation
+	if logPath := getLogFilePath(); logPath != "" {
+
+	}
+	return Model{
+		screen:            screens.ScreenMain,
+		choices:           screens.MainMenuChoices,
+		selected:          make(map[int]struct{}),
+		selectedFolders:   make(map[string]bool),
+		subfolderCache:    make(map[string][]HomeFolderInfo), // NEW: Initialize subfolder cache
+		restoreConfig:     true,                              // Default to true
+		restoreWindowMgrs: true,                              // Default to true
+		width:             80,                                // More reasonable default for smaller terminals
+		height:            24,                                // Standard minimum terminal height
+		privilege:         perm,
+	}
+}
+
+// SetInitialDimensions sets the initial terminal dimensions for the model.
+// This should be called before starting the TUI to ensure proper initial sizing.
+func (m *Model) SetInitialDimensions(width, height int) {
+	m.width = width
+	m.height = height
+}
+
+// Init implements tea.Model.Init() and returns any initial commands.
+// Currently returns nil as no initialization commands are needed.
+func (m Model) Init() tea.Cmd {
+	return nil
+}
+
+// Update implements tea.Model.Update() and handles all incoming messages.
+// This is the central message router that processes user input, system events,
+// background operation updates, and screen transitions.
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		// Defensive terminal size handling
+		m.width = msg.Width
+		m.height = msg.Height
+
+		// Ensure minimum usable dimensions - more flexible for smaller terminals
+		if m.width < 60 {
+			m.width = 60
+		}
+		if m.height < 20 {
+			m.height = 20
+		}
+
+		// Cap maximum dimensions for consistent rendering - removed arbitrary caps
+		// Let the terminal use its full size for better readability
+
+		return m, nil
+
+	case DrivesLoaded:
+
+		m.drives = msg.Drives
+		m.choices = make([]string, len(m.drives)+1)
+		for i, drive := range m.drives {
+			m.choices[i] = fmt.Sprintf("💾 %s (%s) - %s", drive.Device, drive.Size, drive.Label)
+		}
+		m.choices[len(m.drives)] = "⬅️ Back"
+		return m, nil
+
+	case ScanProgress:
+		// Update scanning progress message only if still on folder selection screen
+		if m.screen == screens.ScreenHomeFolderSelect && len(m.homeFolders) == 0 {
+			if msg.total > 0 {
+				m.message = fmt.Sprintf("🔍 Scanning %s... (%d/%d)", msg.folderName, msg.current, msg.total)
+			}
+			// Continue getting progress updates only while on folder selection screen
+			return m, ScanProgressCmd()
+		}
+		// Stop progress updates if we've moved to a different screen
+		return m, nil
+
+	case HomeFoldersDiscovered:
+		if msg.error != nil {
+			m.message = fmt.Sprintf("Failed to scan home directory: %v", msg.error)
+			return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+				return tea.KeyMsg{Type: tea.KeyEsc}
+			})
+		}
+
+		// DEBUG: Log what folders were discovered
+		if logFile, err := os.OpenFile("/tmp/migrate_folders_debug.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644); err == nil {
+			fmt.Fprintf(logFile, "=== HomeFoldersDiscovered ===\n")
+			fmt.Fprintf(logFile, "Number of folders: %d\n", len(msg.folders))
+			for i, folder := range msg.folders {
+				fmt.Fprintf(logFile, "  Folder %d: %s (size: %d, visible: %v)\n", i, folder.Name, folder.Size, folder.IsVisible)
+			}
+			logFile.Close()
+		}
+
+		m.homeFolders = msg.folders
+		m.cursor = 0 // Default to "Continue with selection" option
+
+		// Don't use cache file - always start with fresh selections (all visible folders selected)
+		m.selectedFolders = make(map[string]bool)
+		for _, folder := range m.homeFolders {
+			if folder.IsVisible {
+				m.selectedFolders[folder.Path] = true
+			}
+		}
+
+		// Calculate initial total backup size
+		m.calculateTotalBackupSize()
+
+		return m, nil
+
+	case SubfoldersDiscovered:
+		if msg.error != nil {
+			m.message = fmt.Sprintf("Failed to scan subfolder %s: %v", msg.parentPath, msg.error)
+			return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+				return tea.KeyMsg{Type: tea.KeyEsc}
+			})
+		}
+
+		// Cache the discovered subfolders for future navigation
+		m.subfolderCache[msg.parentPath] = msg.subfolders
+
+		// Update navigation state and switch to subfolder screen
+		m.currentFolderPath = msg.parentPath
+		m.folderBreadcrumb = []string{"Home", filepath.Base(msg.parentPath)}
+		m.screen = screens.ScreenHomeSubfolderSelect
+		m.cursor = 0
+
+		return m, nil
+
+	case RestoreFoldersDiscovered:
+		if msg.error != nil {
+			m.message = fmt.Sprintf("Failed to discover restore folders: %v", msg.error)
+			return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+				return tea.KeyMsg{Type: tea.KeyEsc}
+			})
+		}
+
+		// Store discovered folders and initialize selections
+		m.restoreFolders = msg.folders
+		if m.selectedRestoreFolders == nil {
+			m.selectedRestoreFolders = make(map[string]bool)
+		}
+
+		// Default: select all folders for restore
+		for _, folder := range m.restoreFolders {
+			m.selectedRestoreFolders[folder.Path] = true
+		}
+
+		m.calculateTotalRestoreSize()
+		return m, nil
+
+	case PasswordRequiredMsg:
+		// Exit the entire program to handle password, then restart
+		return m, tea.Quit
+
+	case passwordInteractionMsg:
+		// Remove this - not needed anymore
+		return m, nil
+
+	case DriveOperation:
+		if strings.Contains(msg.message, "LUKS drive is locked") ||
+			strings.Contains(msg.message, "cryptsetup luksOpen") {
+			// LUKS error - needs manual dismissal
+			m.message = msg.message
+			m.errorRequiresManualDismissal = true
+			m.lastScreen = m.screen
+			m.screen = screens.ScreenError
+			return m, nil
+		} else if msg.success {
+			// Success message - needs manual dismissal
+			m.message = msg.message
+			m.lastScreen = m.screen
+			m.screen = screens.ScreenComplete
+			return m, nil
+		} else {
+			// Check if this is an "INSUFFICIENT SPACE" error that needs manual dismissal
+			errorMsg := msg.message
+			if strings.Contains(errorMsg, "INSUFFICIENT SPACE") ||
+				strings.Contains(errorMsg, "too small") ||
+				strings.Contains(errorMsg, "not enough space") ||
+				strings.Contains(errorMsg, "insufficient space") {
+				// Space errors need manual dismissal so user can read details
+				m.message = errorMsg
+				m.errorRequiresManualDismissal = true
+				m.lastScreen = m.screen
+				m.screen = screens.ScreenError
+				return m, nil
+			} else {
+				// Regular error message - auto-dismiss after 3 seconds
+				m.message = msg.message
+				return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+					return tea.KeyMsg{Type: tea.KeyEsc}
+				})
+			}
+		}
+
+	case BackupDriveStatus:
+		if msg.error != nil {
+			// Write debug info
+			debugFile := "/tmp/migrate_bds_error"
+			var buf []byte
+			buf = fmt.Appendf(buf, "BackupDriveStatus error: %v", msg.error)
+			os.WriteFile(debugFile, buf, 0644)
+
+			// Check if this is a space requirement error (INSUFFICIENT SPACE) or LUKS error
+			errorMsg := msg.error.Error()
+			if strings.Contains(errorMsg, "LUKS drive is locked") ||
+				strings.Contains(errorMsg, "cryptsetup luksOpen") ||
+				strings.Contains(errorMsg, "INSUFFICIENT SPACE") ||
+				strings.Contains(errorMsg, "too small") ||
+				strings.Contains(errorMsg, "backup") {
+				// Critical errors that need manual dismissal
+				m.message = errorMsg
+				m.errorRequiresManualDismissal = true
+				m.lastScreen = m.screen
+				m.screen = screens.ScreenError
+				return m, nil
+			} else {
+				// Other errors - auto-dismiss after 3 seconds
+				m.message = errorMsg
+				return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+					return tea.KeyMsg{Type: tea.KeyEsc}
+				})
+			}
+		} else {
+			// Drive successfully mounted, confirm operation
+			// Write debug info
+			debugFile := "/tmp/migrate_bds_success"
+			var debugBuf []byte
+			debugBuf = fmt.Appendf(debugBuf, "BackupDriveStatus success: drive=%s mountpoint=%s operation=%s",
+				msg.drivePath, msg.mountPoint, m.operation)
+			os.WriteFile(debugFile, debugBuf, 0644)
+
+			if strings.Contains(m.operation, "backup") {
+				// Backup confirmation
+				backupTypeDesc := "ENTIRE SYSTEM"
+				sourceSize := ""
+
+				if m.operation == "home_backup" {
+					backupTypeDesc = "HOME DIRECTORY"
+					if m.totalBackupSize > 0 {
+						sourceSize = fmt.Sprintf("Source: %s\n", FormatBytes(m.totalBackupSize))
+					}
+				} else {
+					// For system backup, get used space on root filesystem
+					if usedSpace, err := getUsedDiskSpace("/"); err == nil {
+						sourceSize = fmt.Sprintf("Source: %s\n", FormatBytes(usedSpace))
+					}
+				}
+
+				m.confirmation = fmt.Sprintf("Ready to backup %s\n\n%sDestination: %s (%s)\nType: %s\nMounted at: %s\n\nProceed with backup?",
+					backupTypeDesc, sourceSize, msg.drivePath, msg.driveSize, msg.driveType, msg.mountPoint)
+			} else if strings.Contains(m.operation, "restore") || m.operation == "config_restore" || m.operation == "local_restore" {
+				// For restore operations, first detect backup type
+				// Write debug info
+				os.WriteFile(debugFile+"_restore", []byte(fmt.Sprintf("Starting backup type detection for restore at: %s", msg.mountPoint)), 0644)
+
+				backupType, err := detectBackupType(msg.mountPoint)
+				if err != nil {
+					// Backup type detection failed - show error
+					os.WriteFile(debugFile+"_restore_error", []byte(fmt.Sprintf("Backup type detection failed: %v", err)), 0644)
+
+					errorMsg := fmt.Sprintf("❌ Invalid backup drive\n\nThis drive does not contain a valid migrate backup.\n\nError: %v\n\n💡 Make sure you selected the correct drive that contains your backup.", err)
+					m.message = errorMsg
+					m.errorRequiresManualDismissal = true
+					m.lastScreen = m.screen
+					m.screen = screens.ScreenError
+					return m, nil
+				}
+
+				// Log to file instead of stdout
+				var buf []byte
+				buf = fmt.Appendf(buf, "Backup type detected: %s", backupType)
+				os.WriteFile(debugFile+"_restore_type", buf, 0644)
+
+				// Handle specific settings restore operations
+				if m.operation == "config_restore" {
+					// Config restore - check if .config exists in backup
+					configPath := filepath.Join(msg.mountPoint, ".config")
+					if _, err := os.Stat(configPath); err != nil {
+						errorMsg := fmt.Sprintf("❌ Configuration folder not found\n\nThe backup does not contain a .config directory.\n\nMake sure this backup contains home directory data.")
+						m.message = errorMsg
+						m.errorRequiresManualDismissal = true
+						m.lastScreen = m.screen
+						m.screen = screens.ScreenError
+						return m, nil
+					}
+
+					m.confirmation = fmt.Sprintf("Ready to restore CONFIGURATION FILES\n\nSource: %s/.config\nDestination: ~/.config\nDrive: %s (%s)\n\n⚠️ This will OVERWRITE existing configuration files!\n\nProceed with restore?",
+						msg.mountPoint, msg.drivePath, msg.driveSize)
+				} else if m.operation == "local_restore" {
+					// Local data restore - check if .local exists in backup
+					localPath := filepath.Join(msg.mountPoint, ".local")
+					if _, err := os.Stat(localPath); err != nil {
+						errorMsg := fmt.Sprintf("❌ Local data folder not found\n\nThe backup does not contain a .local directory.\n\nMake sure this backup contains home directory data.")
+						m.message = errorMsg
+						m.errorRequiresManualDismissal = true
+						m.lastScreen = m.screen
+						m.screen = screens.ScreenError
+						return m, nil
+					}
+
+					m.confirmation = fmt.Sprintf("Ready to restore LOCAL DATA\n\nSource: %s/.local\nDestination: ~/.local\nDrive: %s (%s)\n\n⚠️ This will OVERWRITE existing local data!\n\nProceed with restore?",
+						msg.mountPoint, msg.drivePath, msg.driveSize)
+				} else if backupType == "home" {
+					// It's a home backup - change operation type and proceed with folder selection
+					os.WriteFile(debugFile+"_restore_home_backup", []byte("Home backup detected, checking restore flow"), 0644)
+
+					m.selectedDrive = msg.mountPoint
+
+					// CRITICAL FIX: Change operation type from "system_restore" to "home_restore"
+					// This ensures the UI will show the correct operation type and target
+					m.operation = "home_restore"
+
+					// Always go to folder selection first for home backups
+					os.WriteFile(debugFile+"_restore_folder_selection", []byte("Home backup detected, going to folder selection"), 0644)
+
+					m.screen = screens.ScreenRestoreFolderSelect
+					m.cursor = 0
+					// Initialize restore folder state
+					m.selectedRestoreFolders = make(map[string]bool)
+					m.totalRestoreSize = 0
+					// Start discovering folders from backup
+					return m, DiscoverRestoreFoldersCmd(msg.mountPoint)
+				} else if backupType == "settings" {
+					// It's a settings backup - go directly to confirmation
+					m.selectedDrive = msg.mountPoint
+					m.operation = "settings_restore"
+					m.confirmation = fmt.Sprintf("Ready to restore SYSTEM SETTINGS\n\nSource: %s\nDrive: %s (%s)\n\n⚠️ This will OVERWRITE existing system settings!\n\nProceed with restore?",
+						msg.mountPoint, msg.drivePath, msg.driveSize)
+					m.screen = screens.ScreenConfirm
+					m.cursor = 0
+					return m, nil
+				}
+
+				// System backup detected - proceed with confirmation
+				os.WriteFile(debugFile+"_restore_system_backup", []byte("System backup detected, showing confirmation dialog"), 0644)
+
+				// SPACE CHECK MOVED: Don't check space here for system restore
+				// Space checking now happens after user selections in confirmation (see ScreenConfirm case)
+
+				// Space check passed - proceed with system restore confirmation
+				restoreTypeDesc := "ENTIRE SYSTEM"
+				if m.operation == "custom_restore" {
+					restoreTypeDesc = "CUSTOM PATH"
+				}
+
+				m.confirmation = fmt.Sprintf("Ready to restore %s\n\nSource: %s (%s)\nType: %s\nMounted at: %s\n\n⚠️ This will OVERWRITE existing files!\n\nProceed with restore?",
+					restoreTypeDesc, msg.drivePath, msg.driveSize, msg.driveType, msg.mountPoint)
+			} else if strings.Contains(m.operation, "verify") || m.operation == "auto_verify" {
+				// Verification confirmation
+				verifyTypeDesc := "AUTO-DETECTED BACKUP"
+
+				m.confirmation = fmt.Sprintf("Ready to verify %s\n\nBackup Source: %s (%s)\nType: %s\nMounted at: %s\n\n🔍 This will auto-detect backup type and compare backup files with your current system\n\nProceed with verification?",
+					verifyTypeDesc, msg.drivePath, msg.driveSize, msg.driveType, msg.mountPoint)
+			}
+
+			m.selectedDrive = msg.mountPoint // Store mount point for operation
+			m.screen = screens.ScreenConfirm
+			m.cursor = 0
+
+			// Write debug info about confirmation screen
+			var buf []byte
+			buf = fmt.Appendf(buf, "Set screen to ScreenConfirm, stored mountPoint: %s", msg.mountPoint)
+			os.WriteFile(debugFile+"_confirmation", buf, 0644)
+
+			return m, nil
+		}
+
+	case ProgressUpdate:
+		if msg.Error != nil {
+			// Check error type for appropriate handling
+			errorMsg := fmt.Sprintf("Error: %v", msg.Error)
+
+			// Check for verification-specific completion (success with warnings/failures)
+			if strings.Contains(m.operation, "verify") &&
+				(strings.Contains(errorMsg, "VERIFICATION_DETAILED_ERRORS:") ||
+					strings.Contains(errorMsg, "verification failed with") ||
+					strings.Contains(errorMsg, "errors (threshold:") ||
+					strings.Contains(errorMsg, "systematic") ||
+					strings.Contains(errorMsg, "integrity issues")) {
+				// Verification completed but found issues - show detailed results
+				if strings.Contains(errorMsg, "VERIFICATION_DETAILED_ERRORS:") {
+					// Copy verification errors to model for detailed display
+					m.verificationErrors = GetVerificationErrors()
+					m.errorScrollOffset = 0
+					m.screen = screens.ScreenVerificationErrors
+					m.progress = 0
+					m.canceling = false
+					return m, nil
+				} else {
+					// Legacy error handling
+					m.message = errorMsg
+					m.errorRequiresManualDismissal = true
+					m.lastScreen = m.screen
+					m.screen = screens.ScreenError
+					m.progress = 0
+					m.canceling = false
+					return m, nil
+				}
+			}
+
+			// Check for critical system errors that need manual dismissal
+			if strings.Contains(errorMsg, "cryptsetup luksOpen") ||
+				strings.Contains(errorMsg, "LUKS drive is locked") ||
+				strings.Contains(errorMsg, "No such file or directory") ||
+				strings.Contains(errorMsg, "permission denied") ||
+				strings.Contains(errorMsg, "cannot determine backup type") ||
+				strings.Contains(errorMsg, "no valid backup found") ||
+				strings.Contains(errorMsg, "error 32") ||
+				strings.Contains(errorMsg, "OUT OF SPACE") ||
+				strings.Contains(errorMsg, "out of space") ||
+				strings.Contains(errorMsg, "no space left") ||
+				strings.Contains(errorMsg, "disk full") ||
+				strings.Contains(errorMsg, "insufficient disk space") {
+				// Critical system error - needs manual dismissal
+				m.message = errorMsg
+				m.errorRequiresManualDismissal = true
+				m.lastScreen = m.screen
+				m.screen = screens.ScreenError
+				m.progress = 0
+				m.canceling = false
+				return m, nil
+			} else {
+				// Regular error - show but continue normal flow
+				m.message = errorMsg
+				m.progress = 0
+				m.canceling = false // Reset canceling state on error
+			}
+		} else {
+			// Only update progress if we're not canceling
+			if !m.canceling {
+				m.progress = msg.Percentage
+				m.message = msg.Message
+				m.backupElapsed = msg.Elapsed
+				m.backupETA = msg.ETA
+			}
+		}
+
+		if msg.Done || m.canceling {
+			// Reset canceling state when operation completes
+			wasCanceling := m.canceling
+			m.canceling = false
+
+			if wasCanceling {
+				// Operation was canceled
+				m.message = "Operation canceled by user"
+				return m, tea.Tick(2*time.Second, func(t time.Time) tea.Msg {
+					return tea.KeyMsg{Type: tea.KeyEsc}
+				})
+			}
+
+				// Check if this was a backup operation completion
+			if strings.Contains(m.operation, "backup") && msg.Error == nil {
+				// Backup completed successfully
+				if m.privilege == platform.PrivUser {
+					// Non-root users cannot unmount drives they didn't mount - skip prompt
+					m.lastScreen = m.screen
+					m.screen = screens.ScreenComplete
+					return m, nil
+				}
+				// Ask about unmounting
+				m.confirmation = "🎉 Backup completed successfully!\n\nDo you want to unmount the backup drive?\n\nNote: Unmounting is recommended for safe removal."
+				m.operation = "unmount_backup"
+				m.screen = screens.ScreenConfirm
+				m.cursor = 1
+				return m, nil
+			} else if msg.Error == nil {
+				// Other operation completed successfully - show completion screen
+				m.lastScreen = m.screen
+				m.screen = screens.ScreenComplete
+				return m, nil
+			} else {
+				// Operation completed with error
+				errorMsg := fmt.Sprintf("Error: %v", msg.Error)
+
+				// Check for verification-specific completion with detected issues
+				if strings.Contains(m.operation, "verify") &&
+					(strings.Contains(errorMsg, "VERIFICATION_DETAILED_ERRORS:") ||
+						strings.Contains(errorMsg, "verification failed with") ||
+						strings.Contains(errorMsg, "errors (threshold:") ||
+						strings.Contains(errorMsg, "systematic") ||
+						strings.Contains(errorMsg, "integrity issues")) {
+					// Verification found issues - show detailed error screen
+					if strings.Contains(errorMsg, "VERIFICATION_DETAILED_ERRORS:") {
+						// Copy verification errors to model for detailed display
+						m.verificationErrors = GetVerificationErrors()
+						m.errorScrollOffset = 0
+						m.screen = screens.ScreenVerificationErrors
+						m.progress = 0
+						m.canceling = false
+						return m, nil
+					} else {
+						// Legacy error handling
+						m.message = errorMsg
+						m.errorRequiresManualDismissal = true
+						m.lastScreen = m.screen
+						m.screen = screens.ScreenError
+						return m, nil
+					}
+				}
+
+				// Check for critical system errors
+				if strings.Contains(errorMsg, "cryptsetup luksOpen") ||
+					strings.Contains(errorMsg, "LUKS drive is locked") ||
+					strings.Contains(errorMsg, "No such file or directory") ||
+					strings.Contains(errorMsg, "permission denied") ||
+					strings.Contains(errorMsg, "cannot determine backup type") ||
+					strings.Contains(errorMsg, "no valid backup found") ||
+					strings.Contains(errorMsg, "error 32") {
+					// Critical system error - needs manual dismissal
+					m.message = errorMsg
+					m.errorRequiresManualDismissal = true
+					m.lastScreen = m.screen
+					m.screen = screens.ScreenError
+					return m, nil
+				} else {
+					// Regular error - auto-dismiss after 3 seconds
+					return m, tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+						return tea.KeyMsg{Type: tea.KeyEsc}
+					})
+				}
+			}
+		} else {
+			// NOT DONE - Schedule next progress update (unless canceling)
+			if !m.canceling {
+				return m, CheckTUIBackupProgress()
+			}
+		}
+
+		return m, nil
+
+	case tickMsg:
+		// Remove fake progress simulation
+		return m, nil
+
+	case state.CylonAnimateMsg:
+		// Update cylon animation frame
+		m.cylonFrame = (m.cylonFrame + 1) % 20 // 20-frame cycle
+		if m.screen == screens.ScreenProgress {
+			// Keep animating while on progress screen
+			return m, tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+				return state.CylonAnimateMsg{}
+			})
+		}
+		return m, nil
+
+	case tea.KeyMsg:
+		// Handle error screen dismissal first
+		if m.screen == screens.ScreenError {
+			// Any key press dismisses the error screen and returns to main menu
+			resetBackupState()
+			m.screen = screens.ScreenMain
+			m.message = ""
+			m.cursor = 0
+			m.choices = screens.MainMenuChoices
+			m.errorRequiresManualDismissal = false
+			m.restoreOptionsConfigured = false // Reset restore flow state
+			return m, nil
+		}
+
+		// Handle completion screen dismissal
+		if m.screen == screens.ScreenComplete {
+			// Any key press dismisses the completion screen and returns to main
+			resetBackupState()
+			m.screen = screens.ScreenMain
+			m.message = ""
+			m.cursor = 0
+			m.choices = screens.MainMenuChoices
+			m.restoreOptionsConfigured = false // Reset restore flow state
+			return m, nil
+		}
+
+		switch msg.String() {
+		case "ctrl+c", "q":
+			if m.screen == screens.ScreenMain {
+				return m, tea.Quit
+			}
+			// Handle Ctrl+C during progress - set canceling state
+			if m.screen == screens.ScreenProgress {
+				m.canceling = true
+				m.message = "Canceling operation... Please wait for cleanup to complete."
+				// Signal the backup operation to cancel
+				CancelBackup()
+				// Continue to let the progress update handle the cleanup
+				return m, nil
+			}
+			// Go back to main menu from other screens
+			m.screen = screens.ScreenMain
+			m.cursor = 0
+			m.choices = screens.MainMenuChoices
+			m.restoreOptionsConfigured = false // Reset restore flow state
+			return m, nil
+
+		case "esc":
+			// Make ESC behave consistently like selecting "Back" option for all screens
+			switch m.screen {
+			case screens.ScreenMain:
+				// ESC on main menu should exit (like selecting Exit)
+				return m, tea.Quit
+
+			case screens.ScreenBackup:
+				// Back to main menu (like selecting "Back")
+				m.screen = screens.ScreenMain
+				m.cursor = 0
+				m.choices = screens.MainMenuChoices
+				return m, nil
+
+			case screens.ScreenRestore:
+				// Back to main menu (like selecting "Back")
+				m.screen = screens.ScreenMain
+				m.cursor = 0
+				m.choices = screens.MainMenuChoices
+				return m, nil
+
+			case screens.ScreenVerify:
+				// Back to main menu (like selecting "Back")
+				m.screen = screens.ScreenMain
+				m.cursor = 0
+				m.choices = screens.MainMenuChoices
+				return m, nil
+
+			case screens.ScreenRestoreSettings:
+				// Back to main menu (like selecting "Back")
+				m.screen = screens.ScreenMain
+				m.cursor = 0
+				m.choices = screens.MainMenuChoices
+				return m, nil
+
+			case screens.ScreenAbout:
+				// Back to main menu
+				m.screen = screens.ScreenMain
+				m.cursor = 0
+				m.choices = screens.MainMenuChoices
+				return m, nil
+
+			case screens.ScreenRestoreOptions:
+				// Back to restore menu (like selecting "Back")
+				m.screen = screens.ScreenRestore
+				m.cursor = 0
+				m.choices = screens.RestoreMenuChoices
+				m.restoreOptionsConfigured = false
+				return m, nil
+
+			case screens.ScreenDriveSelect:
+				// Back to previous menu based on operation
+				if strings.Contains(m.operation, "backup") {
+					if m.operation == "home_backup" {
+						m.screen = screens.ScreenBackup
+						m.choices = screens.BackupMenuChoices
+					} else {
+						m.screen = screens.ScreenBackup
+						m.choices = screens.BackupMenuChoices
+					}
+				} else if strings.Contains(m.operation, "restore") {
+					m.screen = screens.ScreenRestoreOptions
+					m.choices = screens.RestoreOptionsChoices
+				} else if strings.Contains(m.operation, "verify") {
+					m.screen = screens.ScreenVerify
+					m.choices = screens.VerifyMenuChoices
+				} else {
+					m.screen = screens.ScreenMain
+					m.choices = screens.MainMenuChoices
+				}
+				m.cursor = 0
+				return m, nil
+
+			case screens.ScreenHomeFolderSelect:
+				// Back to backup menu
+				m.screen = screens.ScreenBackup
+				m.cursor = 0
+				m.choices = screens.BackupMenuChoices
+				// Reset folder selections
+				m.selectedFolders = make(map[string]bool)
+				m.totalBackupSize = 0
+				return m, nil
+
+			case screens.ScreenHomeSubfolderSelect:
+				// Back to parent folder view
+				m.currentFolderPath = ""
+				m.folderBreadcrumb = []string{}
+				m.screen = screens.ScreenHomeFolderSelect
+				m.cursor = 0
+				m.message = ""
+				return m, nil
+
+			case screens.ScreenRestoreFolderSelect:
+				// Back to restore options
+				m.screen = screens.ScreenRestoreOptions
+				m.cursor = 0
+				m.choices = screens.RestoreOptionsChoices
+				m.selectedRestoreFolders = make(map[string]bool)
+				m.totalRestoreSize = 0
+				return m, nil
+
+			case screens.ScreenConfirm:
+				// Back to main menu (safest option for confirmation screens)
+				resetBackupState()
+				m.screen = screens.ScreenMain
+				m.cursor = 0
+				m.choices = screens.MainMenuChoices
+				m.confirmation = ""
+				return m, nil
+
+			case screens.ScreenError:
+				// Any key dismisses error screen and returns to main menu
+				resetBackupState()
+				m.screen = screens.ScreenMain
+				m.message = ""
+				m.cursor = 0
+				m.choices = screens.MainMenuChoices
+				m.errorRequiresManualDismissal = false
+				m.restoreOptionsConfigured = false
+				return m, nil
+
+			case screens.ScreenComplete:
+				// Any key dismisses completion screen and returns to main menu
+				resetBackupState()
+				m.screen = screens.ScreenMain
+				m.message = ""
+				m.cursor = 0
+				m.choices = screens.MainMenuChoices
+				m.restoreOptionsConfigured = false
+				return m, nil
+
+			case screens.ScreenVerificationErrors:
+				// Back to main menu
+				resetBackupState()
+				m.screen = screens.ScreenMain
+				m.cursor = 0
+				m.choices = screens.MainMenuChoices
+				m.verificationErrors = []string{}
+				m.errorScrollOffset = 0
+				return m, nil
+
+			case screens.ScreenProgress:
+				// ESC during progress should cancel operation (like Ctrl+C)
+				m.canceling = true
+				m.message = "Canceling operation... Please wait for cleanup to complete."
+				CancelBackup()
+				return m, nil
+
+			default:
+				// Fallback: go to main menu
+				resetBackupState()
+				m.screen = screens.ScreenMain
+				m.cursor = 0
+				m.choices = screens.MainMenuChoices
+				m.restoreOptionsConfigured = false
+			}
+			return m, nil
+
+		case "up", "k":
+			if m.screen == screens.ScreenConfirm {
+				if m.cursor > 0 {
+					m.cursor--
+				}
+			} else if m.screen == screens.ScreenVerificationErrors {
+				// Scroll up in verification errors list
+				if m.errorScrollOffset > 0 {
+					m.errorScrollOffset--
+				}
+				return m, nil
+			} else if m.screen == screens.ScreenMain {
+				// Main menu: wrap around navigation
+				if m.cursor > 0 {
+					m.cursor--
+				} else {
+					m.cursor = len(m.choices) - 1 // Wrap to bottom
+				}
+			} else if m.screen == screens.ScreenHomeFolderSelect {
+				// Home folder selection: NEW LAYOUT with controls at top
+				// Cursor 0-1: Controls (Continue, Back)
+				// Cursor 2+: Folders (non-empty only)
+				numControls := 2
+				visibleFolders := m.getVisibleFoldersNonEmpty()
+				maxCursor := numControls + len(visibleFolders) - 1
+				if m.cursor > 0 {
+					m.cursor--
+				} else {
+					m.cursor = maxCursor // Wrap to bottom
+				}
+			} else if m.screen == screens.ScreenHomeSubfolderSelect {
+				// NEW: Subfolder selection navigation
+				// Cursor 0-1: Controls (Continue, Back)
+				// Cursor 2+: Subfolders (non-empty only)
+				numControls := 2
+				subfolders := m.getCurrentSubfolders()
+				maxCursor := numControls + len(subfolders) - 1
+				if m.cursor > 0 {
+					m.cursor--
+				} else {
+					m.cursor = maxCursor // Wrap to bottom
+				}
+			} else if m.screen == screens.ScreenRestoreFolderSelect {
+				// Restore folder selection navigation (FIXED: Separate config and folders)
+				numControls := 2    // Continue, Back
+				numConfigItems := 2 // Configuration, Window Managers
+				visibleFolders := m.getVisibleRestoreFolders()
+				maxCursor := numControls + numConfigItems + len(visibleFolders) - 1
+				if m.cursor > 0 {
+					m.cursor--
+				} else {
+					m.cursor = maxCursor // Wrap to bottom
+				}
+			} else if m.cursor > 0 {
+				m.cursor--
+			}
+			return m, nil
+
+		case "down", "j":
+			if m.screen == screens.ScreenConfirm {
+				if m.cursor < 1 {
+					m.cursor++
+				}
+			} else if m.screen == screens.ScreenVerificationErrors {
+				// Scroll down in verification errors list
+				contentHeight := m.height - 10 // Match the UI calculation
+				contentHeight = max(contentHeight, 3)
+				// Cap at 12 to match the display limit in renderVerificationErrors
+				contentHeight = min(contentHeight, 12)
+				maxScrollOffset := len(m.verificationErrors) - contentHeight
+				if maxScrollOffset > 0 && m.errorScrollOffset < maxScrollOffset {
+					m.errorScrollOffset++
+				}
+				return m, nil
+			} else if m.screen == screens.ScreenMain {
+				// Main menu: wrap around navigation
+				if m.cursor < len(m.choices)-1 {
+					m.cursor++
+				} else {
+					m.cursor = 0 // Wrap to top
+				}
+			} else if m.screen == screens.ScreenHomeFolderSelect {
+				// Home folder selection: NEW LAYOUT with controls at top
+				// Cursor 0-1: Controls (Continue, Back)
+				// Cursor 2+: Folders (non-empty only)
+				numControls := 2
+				visibleFolders := m.getVisibleFoldersNonEmpty()
+				maxCursor := numControls + len(visibleFolders) - 1
+				if m.cursor < maxCursor {
+					m.cursor++
+				} else {
+					m.cursor = 0 // Wrap to top
+				}
+			} else if m.screen == screens.ScreenHomeSubfolderSelect {
+				// NEW: Subfolder selection navigation
+				// Cursor 0-1: Controls (Continue, Back)
+				// Cursor 2+: Subfolders (non-empty only)
+				numControls := 2
+				subfolders := m.getCurrentSubfolders()
+				maxCursor := numControls + len(subfolders) - 1
+				if m.cursor < maxCursor {
+					m.cursor++
+				} else {
+					m.cursor = 0 // Wrap to top
+				}
+			} else if m.screen == screens.ScreenRestoreFolderSelect {
+				// Restore folder selection navigation (FIXED: Separate config and folders)
+				numControls := 2    // Continue, Back
+				numConfigItems := 2 // Configuration, Window Managers
+				visibleFolders := m.getVisibleRestoreFolders()
+				maxCursor := numControls + numConfigItems + len(visibleFolders) - 1
+				if m.cursor < maxCursor {
+					m.cursor++
+				} else {
+					m.cursor = 0 // Wrap to top
+				}
+			} else if m.cursor < len(m.choices)-1 {
+				m.cursor++
+			}
+			return m, nil
+
+		case "enter":
+			return m.handleSelection()
+
+		case " ":
+			// SPACE: Toggle folder selection
+			if m.screen == screens.ScreenHomeFolderSelect {
+				numControls := 2
+				if m.cursor >= numControls {
+					folderIndex := m.cursor - numControls
+					visibleFolders := m.getVisibleFoldersNonEmpty()
+					if folderIndex < len(visibleFolders) {
+						folder := visibleFolders[folderIndex]
+
+						// Use smart toggle for folders with subfolders, simple toggle for others
+						if folder.HasSubfolders {
+							m.toggleParentFolder(folder)
+						} else {
+							m.selectedFolders[folder.Path] = !m.selectedFolders[folder.Path]
+						}
+
+						m.calculateTotalBackupSize()
+						m.autoSaveSelections()
+					}
+				}
+			} else if m.screen == screens.ScreenRestoreFolderSelect {
+				numControls := 2
+				numConfigItems := 2
+				if m.cursor >= numControls+numConfigItems {
+					folderIndex := m.cursor - numControls - numConfigItems
+					visibleFolders := m.getVisibleRestoreFolders()
+					if folderIndex < len(visibleFolders) {
+						folder := visibleFolders[folderIndex]
+						if !folder.AlwaysInclude {
+							m.selectedRestoreFolders[folder.Path] = !m.selectedRestoreFolders[folder.Path]
+							m.calculateTotalRestoreSize()
+						}
+					}
+				}
+			}
+			return m, nil
+
+		case "a", "A":
+			if m.screen == screens.ScreenHomeFolderSelect {
+				// Select all visible folders
+				for _, folder := range m.homeFolders {
+					if folder.IsVisible {
+						m.selectedFolders[folder.Path] = true
+					}
+				}
+				m.calculateTotalBackupSize()
+			} else if m.screen == screens.ScreenRestoreFolderSelect {
+				// Select all visible folders for restore
+				for _, folder := range m.restoreFolders {
+					if folder.IsVisible && !folder.AlwaysInclude {
+						m.selectedRestoreFolders[folder.Path] = true
+					}
+				}
+				m.calculateTotalRestoreSize()
+			}
+			return m, nil
+
+		case "n", "N", "x", "X":
+			if m.screen == screens.ScreenHomeFolderSelect {
+				// Deselect all visible folders
+				for _, folder := range m.homeFolders {
+					if folder.IsVisible {
+						m.selectedFolders[folder.Path] = false
+					}
+				}
+				m.calculateTotalBackupSize()
+			} else if m.screen == screens.ScreenRestoreFolderSelect {
+				// Deselect all visible folders for restore
+				for _, folder := range m.restoreFolders {
+					if folder.IsVisible && !folder.AlwaysInclude {
+						m.selectedRestoreFolders[folder.Path] = false
+					}
+				}
+				m.calculateTotalRestoreSize()
+			}
+			return m, nil
+
+		case "pgup":
+			if m.screen == screens.ScreenVerificationErrors {
+				// Page up in verification errors list
+				contentHeight := m.height - 10 // Match the UI calculation
+				contentHeight = max(contentHeight, 3)
+				// Cap at 12 to match the display limit in renderVerificationErrors
+				contentHeight = min(contentHeight, 12)
+				m.errorScrollOffset -= contentHeight
+				if m.errorScrollOffset < 0 {
+					m.errorScrollOffset = 0
+				}
+			}
+			return m, nil
+
+		case "pgdown":
+			if m.screen == screens.ScreenVerificationErrors {
+				// Page down in verification errors list
+				contentHeight := m.height - 10 // Match the UI calculation
+				contentHeight = max(contentHeight, 3)
+				// Cap at 12 to match the display limit in renderVerificationErrors
+				contentHeight = min(contentHeight, 12)
+				maxScrollOffset := len(m.verificationErrors) - contentHeight
+				if maxScrollOffset > 0 {
+					m.errorScrollOffset += contentHeight
+					if m.errorScrollOffset > maxScrollOffset {
+						m.errorScrollOffset = maxScrollOffset
+					}
+				}
+			}
+			return m, nil
+
+		case "home":
+			if m.screen == screens.ScreenVerificationErrors {
+				// Jump to top of error list
+				m.errorScrollOffset = 0
+			}
+			return m, nil
+
+		case "end":
+			if m.screen == screens.ScreenVerificationErrors {
+				// Jump to bottom of error list
+				contentHeight := m.height - 10 // Match the UI calculation
+				contentHeight = max(contentHeight, 3)
+				// Cap at 12 to match the display limit in renderVerificationErrors
+				contentHeight = min(contentHeight, 12)
+				maxScrollOffset := len(m.verificationErrors) - contentHeight
+				if maxScrollOffset > 0 {
+					m.errorScrollOffset = maxScrollOffset
+				}
+			}
+			return m, nil
+		}
+	}
+
+	return m, nil
+}
+
+// handleSelection processes menu selections and handles screen transitions.
+// This method implements the navigation logic for all interactive screens,
+// managing state changes and initiating background operations as needed.
+
+// handleMainMenuSelection handles selection logic for the main menu screen
+// handleMainMenuSelection processes main menu selections and transitions to appropriate screens.
+func (m Model) handleMainMenuSelection() (tea.Model, tea.Cmd) {
+	// Log main menu selection
+	if logPath := getLogFilePath(); logPath != "" {
+
+	}
+	handler := handlers.NewMainMenuHandler(m.privilege)
+	screen, operation, choices, cmd := handler.HandleSelection(m.cursor)
+
+	m.screen = screen
+	if operation != "" {
+		m.operation = operation
+	}
+	if choices != nil {
+		m.choices = choices
+		m.cursor = 0
+	}
+
+	// Log the result of main menu selection
+	if logPath := getLogFilePath(); logPath != "" {
+
+	}
+
+	if cmd != nil {
+		return m, cmd
+	}
+	return m, nil
+}
+
+// handleBackupMenuSelection handles selection logic for the backup menu screen
+// handleBackupMenuSelection processes backup menu selections and transitions to appropriate screens.
+func (m Model) handleBackupMenuSelection() (tea.Model, tea.Cmd) {
+	handler := handlers.NewBackupMenuHandler(m.privilege)
+	screen, operation, choices, _ := handler.HandleSelection(m.cursor)
+
+	m.screen = screen
+	if operation != "" {
+		m.operation = operation
+	}
+	if choices != nil {
+		m.choices = choices
+		m.cursor = 0
+	}
+
+	// Execute the appropriate command based on the screen set by handler
+	if m.screen == screens.ScreenHomeFolderSelect {
+		// Start both scanning and progress updates
+		return m, tea.Batch(DiscoverHomeFoldersCmd(), ScanProgressCmd())
+	} else if m.screen == screens.ScreenDriveSelect {
+		return m, LoadDrives()
+	}
+
+	return m, nil
+}
+
+// handleRestoreMenuSelection handles selection logic for the restore menu screen
+func (m Model) handleRestoreMenuSelection() (tea.Model, tea.Cmd) {
+	// Log restore menu selection
+	if logPath := getLogFilePath(); logPath != "" {
+
+	}
+
+	handler := handlers.NewRestoreMenuHandler()
+	screen, operation, choices, _ := handler.HandleSelection(m.cursor)
+
+	m.screen = screen
+	if operation != "" {
+		m.operation = operation
+	}
+	if choices != nil {
+		m.choices = choices
+		m.cursor = 0
+	}
+
+	// Log the result of restore menu selection
+	if logPath := getLogFilePath(); logPath != "" {
+
+	}
+
+	// Since we go directly to drive selection now, load drives
+	if screen == screens.ScreenDriveSelect {
+		return m, LoadDrives()
+	}
+
+	return m, nil
+}
+
+// handleRestoreSettingsMenuSelection handles restore settings menu selections
+func (m Model) handleRestoreSettingsMenuSelection() (tea.Model, tea.Cmd) {
+	// Log restore settings menu selection
+	if logPath := getLogFilePath(); logPath != "" {
+
+	}
+
+	handler := handlers.NewRestoreSettingsMenuHandler()
+	screen, operation, choices, _ := handler.HandleSelection(m.cursor)
+
+	m.screen = screen
+	if operation != "" {
+		m.operation = operation
+	}
+	if choices != nil {
+		m.choices = choices
+		m.cursor = 0
+	}
+
+	// Log the result of restore settings menu selection
+	if logPath := getLogFilePath(); logPath != "" {
+
+	}
+
+	// Since we go directly to drive selection for settings restore, load drives
+	if screen == screens.ScreenDriveSelect {
+		return m, LoadDrives()
+	}
+
+	return m, nil
+}
+
+// handleRestoreFolderSelection handles folder selection for selective restore
+func (m Model) handleRestoreFolderSelection() (tea.Model, tea.Cmd) {
+	numControls := 2    // Continue, Back
+	numConfigItems := 2 // Configuration, Window Managers
+	visibleFolders := m.getVisibleRestoreFolders()
+
+	if m.cursor == 0 {
+		// Continue button - proceed with restore
+		if m.totalRestoreSize == 0 && !m.restoreConfig && !m.restoreWindowMgrs {
+			m.message = "⚠️ Please select at least one item to restore (folders or configuration)"
+			return m, nil
+		}
+
+		// CRITICAL SPACE CHECK: Verify target partition has enough space BEFORE confirmation
+		// For home restores, check /home partition instead of root partition
+		// Use the new selective space checking function that only counts selected items
+		err := checkSelectiveRestoreSpaceRequirements(m.restoreFolders, m.selectedRestoreFolders, m.restoreConfig, m.restoreWindowMgrs, "/home")
+		if err != nil {
+			// Show the space error immediately - don't proceed to confirmation
+			m.message = err.Error()
+			m.errorRequiresManualDismissal = true
+			m.lastScreen = m.screen
+			m.screen = screens.ScreenError
+			return m, nil
+		}
+
+		// Space check passed - proceed to confirmation
+		// Go directly to confirmation since everything is on one screen now
+		restoreTypeDesc := "HOME DIRECTORY"
+
+		// Build summary of what will be restored
+		var restoreItems []string
+		if m.restoreConfig {
+			restoreItems = append(restoreItems, "✅ Configuration (~/.config)")
+		}
+		if m.restoreWindowMgrs {
+			restoreItems = append(restoreItems, "✅ Window Managers")
+		}
+
+		selectedFolders := 0
+		for _, folder := range visibleFolders {
+			if m.selectedRestoreFolders[folder.Path] {
+				selectedFolders++
+			}
+		}
+		if selectedFolders > 0 {
+			restoreItems = append(restoreItems, fmt.Sprintf("✅ %d selected folders", selectedFolders))
+		}
+
+		var itemsList string
+		if len(restoreItems) > 0 {
+			itemsList = "Items to restore:\n" + strings.Join(restoreItems, "\n") + "\n\n"
+		}
+
+		// Calculate total size including config estimates
+		totalSize := m.totalRestoreSize
+		if m.restoreConfig {
+			totalSize += 100 * 1024 * 1024 // ~100MB estimate
+		}
+		if m.restoreWindowMgrs {
+			totalSize += 50 * 1024 * 1024 // ~50MB estimate
+		}
+
+		m.confirmation = fmt.Sprintf("Ready to restore %s\n\n%sTotal size: %s\nSource: %s\n\n⚠️ This will OVERWRITE existing files!\n\nProceed with restore?",
+			restoreTypeDesc, itemsList, FormatBytes(totalSize), m.selectedDrive)
+
+		m.screen = screens.ScreenConfirm
+		m.cursor = 0
+		return m, nil
+
+	} else if m.cursor == 1 {
+		// Back button - go back to restore menu and clear all restore state
+		m.screen = screens.ScreenRestore
+		m.cursor = 0
+		m.choices = screens.RestoreMenuChoices
+		// Clear all restore state to prevent navigation issues
+		m.selectedRestoreFolders = make(map[string]bool)
+		m.restoreFolders = nil
+		m.totalRestoreSize = 0
+		m.restoreConfig = false
+		m.restoreWindowMgrs = false
+		m.restoreOptionsConfigured = false
+		m.operation = ""
+		m.selectedDrive = ""
+		m.message = ""
+		return m, nil
+
+	} else if m.cursor >= numControls && m.cursor < numControls+numConfigItems {
+		// Config item selection
+		configIndex := m.cursor - numControls
+		if configIndex == 0 {
+			// Configuration
+			m.restoreConfig = !m.restoreConfig
+		} else if configIndex == 1 {
+			// Window Managers
+			m.restoreWindowMgrs = !m.restoreWindowMgrs
+		}
+		m.calculateTotalRestoreSize()
+
+	} else if m.cursor >= numControls+numConfigItems {
+		// Folder selection
+		folderIndex := m.cursor - numControls - numConfigItems
+
+		if folderIndex >= 0 && folderIndex < len(visibleFolders) {
+			folder := visibleFolders[folderIndex]
+			if !folder.AlwaysInclude {
+				m.selectedRestoreFolders[folder.Path] = !m.selectedRestoreFolders[folder.Path]
+				m.calculateTotalRestoreSize()
+			}
+		}
+	}
+
+	return m, nil
+}
+
+// handleVerifyMenuSelection handles selection logic for the verify menu screen
+func (m Model) handleVerifyMenuSelection() (tea.Model, tea.Cmd) {
+	switch m.cursor {
+	case 0: // Auto-detect backup type and verify
+		m.operation = "auto_verify"
+		// Go to drive selection for backup source
+		m.screen = screens.ScreenDriveSelect
+		m.cursor = 0
+		return m, LoadDrives()
+	case 1: // Back
+		m.screen = screens.ScreenMain
+		m.choices = screens.MainMenuChoices
+		m.cursor = 0
+	}
+	return m, nil
+}
+
+func (m Model) handleSelection() (tea.Model, tea.Cmd) {
+	switch m.screen {
+	case screens.ScreenMain:
+		return m.handleMainMenuSelection()
+	case screens.ScreenBackup:
+		return m.handleBackupMenuSelection()
+	case screens.ScreenRestore:
+		return m.handleRestoreMenuSelection()
+	case screens.ScreenRestoreSettings:
+		return m.handleRestoreSettingsMenuSelection()
+	case screens.ScreenRestoreFolderSelect:
+		return m.handleRestoreFolderSelection()
+	case screens.ScreenVerify:
+		return m.handleVerifyMenuSelection()
+	case screens.ScreenConfirm:
+		switch m.cursor {
+		case 0: // Yes
+			switch m.operation {
+			case "unmount_backup":
+				// For unmount, don't transition to progress screen - handle the response directly
+				return m, PerformBackupUnmount()
+			default:
+				// Clear all state and transition to progress for other operations
+				m.screen = screens.ScreenProgress
+				m.progress = 0
+				m.message = "Starting operation..."
+				m.confirmation = "" // Clear confirmation text
+
+				// Start the actual operation
+				switch m.operation {
+				case "system_backup":
+					// System backup - use universal backup system
+					return m, tea.Batch(
+						startUniversalBackup(m.operation, m.selectedDrive, nil, nil),
+						CheckTUIBackupProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				case "home_backup":
+					// SAVE SELECTIONS BEFORE BACKUP: Persist user's folder choices
+					err := SaveSelectiveBackupConfig(m.selectedFolders, m.subfolderCache, m.currentFolderPath, m.folderBreadcrumb)
+					if err != nil {
+						// Log error but continue with backup
+						m.message = fmt.Sprintf("⚠️ Failed to save folder preferences: %v", err)
+					}
+
+					// Home backup - use universal backup system for selective home backup
+					return m, tea.Batch(
+						startUniversalBackup("selective_home_backup", m.selectedDrive, m.selectedFolders, m.homeFolders),
+						CheckTUIBackupProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				case "settings_backup":
+					return m, tea.Batch(
+						startSettingsBackup(m.selectedDrive),
+						CheckTUIBackupProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				case "system_restore":
+					// CRITICAL BUG FIX: Only call startRestore for actual system backups
+					// Check if we have selected restore folders (means it's a home backup with selections)
+					if len(m.selectedRestoreFolders) > 0 {
+						// This is actually a selective restore from a home backup - use selective space checking
+						// Check /home partition for home restores
+						err := checkSelectiveRestoreSpaceRequirements(m.restoreFolders, m.selectedRestoreFolders, m.restoreConfig, m.restoreWindowMgrs, "/home")
+						if err != nil {
+							// Show the space error immediately - don't proceed with restore
+							m.message = err.Error()
+							m.errorRequiresManualDismissal = true
+							m.lastScreen = m.screen
+							m.screen = screens.ScreenError
+							return m, nil
+						}
+						// Space check passed - proceed with selective restore (NOT startRestore!)
+						return m, startSelectiveRestore(m.selectedDrive, m.selectedRestoreFolders, m.restoreFolders, m.restoreConfig, m.restoreWindowMgrs)
+					} else {
+						// This is a true system restore from a system backup - use full backup space checking
+						// Check root partition for system restores
+						err := checkRestoreSpaceRequirements("", m.selectedDrive, "/")
+						if err != nil {
+							// Show the space error immediately - don't proceed with restore
+							m.message = err.Error()
+							m.errorRequiresManualDismissal = true
+							m.lastScreen = m.screen
+							m.screen = screens.ScreenError
+							return m, nil
+						}
+						// Space check passed - proceed with full system restore to root ("/")
+						return m, startRestore(m.selectedDrive, "/", m.restoreConfig, m.restoreWindowMgrs)
+					}
+				case "home_restore":
+					// NEW: Handle home_restore explicitly - this should always do selective restore
+					// Space check already done in handleRestoreFolderSelection before confirmation
+					return m, tea.Batch(
+						startSelectiveRestore(m.selectedDrive, m.selectedRestoreFolders, m.restoreFolders, m.restoreConfig, m.restoreWindowMgrs),
+						CheckTUIBackupProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				case "settings_restore":
+					targetPath := "/etc"
+					if m.privilege != platform.PrivRoot {
+						homeDir, err := os.UserHomeDir()
+						if err != nil {
+							m.message = fmt.Sprintf("Error resolving home directory: %v", err)
+							return m, nil
+						}
+						targetPath = filepath.Join(homeDir, "migrate-restored-etc")
+					}
+					return m, tea.Batch(
+						startRestore(m.selectedDrive, targetPath, false, false),
+						CheckTUIBackupProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				case "custom_restore":
+					return m, startRestore(m.selectedDrive, "/tmp/restore", m.restoreConfig, m.restoreWindowMgrs)
+				case "system_verify":
+					// System verification
+					return m, tea.Batch(
+						startVerification(m.operation, m.selectedDrive),
+						CheckTUIBackupProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				case "home_verify":
+					// Home directory verification
+					return m, tea.Batch(
+						startVerification(m.operation, m.selectedDrive),
+						CheckTUIBackupProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				case "auto_verify":
+					// Auto-detection verification
+					return m, tea.Batch(
+						startVerification(m.operation, m.selectedDrive),
+						CheckTUIBackupProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				case "config_restore":
+					// Restore only .config directory
+					return m, tea.Batch(
+						startConfigRestore(m.selectedDrive),
+						CheckTUIBackupProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				case "local_restore":
+					// Restore only .local directory
+					return m, tea.Batch(
+						startLocalRestore(m.selectedDrive),
+						CheckTUIBackupProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				default:
+					// Fallback - use universal backup system
+					return m, startUniversalBackup(m.operation, m.selectedDrive, nil, nil)
+				}
+			}
+		case 1: // No
+			// Store the operation type before clearing
+			wasUnmountOp := (m.operation == "unmount_backup")
+
+			// Clear state and return to main menu
+			resetBackupState() // Reset all backup state
+			m.confirmation = ""
+			m.operation = ""
+			m.selectedDrive = ""
+			m.progress = 0
+			m.screen = screens.ScreenMain
+			m.choices = screens.MainMenuChoices
+			m.cursor = 0
+			m.restoreOptionsConfigured = false // Reset restore flow state
+
+			// Set appropriate message
+			if wasUnmountOp {
+				m.message = "ℹ️  Backup drive left mounted at current location"
+			} else {
+				m.message = ""
+			}
+		}
+	case screens.ScreenAbout:
+		resetBackupState() // Reset state when returning from about screen
+		m.screen = screens.ScreenMain
+		m.choices = screens.MainMenuChoices
+		m.cursor = 0
+	case screens.ScreenHomeFolderSelect:
+		// NEW LAYOUT: Controls first (0-1), then folders (2+)
+		numControls := 2
+
+		if m.cursor < numControls {
+			// Handle control selection
+			switch m.cursor {
+			case 0: // "Continue" option - go to drive selection
+				// SAVE SELECTIONS: Persist user's folder choices when they continue
+				err := SaveSelectiveBackupConfig(m.selectedFolders, m.subfolderCache, m.currentFolderPath, m.folderBreadcrumb)
+				if err != nil {
+					m.message = fmt.Sprintf("⚠️ Failed to save preferences: %v", err)
+					// Continue anyway after brief display
+					return m, tea.Tick(2*time.Second, func(t time.Time) tea.Msg {
+						return tea.KeyMsg{Type: tea.KeyEnter} // Retry continue
+					})
+				}
+
+				// Clear any scanning progress messages
+				m.message = ""
+				m.screen = screens.ScreenDriveSelect
+				m.cursor = 0
+				return m, LoadDrives()
+			case 1: // "Back" option
+				m.screen = screens.ScreenBackup
+				m.choices = screens.BackupMenuChoices
+				m.cursor = 0
+			}
+		} else {
+			// Handle folder selection (cursor >= 2)
+			folderIndex := m.cursor - numControls
+			visibleFolders := m.getVisibleFoldersNonEmpty()
+
+			if folderIndex < len(visibleFolders) {
+				folder := visibleFolders[folderIndex]
+
+				// NEW: Check if this folder has subfolders and can be drilled down
+				if folder.HasSubfolders {
+					// Check if we already have this folder cached
+					if _, exists := m.subfolderCache[folder.Path]; exists {
+						// Use cached data - switch directly to subfolder screen
+						m.currentFolderPath = folder.Path
+						m.folderBreadcrumb = []string{"Home", folder.Name}
+						m.screen = screens.ScreenHomeSubfolderSelect
+						m.cursor = 0
+					} else {
+						// Need to discover subfolders first
+						m.message = fmt.Sprintf("🔍 Scanning %s...", folder.Name)
+						return m, DiscoverSubfoldersCmd(folder.Path)
+					}
+				} else {
+					// No subfolders - use smart toggle selection
+					m.toggleParentFolder(folder)
+
+					// Recalculate total backup size
+					m.calculateTotalBackupSize()
+
+					// Auto-save after folder toggle
+					m.autoSaveSelections()
+				}
+			}
+		}
+	case screens.ScreenHomeSubfolderSelect:
+		// NEW: Subfolder selection handling
+		numControls := 2
+
+		if m.cursor < numControls {
+			// Handle control selection
+			switch m.cursor {
+			case 0: // "Continue" option - go to drive selection
+				// SAVE SELECTIONS: Persist user's folder choices when they continue from subfolders
+				err := SaveSelectiveBackupConfig(m.selectedFolders, m.subfolderCache, m.currentFolderPath, m.folderBreadcrumb)
+				if err != nil {
+					m.message = fmt.Sprintf("⚠️ Failed to save preferences: %v", err)
+					// Continue anyway after brief display
+					return m, tea.Tick(2*time.Second, func(t time.Time) tea.Msg {
+						return tea.KeyMsg{Type: tea.KeyEnter} // Retry continue
+					})
+				}
+
+				m.screen = screens.ScreenDriveSelect
+				m.cursor = 0
+				return m, LoadDrives()
+			case 1: // "Back" option - return to parent folder view
+				// Reset navigation state and return to main folder view
+				m.currentFolderPath = ""
+				m.folderBreadcrumb = []string{}
+				m.screen = screens.ScreenHomeFolderSelect
+				m.cursor = 0
+				// Clear any temporary messages
+				m.message = ""
+			}
+		} else {
+			// Handle subfolder selection (cursor >= 2)
+			subfolderIndex := m.cursor - numControls
+			subfolders := m.getCurrentSubfolders()
+
+			if subfolderIndex < len(subfolders) {
+				// Toggle subfolder selection
+				subfolder := subfolders[subfolderIndex]
+				m.selectedFolders[subfolder.Path] = !m.selectedFolders[subfolder.Path]
+
+				// NEW: Update parent folder selection state based on subfolder changes
+				m.updateParentSelectionState(m.currentFolderPath)
+
+				// Recalculate total backup size
+				m.calculateTotalBackupSize()
+
+				// Auto-save after subfolder toggle
+				m.autoSaveSelections()
+			}
+		}
+	case screens.ScreenDriveSelect:
+		// Log drive selection screen handling
+		if logPath := getLogFilePath(); logPath != "" {
+
+		}
+		if m.cursor < len(m.drives) {
+			selectedDrive := m.drives[m.cursor]
+			m.selectedDrive = selectedDrive.Device
+
+			// Log the selected drive
+			if logPath := getLogFilePath(); logPath != "" {
+
+			}
+
+			// IMMEDIATE FEEDBACK: Show mounting message
+			m.message = "🔧 Mounting drive and checking space..."
+
+			// Check the operation type
+			if strings.Contains(m.operation, "backup") {
+				// DEBUG: Log operation type for debugging space check issue
+				if logPath := getLogFilePath(); logPath != "" {
+					if logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644); err == nil {
+						fmt.Fprintf(logFile, "DEBUG SPACE CHECK: operation='%s', homeFolders=%d, selectedFolders=%d\n",
+							m.operation, len(m.homeFolders), len(m.selectedFolders))
+						logFile.Close()
+					}
+				}
+
+				// For backup: mount drive for destination with appropriate space check
+				if m.operation == "home_backup" {
+					// FIXED: Pass selected folders for accurate space checking
+					return m, mountDriveForSelectiveHomeBackup(selectedDrive, m.homeFolders, m.selectedFolders, m.subfolderCache)
+				} else {
+					return m, mountDriveForBackup(selectedDrive)
+				}
+			} else if strings.Contains(m.operation, "restore") {
+				// For restore: mount drive for source backup
+				if logPath := getLogFilePath(); logPath != "" {
+
+				}
+				return m, mountDriveForRestore(selectedDrive)
+			} else if strings.Contains(m.operation, "verify") {
+				// For verify: mount drive for source backup (read-only)
+				return m, mountDriveForVerification(selectedDrive)
+			} else {
+				// Fallback: regular mounting
+				return m, mountSelectedDrive(selectedDrive)
+			}
+		} else {
+			// Back option
+			if strings.Contains(m.operation, "backup") {
+				// Go back to backup menu
+				m.screen = screens.ScreenBackup
+				m.choices = screens.BackupMenuChoices
+			} else if strings.Contains(m.operation, "restore") {
+				// Go back to restore menu
+				m.screen = screens.ScreenRestore
+				m.choices = screens.RestoreMenuChoices
+			} else if strings.Contains(m.operation, "verify") {
+				// Go back to verify menu
+				m.screen = screens.ScreenVerify
+				m.choices = screens.VerifyMenuChoices
+			} else {
+				// Go back to main menu
+				m.screen = screens.ScreenMain
+				m.choices = screens.MainMenuChoices
+			}
+			m.cursor = 0
+		}
+	case screens.ScreenRestoreOptions:
+		switch m.cursor {
+		case 0: // Toggle Restore Configuration
+			m.restoreConfig = !m.restoreConfig
+			// Update the visual indicator
+			if m.restoreConfig {
+				m.choices[0] = "☑️ Restore Configuration (~/.config)"
+			} else {
+				m.choices[0] = "☐ Restore Configuration (~/.config)"
+			}
+		case 1: // Toggle Restore Window Managers
+			m.restoreWindowMgrs = !m.restoreWindowMgrs
+			// Update the visual indicator
+			if m.restoreWindowMgrs {
+				m.choices[1] = "☑️ Restore Window Managers (Hyprland, GNOME, etc.)"
+			} else {
+				m.choices[1] = "☐ Restore Window Managers (Hyprland, GNOME, etc.)"
+			}
+		case 2: // Continue
+			// Mark that restore options have been configured
+			m.restoreOptionsConfigured = true
+			// Go to drive selection with the configured options
+			m.screen = screens.ScreenDriveSelect
+			m.cursor = 0
+			return m, LoadDrives()
+		case 3: // Back
+			m.screen = screens.ScreenRestore
+			m.choices = screens.RestoreMenuChoices
+			m.cursor = 0
+		}
+	}
+	return m, nil
+}
+
+// calculateTotalBackupSize computes the total size of all selected folders for backup.
+// This includes both user-selected visible folders and automatically included hidden folders.
+// FIXED: Now properly handles hierarchical selections - when subfolders are individually
+// selected, uses their specific sizes instead of the parent folder's total size.
+// The result is stored in m.totalBackupSize for display and space validation.
+func (m *Model) calculateTotalBackupSize() {
+	m.totalBackupSize = 0
+
+	// Track which parent folders have been processed to avoid double-counting
+	processedParents := make(map[string]bool)
+
+	for _, folder := range m.homeFolders {
+		if folder.AlwaysInclude {
+			// Hidden folders are always included (dotfiles/dotdirs)
+			m.totalBackupSize += folder.Size
+		} else if folder.IsVisible {
+			// NEW: Handle visible folders with potential subfolders
+			if folder.HasSubfolders {
+				// Check if any subfolders are cached (user has drilled down)
+				if subfolders, exists := m.subfolderCache[folder.Path]; exists {
+					// User has drilled down - calculate based on individual subfolder selections
+					subfolderTotal := int64(0)
+					anySubfolderSelected := false
+
+					for _, subfolder := range subfolders {
+						if subfolder.Size > 0 && m.selectedFolders[subfolder.Path] {
+							subfolderTotal += subfolder.Size
+							anySubfolderSelected = true
+						}
+					}
+
+					// Only add subfolders if at least one is selected
+					if anySubfolderSelected {
+						m.totalBackupSize += subfolderTotal
+					}
+					processedParents[folder.Path] = true
+				} else {
+					// No subfolders cached - use parent folder selection
+					if m.selectedFolders[folder.Path] {
+						m.totalBackupSize += folder.Size
+					}
+					processedParents[folder.Path] = true
+				}
+			} else {
+				// No subfolders - use parent folder selection directly
+				if m.selectedFolders[folder.Path] {
+					m.totalBackupSize += folder.Size
+				}
+				processedParents[folder.Path] = true
+			}
+		}
+	}
+
+	// ADDITIONAL: Add any individually selected subfolders whose parents weren't processed
+	// This handles edge cases where subfolders might be selected but parent isn't in homeFolders
+	for folderPath, isSelected := range m.selectedFolders {
+		if !isSelected {
+			continue
+		}
+
+		// Check if this is a subfolder (has a parent path that was processed)
+		parentProcessed := false
+		for processedParent := range processedParents {
+			if strings.HasPrefix(folderPath, processedParent+"/") {
+				parentProcessed = true
+				break
+			}
+		}
+
+		// If no parent was processed, this might be a standalone subfolder selection
+		if !parentProcessed {
+			// Find the subfolder in cache and add its size
+			for _, cachedSubfolders := range m.subfolderCache {
+				for _, subfolder := range cachedSubfolders {
+					if subfolder.Path == folderPath && subfolder.Size > 0 {
+						m.totalBackupSize += subfolder.Size
+						break
+					}
+				}
+			}
+		}
+	}
+}
+
+// getVisibleFolders returns a slice of all folders that should be shown to the user.
+// This excludes hidden folders (dotfiles/dotdirs) which are handled automatically.
+func (m Model) getVisibleFolders() []HomeFolderInfo {
+	visibleFolders := make([]HomeFolderInfo, 0)
+	for _, folder := range m.homeFolders {
+		if folder.IsVisible {
+			visibleFolders = append(visibleFolders, folder)
+		}
+	}
+	return visibleFolders
+}
+
+// getVisibleFoldersNonEmpty returns only visible folders that contain data.
+// This is used for UI display to avoid showing empty folders in the selection interface.
+func (m Model) getVisibleFoldersNonEmpty() []HomeFolderInfo {
+	visibleFolders := make([]HomeFolderInfo, 0)
+	for _, folder := range m.homeFolders {
+		if folder.IsVisible { // Show all visible folders regardless of size
+			visibleFolders = append(visibleFolders, folder)
+		}
+	}
+	return visibleFolders
+}
+
+// getCurrentSubfolders returns the cached subfolders for the current folder path.
+// Used for UI navigation and rendering in ScreenHomeSubfolderSelect.
+func (m Model) getCurrentSubfolders() []HomeFolderInfo {
+	if subfolders, exists := m.subfolderCache[m.currentFolderPath]; exists {
+		// Filter to only show non-empty subfolders (like main folders)
+		nonEmptySubfolders := make([]HomeFolderInfo, 0)
+		for _, subfolder := range subfolders {
+			if subfolder.Size > 0 {
+				nonEmptySubfolders = append(nonEmptySubfolders, subfolder)
+			}
+		}
+		return nonEmptySubfolders
+	}
+	return nil
+}
+
+// getVisibleRestoreFolders returns only non-empty, visible folders for the restore UI.
+func (m Model) getVisibleRestoreFolders() []HomeFolderInfo {
+	visibleFolders := []HomeFolderInfo{}
+	for _, folder := range m.restoreFolders {
+		if folder.Size > 0 && folder.IsVisible {
+			visibleFolders = append(visibleFolders, folder)
+		}
+	}
+	return visibleFolders
+}
+
+// calculateTotalRestoreSize calculates the total size of selected folders for restore.
+func (m *Model) calculateTotalRestoreSize() {
+	var total int64
+	for _, folder := range m.restoreFolders {
+		if folder.AlwaysInclude || m.selectedRestoreFolders[folder.Path] {
+			total += folder.Size
+		}
+	}
+	m.totalRestoreSize = total
+}
+
+// NEW: Smart selection state management functions
+
+// getFolderSelectionState determines the selection state of a parent folder based on its subfolders.
+// Returns: "full" if all subfolders selected, "partial" if some selected, "none" if none selected
+func (m Model) getFolderSelectionState(folder HomeFolderInfo) string {
+	if !folder.HasSubfolders {
+		// No subfolders - return based on direct selection
+		if m.selectedFolders[folder.Path] {
+			return "full"
+		}
+		return "none"
+	}
+
+	// Check subfolder selection states
+	subfolders, exists := m.subfolderCache[folder.Path]
+	if !exists {
+		// No subfolders cached yet - return based on parent selection
+		if m.selectedFolders[folder.Path] {
+			return "full"
+		}
+		return "none"
+	}
+
+	// Count selected vs total subfolders
+	totalSubfolders := 0
+	selectedSubfolders := 0
+
+	for _, subfolder := range subfolders {
+		if subfolder.Size > 0 { // Only count non-empty subfolders
+			totalSubfolders++
+			if m.selectedFolders[subfolder.Path] {
+				selectedSubfolders++
+			}
+		}
+	}
+
+	switch selectedSubfolders {
+	case 0:
+		return "none"
+	case totalSubfolders:
+		return "full"
+	default:
+		return "partial"
+	}
+
+}
+
+// updateParentSelectionState updates the parent folder's selection based on subfolder changes.
+// Called after subfolder selections are modified to maintain consistency.
+func (m *Model) updateParentSelectionState(parentFolderPath string) {
+	// Find the parent folder in homeFolders
+	var parentFolder *HomeFolderInfo
+	for i := range m.homeFolders {
+		if m.homeFolders[i].Path == parentFolderPath {
+			parentFolder = &m.homeFolders[i]
+			break
+		}
+	}
+
+	if parentFolder == nil || !parentFolder.HasSubfolders {
+		return
+	}
+
+	// Get selection state and update parent accordingly
+	state := m.getFolderSelectionState(*parentFolder)
+	switch state {
+	case "full":
+		m.selectedFolders[parentFolderPath] = true
+	case "none":
+		m.selectedFolders[parentFolderPath] = false
+	case "partial":
+		// For partial selection, we'll keep parent selected but track it's partial
+		// This preserves the user's intent while showing partial state
+		m.selectedFolders[parentFolderPath] = true
+	}
+}
+
+// toggleParentFolder toggles the selection of a parent folder and all its subfolders.
+// If toggling on, selects all subfolders. If toggling off, deselects all subfolders.
+func (m *Model) toggleParentFolder(folder HomeFolderInfo) {
+	currentState := m.selectedFolders[folder.Path]
+	newState := !currentState
+
+	// Set parent folder selection
+	m.selectedFolders[folder.Path] = newState
+
+	// If folder has subfolders, also set all subfolder selections
+	if folder.HasSubfolders {
+		if subfolders, exists := m.subfolderCache[folder.Path]; exists {
+			for _, subfolder := range subfolders {
+				if subfolder.Size > 0 { // Only affect non-empty subfolders
+					m.selectedFolders[subfolder.Path] = newState
+				}
+			}
+		}
+	}
+}
+
+// autoSaveSelections saves the current configuration in the background without blocking the UI.
+// This ensures user preferences are preserved even if they exit before completing backup.
+func (m *Model) autoSaveSelections() {
+	// Save configuration asynchronously - don't block UI for save errors
+	go func() {
+		SaveSelectiveBackupConfig(m.selectedFolders, m.subfolderCache, m.currentFolderPath, m.folderBreadcrumb)
+		// Note: We ignore errors in background saves to avoid disrupting UI flow
+		// Critical saves (before backup) still handle errors properly
+	}()
+}
+
+// This method delegates to specific render functions based on the active screen.
+func (m Model) View() string {
+	switch m.screen {
+	case screens.ScreenMain:
+		return m.renderMainMenu()
+	case screens.ScreenBackup:
+		return m.renderBackupMenu()
+	case screens.ScreenRestore:
+		return m.renderRestoreMenu()
+	case screens.ScreenRestoreSettings:
+		return m.renderRestoreSettingsMenu()
+	case screens.ScreenRestoreOptions:
+		return m.renderRestoreOptions()
+	case screens.ScreenVerify:
+		return m.renderVerifyMenu()
+	case screens.ScreenAbout:
+		return m.renderAbout()
+	case screens.ScreenConfirm:
+		return m.renderConfirmation()
+	case screens.ScreenProgress:
+		return m.renderProgress()
+	case screens.ScreenHomeFolderSelect:
+		return m.renderHomeFolderSelect()
+	case screens.ScreenHomeSubfolderSelect:
+		return m.renderHomeSubfolderSelect() // NEW: Subfolder rendering
+	case screens.ScreenDriveSelect:
+		return m.renderDriveSelect()
+	case screens.ScreenError:
+		return m.renderError()
+	case screens.ScreenComplete:
+		return m.renderComplete()
+	case screens.ScreenVerificationErrors:
+		return m.renderVerificationErrors()
+	case screens.ScreenRestoreFolderSelect:
+		return m.renderRestoreFolderSelect()
+	default:
+		return "Unknown screen"
+	}
+}
