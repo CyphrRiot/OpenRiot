@@ -958,11 +958,11 @@ openriot --disk
 
 ![Migrate](assets/migrate.webp)
 
-Full system backup and selective home directory backup via Migrate.
-Pure Go file sync — zero external dependencies.
+Full system backup and selective home directory backup. Embedded
+in the openriot binary — zero external dependencies.
 
 ```bash
-migrate
+openriot --backup
 ```
 
 Or launch from **Utilities** submenu in the Rofi launcher.
