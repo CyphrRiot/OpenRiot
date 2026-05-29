@@ -625,7 +625,12 @@ func buildWindowIconsFromTree(tree *i3Tree, mappings map[string]string) map[stri
 func collectAllClasses(nodes []i3Node, seen map[string]bool) {
 	for _, n := range nodes {
 		if n.Window != 0 && n.WindowProps.Class != "" {
-			seen[n.WindowProps.Class] = true
+			cls := n.WindowProps.Class
+			if windowicon.IsPrivateFirefox(cls, n.Name) {
+				seen["firefox-private"] = true
+			} else {
+				seen[cls] = true
+			}
 		}
 		collectAllClasses(n.Nodes, seen)
 		collectAllClasses(n.FloatingNodes, seen)
@@ -773,7 +778,12 @@ func findWindowsInWorkspace(nodes []i3Node, wsNum int, classes *[]string) {
 
 func collectWindows(node i3Node, classes *[]string) {
 	if node.Window != 0 && node.WindowProps.Class != "" {
-		*classes = append(*classes, node.WindowProps.Class)
+		cls := node.WindowProps.Class
+		if windowicon.IsPrivateFirefox(cls, node.Name) {
+			*classes = append(*classes, "firefox-private")
+		} else {
+			*classes = append(*classes, cls)
+		}
 	}
 	for _, n := range node.Nodes {
 		collectWindows(n, classes)

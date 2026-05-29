@@ -110,7 +110,12 @@ func findWindowsInWorkspace(nodes []i3Node, wsNum int, classes *[]string) {
 
 func collectWindows(node i3Node, classes *[]string) {
 	if node.Window != 0 && node.WindowProps.Class != "" {
-		*classes = append(*classes, node.WindowProps.Class)
+		cls := node.WindowProps.Class
+		if windowicon.IsPrivateFirefox(cls, node.Name) {
+			*classes = append(*classes, "firefox-private")
+		} else {
+			*classes = append(*classes, cls)
+		}
 	}
 	for _, n := range node.Nodes {
 		collectWindows(n, classes)

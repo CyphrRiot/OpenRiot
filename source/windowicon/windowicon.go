@@ -56,10 +56,19 @@ func GetAllWindowIcons() map[string]string {
 	return result
 }
 
+func IsPrivateFirefox(class, name string) bool {
+	return strings.ToLower(class) == "firefox" && strings.Contains(name, "Private Browsing")
+}
+
 func collectWindowClasses(nodes []i3Node, classes map[string]bool) {
 	for _, n := range nodes {
 		if n.Window != 0 && n.WindowProperties.Class != "" {
-			classes[n.WindowProperties.Class] = true
+			cls := n.WindowProperties.Class
+			if IsPrivateFirefox(cls, n.Name) {
+				classes["firefox-private"] = true
+			} else {
+				classes[cls] = true
+			}
 		}
 		collectWindowClasses(n.Nodes, classes)
 		collectWindowClasses(n.FloatingNodes, classes)
@@ -72,6 +81,7 @@ type i3Tree struct {
 }
 
 type i3Node struct {
+	Name            string       `json:"name"`
 	Window          int          `json:"window"`
 	WindowProperties windowProps `json:"window_properties"`
 	Nodes           []i3Node     `json:"nodes"`

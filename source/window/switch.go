@@ -191,7 +191,9 @@ func walk(node *i3Node, entries *[]windowEntry, currentWS *int, classOverrides, 
 		}
 
 		icon := windowicon.Get(class)
-		if icon == "\uf059" && instance != "" {
+		if windowicon.IsPrivateFirefox(class, node.Name) {
+			icon = windowicon.Get("firefox-private")
+		} else if icon == "\uf059" && instance != "" {
 			icon = windowicon.Get(instance)
 		}
 		base, label := formatLabel(node.Name, node.WindowProps.Title, class, instance, classOverrides, cmdOverrides)
