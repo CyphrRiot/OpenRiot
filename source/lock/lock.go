@@ -1,8 +1,9 @@
 package lock
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -33,6 +34,15 @@ func filterStealth(matches []string) []string {
 func isProcessRunning(name string) bool {
 	out, _ := exec.Command("pgrep", "-x", name).Output()
 	return len(strings.TrimSpace(string(out))) > 0
+}
+
+// cryptoRandIndex returns a cryptographically secure random int [0, max).
+func cryptoRandIndex(max int) int {
+	n, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
+	if err != nil {
+		return 0
+	}
+	return int(n.Int64())
 }
 
 func Lock() error {
@@ -71,7 +81,7 @@ func Lock() error {
 		return nil
 	}
 
-	lockFile := matches[rand.Intn(len(matches))]
+	lockFile := matches[cryptoRandIndex(len(matches))]
 
 	// Give user time to see the notification before screen locks
 	notify.SendNotify("lock", "Screen Lock", "Screen is locking...", "normal", 4000, 0)
