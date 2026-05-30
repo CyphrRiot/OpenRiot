@@ -150,7 +150,9 @@ These ThinkPads have excellent OpenBSD support for WiFi, trackpoints, and suspen
 | **X1 Carbon Gen 7** | Intel i7-8665U | ⭐⭐⭐⭐ | Premium build, good Linux/OpenBSD support |
 | **X270** | Intel i5-6300U | ⭐⭐⭐ | Small, portable, older but solid |
 
-You can buy a T14 Gen 1 for ~$300 USD at [Amazon](https://www.amazon.com/dp/B086MD6LTM). You can also buy a [T14s Gen 2](https://www.amazon.com/Lenovo-Thinkpad-T14s-Laptop-1-8Ghz-4-9GHz/dp/B0DKT19DQJ) for around the same price. Both are rock-solid, tested, and work perfectly out of the box.
+- You can buy a T14 Gen 1 for ~$300 USD at [Amazon](https://www.amazon.com/dp/B086MD6LTM). You can also buy a [T14s Gen 2](https://www.amazon.com/Lenovo-Thinkpad-T14s-Laptop-1-8Ghz-4-9GHz/dp/B0DKT19DQJ) for around the same price. Both are rock-solid, tested, and work perfectly out of the box.
+
+- You can buy a [ThinkPad X1 Carbon Gen 8](https://www.amazon.com/Lenovo-ThinkPad-X1-Carbon-Thunderbolt/dp/B0GMJ46ZMP) from Amazon for ~$365 with 16GB RAM and 512GB drive. It's very well supported by OpenBSD and very lightweight.
 
 ### Other Well-Supported Laptops
 
