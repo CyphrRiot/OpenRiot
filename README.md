@@ -35,7 +35,7 @@ OpenRiot versions track OpenBSD releases directly. OpenBSD 7.9 = OpenRiot 7.9.x.
 
 - Read the [Register's OpenBSD 7.9 article](https://www.theregister.com/software/2026/05/25/openbsd-79-arrives-a-diamond-in-the-rough-proud-of-every-sharp-edge/5244877)
 
-Header art by [Hero](https://x.com/HeroToshi19)
+- Header art by [Hero](https://x.com/HeroToshi19)
 
 ### Curated to be correct
 
@@ -57,13 +57,9 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 **Found an issue?** [Open an issue on GitHub](https://github.com/CyphrRiot/OpenRiot/issues) and we'll work through it together.
 
-**Repository:** [github.com/CyphrRiot/OpenRiot](https://github.com/CyphrRiot/OpenRiot)
-
 ---
 
 ![OpenRiot](assets/desktop.webp)
-
----
 
 ### System Requirements
 
