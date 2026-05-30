@@ -17,8 +17,6 @@
 
 </div>
 
----
-
 ![OpenRiot Header](assets/header.jpg)
 
 ---

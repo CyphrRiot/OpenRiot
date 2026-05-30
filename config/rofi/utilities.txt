@@ -6,6 +6,6 @@ Monitor Config|alacritty --class openriot_resolution --title "Monitor Config" -e
 Drive Manager|alacritty --class openriot_disk --title "Drive Manager" -e openriot --disk|󰋊
 Backup & Restore|alacritty --class openriot_migrate --title "Backup & Restore" -e $HOME/.local/share/openriot/install/openriot --backup|󰆼
 Drive Benchmark|alacritty --class openriot_disk --title "Drive Benchmark" -e openriot --disk|󰑥
-System Monitor|alacritty --class btop --title "System Monitor" -e btop|󰍹
+System Monitor|alacritty --class btop --title "System Monitor" -o font.size=10 -e btop|󰍹
 OpenRiot Settings|openriot --settings-menu|󰒓
 System Settings|xfce4-settings-manager|󰒓
