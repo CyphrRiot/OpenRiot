@@ -153,12 +153,17 @@ func GetCPUPercent() string {
 }
 
 // GetCPUDetails returns detailed CPU info for notifications
-// Format: "CPU in Use: XX%\nProcessors: N\nModel: ..."
+// GetCPUDetails returns detailed CPU info for notifications
 func GetCPUDetails() string {
 	cpuPct := getCPUPercent()
-
 	ncpu, _ := unix.SysctlUint32("hw.ncpu")
 	model, _ := unix.Sysctl("hw.model")
+
+	if len(model) > 35 {
+		if idx := strings.LastIndex(model[:35], " "); idx > 0 {
+			model = model[:idx] + "\n       " + model[idx+1:]
+		}
+	}
 
 	return fmt.Sprintf("CPU in Use: %s%%\nProcessors: %d\nModel: %s", cpuPct, ncpu, model)
 }
