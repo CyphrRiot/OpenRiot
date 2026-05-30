@@ -21,23 +21,22 @@
 ---
 
 ![OpenRiot Header](assets/header.jpg)
-<div align="center"><sub><em>Art by <a href="https://x.com/HeroToshi19">Hero</a></em></sub></div>
 
 ---
 
 ## 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥
 
-Linux desktops turned into a bloated, politicized mess? OpenRiot is the clean exit.
-
 A ridiculously polished i3 desktop for OpenBSD 7.9 with fish, Helix, and Polybar — tuned so everything just works. No config drama. No package fights. No Linux copium.
 
 Base OpenBSD 7.9 install → one script → fast, dark, beautiful desktop that respects OpenBSD’s strengths instead of fighting them.
 
-OpenRiot versions track OpenBSD releases directly. OpenBSD 7.9 = OpenRiot 7.9.x. When 8.0 ships, we become 8.0.0.
+OpenRiot versions track OpenBSD releases directly. OpenBSD 7.9 = OpenRiot 7.9.x. 
 
 - Read the [original Post on X](https://x.com/CyphrRiot/status/2043140621398127012?s=20)
 
 - Read the [Register's OpenBSD 7.9 article](https://www.theregister.com/software/2026/05/25/openbsd-79-arrives-a-diamond-in-the-rough-proud-of-every-sharp-edge/5244877)
+
+Header art by [Hero](https://x.com/HeroToshi19)
 
 ### Curated to be correct
 
@@ -48,12 +47,6 @@ OpenRiot versions track OpenBSD releases directly. OpenBSD 7.9 = OpenRiot 7.9.x.
 - **💻 Development** — Helix and fish upgrades that feel native on OpenBSD.
 - **💳 Monero** — Private by default with Polybar integration.
 - **💎 OpenBSD** — The most audited OS on the planet. We amplify it.
-
-#### Built on OpenBSD.
-
-**Because compromises belong on other operating systems.**
-
-Same principles as [ArchRiot](https://ArchRiot.org), same creator. If you liked ArchRiot, you’ll love OpenRiot.
 
 ---
 
