@@ -644,9 +644,7 @@ func calculateSellLimit(sym string, currentPrice, entryPrice, held float64, item
 	rotationTarget := findRotationTarget(items, oversold, sym)
 
 	if currentPrice < entryPrice && entryPrice > 0 {
-		stopPrice := currentPrice * 0.90
-		stopStr := formatPrice(stopPrice)
-		return fmt.Sprintf("%s @ $%s (Stop) → %s", unitsStr, stopStr, rotationTarget)
+		return "Hold"
 	}
 
 	return fmt.Sprintf("%s @ $%s → %s", unitsStr, targetStr, rotationTarget)
@@ -661,6 +659,24 @@ func fmtHeld(h float64) string {
 		return fmt.Sprintf("%9.2f", h) + " x"
 	}
 	return ""
+}
+
+// fmtHeldClean formats held amount without " x" suffix, right-padded to 7
+func fmtHeldClean(h float64) string {
+	if h > 0 {
+		if h < 1 {
+			return fmt.Sprintf("%7s", fmt.Sprintf("%.4f", h))
+		}
+		return fmt.Sprintf("%7s", fmt.Sprintf("%.2f", h))
+	}
+	return fmt.Sprintf("%7s", "0.00")
+}
+
+// fmtValue formats current value (held \u00d7 price) as whole dollars with commas, right-padded to 7
+func fmtValue(held, price float64) string {
+	v := held * price
+	s := formatIntWithCommas(math.Round(v))
+	return fmt.Sprintf("%7s", s)
 }
 
 func fmtPrice(price float64) string {
@@ -826,42 +842,56 @@ func formatPriceArrow(item CryptoItem) string {
 	return "•"
 }
 
-// formatROWMLLine formats a single crypto line for ROWML output
+// formatROWMLLine formats a single crypto line for ROWML output as an aligned table
+// fmtPriceShort formats price with comma separators, stripping ".00" for whole dollars, right-padded to 8
+func fmtPriceShort(v float64) string {
+	if math.IsNaN(v) || math.IsInf(v, 0) || v == 0 {
+		return fmt.Sprintf("%8s", "")
+	}
+	str := formatNumberWithWidth(v, 0)
+	if strings.HasSuffix(str, ".00") {
+		str = str[:len(str)-3]
+	}
+	return fmt.Sprintf("%8s", str)
+}
+
+// formatROWMLLine formats a single crypto line for ROWML output as an aligned table
 func formatROWMLLine(item CryptoItem, items []CryptoItem, oversold int) string {
-	arrow := " " + formatPriceArrow(item)
 	isUSDStable := item.Sym == "USD" && item.Price >= 0.99 && item.Price <= 1.01
 
-	symStr := item.Sym
-
-	var heldStr, pctStr, amtStr string
+	var heldStr, entryStr, priceStr, valStr, pctStr, portPctStr string
 	if item.Held > 0 && item.Entry > 0 && !isUSDStable {
-		glAmt := (item.Price - item.Entry) * item.Held
 		glPct := ((item.Price - item.Entry) / item.Entry) * 100
-		heldStr = fmtHeld(item.Held)
-		pctStr = fmtPercent(glPct)
-		amtStr = fmtSignedAmountWithSpace(glAmt)
+		holdStr := fmtHeldClean(item.Held)
+		entryStr = fmtPriceShort(item.Entry)
+		priceStr = fmtPriceShort(item.Price)
+		valStr = fmtValue(item.Held, item.Price)
+		pctStr = fmt.Sprintf("%8s", fmt.Sprintf("%+.1f%%", glPct))
+		heldStr = holdStr
 	} else if isUSDStable {
-		heldStr = fmt.Sprintf("%9.2f", item.Held) + " x"
-		pctStr = fmtPercentStable()
-		amtStr = fmtAmountStable()
+		heldStr = fmt.Sprintf("%7s", fmt.Sprintf("%.2f", item.Held))
+		entryStr = fmtPriceShort(item.Entry)
+		priceStr = fmtPriceShort(item.Price)
+		valStr = fmtValue(item.Held, item.Price)
+		pctStr = fmt.Sprintf("%8s", "0.0%")
 	} else {
-		heldStr = fmtHeld(item.Held)
+		heldStr = fmtHeldClean(item.Held)
+		entryStr = ""
+		priceStr = fmtPriceShort(item.Price)
+		valStr = ""
 		pctStr = ""
-		amtStr = ""
 	}
+
+	// Portfolio percentage
+	portPct := coinPercentOfPortfolio(item.Sym, items) * 100
+	portPctStr = fmt.Sprintf("%6s", fmt.Sprintf("%.1f%%", portPct))
 
 	sellStr := ""
 	if item.Held > 0 && item.Sym != "USD" && item.Sym != "USDC" {
 		sellStr = calculateSellLimit(item.Sym, item.Price, item.Entry, item.Held, item, items, oversold)
 	}
 
-	concStr := checkConcentration(item.Held, item.Price, items)
-	if concStr != "" {
-		symStr = item.Sym + concStr
-	}
-
-	priceStr := fmtPrice(item.Price)
-	return fmt.Sprintf("%s %s %s %s %s%s %22s", symStr, heldStr, priceStr, pctStr, amtStr, arrow, sellStr)
+	return fmt.Sprintf("%-4s %s %s %s %s %s %s %s", item.Sym, heldStr, entryStr, priceStr, valStr, pctStr, portPctStr, sellStr)
 }
 
 // calculateTotals returns portfolio totals
@@ -903,8 +933,8 @@ func saveCryptoSnapshot(items []CryptoItem, curFile string) {
 
 func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold int) error {
 	lines := []string{
-		"COIN     HELD   PRICE        % GAINS       $ GAINS                REBALANCE",
-		"------ ------   -----------  -------  ------------   ----------------------",
+		fmt.Sprintf("%-4s %7s %8s %8s %7s %8s %6s %s", "Coin", "Held", "Entry", "Price", "Value", "%Entry", "%Port", "Next Step"),
+		fmt.Sprintf("%-4s %7s %8s %8s %7s %8s %6s %s", "----", "-------", "--------", "--------", "-------", "--------", "------", "---------"),
 	}
 
 	sorted := sortCryptoItems(items)
@@ -921,15 +951,16 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold i
 	if haveGain {
 		var gainStr string
 		if gainTotal >= 0 {
-			gainStr = " " + formatNumberWithWidth(gainTotal, 12)
+			gainStr = "+" + formatIntWithCommas(gainTotal)
 		} else {
-			gainStr = "-" + formatNumberWithWidth(-gainTotal, 12)
+			gainStr = "-" + formatIntWithCommas(-gainTotal)
 		}
+		gainField := fmt.Sprintf("%8s", gainStr)
 		if showTotals && haveValue {
-			heldStr := "$ " + formatNumberWithWidth(heldTotal, 10)
-			lines = append(lines, fmt.Sprintf("%s%s%s", strings.Repeat(" ", 37), gainStr, strings.Repeat(" ", 13))+heldStr)
+			valField := fmt.Sprintf("%7s", formatIntWithCommas(math.Round(heldTotal)))
+			lines = append(lines, fmt.Sprintf("%31s%s %s", "", valField, gainField))
 		} else {
-			lines = append(lines, fmt.Sprintf("%s%s%s", strings.Repeat(" ", 37), gainStr, strings.Repeat(" ", 21)))
+			lines = append(lines, fmt.Sprintf("%38s%s", "", gainField))
 		}
 	}
 
@@ -1014,9 +1045,14 @@ func outputNotifySend(items []CryptoItem, showTotals bool) error {
 	} else if totalGain < 0 {
 		gainArrow = "▼"
 	}
-	numStr := strings.TrimPrefix(formatSignedNumber(totalGain), "$ ")
+	var gainNumStr string
+	if totalGain >= 0 {
+		gainNumStr = "+" + formatNumberWithWidth(totalGain, 0)
+	} else {
+		gainNumStr = "-" + formatNumberWithWidth(-totalGain, 0)
+	}
 	lines = append(lines, "")
-	lines = append(lines, fmt.Sprintf("󰪚 Total Gains  %s $ %10s", gainArrow, numStr))
+	lines = append(lines, fmt.Sprintf("󰪚 Total Gains  %s $ %10s", gainArrow, gainNumStr))
 	if showTotals {
 		heldStr := formatNumberSimple(totalValue)
 		lines = append(lines, fmt.Sprintf("󰨖 Total Held     $ %10s", heldStr))
@@ -1031,6 +1067,21 @@ func outputNotifySend(items []CryptoItem, showTotals bool) error {
 // formatNumberSimple formats with commas (e.g., 73045 -> 73,045.00)
 func formatNumberSimple(v float64) string {
 	return formatNumberWithWidth(v, 0)
+}
+
+// formatIntWithCommas formats an integer with comma separators (e.g., 55673 -> "55,673")
+func formatIntWithCommas(v float64) string {
+	intPart := int(math.Round(v))
+	str := fmt.Sprintf("%d", intPart)
+	var result strings.Builder
+	length := len(str)
+	for i, c := range str {
+		if i > 0 && (length-i)%3 == 0 {
+			result.WriteString(",")
+		}
+		result.WriteRune(c)
+	}
+	return result.String()
 }
 
 // formatSignedNumber formats with commas and explicit sign (e.g., 1234.56 -> "$ 1,234.56", -1234.56 -> "-$ 1,234.56")
