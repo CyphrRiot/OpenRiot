@@ -263,7 +263,7 @@ prune:
 	git for-each-ref --format='%(refname)' refs/original/ | \
 		while read ref; do git update-ref -d "$$ref"; done; \
 	git reflog expire --expire=now --all; \
-	git gc --aggressive --prune=now; \
+	git gc --prune=now; \
 	AFTER="$$(du -sh .git | cut -f1)"; \
 	echo ""; \
 	echo "=== Prune complete ==="; \
