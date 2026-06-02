@@ -13,7 +13,7 @@ OPENBSD_VERSION = 7.9
 # ============================================================
 # Targets
 # ============================================================
-.PHONY: all build linux clean deps test verify validate release ultra img isotest binary-push install help test-img
+.PHONY: all build linux clean deps test verify validate release ultra img isotest binary-push prune install help test-img
 
 # Build only (no install) - use for testing
 all:
@@ -239,6 +239,41 @@ clean:
 	@rm -f $(SOURCE_DIR)/$(BINARY_NAME)
 	@echo "=== Clean complete ==="
 
+# Prune old PNG blobs from git history (Locked/ and backgrounds/)
+prune:
+	@set -e; \
+	export FILTER_BRANCH_SQUELCH_WARNING=1; \
+	echo ""; \
+	echo "⚠️  DANGER: This rewrites ALL git history."; \
+	echo ""; \
+	if [ "$(CONFIRM)" != "yes" ]; then \
+		echo "  Run 'make prune CONFIRM=yes' to proceed."; \
+		exit 1; \
+	fi; \
+	if ! git diff --quiet --exit-code; then \
+		echo "  ERROR: Unstaged changes. Commit or stash first."; \
+		exit 1; \
+	fi; \
+	BEFORE="$$(du -sh .git | cut -f1)"; \
+	OLD_BLOBS="$$(git rev-list --all --objects | git cat-file --batch-check='%(objecttype) %(objectsize) %(rest)' 2>/dev/null | awk '/^blob/ && $$3 ~ /^(Locked|backgrounds)\/.*\.png$$/ {count++; total+=$$2} END {printf "%d blobs, %.0f MB", count, total/1048576}')"; \
+	echo "  Stale blobs before: $${OLD_BLOBS} ($${BEFORE})"; \
+	git filter-branch --force --index-filter \
+		'git rm --cached --ignore-unmatch Locked/*.png backgrounds/*.png' \
+		--prune-empty --tag-name-filter cat -- --all; \
+	git for-each-ref --format='%(refname)' refs/original/ | \
+		while read ref; do git update-ref -d "$$ref"; done; \
+	git reflog expire --expire=now --all; \
+	git gc --aggressive --prune=now; \
+	AFTER="$$(du -sh .git | cut -f1)"; \
+	echo ""; \
+	echo "=== Prune complete ==="; \
+	echo "  .git size before: $${BEFORE}"; \
+	echo "  .git size after:  $${AFTER}"; \
+	echo ""; \
+	echo "  All .webp files preserved (working tree and history)."; \
+	echo ""; \
+	echo "  Remotes preserved. To publish rewritten history:"; \
+	echo "    git push --force --all && git push --force --tags"
 # Custom installer image
 # Requires OpenBSD 7.9 host - cross-compilation not possible for bsd.rd modification
 image: all
@@ -303,6 +338,7 @@ help:
 	@echo "  test-img           Run imaging module tests"
 	@echo "  verify             Build and smoke-test the binary"
 	@echo "  clean              Remove build artifacts"
+	@echo "  prune              Remove old PNG blobs from git history (requires CONFIRM=yes)"
 	@echo "  convert            Convert PNG backgrounds/lock screens to WebP"
 	@echo "  binary-push        Build + strip history + commit + force-push binary"
 	@echo "  help               Show this message"
