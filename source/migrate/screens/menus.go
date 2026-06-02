@@ -7,18 +7,20 @@ var (
 		"🚀 Backup System",
 		"🔍 Verify Backup",
 		"🔄 Restore System",
-		"⚙️ Restore Settings",
-		"ℹ️ About",
+		"🔧 Restore Settings",
+		"💾 System Dump",
+		"📋 About",
 		"❌ Exit",
 	}
 
 	// MainMenuChoicesNonRoot defines the main menu options when running as non-root user
 	MainMenuChoicesNonRoot = []string{
 		"🚀 Backup System",
-		"⚙️ Backup System Settings",
+		"🔧 Backup System Settings",
 		"🔍 Verify Backup",
 		"🔄 Restore System",
-		"ℹ️ About",
+		"💾 System Dump",
+		"📋 About",
 		"❌ Exit",
 	}
 
@@ -75,6 +77,14 @@ var (
 		"✅ Continue with selection",
 		"⬅️ Back",
 	}
+
+	// DumpMenuChoices defines the dump menu options
+	DumpMenuChoices = []string{
+		"💾 Full Dump (level 0)",
+		"📦 Incremental Dump (level 1)",
+		"🔄 Restore from Dump",
+		"⬅️ Back",
+	}
 )
 
 // GetMenuChoices returns the appropriate menu choices for a given screen
@@ -94,6 +104,8 @@ func GetMenuChoices(screen Screen) []string {
 		return RestoreSettingsMenuChoices
 	case ScreenConfirm:
 		return ConfirmationChoices
+	case ScreenDump:
+		return DumpMenuChoices
 	default:
 		return []string{}
 	}
@@ -117,9 +129,11 @@ func GetMainMenuAction(index int) MenuAction {
 		return MenuAction{Screen: ScreenRestore}
 	case 3: // Restore Settings
 		return MenuAction{Screen: ScreenRestoreSettings}
-	case 4: // About
+	case 4: // Dump
+		return MenuAction{Screen: ScreenDump}
+	case 5: // About
 		return MenuAction{Screen: ScreenAbout}
-	case 5: // Exit
+	case 6: // Exit
 		return MenuAction{} // Special case, handled separately
 	default:
 		return MenuAction{}
@@ -137,9 +151,11 @@ func GetMainMenuActionNonRoot(index int) MenuAction {
 		return MenuAction{Screen: ScreenVerify}
 	case 3: // Restore
 		return MenuAction{Screen: ScreenRestore}
-	case 4: // About
+	case 4: // Dump
+		return MenuAction{Screen: ScreenDump}
+	case 5: // About
 		return MenuAction{Screen: ScreenAbout}
-	case 5: // Exit
+	case 6: // Exit
 		return MenuAction{} // Special case, handled separately
 	default:
 		return MenuAction{}
@@ -215,6 +231,31 @@ func GetVerifyMenuAction(index int) MenuAction {
 			Operation: "auto_verify",
 		}
 	case 1: // Back
+		return MenuAction{Screen: ScreenMain}
+	default:
+		return MenuAction{}
+	}
+}
+
+// DumpMenuChoicesAreDefined above — add the routing
+func GetDumpMenuAction(index int) MenuAction {
+	switch index {
+	case 0: // Full dump
+		return MenuAction{
+			Screen:    ScreenDriveSelect,
+			Operation: "dump_full",
+		}
+	case 1: // Incremental dump
+		return MenuAction{
+			Screen:    ScreenDriveSelect,
+			Operation: "dump_incr",
+		}
+	case 2: // Restore from dump
+		return MenuAction{
+			Screen:    ScreenDriveSelect,
+			Operation: "dump_restore",
+		}
+	case 3: // Back
 		return MenuAction{Screen: ScreenMain}
 	default:
 		return MenuAction{}

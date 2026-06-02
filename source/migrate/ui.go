@@ -572,6 +572,81 @@ func (m Model) renderVerifyMenu() string {
 	return safeCenterContent(m.width, m.height, content)
 }
 
+// Render dump menu
+func (m Model) renderDumpMenu() string {
+	var s strings.Builder
+
+	ascii := asciiStyle.Render(MigrateASCII)
+	s.WriteString(ascii + "\n")
+	s.WriteString(titleStyle.Render("💾 System Dump (dump/restore)") + "\n\n")
+
+	for i, choice := range m.choices {
+		if m.cursor == i {
+			s.WriteString(selectedMenuItemStyle.Render("❯ "+choice) + "\n")
+		} else {
+			s.WriteString(menuItemStyle.Render("  "+choice) + "\n")
+		}
+	}
+
+	availableWidth := safeRenderWidth(m.width) - 8
+	info := infoBoxStyle.Width(availableWidth).Render(`💾 dump(8) creates full or incremental backups of FFS filesystems
+📦 Supports /, /home, /var — works on live systems including softraid CRYPTO`)
+	s.WriteString(info)
+
+	help := m.renderHelp()
+	s.WriteString("\n" + help)
+
+	content := borderStyle.Width(safeRenderWidth(m.width)).Render(s.String())
+	return safeCenterContent(m.width, m.height, content)
+}
+
+// Render dump progress
+func (m Model) renderDumpProgress() string {
+	var s strings.Builder
+
+	ascii := asciiStyle.Render(MigrateASCII)
+	s.WriteString(ascii + "\n")
+
+	opLabel := "Dump"
+	if currentDumpState.isRestore {
+		opLabel = "Restore"
+	}
+
+	s.WriteString(titleStyle.Render("💾 "+opLabel+" in progress...") + "\n\n")
+
+	if m.message != "" {
+		msgStyle := lipgloss.NewStyle().Foreground(textColor).Width(safeRenderWidth(m.width) - 8)
+		s.WriteString(msgStyle.Render(m.message) + "\n\n")
+	}
+
+	output := getDumpOutput()
+	if len(output) > 0 {
+		n := len(output)
+		start := 0
+		if n > 10 {
+			start = n - 10
+		}
+		lines := output[start:]
+
+		msgStyle := lipgloss.NewStyle().Foreground(dimColor)
+		for _, line := range lines {
+			s.WriteString(msgStyle.Render(line) + "\n")
+		}
+		s.WriteString("\n")
+	}
+
+	s.WriteString(m.renderProgressBarWithMessage(m.message))
+
+	// Cancel hint
+	if !m.canceling {
+		cancelHint := lipgloss.NewStyle().Foreground(dimColor).Render("Press ESC to cancel")
+		s.WriteString("\n" + cancelHint)
+	}
+
+	content := borderStyle.Width(safeRenderWidth(m.width)).Render(s.String())
+	return safeCenterContent(m.width, m.height, content)
+}
+
 // Render restore options menu
 func (m Model) renderRestoreOptions() string {
 	var s strings.Builder

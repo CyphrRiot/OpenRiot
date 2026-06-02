@@ -55,6 +55,30 @@ func runInstall(testMode *bool) {
 		}
 	}
 
+	// Pre-install errata/security patch check
+	erraRes, err := installer.CheckErrata()
+	if err == nil && erraRes != nil && len(erraRes.Unapplied) > 0 {
+		if installer.PrintErrataBanner(erraRes) {
+			fmt.Println()
+			logger.Info(fmt.Sprintf("Running: %s", erraRes.InstallCmd))
+			fmt.Println()
+			parts := strings.Fields(erraRes.InstallCmd)
+			cmd := exec.Command(parts[0], parts[1:]...)
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			if err := cmd.Run(); err != nil {
+				logger.Warn(fmt.Sprintf("%s failed: %v", erraRes.InstallCmd, err))
+				fmt.Printf("Please run manually: %s\n", erraRes.InstallCmd)
+			}
+			if erraRes.Reboot {
+				fmt.Println()
+				logger.Warn("Reboot required! Run the installer again after reboot.")
+			}
+			fmt.Println()
+			os.Exit(0)
+		}
+	}
+
 	homeDir := paths.HomeDir()
 	if homeDir == "" {
 		logger.Fail("Could not determine home directory")

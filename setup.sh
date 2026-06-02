@@ -345,8 +345,6 @@ main() {
     banner_line ""
     banner_line "  OpenRiot v${banner_ver} Installation Complete"
     banner_line ""
-    banner_line "  xenodm will start X11 automatically on next boot."
-    banner_line ""
     echo "+------------------------------------------------------------+"
     echo ""
     echo "Press ENTER/RETURN to continue..."

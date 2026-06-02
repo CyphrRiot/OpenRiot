@@ -447,6 +447,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				m.confirmation = fmt.Sprintf("Ready to restore %s\n\nSource: %s (%s)\nType: %s\nMounted at: %s\n\n⚠️ This will OVERWRITE existing files!\n\nProceed with restore?",
 					restoreTypeDesc, msg.drivePath, msg.driveSize, msg.driveType, msg.mountPoint)
+			} else if strings.HasPrefix(m.operation, "dump_") {
+				opLabel := "incremental dump (level 1)"
+				if m.operation == "dump_full" {
+					opLabel = "full dump (level 0)"
+				} else if m.operation == "dump_restore" {
+					opLabel = "restore"
+				}
+				m.confirmation = fmt.Sprintf("Ready to perform %s\n\nDestination: %s (%s)\nType: %s\nMounted at: %s\n\nFilesystems: /, /home, /var\n\n⚠️ This will overwrite files on the target filesystem!\n\nProceed?",
+					opLabel, msg.drivePath, msg.driveSize, msg.driveType, msg.mountPoint)
 			} else if strings.Contains(m.operation, "verify") || m.operation == "auto_verify" {
 				// Verification confirmation
 				verifyTypeDesc := "AUTO-DETECTED BACKUP"
@@ -542,6 +551,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			wasCanceling := m.canceling
 			m.canceling = false
 
+			// For dump operations, just go to complete screen on cancel
+			if wasCanceling && strings.HasPrefix(m.operation, "dump_") {
+				m.screen = screens.ScreenComplete
+				m.message = "Dump cancelled"
+				return m, nil
+			}
+
 			if wasCanceling {
 				// Operation was canceled
 				m.message = "Operation canceled by user"
@@ -564,6 +580,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.operation = "unmount_backup"
 				m.screen = screens.ScreenConfirm
 				m.cursor = 1
+				return m, nil
+			} else if strings.HasPrefix(m.operation, "dump_") && msg.Error == nil {
+				// Dump completed
+				m.lastScreen = m.screen
+				m.screen = screens.ScreenComplete
 				return m, nil
 			} else if msg.Error == nil {
 				// Other operation completed successfully - show completion screen
@@ -624,6 +645,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			// NOT DONE - Schedule next progress update (unless canceling)
 			if !m.canceling {
+				if strings.HasPrefix(m.operation, "dump_") {
+					return m, CheckDumpProgress()
+				}
 				return m, CheckTUIBackupProgress()
 			}
 		}
@@ -732,6 +756,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.screen = screens.ScreenMain
 				m.cursor = 0
 				m.choices = screens.MainMenuChoices
+				return m, nil
+
+			case screens.ScreenDump:
+				// Back to main menu
+				m.screen = screens.ScreenMain
+				m.cursor = 0
+				m.choices = screens.MainMenuChoices
+				return m, nil
+
+			case screens.ScreenDumpProgress:
+				// Cancel during dump
+				m.canceling = true
+				m.message = "Canceling dump..."
+				dumpCancel = true
 				return m, nil
 
 			case screens.ScreenRestoreOptions:
@@ -1379,6 +1417,19 @@ func (m Model) handleSelection() (tea.Model, tea.Cmd) {
 		return m.handleRestoreFolderSelection()
 	case screens.ScreenVerify:
 		return m.handleVerifyMenuSelection()
+	case screens.ScreenDump:
+		action := screens.GetDumpMenuAction(m.cursor)
+		m.screen = action.Screen
+		if action.Operation != "" {
+			m.operation = action.Operation
+		}
+		if m.screen == screens.ScreenMain {
+			m.choices = screens.MainMenuChoices
+			m.cursor = 0
+		} else if m.screen == screens.ScreenDriveSelect {
+			return m, LoadDrives()
+		}
+		return m, nil
 	case screens.ScreenConfirm:
 		switch m.cursor {
 		case 0: // Yes
@@ -1512,6 +1563,24 @@ func (m Model) handleSelection() (tea.Model, tea.Cmd) {
 					return m, tea.Batch(
 						startVerification(m.operation, m.selectedDrive),
 						CheckTUIBackupProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				case "dump_full", "dump_incr":
+					m.screen = screens.ScreenDumpProgress
+					return m, tea.Batch(
+						startDump(m.selectedDrive, m.operation),
+						CheckDumpProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				case "dump_restore":
+					m.screen = screens.ScreenDumpProgress
+					return m, tea.Batch(
+						startDumpRestore(m.selectedDrive),
+						CheckDumpProgress(),
 						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
 							return state.CylonAnimateMsg{}
 						}),
@@ -2071,6 +2140,10 @@ func (m Model) View() string {
 		return m.renderVerificationErrors()
 	case screens.ScreenRestoreFolderSelect:
 		return m.renderRestoreFolderSelect()
+	case screens.ScreenDump:
+		return m.renderDumpMenu()
+	case screens.ScreenDumpProgress:
+		return m.renderDumpProgress()
 	default:
 		return "Unknown screen"
 	}
