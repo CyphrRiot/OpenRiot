@@ -64,8 +64,10 @@ OpenRiot is under active development. It may not work as expected. Some features
 | Requirement | Spec | Notes |
 | --- | --- | --- |
 | **Resolution** | 1920x1080 minimum | OpenRiot's User Interface requires this |
-| **RAM** | 4GB+ minimum | 8GB+ Optimal |
+| **RAM** | 2GB+ minimum | 8GB+ Optimal |
 | **Disk** | 25GB+ recommended | 100GB+ Optimal |
+
+![RAM Usage with Firefox, Thunar, Crush, Gnome Text Editor, and a terminal running](assets/ram.webp)
 
 ---
 
