@@ -692,20 +692,17 @@ GlyphRiot and ZCash Mini launch in floating terminals with a "Press Enter to clo
 
 <a id="kate"></a>
 
-##  Kate
+## 🖊️ Kate
 
 ![Kate](assets/kate.webp)
 
-Kate is a minimalist note-taking assistant — a floating terminal window
-powered by an LLM. Press `Super + K` to open it anywhere. Type your
-question, get an answer. No browser, no tabs, no distraction.
+Kate is a KDE-based code editor (~300MB deps) shipped with OpenRiot as an
+optional install. It comes pre-configured with the Ayu Dark editor theme,
+FiraCode Nerd Font, and BreezeDark UI color scheme — matching the rest of
+the desktop aesthetic out of the box.
 
-Built on top of [Crush AI](https://github.com/CyphrRiot/crush), Kate
-launches a dedicated AI session in a scratchpad terminal. The window
-appears centered and floating, sized at 120×40 characters. When you
-close it, the conversation is gone — no history, no context, no residue.
-
-Kate is stateless by design. Every session is a fresh start.
+The installer prompts whether to include it. Skip if you're happy with
+Helix; Kate is there for those who want a full GUI IDE.
 
 ## Shell Aliases & Quick Reference
 
