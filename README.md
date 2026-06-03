@@ -76,6 +76,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [⌨️ Master Your OpenRiot Desktop](#master-your-openriot-desktop)
 - [🎮 Games](#games)
 - [󱕵 Blockchain](#blockchain)
+- [ Kate](#kate)
 - [📝 Using Helix (Editor)](#using-helix)
 - [🔄 System Management](#system-management)
 - [󰋊 Disk Manager](#disk-manager)
@@ -688,6 +689,23 @@ Press `Super + D` and select **Blockchain** to open the crypto tools menu:
 | ZCash Mini | 󰬡   | ZCash address generator (floating terminal) |
 
 GlyphRiot and ZCash Mini launch in floating terminals with a "Press Enter to close..." prompt so you can read the output before the window closes.
+
+<a id="kate"></a>
+
+##  Kate
+
+![Kate](assets/kate.webp)
+
+Kate is a minimalist note-taking assistant — a floating terminal window
+powered by an LLM. Press `Super + K` to open it anywhere. Type your
+question, get an answer. No browser, no tabs, no distraction.
+
+Built on top of [Crush AI](https://github.com/CyphrRiot/crush), Kate
+launches a dedicated AI session in a scratchpad terminal. The window
+appears centered and floating, sized at 120×40 characters. When you
+close it, the conversation is gone — no history, no context, no residue.
+
+Kate is stateless by design. Every session is a fresh start.
 
 ## Shell Aliases & Quick Reference
 
