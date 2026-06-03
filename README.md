@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.27-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.28-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -17,7 +17,7 @@
 
 </div>
 
-![OpenRiot Header](assets/header.jpg)
+![OpenRiot](assets/desktop.webp)
 
 ---
 
@@ -57,7 +57,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ---
 
-![OpenRiot](assets/desktop.webp)
+![OpenRiot Header](assets/header.jpg)
 
 ### System Requirements
 
@@ -107,6 +107,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.28 — Ran in the Streets with Shadows](docs/v7.9.28-Release-Notes.md)
 - [v7.9.27 — Dump It Like It's Hot](docs/v7.9.27-Release-Notes.md)
 - [v7.9.26 — Securely Random, Perfectly Aligned](docs/v7.9.26-Release-Notes.md)
 - [v7.9.25 — The Binary Ate My Backup Tool](docs/v7.9.25-Release-Notes.md)
