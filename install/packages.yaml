@@ -199,6 +199,10 @@ desktop:
             - pattern: xfce4/*
               target: "~/.config/xfce4/"
             - pattern: helix/*
+            - pattern: zed/settings.json
+              target: "~/.config/zed/settings.json"
+            - pattern: zed/themes/*
+              target: "~/.config/zed/themes/"
             - pattern: crypto.toml
               target: "~/.config/crypto-template.toml"
             - pattern: applications/*

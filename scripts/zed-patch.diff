@@ -1,0 +1,1111 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index 037afc59bf..2346ef61fb 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -932,7 +932,7 @@ tree-sitter = { opt-level = 3 }
+ taffy = { opt-level = 3 }
+ resvg = { opt-level = 3 }
+ wasmtime = { opt-level = 3 }
+-cranelift-codegen = { opt-level = 3 }
++cranelift-codegen = { opt-level = 0 }
+ wasmtime-environ = { opt-level = 3 }
+ wasmtime-internal-cranelift = { opt-level = 3 }
+ minidumper = { opt-level = 3 }
+@@ -979,12 +979,14 @@ codegen-units = 1
+ 
+ [profile.release.package]
+ zed = { codegen-units = 16 }
++cranelift-codegen = { opt-level = 0 }
+ 
+ [profile.release-fast]
+ inherits = "release"
+-debug = "full"
++opt-level = 1
++debug = 0
+ lto = false
+-codegen-units = 16
++codegen-units = 256
+ 
+ [workspace.lints.rust]
+ unexpected_cfgs = { level = "allow" }
+diff --git a/crates/audio/Cargo.toml b/crates/audio/Cargo.toml
+index 156915b4ba..6b1f69dad8 100644
+--- a/crates/audio/Cargo.toml
++++ b/crates/audio/Cargo.toml
+@@ -26,5 +26,5 @@ settings.workspace = true
+ thiserror.workspace = true
+ util.workspace = true
+ 
+-[target.'cfg(not(any(all(target_os = "windows", target_env = "gnu"), target_os = "freebsd")))'.dependencies]
++[target.'cfg(not(any(all(target_os = "windows", target_env = "gnu"), target_os = "freebsd", target_os = "openbsd")))'.dependencies]
+ libwebrtc.workspace = true
+diff --git a/crates/audio/src/audio_pipeline/echo_canceller.rs b/crates/audio/src/audio_pipeline/echo_canceller.rs
+index 59f3063d9f..a9dd5cd567 100644
+--- a/crates/audio/src/audio_pipeline/echo_canceller.rs
++++ b/crates/audio/src/audio_pipeline/echo_canceller.rs
+@@ -1,4 +1,4 @@
+-#[cfg(not(any(all(target_os = "windows", target_env = "gnu"), target_os = "freebsd")))]
++#[cfg(not(any(all(target_os = "windows", target_env = "gnu"), target_os = "freebsd", target_os = "openbsd")))]
+ mod real_implementation {
+     use anyhow::Context;
+     use libwebrtc::native::apm;
+@@ -38,7 +38,7 @@ mod real_implementation {
+     }
+ }
+ 
+-#[cfg(any(all(target_os = "windows", target_env = "gnu"), target_os = "freebsd"))]
++#[cfg(any(all(target_os = "windows", target_env = "gnu"), target_os = "freebsd", target_os = "openbsd"))]
+ mod fake_implementation {
+     #[derive(Clone, Default)]
+     pub struct EchoCanceller;
+@@ -51,7 +51,7 @@ mod fake_implementation {
+     }
+ }
+ 
+-#[cfg(any(all(target_os = "windows", target_env = "gnu"), target_os = "freebsd"))]
++#[cfg(any(all(target_os = "windows", target_env = "gnu"), target_os = "freebsd", target_os = "openbsd"))]
+ pub use fake_implementation::EchoCanceller;
+-#[cfg(not(any(all(target_os = "windows", target_env = "gnu"), target_os = "freebsd")))]
++#[cfg(not(any(all(target_os = "windows", target_env = "gnu"), target_os = "freebsd", target_os = "openbsd")))]
+ pub use real_implementation::EchoCanceller;
+diff --git a/crates/call/src/call_impl/diagnostics.rs b/crates/call/src/call_impl/diagnostics.rs
+index 1aa1774dfb..8bb713682e 100644
+--- a/crates/call/src/call_impl/diagnostics.rs
++++ b/crates/call/src/call_impl/diagnostics.rs
+@@ -132,7 +132,8 @@ fn compute_network_stats(stats: &livekit_client::SessionStats) -> ComputedNetwor
+         test,
+         feature = "test-support",
+         all(target_os = "windows", target_env = "gnu"),
+-        target_os = "freebsd"
++        target_os = "freebsd",
++        target_os = "openbsd"
+     )
+ ))]
+ fn extract_metrics(
+@@ -150,7 +151,8 @@ fn extract_metrics(
+         test,
+         feature = "test-support",
+         all(target_os = "windows", target_env = "gnu"),
+-        target_os = "freebsd"
++        target_os = "freebsd",
++        target_os = "openbsd"
+     ))
+ ))]
+ fn extract_metrics(
+diff --git a/crates/cli/Cargo.toml b/crates/cli/Cargo.toml
+index e8667c6087..4713c87999 100644
+--- a/crates/cli/Cargo.toml
++++ b/crates/cli/Cargo.toml
+@@ -41,7 +41,7 @@ walkdir = "2.5"
+ serde_json.workspace = true
+ util = { workspace = true, features = ["test-support"] }
+ 
+-[target.'cfg(any(target_os = "linux", target_os = "freebsd"))'.dependencies]
++[target.'cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))'.dependencies]
+ exec.workspace = true
+ fork.workspace = true
+ 
+diff --git a/crates/cli/src/main.rs b/crates/cli/src/main.rs
+index 6f0c86f940..f4018d7f4a 100644
+--- a/crates/cli/src/main.rs
++++ b/crates/cli/src/main.rs
+@@ -840,7 +840,7 @@ fn prompt_open_behavior() -> Option<cli::CliBehaviorSetting> {
+     })
+ }
+ 
+-#[cfg(any(target_os = "linux", target_os = "freebsd"))]
++#[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+ mod linux {
+     use std::{
+         env,
+diff --git a/crates/client/src/telemetry.rs b/crates/client/src/telemetry.rs
+index ab9e1643fc..f2dfe416c5 100644
+--- a/crates/client/src/telemetry.rs
++++ b/crates/client/src/telemetry.rs
+@@ -113,6 +113,11 @@ pub fn os_name() -> String {
+         format!("FreeBSD {}", gpui::guess_compositor())
+     }
+ 
++    #[cfg(target_os = "openbsd")]
++    {
++        format!("OpenBSD {}", gpui::guess_compositor())
++    }
++
+     #[cfg(target_os = "windows")]
+     {
+         "Windows".to_string()
+@@ -141,7 +146,7 @@ pub fn os_version() -> String {
+                .replace_all(&version_string, "")
+                .to_string()
+        }
+-       any(target_os = "linux", target_os = "freebsd") => {
++       any(target_os = "linux", target_os = "freebsd", target_os = "openbsd") => {
+            use std::path::Path;
+ 
+            let content = if let Ok(file) = std::fs::read_to_string(&Path::new("/etc/os-release")) {
+diff --git a/crates/crashes/Cargo.toml b/crates/crashes/Cargo.toml
+index f8b898112c..66bdf6e90b 100644
+--- a/crates/crashes/Cargo.toml
++++ b/crates/crashes/Cargo.toml
+@@ -7,15 +7,17 @@ license = "GPL-3.0-or-later"
+ 
+ [dependencies]
+ async-process.workspace = true
+-crash-handler.workspace = true
+ log.workspace = true
+-minidumper.workspace = true
+ parking_lot.workspace = true
+ serde.workspace = true
+ serde_json.workspace = true
+ system_specs.workspace = true
+ zstd.workspace = true
+ 
++[target.'cfg(not(target_os = "openbsd"))'.dependencies]
++crash-handler.workspace = true
++minidumper.workspace = true
++
+ [target.'cfg(target_os = "macos")'.dependencies]
+ mach2.workspace = true
+ 
+diff --git a/crates/crashes/src/crashes.rs b/crates/crashes/src/crashes.rs
+index 12c251e6f7..b74afcc7b9 100644
+--- a/crates/crashes/src/crashes.rs
++++ b/crates/crashes/src/crashes.rs
+@@ -1,6 +1,10 @@
++#[cfg(not(target_os = "openbsd"))]
+ use crash_handler::{CrashEventResult, CrashHandler};
++#[cfg(not(target_os = "openbsd"))]
+ use log::info;
++#[cfg(not(target_os = "openbsd"))]
+ use minidumper::{LoopAction, MinidumpBinary, Server, SocketName};
++#[cfg(not(target_os = "openbsd"))]
+ use parking_lot::Mutex;
+ use serde::{Deserialize, Serialize};
+ use std::{panic::Location, pin::Pin};
+@@ -9,21 +13,29 @@ use system_specs::GpuSpecs;
+ 
+ use std::{
+     env,
+-    fs::{self, File},
+-    io, panic,
++    panic,
+     path::{Path, PathBuf},
+     process::{self},
+-    sync::{
+-        Arc,
+-        atomic::{AtomicBool, Ordering},
+-    },
+-    thread,
++    sync::Arc,
+     time::Duration,
+ };
+ 
++#[cfg(not(target_os = "openbsd"))]
++use std::{
++    fs::{self, File},
++    io, panic,
++    sync::atomic::{AtomicBool, Ordering},
++    thread,
++};
++
++#[cfg(not(target_os = "openbsd"))]
+ pub use minidumper::Client;
++#[cfg(target_os = "openbsd")]
++pub struct Client;
+ 
++#[cfg(not(target_os = "openbsd"))]
+ const CRASH_HANDLER_PING_TIMEOUT: Duration = Duration::from_secs(60);
++#[cfg(not(target_os = "openbsd"))]
+ const CRASH_HANDLER_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+ 
+ /// Force a backtrace to be printed on panic.
+@@ -44,6 +56,7 @@ pub fn force_backtrace() {
+ /// The synchronous portion (signal handlers, panic hook) runs inline.
+ /// The async keepalive task is passed to `spawn` so the caller decides
+ /// which executor to schedule it on.
++#[cfg(not(target_os = "openbsd"))]
+ pub fn init<F, S, C, P>(
+     crash_init: InitCrashHandler,
+     spawn: S,
+@@ -61,6 +74,7 @@ where
+ 
+ /// Spawn the crash-handler subprocess, connect the IPC client, and run the
+ /// keepalive ping loop. Called on a background executor by [`init`].
++#[cfg(not(target_os = "openbsd"))]
+ fn connect_and_keepalive<F, C, S, P>(
+     crash_init: InitCrashHandler,
+     socket_path: P,
+@@ -166,6 +180,7 @@ where
+     }
+ }
+ 
++#[cfg(not(target_os = "openbsd"))]
+ pub struct CrashServer {
+     initialization_params: Mutex<Option<InitCrashHandler>>,
+     panic_info: Mutex<Option<CrashPanic>>,
+@@ -206,6 +221,7 @@ pub struct UserInfo {
+     pub is_staff: Option<bool>,
+ }
+ 
++#[cfg(not(target_os = "openbsd"))]
+ fn send_crash_server_message(crash_client: &Arc<Client>, message: CrashServerMessage) {
+     let data = match serde_json::to_vec(&message) {
+         Ok(data) => data,
+@@ -220,14 +236,17 @@ fn send_crash_server_message(crash_client: &Arc<Client>, message: CrashServerMes
+     }
+ }
+ 
++#[cfg(not(target_os = "openbsd"))]
+ pub fn set_gpu_info(crash_client: &Arc<Client>, specs: GpuSpecs) {
+     send_crash_server_message(crash_client, CrashServerMessage::GPUInfo(specs));
+ }
+ 
++#[cfg(not(target_os = "openbsd"))]
+ pub fn set_user_info(crash_client: &Arc<Client>, info: UserInfo) {
+     send_crash_server_message(crash_client, CrashServerMessage::UserInfo(info));
+ }
+ 
++#[cfg(not(target_os = "openbsd"))]
+ #[derive(Serialize, Deserialize, Debug)]
+ enum CrashServerMessage {
+     Init(InitCrashHandler),
+@@ -236,6 +255,7 @@ enum CrashServerMessage {
+     UserInfo(UserInfo),
+ }
+ 
++#[cfg(not(target_os = "openbsd"))]
+ impl minidumper::ServerHandler for CrashServer {
+     fn create_minidump_file(&self) -> Result<(File, PathBuf), io::Error> {
+         let dump_path = self
+@@ -337,6 +357,7 @@ impl minidumper::ServerHandler for CrashServer {
+ /// Rust's string-slicing panics embed the user's string content in the message,
+ /// e.g. "byte index 4 is out of bounds of `a`". Strip that suffix so we
+ /// don't upload arbitrary user text in crash reports.
++#[cfg(not(target_os = "openbsd"))]
+ fn strip_user_string_from_panic(message: &str) -> String {
+     const STRING_PANIC_PREFIXES: &[&str] = &[
+         // Older rustc (pre-1.95):
+@@ -360,6 +381,7 @@ fn strip_user_string_from_panic(message: &str) -> String {
+     message.to_owned()
+ }
+ 
++#[cfg(not(target_os = "openbsd"))]
+ pub fn panic_hook(crash_client: Arc<Client>, message: &str, location: Option<&Location>) {
+     let message = strip_user_string_from_panic(message);
+ 
+@@ -435,6 +457,7 @@ mod macos {
+         }
+     }
+ }
++#[cfg(not(target_os = "openbsd"))]
+ #[cfg(not(target_os = "windows"))]
+ fn spawn_crash_handler(exe: &Path, socket_name: &Path) -> async_process::Child {
+     async_process::Command::new(exe)
+@@ -444,6 +467,7 @@ fn spawn_crash_handler(exe: &Path, socket_name: &Path) -> async_process::Child {
+         .expect("unable to spawn server process")
+ }
+ 
++#[cfg(not(target_os = "openbsd"))]
+ #[cfg(target_os = "windows")]
+ fn spawn_crash_handler(exe: &Path, socket_name: &Path) {
+     use std::ffi::OsStr;
+@@ -495,6 +519,7 @@ fn spawn_crash_handler(exe: &Path, socket_name: &Path) {
+     }
+ }
+ 
++#[cfg(not(target_os = "openbsd"))]
+ pub fn crash_server(socket: &Path, logs_dir: PathBuf) {
+     let Ok(mut server) = Server::with_name(SocketName::Path(socket)) else {
+         log::info!("Couldn't create socket, there may already be a running crash server");
+@@ -533,3 +558,34 @@ pub fn crash_server(socket: &Path, logs_dir: PathBuf) {
+         )
+         .expect("failed to run server");
+ }
++
++// OpenBSD stub implementations: crash handling via minidumper is unavailable.
++#[cfg(target_os = "openbsd")]
++pub fn init<F, S, C, P>(
++    _crash_init: InitCrashHandler,
++    _spawn: S,
++    _socket_path: P,
++    _wait_timer: C,
++) -> impl Future<Output = Arc<Client>> + use<F, C, S, P>
++where
++    F: Future<Output = ()> + Send + Sync + 'static,
++    C: (Fn(Duration) -> F) + Send + Sync + 'static,
++    S: FnOnce(Pin<Box<dyn Future<Output = ()> + Send + 'static>>),
++    P: FnOnce(u32) -> PathBuf,
++{
++    async move { Arc::new(Client) }
++}
++
++#[cfg(target_os = "openbsd")]
++pub fn set_gpu_info(_crash_client: &Arc<Client>, _specs: GpuSpecs) {}
++
++#[cfg(target_os = "openbsd")]
++pub fn set_user_info(_crash_client: &Arc<Client>, _info: UserInfo) {}
++
++#[cfg(target_os = "openbsd")]
++pub fn panic_hook(_crash_client: Arc<Client>, _message: &str, _location: Option<&Location>) {
++    std::process::abort();
++}
++
++#[cfg(target_os = "openbsd")]
++pub fn crash_server(_socket: &Path, _logs_dir: PathBuf) {}
+diff --git a/crates/fs/src/fs.rs b/crates/fs/src/fs.rs
+index 68c57c655d..ce2775dae8 100644
+--- a/crates/fs/src/fs.rs
++++ b/crates/fs/src/fs.rs
+@@ -15,13 +15,13 @@ use gpui::BackgroundExecutor;
+ use gpui::Global;
+ use gpui::ReadGlobal as _;
+ use gpui::SharedString;
+-#[cfg(unix)]
++#[cfg(any(target_os = "macos", target_os = "linux"))]
+ use std::ffi::CString;
+ use util::command::new_command;
+ 
+ #[cfg(unix)]
+ use std::os::fd::{AsFd, AsRawFd};
+-#[cfg(unix)]
++#[cfg(any(target_os = "macos", target_os = "linux"))]
+ use std::os::unix::ffi::OsStrExt;
+ 
+ #[cfg(unix)]
+@@ -464,6 +464,13 @@ impl FileHandle for std::fs::File {
+         Ok(path)
+     }
+ 
++    #[cfg(target_os = "openbsd")]
++    fn current_path(&self, _: &Arc<dyn Fs>) -> Result<PathBuf> {
++        let fd_path = format!("/dev/fd/{}", self.as_fd().as_raw_fd());
++        let new_path = std::fs::read_link(fd_path)?;
++        Ok(new_path)
++    }
++
+     #[cfg(target_os = "windows")]
+     fn current_path(&self, _: &Arc<dyn Fs>) -> Result<PathBuf> {
+         use std::ffi::OsString;
+@@ -601,6 +608,11 @@ fn rename_without_replace(source: &Path, target: &Path) -> io::Result<()> {
+     .map_err(|_| io::Error::last_os_error())
+ }
+ 
++#[cfg(target_os = "openbsd")]
++fn rename_without_replace(_source: &Path, _target: &Path) -> io::Result<()> {
++    Err(io::Error::from_raw_os_error(libc::ENOSYS))
++}
++
+ #[cfg(any(target_os = "macos", target_os = "linux"))]
+ fn path_to_c_string(path: &Path) -> io::Result<CString> {
+     CString::new(path.as_os_str().as_bytes()).map_err(|_| {
+@@ -705,7 +717,7 @@ impl Fs for RealFs {
+         }
+ 
+         let use_metadata_fallback = {
+-            #[cfg(any(target_os = "macos", target_os = "linux", target_os = "windows"))]
++            #[cfg(any(target_os = "macos", target_os = "linux", target_os = "windows", target_os = "openbsd"))]
+             {
+                 let source = source.to_path_buf();
+                 let target = target.to_path_buf();
+@@ -738,7 +750,7 @@ impl Fs for RealFs {
+                 }
+             }
+ 
+-            #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
++            #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows", target_os = "openbsd")))]
+             {
+                 // For platforms which do not have an atomic no-overwrite rename yet.
+                 true
+diff --git a/crates/gpui/src/app.rs b/crates/gpui/src/app.rs
+index 3631499fa9..0c71ffd8a7 100644
+--- a/crates/gpui/src/app.rs
++++ b/crates/gpui/src/app.rs
+@@ -1271,14 +1271,14 @@ impl App {
+ 
+     /// Reads data from the primary selection buffer.
+     /// Only available on Linux.
+-    #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++    #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+     pub fn read_from_primary(&self) -> Option<ClipboardItem> {
+         self.platform.read_from_primary()
+     }
+ 
+     /// Writes data to the primary selection buffer.
+     /// Only available on Linux.
+-    #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++    #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+     pub fn write_to_primary(&self, item: ClipboardItem) {
+         self.platform.write_to_primary(item)
+     }
+diff --git a/crates/gpui/src/gpui.rs b/crates/gpui/src/gpui.rs
+index b792718f88..668bcfaee4 100644
+--- a/crates/gpui/src/gpui.rs
++++ b/crates/gpui/src/gpui.rs
+@@ -35,7 +35,7 @@ mod platform;
+ pub mod prelude;
+ /// Profiling utilities for task timing and thread performance tracking.
+ pub mod profiler;
+-#[cfg(any(target_os = "windows", target_os = "linux", target_family = "wasm"))]
++#[cfg(any(target_os = "windows", target_os = "linux", target_os = "freebsd", target_os = "openbsd", target_family = "wasm"))]
+ #[expect(missing_docs)]
+ pub mod queue;
+ mod scene;
+@@ -131,7 +131,7 @@ pub use keymap::*;
+ pub use path_builder::*;
+ pub use platform::*;
+ pub use profiler::*;
+-#[cfg(any(target_os = "windows", target_os = "linux", target_family = "wasm"))]
++#[cfg(any(target_os = "windows", target_os = "linux", target_os = "freebsd", target_os = "openbsd", target_family = "wasm"))]
+ pub use queue::{PriorityQueueReceiver, PriorityQueueSender};
+ pub use refineable::*;
+ pub use scene::*;
+diff --git a/crates/gpui/src/keymap/context.rs b/crates/gpui/src/keymap/context.rs
+index 27f361bbe2..c6b8df7d6c 100644
+--- a/crates/gpui/src/keymap/context.rs
++++ b/crates/gpui/src/keymap/context.rs
+@@ -32,14 +32,14 @@ impl KeyContext {
+         let mut context = Self::default();
+         #[cfg(target_os = "macos")]
+         context.set("os", "macos");
+-        #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++        #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+         context.set("os", "linux");
+         #[cfg(target_os = "windows")]
+         context.set("os", "windows");
+         #[cfg(not(any(
+             target_os = "macos",
+             target_os = "linux",
+-            target_os = "freebsd",
++            target_os = "freebsd", target_os = "openbsd",
+             target_os = "windows"
+         )))]
+         context.set("os", "unknown");
+diff --git a/crates/gpui/src/platform.rs b/crates/gpui/src/platform.rs
+index fad863d9ff..c1f9e24ef8 100644
+--- a/crates/gpui/src/platform.rs
++++ b/crates/gpui/src/platform.rs
+@@ -2,7 +2,10 @@ mod app_menu;
+ mod keyboard;
+ mod keystroke;
+ 
+-#[cfg(all(target_os = "linux", feature = "wayland"))]
++#[cfg(all(
++    any(target_os = "linux", target_os = "openbsd"),
++    feature = "wayland"
++))]
+ #[expect(missing_docs)]
+ pub mod layer_shell;
+ 
+@@ -14,7 +17,7 @@ mod visual_test;
+ 
+ #[cfg(all(
+     feature = "screen-capture",
+-    any(target_os = "windows", target_os = "linux", target_os = "freebsd",)
++    any(target_os = "windows", target_os = "linux", target_os = "freebsd")
+ ))]
+ pub mod scap_screen_capture;
+ 
+@@ -23,7 +26,13 @@ pub mod scap_screen_capture;
+     feature = "screen-capture"
+ ))]
+ pub(crate) type PlatformScreenCaptureFrame = scap::frame::Frame;
+-#[cfg(not(feature = "screen-capture"))]
++#[cfg(any(
++    not(feature = "screen-capture"),
++    all(
++        feature = "screen-capture",
++        not(any(target_os = "windows", target_os = "linux", target_os = "macos"))
++    )
++))]
+ pub(crate) type PlatformScreenCaptureFrame = ();
+ #[cfg(all(target_os = "macos", feature = "screen-capture"))]
+ pub(crate) type PlatformScreenCaptureFrame = core_video::image_buffer::CVImageBuffer;
+@@ -37,7 +46,7 @@ use crate::{
+     SystemWindowTab, Task, Window, WindowControlArea, hash, point, px, size,
+ };
+ use anyhow::Result;
+-#[cfg(any(target_os = "linux", target_os = "freebsd"))]
++#[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+ use anyhow::bail;
+ use async_task::Runnable;
+ use futures::channel::oneshot;
+@@ -83,7 +92,7 @@ pub use visual_test::VisualTestPlatform;
+ // TODO(jk): return an enum instead of a string
+ /// Return which compositor we're guessing we'll use.
+ /// Does not attempt to connect to the given compositor.
+-#[cfg(any(target_os = "linux", target_os = "freebsd"))]
++#[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+ #[inline]
+ pub fn guess_compositor() -> &'static str {
+     if std::env::var_os("ZED_HEADLESS").is_some() {
+@@ -225,9 +234,9 @@ pub trait Platform: 'static {
+     fn read_from_clipboard(&self) -> Option<ClipboardItem>;
+     fn write_to_clipboard(&self, item: ClipboardItem);
+ 
+-    #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++    #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+     fn read_from_primary(&self) -> Option<ClipboardItem>;
+-    #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++    #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+     fn write_to_primary(&self, item: ClipboardItem);
+ 
+     #[cfg(target_os = "macos")]
+@@ -443,7 +452,7 @@ impl WindowButton {
+         }
+     }
+ 
+-    #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++    #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+     fn index(&self) -> usize {
+         match self {
+             WindowButton::Minimize => 0,
+@@ -468,7 +477,7 @@ pub struct WindowButtonLayout {
+     pub right: [Option<WindowButton>; MAX_BUTTONS_PER_SIDE],
+ }
+ 
+-#[cfg(any(target_os = "linux", target_os = "freebsd"))]
++#[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+ impl WindowButtonLayout {
+     /// Returns Zed's built-in fallback button layout for Linux titlebars.
+     pub fn linux_default() -> Self {
+@@ -1651,7 +1660,10 @@ pub enum WindowKind {
+ 
+     /// A Wayland LayerShell window, used to draw overlays or backgrounds for applications such as
+     /// docks, notifications or wallpapers.
+-    #[cfg(all(target_os = "linux", feature = "wayland"))]
++    #[cfg(all(
++        any(target_os = "linux", target_os = "openbsd"),
++        feature = "wayland"
++    ))]
+     LayerShell(layer_shell::LayerShellOptions),
+ 
+     /// A window that appears on top of its parent window and blocks interaction with it
+diff --git a/crates/gpui/src/platform/keystroke.rs b/crates/gpui/src/platform/keystroke.rs
+index c45c7c1b33..91d93a4e50 100644
+--- a/crates/gpui/src/platform/keystroke.rs
++++ b/crates/gpui/src/platform/keystroke.rs
+@@ -699,7 +699,7 @@ fn display_modifiers(modifiers: &Modifiers, f: &mut std::fmt::Formatter<'_>) ->
+         #[cfg(target_os = "macos")]
+         f.write_char('⌘')?;
+ 
+-        #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++        #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+         f.write_char('❖')?;
+ 
+         #[cfg(target_os = "windows")]
+@@ -762,7 +762,7 @@ fn unparse(modifiers: &Modifiers, key: &str) -> String {
+         #[cfg(target_os = "macos")]
+         result.push_str("cmd-");
+ 
+-        #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++        #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+         result.push_str("super-");
+ 
+         #[cfg(target_os = "windows")]
+diff --git a/crates/gpui/src/platform/test/platform.rs b/crates/gpui/src/platform/test/platform.rs
+index b3bee3769e..834dd5a774 100644
+--- a/crates/gpui/src/platform/test/platform.rs
++++ b/crates/gpui/src/platform/test/platform.rs
+@@ -26,7 +26,7 @@ pub(crate) struct TestPlatform {
+     active_display: Rc<dyn PlatformDisplay>,
+     active_cursor: Mutex<CursorStyle>,
+     current_clipboard_item: Mutex<Option<ClipboardItem>>,
+-    #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++    #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+     current_primary_item: Mutex<Option<ClipboardItem>>,
+     #[cfg(target_os = "macos")]
+     current_find_pasteboard_item: Mutex<Option<ClipboardItem>>,
+@@ -128,7 +128,7 @@ impl TestPlatform {
+             active_window: Default::default(),
+             expect_restart: Default::default(),
+             current_clipboard_item: Mutex::new(None),
+-            #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++            #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+             current_primary_item: Mutex::new(None),
+             #[cfg(target_os = "macos")]
+             current_find_pasteboard_item: Mutex::new(None),
+@@ -455,12 +455,12 @@ impl Platform for TestPlatform {
+         *self.current_clipboard_item.lock() = Some(item);
+     }
+ 
+-    #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++    #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+     fn read_from_primary(&self) -> Option<ClipboardItem> {
+         self.current_primary_item.lock().clone()
+     }
+ 
+-    #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++    #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+     fn write_to_primary(&self, item: ClipboardItem) {
+         *self.current_primary_item.lock() = Some(item);
+     }
+diff --git a/crates/gpui/src/scene.rs b/crates/gpui/src/scene.rs
+index bc7f5d79ea..ee88b1c227 100644
+--- a/crates/gpui/src/scene.rs
++++ b/crates/gpui/src/scene.rs
+@@ -150,7 +150,7 @@ impl Scene {
+ 
+     #[cfg_attr(
+         all(
+-            any(target_os = "linux", target_os = "freebsd"),
++            any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"),
+             not(any(feature = "x11", feature = "wayland"))
+         ),
+         allow(dead_code)
+@@ -180,7 +180,7 @@ impl Scene {
+ #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Default)]
+ #[cfg_attr(
+     all(
+-        any(target_os = "linux", target_os = "freebsd"),
++        any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"),
+         not(any(feature = "x11", feature = "wayland"))
+     ),
+     allow(dead_code)
+@@ -247,7 +247,7 @@ impl Primitive {
+ 
+ #[cfg_attr(
+     all(
+-        any(target_os = "linux", target_os = "freebsd"),
++        any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"),
+         not(any(feature = "x11", feature = "wayland"))
+     ),
+     allow(dead_code)
+@@ -454,7 +454,7 @@ impl<'a> Iterator for BatchIterator<'a> {
+ #[derive(Debug)]
+ #[cfg_attr(
+     all(
+-        any(target_os = "linux", target_os = "freebsd"),
++        any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"),
+         not(any(feature = "x11", feature = "wayland"))
+     ),
+     allow(dead_code)
+diff --git a/crates/gpui/src/svg_renderer.rs b/crates/gpui/src/svg_renderer.rs
+index 3b5062f55d..95a84e4622 100644
+--- a/crates/gpui/src/svg_renderer.rs
++++ b/crates/gpui/src/svg_renderer.rs
+@@ -16,7 +16,7 @@ const EMOJI_FONT_FAMILIES: &[&str] = &["Apple Color Emoji", ".AppleColorEmojiUI"
+ #[cfg(target_os = "windows")]
+ const EMOJI_FONT_FAMILIES: &[&str] = &["Segoe UI Emoji", "Segoe UI Symbol"];
+ 
+-#[cfg(any(target_os = "linux", target_os = "freebsd"))]
++#[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+ const EMOJI_FONT_FAMILIES: &[&str] = &[
+     "Noto Color Emoji",
+     "Emoji One",
+@@ -28,7 +28,7 @@ const EMOJI_FONT_FAMILIES: &[&str] = &[
+     target_os = "macos",
+     target_os = "windows",
+     target_os = "linux",
+-    target_os = "freebsd",
++    target_os = "freebsd", target_os = "openbsd",
+ )))]
+ const EMOJI_FONT_FAMILIES: &[&str] = &[];
+ 
+diff --git a/crates/gpui/src/window.rs b/crates/gpui/src/window.rs
+index c3a84c0b72..cef2ef812e 100644
+--- a/crates/gpui/src/window.rs
++++ b/crates/gpui/src/window.rs
+@@ -1269,7 +1269,7 @@ impl Window {
+             window_min_size,
+             window_decorations,
+             #[cfg_attr(
+-                not(any(target_os = "linux", target_os = "freebsd")),
++                not(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd")),
+                 allow(unused_variables)
+             )]
+             icon,
+@@ -2259,7 +2259,7 @@ impl Window {
+         if cfg!(any(
+             target_os = "windows",
+             target_os = "linux",
+-            target_os = "freebsd"
++            target_os = "freebsd", target_os = "openbsd"
+         )) {
+             self.hovered.get()
+         } else {
+diff --git a/crates/gpui_linux/Cargo.toml b/crates/gpui_linux/Cargo.toml
+index 0e9de0ebc0..83b303c0d3 100644
+--- a/crates/gpui_linux/Cargo.toml
++++ b/crates/gpui_linux/Cargo.toml
+@@ -46,56 +46,44 @@ x11 = [
+ ]
+ screen-capture = [
+     "gpui/screen-capture",
+-    "scap",
+ ]
+ 
+ 
+-[target.'cfg(any(target_os = "linux", target_os = "freebsd"))'.dependencies]
++[target.'cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))'.dependencies]
+ accesskit.workspace = true
+-accesskit_unix.workspace = true
+ anyhow.workspace = true
++ashpd = { workspace = true, optional = true }
++bitflags = { workspace = true, optional = true }
+ bytemuck = "1"
++calloop = "0.14.3"
++calloop-wayland-source = { version = "0.4.1", optional = true }
+ collections.workspace = true
+-image.workspace = true
++filedescriptor = { version = "0.8.2", optional = true }
+ futures.workspace = true
+ gpui.workspace = true
+ gpui_wgpu = { workspace = true, optional = true, features = ["font-kit"] }
+ http_client.workspace = true
++image.workspace = true
+ itertools.workspace = true
+ libc.workspace = true
+ log.workspace = true
++oo7 = { version = "0.6", default-features = false, features = [
++    "async-std",
++    "native_crypto",
++] }
++open = { version = "5.2.0", optional = true }
+ parking_lot.workspace = true
+ pathfinder_geometry = "0.5"
+ pollster.workspace = true
+ profiling.workspace = true
++raw-window-handle = "0.6"
+ smallvec.workspace = true
+ smol.workspace = true
+ strum.workspace = true
++swash = { version = "0.2.6" }
+ url.workspace = true
+ util.workspace = true
+ uuid.workspace = true
+-
+-# Always used
+-oo7 = { version = "0.6", default-features = false, features = [
+-    "async-std",
+-    "native_crypto",
+-] }
+-calloop = "0.14.3"
+-raw-window-handle = "0.6"
+-
+-# Used in both windowing options
+-ashpd = { workspace = true, optional = true }
+-swash = { version = "0.2.6" }
+-bitflags = { workspace = true, optional = true }
+-filedescriptor = { version = "0.8.2", optional = true }
+-open = { version = "5.2.0", optional = true }
+-xkbcommon = { version = "0.8.0", features = ["wayland", "x11"], optional = true }
+-
+-# Screen capture
+-scap = { workspace = true, optional = true }
+-
+-# Wayland
+-calloop-wayland-source = { version = "0.4.1", optional = true }
+ wayland-backend = { version = "0.3.3", features = [
+     "client_system",
+     "dlopen",
+@@ -113,9 +101,7 @@ wayland-protocols-plasma = { version = "0.3.9", features = [
+ wayland-protocols-wlr = { version = "0.3.9", features = [
+     "client",
+ ], optional = true }
+-
+-# X11
+-as-raw-xcb-connection = { version = "1", optional = true }
++x11-clipboard = { version = "0.9.3", optional = true }
+ x11rb = { version = "0.13.1", features = [
+     "allow-unsafe-code",
+     "xkb",
+@@ -126,9 +112,14 @@ x11rb = { version = "0.13.1", features = [
+     "sync",
+     "dri3",
+ ], optional = true }
+-# WARNING: If you change this, you must also publish a new version of zed-xim to crates.io
+ xim = { git = "https://github.com/zed-industries/xim-rs.git", rev = "16f35a2c881b815a2b6cdfd6687988e84f8447d8", features = [
+     "x11rb-xcb",
+     "x11rb-client",
+ ], package = "zed-xim", version = "0.4.0-zed", optional = true }
+-x11-clipboard = { version = "0.9.3", optional = true }
++xkbcommon = { version = "0.8.0", features = ["wayland", "x11"], optional = true }
++as-raw-xcb-connection = { version = "1", optional = true }
++accesskit_unix.workspace = true
++
++# Screen capture — only supported on Linux, FreeBSD, and Windows
++[target.'cfg(any(target_os = "linux", target_os = "freebsd", target_os = "windows"))'.dependencies]
++scap = { workspace = true, optional = true }
+diff --git a/crates/gpui_linux/src/gpui_linux.rs b/crates/gpui_linux/src/gpui_linux.rs
+index 62d972dc4e..da8850d48a 100644
+--- a/crates/gpui_linux/src/gpui_linux.rs
++++ b/crates/gpui_linux/src/gpui_linux.rs
+@@ -1,4 +1,4 @@
+-#![cfg(any(target_os = "linux", target_os = "freebsd"))]
++#![cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+ mod linux;
+ 
+ pub use linux::current_platform;
+diff --git a/crates/gpui_linux/src/linux/platform.rs b/crates/gpui_linux/src/linux/platform.rs
+index 343600cd86..940912e712 100644
+--- a/crates/gpui_linux/src/linux/platform.rs
++++ b/crates/gpui_linux/src/linux/platform.rs
+@@ -62,6 +62,7 @@ pub(crate) trait LinuxClient {
+     }
+ 
+     #[cfg(feature = "screen-capture")]
++    #[allow(dead_code)]
+     fn screen_capture_sources(
+         &self,
+     ) -> oneshot::Receiver<Result<Vec<Rc<dyn gpui::ScreenCaptureSource>>>> {
+@@ -293,7 +294,7 @@ impl<P: LinuxClient + 'static> Platform for LinuxPlatform<P> {
+         self.inner.is_screen_capture_supported()
+     }
+ 
+-    #[cfg(feature = "screen-capture")]
++    #[cfg(all(feature = "screen-capture", not(target_os = "openbsd")))]
+     fn screen_capture_sources(
+         &self,
+     ) -> oneshot::Receiver<Result<Vec<Rc<dyn gpui::ScreenCaptureSource>>>> {
+diff --git a/crates/gpui_linux/src/linux/wayland/client.rs b/crates/gpui_linux/src/linux/wayland/client.rs
+index a797d0d6d0..eb7922bc54 100644
+--- a/crates/gpui_linux/src/linux/wayland/client.rs
++++ b/crates/gpui_linux/src/linux/wayland/client.rs
+@@ -782,7 +782,7 @@ impl LinuxClient for WaylandClient {
+         None
+     }
+ 
+-    #[cfg(feature = "screen-capture")]
++    #[cfg(all(feature = "screen-capture", not(target_os = "openbsd")))]
+     fn screen_capture_sources(
+         &self,
+     ) -> futures::channel::oneshot::Receiver<anyhow::Result<Vec<Rc<dyn gpui::ScreenCaptureSource>>>>
+diff --git a/crates/gpui_linux/src/linux/x11/client.rs b/crates/gpui_linux/src/linux/x11/client.rs
+index b923fde438..7c8046b860 100644
+--- a/crates/gpui_linux/src/linux/x11/client.rs
++++ b/crates/gpui_linux/src/linux/x11/client.rs
+@@ -1569,7 +1569,7 @@ impl LinuxClient for X11Client {
+         true
+     }
+ 
+-    #[cfg(feature = "screen-capture")]
++    #[cfg(all(feature = "screen-capture", not(target_os = "openbsd")))]
+     fn screen_capture_sources(
+         &self,
+     ) -> futures::channel::oneshot::Receiver<anyhow::Result<Vec<Rc<dyn gpui::ScreenCaptureSource>>>>
+diff --git a/crates/gpui_platform/Cargo.toml b/crates/gpui_platform/Cargo.toml
+index 22d44a96b2..38d50710d7 100644
+--- a/crates/gpui_platform/Cargo.toml
++++ b/crates/gpui_platform/Cargo.toml
+@@ -30,7 +30,7 @@ gpui_macos.workspace = true
+ gpui_windows.workspace = true
+ gpui = { workspace = true, features = ["windows-manifest"] }
+ 
+-[target.'cfg(any(target_os = "linux", target_os = "freebsd"))'.dependencies]
++[target.'cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))'.dependencies]
+ gpui_linux.workspace = true
+ 
+ [target.'cfg(target_family = "wasm")'.dependencies]
+diff --git a/crates/gpui_platform/src/gpui_platform.rs b/crates/gpui_platform/src/gpui_platform.rs
+index 1d2fea90b4..dc51d6aaa2 100644
+--- a/crates/gpui_platform/src/gpui_platform.rs
++++ b/crates/gpui_platform/src/gpui_platform.rs
+@@ -47,7 +47,11 @@ pub fn current_platform(headless: bool) -> Rc<dyn Platform> {
+         )
+     }
+ 
+-    #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++    #[cfg(any(
++        target_os = "linux",
++        target_os = "freebsd",
++        target_os = "openbsd"
++    ))]
+     {
+         gpui_linux::current_platform(headless)
+     }
+diff --git a/crates/languages/src/python.rs b/crates/languages/src/python.rs
+index 97483cf3da..ea7a3da7ce 100644
+--- a/crates/languages/src/python.rs
++++ b/crates/languages/src/python.rs
+@@ -277,6 +277,12 @@ impl TyLspAdapter {
+     const ARCH_SERVER_NAME: &str = "unknown-freebsd";
+ }
+ 
++#[cfg(target_os = "openbsd")]
++impl TyLspAdapter {
++    const GITHUB_ASSET_KIND: AssetKind = AssetKind::TarGz;
++    const ARCH_SERVER_NAME: &str = "unknown-openbsd";
++}
++
+ #[cfg(target_os = "windows")]
+ impl TyLspAdapter {
+     const GITHUB_ASSET_KIND: AssetKind = AssetKind::Zip;
+@@ -2455,6 +2461,12 @@ impl RuffLspAdapter {
+     const ARCH_SERVER_NAME: &str = "unknown-freebsd";
+ }
+ 
++#[cfg(target_os = "openbsd")]
++impl RuffLspAdapter {
++    const GITHUB_ASSET_KIND: AssetKind = AssetKind::TarGz;
++    const ARCH_SERVER_NAME: &str = "unknown-openbsd";
++}
++
+ #[cfg(target_os = "windows")]
+ impl RuffLspAdapter {
+     const GITHUB_ASSET_KIND: AssetKind = AssetKind::Zip;
+diff --git a/crates/languages/src/rust.rs b/crates/languages/src/rust.rs
+index 445bcfa5de..20a6fcd6e5 100644
+--- a/crates/languages/src/rust.rs
++++ b/crates/languages/src/rust.rs
+@@ -63,6 +63,12 @@ impl RustLspAdapter {
+     const ARCH_SERVER_NAME: &str = "unknown-freebsd";
+ }
+ 
++#[cfg(target_os = "openbsd")]
++impl RustLspAdapter {
++    const GITHUB_ASSET_KIND: AssetKind = AssetKind::Gz;
++    const ARCH_SERVER_NAME: &str = "unknown-openbsd";
++}
++
+ #[cfg(target_os = "windows")]
+ impl RustLspAdapter {
+     const GITHUB_ASSET_KIND: AssetKind = AssetKind::Zip;
+diff --git a/crates/livekit_client/Cargo.toml b/crates/livekit_client/Cargo.toml
+index 42c13f094c..d03816d059 100644
+--- a/crates/livekit_client/Cargo.toml
++++ b/crates/livekit_client/Cargo.toml
+@@ -43,7 +43,7 @@ smallvec.workspace = true
+ ui.workspace = true
+ util.workspace = true
+ 
+-[target.'cfg(not(any(all(target_os = "windows", target_env = "gnu"), target_os = "freebsd")))'.dependencies]
++[target.'cfg(not(any(all(target_os = "windows", target_env = "gnu"), target_os = "freebsd", target_os = "openbsd")))'.dependencies]
+ libwebrtc.workspace = true
+ livekit.workspace = true
+ 
+diff --git a/crates/livekit_client/src/lib.rs b/crates/livekit_client/src/lib.rs
+index aa4831562c..56df273213 100644
+--- a/crates/livekit_client/src/lib.rs
++++ b/crates/livekit_client/src/lib.rs
+@@ -15,7 +15,8 @@ pub use record::CaptureInput;
+         test,
+         feature = "test-support",
+         all(target_os = "windows", target_env = "gnu"),
+-        target_os = "freebsd"
++        target_os = "freebsd",
++        target_os = "openbsd"
+     ))
+ ))]
+ mod livekit_client;
+@@ -25,7 +26,8 @@ mod livekit_client;
+         test,
+         feature = "test-support",
+         all(target_os = "windows", target_env = "gnu"),
+-        target_os = "freebsd"
++        target_os = "freebsd",
++        target_os = "openbsd"
+     ))
+ ))]
+ pub use livekit_client::*;
+@@ -36,7 +38,8 @@ pub use livekit_client::*;
+         test,
+         feature = "test-support",
+         all(target_os = "windows", target_env = "gnu"),
+-        target_os = "freebsd"
++        target_os = "freebsd",
++        target_os = "openbsd"
+     )
+ ))]
+ mod mock_client;
+@@ -46,7 +49,8 @@ mod mock_client;
+         test,
+         feature = "test-support",
+         all(target_os = "windows", target_env = "gnu"),
+-        target_os = "freebsd"
++        target_os = "freebsd",
++        target_os = "openbsd"
+     )
+ ))]
+ pub mod test;
+@@ -56,7 +60,8 @@ pub mod test;
+         test,
+         feature = "test-support",
+         all(target_os = "windows", target_env = "gnu"),
+-        target_os = "freebsd"
++        target_os = "freebsd",
++        target_os = "openbsd"
+     )
+ ))]
+ pub use mock_client::*;
+diff --git a/crates/remote_server/Cargo.toml b/crates/remote_server/Cargo.toml
+index 05bebd25fd..385eb76fb0 100644
+--- a/crates/remote_server/Cargo.toml
++++ b/crates/remote_server/Cargo.toml
+@@ -75,10 +75,11 @@ thiserror.workspace = true
+ rayon.workspace = true
+ uuid = { workspace = true, features = ["v4"] }
+ 
+-[target.'cfg(not(windows))'.dependencies]
++[target.'cfg(all(not(windows), not(target_os = "openbsd")))'.dependencies]
+ crash-handler.workspace = true
+ fork.workspace = true
+ libc.workspace = true
++[target.'cfg(not(target_os = "openbsd"))'.dependencies]
+ minidumper.workspace = true
+ 
+ [target.'cfg(windows)'.dependencies]
+diff --git a/crates/settings/src/vscode_import.rs b/crates/settings/src/vscode_import.rs
+index e4053bd2b7..46b1741153 100644
+--- a/crates/settings/src/vscode_import.rs
++++ b/crates/settings/src/vscode_import.rs
+@@ -937,6 +937,8 @@ impl VsCodeSettings {
+         let platform = "osx";
+         #[cfg(target_os = "freebsd")]
+         let platform = "freebsd";
++        #[cfg(target_os = "openbsd")]
++        let platform = "openbsd";
+         let env = self
+             .read_value(&format!("terminal.integrated.env.{platform}"))
+             .and_then(|v| v.as_object())
+diff --git a/crates/zed/Cargo.toml b/crates/zed/Cargo.toml
+index 664cdd703c..92e1c52a35 100644
+--- a/crates/zed/Cargo.toml
++++ b/crates/zed/Cargo.toml
+@@ -15,6 +15,8 @@ workspace = true
+ tracy = ["ztracing/tracy"]
+ # LEAK_BACKTRACE=1 cargo run --features zed/track-project-leak --profile release-fast
+ track-project-leak = ["gpui/leak-detection"]
++wayland = ["gpui_platform/wayland"]
++x11 = ["gpui_platform/x11"]
+ test-support = [
+     "gpui/test-support",
+     "gpui_platform/screen-capture",
+diff --git a/crates/zed/src/main.rs b/crates/zed/src/main.rs
+index 100b01f1a9..d2629f84d3 100644
+--- a/crates/zed/src/main.rs
++++ b/crates/zed/src/main.rs
+@@ -357,7 +357,7 @@ fn main() {
+     {
+         false
+     } else {
+-        #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++        #[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+         {
+             crate::zed::listen_for_cli_connections(open_listener.clone()).is_err()
+         }
+diff --git a/crates/zed/src/zed.rs b/crates/zed/src/zed.rs
+index 5564498614..ad5d34c3e6 100644
+--- a/crates/zed/src/zed.rs
++++ b/crates/zed/src/zed.rs
+@@ -610,7 +610,7 @@ pub fn initialize_workspace(app_state: Arc<AppState>, cx: &mut App) {
+     .detach();
+ }
+ 
+-#[cfg(any(target_os = "linux", target_os = "freebsd"))]
++#[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+ #[allow(unused)]
+ fn initialize_file_watcher(window: &mut Window, cx: &mut Context<Workspace>) {
+     if let Err(e) = fs::fs_watcher::global(|_| {}) {
+diff --git a/crates/zed/src/zed/open_listener.rs b/crates/zed/src/zed/open_listener.rs
+index 2b33614f29..c67038c7e1 100644
+--- a/crates/zed/src/zed/open_listener.rs
++++ b/crates/zed/src/zed/open_listener.rs
+@@ -420,7 +420,7 @@ impl OpenListener {
+     }
+ }
+ 
+-#[cfg(any(target_os = "linux", target_os = "freebsd"))]
++#[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "openbsd"))]
+ pub fn listen_for_cli_connections(opener: OpenListener) -> Result<()> {
+     use release_channel::RELEASE_CHANNEL_NAME;
+     use std::os::unix::net::UnixDatagram;

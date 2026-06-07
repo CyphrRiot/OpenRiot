@@ -126,6 +126,13 @@ func RunCrypto(mode string) error {
 				items[i].Price = usd
 			}
 		}
+		// Hardcode stablecoin prices (CoinGecko has no fiat coin IDs)
+		if items[i].Price == 0 && items[i].Held > 0 {
+			switch items[i].Sym {
+			case "USD", "USDC", "USDT", "DAI":
+				items[i].Price = 1.0
+			}
+		}
 		// Use the prev data we saved above
 		if items[i].CoinID != "" {
 			if f, ok := prevData[items[i].CoinID]; ok {
@@ -665,11 +672,11 @@ func fmtHeld(h float64) string {
 func fmtHeldClean(h float64) string {
 	if h > 0 {
 		if h < 1 {
-			return fmt.Sprintf("%7s", fmt.Sprintf("%.4f", h))
+			return fmt.Sprintf("%8s", fmt.Sprintf("%.4f", h))
 		}
-		return fmt.Sprintf("%7s", fmt.Sprintf("%.2f", h))
+		return fmt.Sprintf("%8s", fmt.Sprintf("%.2f", h))
 	}
-	return fmt.Sprintf("%7s", "0.00")
+	return fmt.Sprintf("%8s", "0.00")
 }
 
 // fmtValue formats current value (held \u00d7 price) as whole dollars with commas, right-padded to 7
@@ -869,9 +876,9 @@ func formatROWMLLine(item CryptoItem, items []CryptoItem, oversold int) string {
 		pctStr = fmt.Sprintf("%8s", fmt.Sprintf("%+.1f%%", glPct))
 		heldStr = holdStr
 	} else if isUSDStable {
-		heldStr = fmt.Sprintf("%7s", fmt.Sprintf("%.2f", item.Held))
-		entryStr = fmtPriceShort(item.Entry)
-		priceStr = fmtPriceShort(item.Price)
+		heldStr = fmt.Sprintf("%8s", fmt.Sprintf("%.2f", item.Held))
+		entryStr = fmt.Sprintf("%8s", fmt.Sprintf("%.2f", item.Entry))
+		priceStr = fmt.Sprintf("%8s", fmt.Sprintf("%.2f", item.Price))
 		valStr = fmtValue(item.Held, item.Price)
 		pctStr = fmt.Sprintf("%8s", "0.0%")
 	} else {
@@ -933,8 +940,8 @@ func saveCryptoSnapshot(items []CryptoItem, curFile string) {
 
 func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold int) error {
 	lines := []string{
-		fmt.Sprintf("%-4s %7s %8s %8s %7s %8s %6s %s", "Coin", "Held", "Entry", "Price", "Value", "%Entry", "%Port", "Next Step"),
-		fmt.Sprintf("%-4s %7s %8s %8s %7s %8s %6s %s", "----", "-------", "--------", "--------", "-------", "--------", "------", "---------"),
+		fmt.Sprintf("%-4s %8s %8s %8s %7s %8s %6s %s", "Coin", "Held", "Entry", "Price", "Value", "%Entry", "%Port", "Next Step"),
+		fmt.Sprintf("%-4s %8s %8s %8s %7s %8s %6s %s", "----", "--------", "--------", "--------", "-------", "--------", "------", "---------"),
 	}
 
 	sorted := sortCryptoItems(items)
@@ -958,9 +965,9 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold i
 		gainField := fmt.Sprintf("%8s", gainStr)
 		if showTotals && haveValue {
 			valField := fmt.Sprintf("%7s", formatIntWithCommas(math.Round(heldTotal)))
-			lines = append(lines, fmt.Sprintf("%31s%s %s", "", valField, gainField))
+			lines = append(lines, fmt.Sprintf("%32s%s %s", "", valField, gainField))
 		} else {
-			lines = append(lines, fmt.Sprintf("%38s%s", "", gainField))
+			lines = append(lines, fmt.Sprintf("%39s%s", "", gainField))
 		}
 	}
 
@@ -972,9 +979,6 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold i
 // outputNotify outputs simple format for notifications: "BTC     1.18 x $ 73,237.00 ▲ +10.13%"
 func outputNotify(items []CryptoItem) error {
 	for _, item := range items {
-		if item.Sym == "USD" {
-			continue
-		}
 		arrow := "•"
 		if item.Price > 0 && item.PrevPrice > 0 {
 			if item.Price > item.PrevPrice {
@@ -988,7 +992,7 @@ func outputNotify(items []CryptoItem) error {
 			glPct := ((item.Price - item.Entry) / item.Entry) * 100
 			pct = fmt.Sprintf("%.2f%%", glPct)
 		}
-		fmt.Printf("%-5s %6s x $%12s %s %9s\n", item.Sym, fmt.Sprintf("%.2f", item.Held), formatNumberSimple(item.Price), arrow, pct)
+		fmt.Printf("%-5s %8s x $%12s %s %9s\n", item.Sym, fmt.Sprintf("%.2f", item.Held), formatNumberSimple(item.Price), arrow, pct)
 	}
 	return nil
 }
@@ -1018,23 +1022,17 @@ func outputNotifySend(items []CryptoItem, showTotals bool) error {
 	var lines []string
 	lines = append(lines, "")
 	for _, item := range sorted {
-		if item.Sym == "USD" {
-			continue
-		}
 		arrow := formatPriceArrow(item)
 		pct := ""
 		if item.Held > 0 && item.Entry > 0 {
 			glPct := ((item.Price - item.Entry) / item.Entry) * 100
 			pct = fmt.Sprintf("%.2f%%", glPct)
 		}
-		lines = append(lines, fmt.Sprintf("%s %-5s %6s x $ %10s %s %7s", getCryptoIcon(item.Sym), item.Sym, fmt.Sprintf("%.2f", item.Held), formatNumberSimple(item.Price), arrow, pct))
+		lines = append(lines, fmt.Sprintf("%s %-5s %8s x $ %10s %s %7s", getCryptoIcon(item.Sym), item.Sym, fmt.Sprintf("%.2f", item.Held), formatNumberSimple(item.Price), arrow, pct))
 	}
 
 	var totalValue, totalCost float64
 	for _, item := range sorted {
-		if item.Sym == "USD" {
-			continue
-		}
 		totalValue += item.Held * item.Price
 		totalCost += item.Held * item.Entry
 	}

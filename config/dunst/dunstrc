@@ -5,7 +5,7 @@
     monitor = 0
     follow = mouse
     width = 450
-    height = (0, 240)
+    height = (0, 300)
     offset = (16, 42)
     scale = 0
     notification_limit = 10

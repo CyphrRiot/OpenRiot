@@ -1,0 +1,64 @@
+{
+    "icon_theme": "Zed (Default)",
+    "features": {
+        "edit_prediction_provider": "zed"
+    },
+    "show_edit_predictions": false,
+    "edit_predictions": {
+        "disabled_globs": [".env"]
+    },
+    "cursor_blink": false,
+    "relative_line_numbers": false,
+    "unnecessary_code_fade": 50,
+    "hover_popover_delay": 500,
+    "cursor_shape": "hollow",
+    "scrollbar": {
+        "show": "never"
+    },
+    "vertical_scroll_margin": 0,
+    "tab_bar": {
+        "show": true
+    },
+    "toolbar": {
+        "breadcrumbs": true,
+        "quick_actions": false
+    },
+    "format_on_save": "on",
+    "auto_signature_help": true,
+    "current_line_highlight": "gutter",
+    "autosave": "on_focus_change",
+    "tab_size": 4,
+    "hard_tabs": false,
+    "wrap_guides": [120, 121],
+    "show_wrap_guides": false,
+    "soft_wrap": "editor_width",
+    "buffer_font_family": "Hack Nerd Font Mono",
+    "buffer_font_size": 16,
+    "ui_font_size": 16,
+    "ui_font_family": "Hack Nerd Font Propo",
+    "buffer_line_height": "comfortable",
+    "terminal": {
+        "font_family": "Hack Nerd Font",
+        "font_size": 16,
+        "line_height": "standard",
+        "env": {
+            "EDITOR": "zed --wait"
+        },
+        "dock": "right"
+    },
+    "tabs": {
+        "file_icons": true
+    },
+    "theme": "Ayu Darker",
+    "file_scan_exclusions": [
+        "**/.git*",
+        "**/.golang*",
+        "**/.cargo*",
+        "go.sum",
+        "**/backups"
+    ],
+    "telemetry": {
+        "diagnostics": false,
+        "metrics": false
+    }
+}
