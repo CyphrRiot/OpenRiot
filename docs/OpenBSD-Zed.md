@@ -19,8 +19,9 @@ crates in the cargo cache at build time, then builds.
 
 - OpenBSD 7.9 amd64
 - `pkg_add rust xkbcommon`
-- Virtual memory limit must allow ~8 GB (`ulimit -v 8388608`).
+- Datasize limit must allow ~8 GB (`ulimit -d 8388608`).
   The script enforces this automatically.
+- `TMPDIR` is set to `~/.cache/zed/tmp` (not the small mfs `/tmp`).
 - `RUSTFLAGS="-L /usr/local/lib"` (set automatically by `zed.sh`)
 
 ## Build Profile

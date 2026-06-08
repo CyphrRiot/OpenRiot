@@ -26,13 +26,19 @@ if ! command -v cargo >/dev/null 2>&1; then
     doas pkg_add rust
 fi
 
-# Step 0.5: Verify virtual memory limits
-VMEM_KB=$(ulimit -v)
-if [ "$VMEM_KB" != "unlimited" ] && [ "$VMEM_KB" -lt 8388608 ]; then
-    echo "WARNING: current virtual memory limit is ${VMEM_KB}KB (< 8GB)."
-    echo "Zed linking requires ~4-6GB virtual memory."
-    echo "Set login.conf maxproc-vmem or run with: ulimit -v 8388608"
+# Step 0.5: Verify datasize limits (OpenBSD uses RLIMIT_DATA, ulimit -d)
+DATA_KB=$(ulimit -d)
+if [ "$DATA_KB" != "unlimited" ] && [ "$DATA_KB" -lt 8388608 ]; then
+    echo "WARNING: current datasize limit is ${DATA_KB}KB (< 8GB)."
+    echo "Zed linking requires ~4-6GB data segment."
+    echo "Set login.conf datasize or run with: ulimit -d 8388608"
 fi
+
+# Step 0.7: Use persistent storage for compiler temp files
+# /tmp is a small mfs (495 MB) and fills up during large rustc compiles.
+export TMPDIR="${HOME}/.cache/zed/tmp"
+mkdir -p "${TMPDIR}"
+echo "TMPDIR=${TMPDIR}"
 
 # Step 1: Clone or update zed
 echo "Cloning/updating zed..."
@@ -157,7 +163,7 @@ EOF
         fi
     fi
 
-    if sh -c "ulimit -v 8388608 && exec cargo build --profile release-fast --no-default-features --features '${ZED_FEATURES}' -j '${CARGO_BUILD_JOBS}'"; then
+    if sh -c "ulimit -d 8388608 && exec cargo build --profile release-fast --no-default-features --features '${ZED_FEATURES}' -j '${CARGO_BUILD_JOBS}'"; then
         break
     elif [ "$attempt" -eq 2 ]; then
         echo "Build failed after patching third-party sources."
@@ -175,8 +181,8 @@ strip "${INSTALL_DIR}/bin/zed.bin" 2>/dev/null || true
 # so the stripped binary does not OOM at runtime.
 cat > "${INSTALL_DIR}/bin/zed" << 'WRAPPER'
 #!/bin/sh
-echo "ulimit -v 8388608..."
-ulimit -v 8388608 2>/dev/null || ulimit -v 4194304 2>/dev/null || true
+echo "ulimit -d 8388608..."
+ulimit -d 8388608 2>/dev/null || ulimit -d 4194304 2>/dev/null || true
 exec "$(dirname "$0")/zed.bin" "$@"
 WRAPPER
 chmod +x "${INSTALL_DIR}/bin/zed"
