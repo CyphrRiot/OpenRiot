@@ -329,7 +329,7 @@ There are two ways to install OpenRiot on a fresh machine. **Method 1 is strongl
 
 **Method 1 (Recommended):** Install standard OpenBSD from `install79.img`, then run `setup.sh`.
 
-**Method 2 (Offline):** Flash `openriot.img` which bundles packages. Base install happens offline, then run `setup.sh` after first login.
+**Method 2 (Offline):** *Experimental!* Flash `openriot.img` which bundles packages. Base install happens offline, then run `setup.sh` after first login.
 
 > Typical time: **20 minutes** (Method 1 with fast internet); **5 minutes** (Method 2, no downloads during install).
 
