@@ -924,7 +924,7 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Run: func(args []string) error {
 			ram := polybar.GetRAM()
 			ramPct := polybar.GetMemPercent()
-			fmt.Printf(" %s\nMemory: %s\n", ram, ramPct)
+			fmt.Printf("%s\nMemory: %s\n", ram, ramPct)
 			return nil
 		},
 	})

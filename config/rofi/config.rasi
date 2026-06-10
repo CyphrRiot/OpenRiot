@@ -1,11 +1,12 @@
 @theme "~/.config/rofi/simple-tokyonight.rasi"
 
 configuration {
-    modi: "calc,drun";
+    modi: "filebrowser,calc,drun";
     show-icons: true;
     display-drun: "Apps";
     display-calc: "Calc";
     terminal: "alacritty";
     font: "FiraCode Nerd Font 14";
     row-count: 25;
+    fb-root: "~";
 }

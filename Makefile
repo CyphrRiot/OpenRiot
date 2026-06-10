@@ -353,6 +353,7 @@ ui: install
 	@openriot --dunst-setup
 	@pkill -9 dunst 2>/dev/null || true
 	@cp config/i3/config $$HOME/.config/i3/config
+	@cp config/i3/keybindings.conf $$HOME/.config/i3/keybindings.conf
 	@i3-msg restart 2>/dev/null || true
 	@cp config/rofi/simple-tokyonight.rasi.tmpl $$HOME/.local/share/openriot/config/rofi/simple-tokyonight.rasi.tmpl
 	@openriot --rofi-setup

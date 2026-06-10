@@ -20,6 +20,12 @@ PATCH_FILE="$(dirname "$0")/zed-patch.diff"
 INSTALL_DIR="${HOME}/.local/share/openriot/config"
 SOURCE_DIR="${HOME}/Code/zed"
 
+# Portable in-place sed (OpenBSD's /usr/bin/sed does not support -i).
+# Usage: sed_i <file> <sed-expression>
+sed_i() {
+    sed "$2" "$1" > "$1.tmp" && mv "$1.tmp" "$1"
+}
+
 # Step 0: Install Rust if cargo is missing
 if ! command -v cargo >/dev/null 2>&1; then
     echo "Installing Rust via pkg_add..."
@@ -93,6 +99,46 @@ else
     echo "No patch file found, building without patches"
 fi
 
+# Step 2.5: Patch wgpu in cargo cache (mandatory before first build).
+# Cargo can succeed with cfg!(gles) evaluating to false, producing a binary
+# that compiles but panics at runtime. These patches add target_os = "openbsd"
+# to the wgpu GLES cfg aliases. Idempotent.
+echo "Patching wgpu for OpenBSD GLES backend..."
+WGPU_ROOT=$(find "${HOME}/.cargo/git/checkouts" -maxdepth 1 -type d -name 'wgpu-*' 2>/dev/null | head -1)
+if [ -n "$WGPU_ROOT" ]; then
+    for rev in "$WGPU_ROOT"/*/; do
+        [ -d "$rev" ] || continue
+        PDEPS="$rev/wgpu-core/platform-deps/windows-linux-android/Cargo.toml"
+        CTOML="$rev/wgpu-core/Cargo.toml"
+        WRS="$rev/wgpu/build.rs"
+        CRS="$rev/wgpu-core/build.rs"
+        [ -f "$PDEPS" ] && ! rg -q 'target_os = "openbsd"' "$PDEPS" 2>/dev/null && \
+            sed_i "$PDEPS" 's/target_os = "netbsd"/target_os = "netbsd", target_os = "openbsd"/'
+        [ -f "$CTOML" ] && ! rg -q 'target_os = "openbsd"' "$CTOML" 2>/dev/null && \
+            sed_i "$CTOML" 's/target_os = "freebsd"))/target_os = "freebsd", target_os = "openbsd"))/'
+        [ -f "$WRS" ] && ! rg -q 'target_os = "openbsd"' "$WRS" 2>/dev/null && \
+            sed_i "$WRS" 's/target_os = "freebsd", Emscripten/target_os = "freebsd", target_os = "openbsd", Emscripten/'
+        [ -f "$CRS" ] && ! rg -q 'target_os = "openbsd"' "$CRS" 2>/dev/null && \
+            sed_i "$CRS" 's|all(windows_linux_android, feature = "gles"), // Regular GLES|any(all(windows_linux_android, feature = "gles"), all(target_os = "openbsd", feature = "gles")), // Regular GLES|'
+    done
+    # Verify all four files now have the OpenBSD cfg.
+    for rev in "$WGPU_ROOT"/*/; do
+        [ -d "$rev" ] || continue
+        for f in "$rev/wgpu-core/platform-deps/windows-linux-android/Cargo.toml" \
+                 "$rev/wgpu-core/Cargo.toml" \
+                 "$rev/wgpu/build.rs" \
+                 "$rev/wgpu-core/build.rs"; do
+            if [ -f "$f" ] && ! rg -q 'target_os = "openbsd"' "$f" 2>/dev/null; then
+                echo "ERROR: wgpu patch missing in $f" >&2
+                exit 1
+            fi
+        done
+    done
+    echo "wgpu patches verified"
+else
+    echo "WARNING: wgpu source not found in cargo cache; will be patched on attempt 2"
+fi
+
 # Step 3: Attempt build, patching registry sources on failure
 echo "Building zed with features=$ZED_FEATURES..."
 export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-1}"
@@ -112,12 +158,12 @@ for attempt in 1 2; do
         if [ -n "$WASMTIME_DIR" ]; then
             T="$WASMTIME_DIR/src/p2/tcp.rs"
             U="$WASMTIME_DIR/src/sockets/util.rs"
-            sed -i '' -e 's/Ok(sockopt::tcp_keepidle(view)?)/Err(ErrorCode::NotSupported.into())/' "$T"
-            sed -i '' -e 's/Ok(sockopt::tcp_keepintvl(view)?)/Err(ErrorCode::NotSupported.into())/' "$T"
-            sed -i '' -e 's/Ok(sockopt::tcp_keepcnt(view)?)/Err(ErrorCode::NotSupported.into())/' "$T"
-            sed -i '' -e 's/sockopt::set_tcp_keepidle(fd, Duration::from_nanos(value))?;/return Err(ErrorCode::NotSupported);/' "$U"
-            sed -i '' -e 's/sockopt::set_tcp_keepintvl(fd, value\.clamp(MIN, MAX))?;/return Err(ErrorCode::NotSupported);/' "$U"
-            sed -i '' -e 's/sockopt::set_tcp_keepcnt(fd, value\.clamp(MIN_CNT, MAX_CNT))?;/return Err(ErrorCode::NotSupported);/' "$U"
+            sed_i "$T" 's/Ok(sockopt::tcp_keepidle(view)?)/Err(ErrorCode::NotSupported.into())/'
+            sed_i "$T" 's/Ok(sockopt::tcp_keepintvl(view)?)/Err(ErrorCode::NotSupported.into())/'
+            sed_i "$T" 's/Ok(sockopt::tcp_keepcnt(view)?)/Err(ErrorCode::NotSupported.into())/'
+            sed_i "$U" 's/sockopt::set_tcp_keepidle(fd, Duration::from_nanos(value))?;/return Err(ErrorCode::NotSupported);/'
+            sed_i "$U" 's/sockopt::set_tcp_keepintvl(fd, value\.clamp(MIN, MAX))?;/return Err(ErrorCode::NotSupported);/'
+            sed_i "$U" 's/sockopt::set_tcp_keepcnt(fd, value\.clamp(MIN_CNT, MAX_CNT))?;/return Err(ErrorCode::NotSupported);/'
             echo "wasmtime-wasi patched"
         fi
         IPC_DIR=$(find "${HOME}/.cargo/registry/src" -maxdepth 1 -type d \
@@ -137,30 +183,7 @@ EOF
                 echo "ipc-channel patched"
             fi
         fi
-        # wgpu: GLES backend platform gate excludes OpenBSD.
-        WGPU_PLATFORM_FILE=$(find "${HOME}/.cargo/git/checkouts/wgpu-*" -path '*/wgpu-core/platform-deps/windows-linux-android/Cargo.toml' 2>/dev/null | head -1)
-        if [ -n "$WGPU_PLATFORM_FILE" ] && ! rg -q 'target_os = "openbsd"' "$WGPU_PLATFORM_FILE" 2>/dev/null; then
-            sed -i '' -e 's/target_os = "netbsd"/target_os = "netbsd", target_os = "openbsd"/' "$WGPU_PLATFORM_FILE"
-            echo "wgpu platform-deps patched"
-        fi
-        # wgpu-core/Cargo.toml: include OpenBSD in the platform-deps target cfg.
-        WGPU_CORE_TOML=$(find "${HOME}/.cargo/git/checkouts/wgpu-*" -path '*/wgpu-core/Cargo.toml' 2>/dev/null | head -1)
-        if [ -n "$WGPU_CORE_TOML" ] && ! rg -q 'target_os = "openbsd"' "$WGPU_CORE_TOML" 2>/dev/null; then
-            sed -i '' -e 's/target_os = "freebsd"))/target_os = "freebsd", target_os = "openbsd"))/' "$WGPU_CORE_TOML"
-            echo "wgpu-core Cargo.toml patched"
-        fi
-        # wgpu/build.rs: add OpenBSD to the gles cfg alias.
-        WGPU_BUILD_RS=$(find "${HOME}/.cargo/git/checkouts/wgpu-*" -path '*/wgpu/build.rs' 2>/dev/null | head -1)
-        if [ -n "$WGPU_BUILD_RS" ] && ! rg -q 'target_os = "openbsd"' "$WGPU_BUILD_RS" 2>/dev/null; then
-            sed -i '' -e 's/target_os = "freebsd", Emscripten/target_os = "freebsd", target_os = "openbsd", Emscripten/' "$WGPU_BUILD_RS"
-            echo "wgpu build.rs patched"
-        fi
-        # wgpu-core/build.rs: add OpenBSD to the gles cfg alias without affecting vulkan.
-        WGPU_CORE_BUILD_RS=$(find "${HOME}/.cargo/git/checkouts/wgpu-*" -path '*/wgpu-core/build.rs' 2>/dev/null | head -1)
-        if [ -n "$WGPU_CORE_BUILD_RS" ] && ! rg -q 'target_os = "openbsd"' "$WGPU_CORE_BUILD_RS" 2>/dev/null; then
-            sed -i '' -e 's/all(windows_linux_android, feature = "gles"), \/\/ Regular GLES/any(all(windows_linux_android, feature = "gles"), all(target_os = "openbsd", feature = "gles")), \/\/ Regular GLES/' "$WGPU_CORE_BUILD_RS"
-            echo "wgpu-core build.rs patched"
-        fi
+        # wgpu patches are applied in Step 2.5 before this loop.
     fi
 
     if sh -c "ulimit -d 8388608 && exec cargo build --profile release-fast --no-default-features --features '${ZED_FEATURES}' -j '${CARGO_BUILD_JOBS}'"; then
