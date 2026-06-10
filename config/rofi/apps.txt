@@ -10,7 +10,9 @@ Proton Mail|firefox --class proton-mail https://mail.protonmail.com|󰊫
 Helix|alacritty --class helix --title Helix -e hx|
 Kate IDE|kate|
 Text Editor|gnome-text-editor|󰷉
-Word Processor|libreoffice --writer|󰈙
+Word Processor|libreoffice --writer|󰈬
+Spreadsheet|libreoffice --calc|󰈛
+Presentation|libreoffice --impress|󰈧
 System Monitor|alacritty --class btop --title "System Monitor" -o font.size=11 -e btop|󰮡
 Media Player|mpv --player-operation-mode=pseudo-gui|
 Music Player|alacritty --class rmpc --title "Music Player" -e ~/.local/bin/rmpc|

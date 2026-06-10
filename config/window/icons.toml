@@ -203,9 +203,9 @@ sdlpop = ""
 
 [office]
 libreoffice = "󰈙"
-libreoffice-writer = "󰈙"
-libreoffice-calc = "󰈙"
-libreoffice-impress = "󰈙"
+libreoffice-writer = "󰈬"
+libreoffice-calc = "󰈛"
+libreoffice-impress = "󰈧"
 libreoffice-draw = "󰈙"
 libreoffice-math = "󰈙"
 libreoffice-startcenter = "󰏆"

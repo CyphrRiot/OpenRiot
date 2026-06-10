@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.30-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.31-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -110,6 +110,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.31 — All the Doors are Repainted](docs/v7.9.31-Release-Notes.md)
 - [v7.9.30 — `ulimit -d` Saves the World](docs/v7.9.30-Release-Notes.md)
 - [v7.9.29 — Live Long and `ulimit -v`](docs/v7.9.29-Release-Notes.md)
 - [v7.9.28 — Ran in the Streets with Shadows](docs/v7.9.28-Release-Notes.md)
@@ -119,28 +120,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [v7.9.24 — Four Versions in a Trenchcoat](docs/v7.9.24-Release-Notes.md)
 - [v7.9.23 — Ghost in the Wallpaper](docs/v7.9.23-Release-Notes.md)
 - [v7.9.22 — Kiss Me Kate](docs/v7.9.22-Release-Notes.md)
-- [v7.9.21 — Clipmenud Ate Your Keystrokes](docs/v7.9.21-Release-Notes.md)
-- [v7.9.20 — The One Where 1.8TB Became 1 Byte](docs/v7.9.20-Release-Notes.md)
-- [v7.9.19 — The One That Finally Frees the Drive](docs/v7.9.19-Release-Notes.md)
-- [v7.9.18 — The One Where We Learned to Read dmesg](docs/v7.9.18-Release-Notes.md)
-- [v7.9.17 — The One That Woke Up Properly](docs/v7.9.17-Release-Notes.md)
-- [v7.9.16 — The One Where Errors Stopped Disappearing](docs/v7.9.16-Release-Notes.md)
-- [v7.9.15 — The One Where You Could See It Working](docs/v7.9.15-Release-Notes.md)
-- [v7.9.14 — The One Where the Wallpaper Actually Showed Up](docs/v7.9.14-Release-Notes.md)
-- [v7.9.13 — The One That Respects Your Time](docs/v7.9.13-Release-Notes.md)
-- [v7.9.12 — The One That Stopped Lying to Itself](docs/v7.9.12-Release-Notes.md)
-- [v7.9.11 — The One Where Everything Actually Starts](docs/v7.9.11-Release-Notes.md)
-- [v7.9.10 — The One Where The WiFi Stopped Lying](docs/v7.9.10-Release-Notes.md)
-- [v7.9.9 — Self-Copy, Self-Doubt, Self-Respect](docs/v7.9.9-Release-Notes.md)
-- [v7.9.8 — The One Where We Actually Looked at the Polybar](docs/v7.9.8-Release-Notes.md)
-- [v7.9.7 — The One That Wraps Up The Loose Ends](docs/v7.9.7-Release-Notes.md)
-- [v7.9.6 — The One With The Proper Sound](docs/v7.9.6-Release-Notes.md)
-- [v7.9.5 — The One That Finished The Job](docs/v7.9.5-Release-Notes.md)
-- [v7.9.4 — The One That Went Bondi Green](docs/v7.9.4-Release-Notes.md)
-- [v7.9.3 — The One Where We Mapped the Home Directory to Oblivion](docs/v7.9.3-Release-Notes.md)
-- [v7.9.2 — The One Where the Kernel Was a Replicant](docs/v7.9.2-Release-Notes.md)
-- [v7.9.1 — The One Where We Fixed the Menu and Invented a Switcher](docs/v7.9.1-Release-Notes.md)
-- [v7.9.0 — The Version Number Finally Makes Sense](docs/v7.9.0-Release-Notes.md)
+- [Older releases →](docs/)
 
 Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.
 

@@ -85,19 +85,26 @@ func Lock() error {
 
 	// Give user time to see the notification before screen locks
 	notify.SendNotify("lock", "Screen Lock", "Screen is locking...", "normal", 4000, 0)
-	time.Sleep(1 * time.Second)
 
-	cmd := exec.Command("i3lock", "-i", lockFile)
+	// Disable keyboard auto-repeat so i3lock doesn't see phantom keys
+	// from held keys during the X11 grab transition window.
+	exec.Command("xset", "r", "off").Run()
+	time.Sleep(1500 * time.Millisecond)
+
+	cmd := exec.Command("i3lock", "-n", "-i", lockFile)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	cmd.Stdin = nil
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 	err := cmd.Start()
 	if err != nil {
+		exec.Command("xset", "r", "on").Run()
 		notify.SendNotify("lock", "Screen Lock", "Lock failed: i3lock error", "critical", 5000, 0)
 		return err
 	}
 	cmd.Wait()
+	// Re-enable auto-repeat after the screen is unlocked.
+	exec.Command("xset", "r", "on").Run()
 	return nil
 }
 
