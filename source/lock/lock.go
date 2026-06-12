@@ -87,8 +87,12 @@ func Lock() error {
 	notify.SendNotify("lock", "Screen Lock", "Screen is locking...", "normal", 4000, 0)
 
 	// Disable keyboard auto-repeat so i3lock doesn't see phantom keys
-	// from held keys during the X11 grab transition window.
-	exec.Command("xset", "r", "off").Run()
+	// from held keys during the X11 grab transition window. `xset r rate
+	// 0 0` does NOT work on this X server (rejected with "unknown option
+	// 0"), so we use `r off` which is the only reliable disable.
+	if out, err := exec.Command("xset", "r", "off").CombinedOutput(); err != nil {
+		notify.SendNotify("lock", "Screen Lock", "xset r off failed: "+strings.TrimSpace(string(out)), "normal", 5000, 0)
+	}
 	time.Sleep(1500 * time.Millisecond)
 
 	cmd := exec.Command("i3lock", "-n", "-i", lockFile)

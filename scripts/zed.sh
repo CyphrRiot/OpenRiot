@@ -135,6 +135,14 @@ if [ -n "$WGPU_ROOT" ]; then
         done
     done
     echo "wgpu patches verified"
+
+    # Force wgpu build script re-run: cargo caches build script
+    # output permanently. If the source was patched but the output
+    # is stale (e.g., from a prior build without the patches),
+    # cargo skips the re-run and the binary gets Backends::empty().
+    # Deleting the output files forces fresh evaluation.
+    find "$SOURCE_DIR"/target/release-fast/build/wgpu-*/output \
+        -type f -delete 2>/dev/null || true
 else
     echo "WARNING: wgpu source not found in cargo cache; will be patched on attempt 2"
 fi

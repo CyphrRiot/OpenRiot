@@ -17,7 +17,19 @@ func Restore() error {
 
 	display.RestoreDisplays()
 
-	_ = network.ReconnectWifi()
+	// WiFi driver may still be re-initializing after resume; retry.
+	var wifiErr error
+	for i := 0; i < 3; i++ {
+		wifiErr = network.ReconnectWifi()
+		if wifiErr == nil {
+			break
+		}
+		time.Sleep(2 * time.Second)
+	}
+	if wifiErr != nil {
+		notify.SendNotify("resume", "WiFi", "Failed to reconnect: "+wifiErr.Error(), "critical", 5000, 0)
+		return wifiErr
+	}
 
 	if wireguard.IsRunning() {
 		_ = wireguard.Restart()

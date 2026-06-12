@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
@@ -52,30 +53,6 @@ func runInstall(testMode *bool) {
 		} else if err == installer.ErrDowngradeRisk {
 			logger.Info("Running on post-release snapshot. sysupgrade -R would downgrade.")
 			logger.Info("Staying on -current branch.")
-		}
-	}
-
-	// Pre-install errata/security patch check
-	erraRes, err := installer.CheckErrata()
-	if err == nil && erraRes != nil && len(erraRes.Unapplied) > 0 {
-		if installer.PrintErrataBanner(erraRes) {
-			fmt.Println()
-			logger.Info(fmt.Sprintf("Running: %s", erraRes.InstallCmd))
-			fmt.Println()
-			parts := strings.Fields(erraRes.InstallCmd)
-			cmd := exec.Command(parts[0], parts[1:]...)
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			if err := cmd.Run(); err != nil {
-				logger.Warn(fmt.Sprintf("%s failed: %v", erraRes.InstallCmd, err))
-				fmt.Printf("Please run manually: %s\n", erraRes.InstallCmd)
-			}
-			if erraRes.Reboot {
-				fmt.Println()
-				logger.Warn("Reboot required! Run the installer again after reboot.")
-			}
-			fmt.Println()
-			os.Exit(0)
 		}
 	}
 
@@ -171,6 +148,62 @@ func runInstall(testMode *bool) {
 			fmt.Println("  (reboot)")
 			fmt.Println("  doas pkg_add -u")
 		}
+	}
+
+	// Post-install security/reliability patches. Runs last so the full
+	// installation completes before we prompt the user for syspatch.
+	// On -current we skip — snapshots handle their own updates.
+	// On stable we use syspatch -c to check pending patches (no
+	// hardcoded errata list — syspatch -c returns the real count).
+	runPostInstallPatch()
+}
+
+// runPostInstallPatch offers to run doas syspatch if patches are pending.
+// On -current this is a no-op (drift warning above handles the -current case).
+func runPostInstallPatch() {
+	if config.DetectOpenBSDVersion() == "snapshots" {
+		return
+	}
+
+	cmd := exec.Command("syspatch", "-c")
+	output, err := cmd.Output()
+	if err != nil {
+		return
+	}
+	pending := strings.TrimSpace(string(output))
+	if pending == "" {
+		return
+	}
+
+	fmt.Println()
+	fmt.Print("Security/reliability patches are available. Apply now? [y/N] ")
+	// Read from /dev/tty explicitly — stdin is a pipe during curl | sh
+	tty, err := os.OpenFile("/dev/tty", os.O_RDONLY, 0)
+	if err != nil {
+		fmt.Println(" (no terminal detected, continuing...)")
+		fmt.Printf("Apply later: doas syspatch\n")
+		return
+	}
+	defer tty.Close()
+
+	reader := bufio.NewReader(tty)
+	input, _ := reader.ReadString('\n')
+	input = strings.TrimSpace(strings.ToLower(input))
+	if input != "y" && input != "yes" {
+		fmt.Printf("Apply later: doas syspatch\n")
+		return
+	}
+
+	fmt.Println()
+	logger.Info("Running: doas syspatch")
+	fmt.Println()
+	patchCmd := exec.Command("doas", "syspatch")
+	patchCmd.Stdout = os.Stdout
+	patchCmd.Stderr = os.Stderr
+	patchCmd.Stdin = os.Stdin
+	if err := patchCmd.Run(); err != nil {
+		logger.Warn(fmt.Sprintf("syspatch failed: %v", err))
+		fmt.Println("Please run manually: doas syspatch")
 	}
 }
 

@@ -457,10 +457,6 @@ func RegisterAll(r *Registry, testMode *bool) {
 				details := network.GetWifiDetails()
 				notify.SendNotify("wifi", "WiFi", details, "normal", 5000, 0)
 			} else {
-				if !network.IsConnected() {
-					notify.SendNotify("wifi-off", "WiFi", "Not connected", "normal", 2000, 0)
-					return nil
-				}
 				notify.SendNotify("wifi", "WiFi", "Reconnecting...", "normal", 3000, 0)
 				if err := network.ReconnectWifi(); err != nil {
 					notify.SendNotify("wifi-off", "WiFi", fmt.Sprintf("Reconnect failed: %v", err), "critical", 5000, 0)

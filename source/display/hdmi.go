@@ -16,6 +16,9 @@ const (
 	iconLaptop = ""
 )
 
+var cachedMode = make(map[string]string)
+var cachedRate = make(map[string]string)
+
 // i3Output mirrors the JSON shape returned by  i3-msg -t get_outputs .
 type i3Output struct {
 	Name             string `json:"name"`
@@ -39,13 +42,38 @@ func parseI3Outputs() i3Outputs {
 	return outs
 }
 
+// xrandrLaptopName finds the built-in display name (eDP-1 / LVDS-1) via
+// xrandr --query. Used as a fallback when i3's get_outputs doesn't report
+// the laptop panel — i3 drops disabled outputs from its tracking after
+// `xrandr --output eDP-1 --off`, which breaks the polybar toggle in
+// clamshell mode.
+func xrandrLaptopName() string {
+	out, err := exec.Command("xrandr", "--query").Output()
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(out), "\n") {
+		fields := strings.Fields(line)
+		if len(fields) < 2 {
+			continue
+		}
+		name := fields[0]
+		if (strings.HasPrefix(name, "eDP") || strings.HasPrefix(name, "LVDS")) && fields[1] == "connected" {
+			return name
+		}
+	}
+	return ""
+}
+
 func (o i3Outputs) laptopName() string {
 	for _, out := range o {
 		if strings.HasPrefix(out.Name, "eDP") || strings.HasPrefix(out.Name, "LVDS") {
 			return out.Name
 		}
 	}
-	return ""
+	// i3 drops disabled outputs from its tracking; fall back to xrandr
+	// so the polybar toggle works in clamshell mode.
+	return xrandrLaptopName()
 }
 
 func (o i3Outputs) externalName() string {
@@ -82,7 +110,6 @@ func RunHDMI() {
 	hasExt := ext != ""
 
 	if hasExt {
-		setLidAction(false) // suspend disabled when docked
 		laptopActive := outputs.isActive(laptop)
 		extActive := outputs.isActive(ext)
 
@@ -94,7 +121,7 @@ func RunHDMI() {
 			fmt.Println(polybar.Icon(iconHDMI))
 		}
 	} else {
-		setLidAction(true) // suspend enabled when undocked
+		setLidAction(true) // enable suspend when undocked
 		fmt.Println(polybar.Icon(iconLaptop))
 		// Auto-restore laptop display if it was disabled while HDMI-only
 		if laptop != "" && !outputs.isActive(laptop) {
@@ -135,8 +162,96 @@ func isOnAC() bool {
 	return strings.TrimSpace(string(out)) == "1"
 }
 
-// ToggleHDMI cycles through three display modes: Both → Laptop Only → HDMI Only → Both.
-// It still uses xrandr for actual display reconfiguration (that only happens on click).
+// xrandrOutput holds the parsed state of one xrandr output.
+type xrandrOutput struct {
+	Name   string
+	Active bool   // has geometry like 1920x1080+0+0
+	Mode   string // e.g. "1920x1080" (empty if not active)
+	Rate   string // e.g. "60.00" (empty if not active)
+}
+
+// parseXrandrOutputs parses `xrandr --query` into a map of name → state.
+// Authoritative for active state and current mode/rate — i3 drops disabled
+// outputs from its tracking after `xrandr --output <name> --off`.
+func parseXrandrOutputs() map[string]xrandrOutput {
+	out, err := exec.Command("xrandr", "--query").Output()
+	if err != nil {
+		return nil
+	}
+	result := make(map[string]xrandrOutput)
+	var current string
+	for _, line := range strings.Split(string(out), "\n") {
+		if strings.HasPrefix(line, " ") || strings.HasPrefix(line, "\t") {
+			if current == "" {
+				continue
+			}
+			// Mode line: "   1920x1080     60.00 +* 60.00" (active)
+			// or off:    "   1920x1080     60.00 +  60.00" (no *)
+			parts := strings.Fields(line)
+			if len(parts) < 2 {
+				continue
+			}
+			res := parts[0]
+			for _, p := range parts[1:] {
+				if strings.Contains(p, "*") {
+					s := result[current]
+				s.Mode = res
+				r := strings.TrimRight(strings.TrimLeft(p, "*"), "+")
+				s.Rate = r
+				cachedMode[current] = res
+				cachedRate[current] = r
+				result[current] = s
+					break
+				}
+			}
+		} else {
+			fields := strings.Fields(line)
+			if len(fields) >= 2 && fields[1] == "connected" {
+				name := fields[0]
+				active := false
+				for _, f := range fields[2:] {
+					if strings.Contains(f, "x") && strings.Contains(f, "+") {
+						active = true
+						break
+					}
+				}
+				result[name] = xrandrOutput{Name: name, Active: active}
+				current = name
+			} else {
+				current = ""
+			}
+		}
+	}
+	return result
+}
+
+// turnOn activates an xrandr output with its previous mode+rate, or
+// falls back to --auto if no mode was captured.
+func turnOn(name, mode, rate string) {
+	if name == "" {
+		return
+	}
+	if mode == "" {
+		if m, ok := cachedMode[name]; ok && m != "" {
+			mode = m
+			rate = cachedRate[name]
+		}
+	}
+	if mode == "" {
+		exec.Command("xrandr", "--output", name, "--auto").Run()
+		return
+	}
+	args := []string{"--output", name, "--mode", mode}
+	if rate != "" {
+		args = append(args, "--rate", rate)
+	}
+	exec.Command("xrandr", args...).Run()
+}
+
+// ToggleHDMI cycles through three display modes:
+// HDMI Only → Laptop Only → Both → HDMI Only (repeats).
+// Uses xrandr as the authoritative source for active state and current
+// mode/rate, since i3 drops disabled outputs from its tracking.
 func ToggleHDMI() {
 	outputs := parseI3Outputs()
 	laptop := outputs.laptopName()
@@ -151,8 +266,11 @@ func ToggleHDMI() {
 		return
 	}
 
-	laptopActive := outputs.isActive(laptop)
-	extActive := outputs.isActive(ext)
+	states := parseXrandrOutputs()
+	laptopOut := states[laptop]
+	extOut := states[ext]
+	laptopActive := laptopOut.Active
+	extActive := extOut.Active
 
 	if laptopActive && extActive {
 		// Both → Laptop only: disable external
@@ -162,14 +280,12 @@ func ToggleHDMI() {
 	} else if laptopActive && !extActive {
 		// Laptop only → HDMI only: disable laptop, enable external
 		exec.Command("xrandr", "--output", laptop, "--off").Run()
-		if !extActive {
-			exec.Command("xrandr", "--output", ext, "--auto").Run()
-		}
+		turnOn(ext, extOut.Mode, extOut.Rate)
 		setLidAction(false)
 		notify.SendNotify("hdmi", "Display Mode", "HDMI Only 󰍹\nLaptop display disabled", "normal", 8000, 0)
 	} else {
 		// HDMI only → Both: enable laptop
-		exec.Command("xrandr", "--output", laptop, "--auto").Run()
+		turnOn(laptop, laptopOut.Mode, laptopOut.Rate)
 		setLidAction(true)
 		notify.SendNotify("hdmi", "Display Mode", "Laptop + HDMI 󰍺\nLaptop re-enabled", "normal", 8000, 0)
 	}
