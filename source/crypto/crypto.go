@@ -940,7 +940,7 @@ func saveCryptoSnapshot(items []CryptoItem, curFile string) {
 
 func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold int) error {
 	lines := []string{
-		fmt.Sprintf("%-4s %8s %8s %8s %7s %8s %6s %s", "Coin", "Held", "Entry", "Price", "Value", "%Entry", "%Port", "Next Step"),
+		fmt.Sprintf("%-4s %8s %8s %8s %7s %8s %6s %s", "Coin", "Held", "Entry", "Price", "Value", "Entry", "Port", "Next Step"),
 		fmt.Sprintf("%-4s %8s %8s %8s %7s %8s %6s %s", "----", "--------", "--------", "--------", "-------", "--------", "------", "---------"),
 	}
 
