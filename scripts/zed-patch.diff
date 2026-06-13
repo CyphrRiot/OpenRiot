@@ -438,19 +438,19 @@ index 3631499fa9..0c71ffd8a7 100644
          self.platform.write_to_primary(item)
      }
 diff --git a/crates/gpui/src/gpui.rs b/crates/gpui/src/gpui.rs
-index b792718f88..668bcfaee4 100644
+index a81ff265c3..3b4ef846d8 100644
 --- a/crates/gpui/src/gpui.rs
 +++ b/crates/gpui/src/gpui.rs
-@@ -35,7 +35,7 @@ mod platform;
- pub mod prelude;
- /// Profiling utilities for task timing and thread performance tracking.
- pub mod profiler;
--#[cfg(any(target_os = "windows", target_os = "linux", target_family = "wasm"))]
-+#[cfg(any(target_os = "windows", target_os = "linux", target_os = "freebsd", target_os = "openbsd", target_family = "wasm"))]
- #[expect(missing_docs)]
- pub mod queue;
- mod scene;
-@@ -131,7 +131,7 @@ pub use keymap::*;
+@@ -39,6 +39,8 @@ pub mod profiler;
+     test,
+     target_os = "windows",
+     target_os = "linux",
++    target_os = "freebsd",
++    target_os = "openbsd",
+     target_family = "wasm",
+     feature = "bench"
+ ))]
+@@ -137,7 +139,7 @@ pub use keymap::*;
  pub use path_builder::*;
  pub use platform::*;
  pub use profiler::*;

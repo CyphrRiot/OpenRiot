@@ -12,7 +12,6 @@ Kate IDE|kate|
 Text Editor|gnome-text-editor|󰷉
 Word Processor|libreoffice --writer|󰈬
 Spreadsheet|libreoffice --calc|󰈛
-Presentation|libreoffice --impress|󰈧
 System Monitor|alacritty --class btop --title "System Monitor" -o font.size=10 -e btop|󰮡
 Media Player|mpv --player-operation-mode=pseudo-gui|
 Music Player|alacritty --class rmpc --title "Music Player" -e ~/.local/bin/rmpc|
@@ -20,7 +19,6 @@ Crush AI|alacritty --class crush --title "Crush AI" -e crush|󰚩
 Transmission|transmission-gtk|󰐻
 Telegram|tdesktop.desktop|󰭹
 Discord|abaddon|󰙯
-SolveSpace 3D|solvespace|󰐫
 Blockchain|@submenu:blockchain|󱕵
 Games|@submenu:games|󰊗
 Utilities|@submenu:utilities|󰢮

@@ -191,6 +191,7 @@ desktop:
             - qtquickcontrols2-5.15.18pl5
             - qtgraphicaleffects-5.15.18pl0
             - qtdeclarative-5.15.18pl22
+            - unison-gui-2.53.8
         configs:
             - pattern: gtk-3.0/*
             - pattern: gtk-4.0/*

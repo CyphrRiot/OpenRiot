@@ -14,7 +14,7 @@
 set -e
 
 ZED_REPO="https://github.com/zed-industries/zed"
-ZED_COMMIT="${ZED_COMMIT:-}"
+ZED_COMMIT="${ZED_COMMIT:-fca2ccd403}"
 ZED_FEATURES="${ZED_FEATURES:-x11}"
 PATCH_FILE="$(dirname "$0")/zed-patch.diff"
 INSTALL_DIR="${HOME}/.local/share/openriot/config"
@@ -82,18 +82,28 @@ else
     fi
 fi
 
-# Step 2: Apply OpenBSD patches (idempotent)
 echo "Applying OpenBSD compatibility patches..."
 if [ -f "$PATCH_FILE" ] && [ -s "$PATCH_FILE" ]; then
-    if patch -d "$SOURCE_DIR" -p1 --dry-run -f < "$PATCH_FILE" >/dev/null 2>&1; then
-        patch -d "$SOURCE_DIR" -p1 -f < "$PATCH_FILE"
-        echo "Patch applied"
-    elif patch -d "$SOURCE_DIR" -p1 --dry-run -f -R < "$PATCH_FILE" >/dev/null 2>&1; then
-        echo "Patch already applied"
+    # Reverse dry-run first: if it succeeds, patch is already applied.
+    if patch -d "$SOURCE_DIR" -p1 --dry-run -t -R < "$PATCH_FILE" 2>&1 \
+            | rg -q 'FAILED' >/dev/null 2>&1; then
+        :  # reverse dry-run has FAILED → forward dry-run is needed
+        PATCH_DRYRUN=$(patch -d "$SOURCE_DIR" -p1 --dry-run -t \
+            < "$PATCH_FILE" 2>&1 || true)
+        if ! printf '%s\n' "$PATCH_DRYRUN" | rg -q 'FAILED'; then
+            patch -d "$SOURCE_DIR" -p1 -t < "$PATCH_FILE" || {
+                echo "ERROR: patch apply failed despite clean dry-run" >&2
+                exit 1
+            }
+            find "$SOURCE_DIR" -name '*.orig' -type f -delete 2>/dev/null || true
+            echo "Patch applied"
+        else
+            echo "ERROR: Patch cannot be applied. Upstream code may have changed." >&2
+            echo "Update the patch or the commit pin." >&2
+            exit 1
+        fi
     else
-        echo "ERROR: Patch cannot be applied. Upstream code may have changed."
-        echo "Update the patch or the commit pin."
-        exit 1
+        echo "Patch already applied"
     fi
 else
     echo "No patch file found, building without patches"
@@ -116,10 +126,10 @@ if [ -n "$WGPU_ROOT" ]; then
             sed_i "$PDEPS" 's/target_os = "netbsd"/target_os = "netbsd", target_os = "openbsd"/'
         [ -f "$CTOML" ] && ! rg -q 'target_os = "openbsd"' "$CTOML" 2>/dev/null && \
             sed_i "$CTOML" 's/target_os = "freebsd"))/target_os = "freebsd", target_os = "openbsd"))/'
-        [ -f "$WRS" ] && ! rg -q 'target_os = "openbsd"' "$WRS" 2>/dev/null && \
-            sed_i "$WRS" 's/target_os = "freebsd", Emscripten/target_os = "freebsd", target_os = "openbsd", Emscripten/'
-        [ -f "$CRS" ] && ! rg -q 'target_os = "openbsd"' "$CRS" 2>/dev/null && \
-            sed_i "$CRS" 's|all(windows_linux_android, feature = "gles"), // Regular GLES|any(all(windows_linux_android, feature = "gles"), all(target_os = "openbsd", feature = "gles")), // Regular GLES|'
+        [ -f "$WRS" ] && ! rg -q 'target_os = "openbsd",$' "$WRS" 2>/dev/null && \
+            sed_i "$WRS" 's|gles: { any(|gles: { any(\n            target_os = "openbsd",|'
+        [ -f "$CRS" ] && ! rg -q 'target_os = "openbsd",$' "$CRS" 2>/dev/null && \
+            sed_i "$CRS" 's|gles: { any(|gles: { any(\n            target_os = "openbsd",|'
     done
     # Verify all four files now have the OpenBSD cfg.
     for rev in "$WGPU_ROOT"/*/; do
@@ -135,14 +145,6 @@ if [ -n "$WGPU_ROOT" ]; then
         done
     done
     echo "wgpu patches verified"
-
-    # Force wgpu build script re-run: cargo caches build script
-    # output permanently. If the source was patched but the output
-    # is stale (e.g., from a prior build without the patches),
-    # cargo skips the re-run and the binary gets Backends::empty().
-    # Deleting the output files forces fresh evaluation.
-    find "$SOURCE_DIR"/target/release-fast/build/wgpu-*/output \
-        -type f -delete 2>/dev/null || true
 else
     echo "WARNING: wgpu source not found in cargo cache; will be patched on attempt 2"
 fi
@@ -154,6 +156,12 @@ export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-1}"
 # other native libraries live there.
 export RUSTFLAGS="-L /usr/local/lib ${RUSTFLAGS:-}"
 cd "$SOURCE_DIR"
+
+# Force wgpu build-script re-run: cargo clean -p is the only
+# approach that reliably defeats the build-script cache.
+# find-delete of output files alone is insufficient.
+cargo clean -p wgpu -p wgpu-core -p wgpu-hal
+
 echo "Building zed (debug profile, CARGO_BUILD_JOBS=$CARGO_BUILD_JOBS)..."
 
 # First build attempt may fail on third-party crates not yet in cargo registry.

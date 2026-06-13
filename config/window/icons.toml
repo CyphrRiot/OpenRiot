@@ -291,7 +291,9 @@ gnome-network = "󰤨"
 openriot_wifi = "󱚹"
 openriot_resolution = "󰹑"
 openriot_disk = "󰋊"
-openriot_migrate = "󰆼"
+openriot_migrate = "󰳿"
+unison = "󱍸"
+unison-gui = "󱍸"
 
 [utilities]
 file-roller = "󰗄"
