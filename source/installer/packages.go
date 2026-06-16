@@ -147,39 +147,12 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 			// Retry with base name if exact version failed
 			base := config.GetBaseName(pkg)
 			if base != pkg {
-					logger.Info(fmt.Sprintf("Retrying %s with latest version...", base))
-					installCmd[len(installCmd)-1] = base
-					ctx, cancel = context.WithTimeout(context.Background(), timeout)
-					cmd = exec.CommandContext(ctx, installCmd[0], installCmd[1:]...)
-
-					retryStart := time.Now()
-					done := make(chan struct{})
-					go func() {
-						ticker := time.NewTicker(5 * time.Minute)
-						defer ticker.Stop()
-						for {
-							select {
-							case <-ticker.C:
-								elapsed := int(time.Since(retryStart).Minutes())
-								logger.Info(fmt.Sprintf("Still running: %s (%dm elapsed)", base, elapsed))
-							case <-done:
-								return
-							}
-						}
-					}()
-
-					output, err = cmd.CombinedOutput()
-					close(done)
-					cancel()
-					if err == nil {
-						logger.Done(fmt.Sprintf("%s installed (latest version)", base))
-						continue
-					}
-					outputStr = truncateOutput(output)
-					if ctx.Err() == context.DeadlineExceeded {
-						logger.Warn(fmt.Sprintf("Timed out after %dm: %s", int(timeout.Minutes()), base))
-					}
+				if errOut := tryInstall(installCmd, base, timeout); errOut == "" {
+					continue
+				} else {
+					outputStr = errOut
 				}
+			}
 			logger.Warn(fmt.Sprintf("Failed to install %s:\n    %s", installName, outputStr))
 			failed++
 		} else {
@@ -203,6 +176,64 @@ func truncateOutput(output []byte) string {
 		return s[:300] + "..."
 	}
 	return s
+}
+
+// tryInstall attempts to install a package with two retries:
+//   1. Base name with the original install flags
+//   2. Base name with -D snap (for -current systems where the
+//      exact version doesn't exist on the stable mirror)
+//
+// Returns the error output if both attempts fail, or empty string on success.
+func tryInstall(installCmd []string, base string, timeout time.Duration) string {
+	// Attempt 1: base name with original flags
+	cmd1 := append([]string{}, installCmd...)
+	cmd1[len(cmd1)-1] = base
+	if out, err := runInstallAttempt(cmd1, base, timeout); err == nil {
+		return ""
+	} else {
+		_ = out
+	}
+
+	// Attempt 2: base name with -D snap for -current
+	logger.Info(fmt.Sprintf("Retrying %s with snapshot mode...", base))
+	cmd2 := []string{installCmd[0], installCmd[1], "-D", "snap", base}
+	out, err := runInstallAttempt(cmd2, base, timeout)
+	if err == nil {
+		return ""
+	}
+	return truncateOutput(out)
+}
+
+func runInstallAttempt(cmd []string, name string, timeout time.Duration) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	start := time.Now()
+	done := make(chan struct{})
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				elapsed := int(time.Since(start).Minutes())
+				logger.Info(fmt.Sprintf("Still running: %s (%dm elapsed)", name, elapsed))
+			case <-done:
+				return
+			}
+		}
+	}()
+
+	c := exec.CommandContext(ctx, cmd[0], cmd[1:]...)
+	out, err := c.CombinedOutput()
+	close(done)
+
+	if err == nil {
+		logger.Done(fmt.Sprintf("%s installed (latest version)", name))
+	} else if ctx.Err() == context.DeadlineExceeded {
+		logger.Warn(fmt.Sprintf("Timed out after %dm: %s", int(timeout.Minutes()), name))
+	}
+	return out, err
 }
 
 // isSignatureError checks whether pkg_add output indicates a base/package

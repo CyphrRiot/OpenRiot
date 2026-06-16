@@ -202,7 +202,10 @@ EOF
         # wgpu patches are applied in Step 2.5 before this loop.
     fi
 
-    if sh -c "ulimit -d 8388608 && exec cargo build --profile release-fast --no-default-features --features '${ZED_FEATURES}' -j '${CARGO_BUILD_JOBS}'"; then
+    # AWS_LC_SYS_NO_ASM=1 disables aws-lc's curve25519 assembly
+    # (curve25519_x25519base.S) which crashes on OpenBSD — local
+    # symbol PIC addressing is broken. Forces pure C fallback.
+    if sh -c "ulimit -d 8388608 && AWS_LC_SYS_NO_ASM=1 exec cargo build --profile release-fast --no-default-features --features '${ZED_FEATURES}' -j '${CARGO_BUILD_JOBS}'"; then
         break
     elif [ "$attempt" -eq 2 ]; then
         echo "Build failed after patching third-party sources."
