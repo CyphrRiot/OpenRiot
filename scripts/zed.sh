@@ -161,6 +161,7 @@ cd "$SOURCE_DIR"
 # approach that reliably defeats the build-script cache.
 # find-delete of output files alone is insufficient.
 cargo clean -p wgpu -p wgpu-core -p wgpu-hal
+cargo clean -p aws-lc-sys 2>/dev/null || true
 
 echo "Building zed (debug profile, CARGO_BUILD_JOBS=$CARGO_BUILD_JOBS)..."
 
@@ -199,12 +200,35 @@ EOF
                 echo "ipc-channel patched"
             fi
         fi
-        # wgpu patches are applied in Step 2.5 before this loop.
     fi
 
+    # Patch aws-lc-sys to allow NO_ASM in non-debug builds. The
+    # curve25519_x25519base.S assembly crashes on OpenBSD (broken
+    # PIC local symbol addressing). NO_ASM is debug-only by default
+    # — we replace the panic so it works in release-fast too.
+    for AWS_LC_SRC in $(find "${HOME}/.cargo/registry/src" -type d -name 'aws-lc-sys-*' 2>/dev/null); do
+        CMAKE_BUILDER="${AWS_LC_SRC}/builder/cmake_builder.rs"
+        if [ -f "$CMAKE_BUILDER" ] && ! rg -q 'ZED_AWSLC_PATCHED' "$CMAKE_BUILDER" 2>/dev/null; then
+            ed -s "$CMAKE_BUILDER" << 'EOF'
+/AWS_LC_SYS_NO_ASM only allowed for debug builds!
+c
+                cmake_cfg.define("OPENSSL_NO_ASM", "1");
+                // ZED_AWSLC_PATCHED
+.
+w
+q
+EOF
+            echo "aws-lc-sys patched (NO_ASM allowed in release)"
+        fi
+    done
+
     # AWS_LC_SYS_NO_ASM=1 disables aws-lc's curve25519 assembly
-    # (curve25519_x25519base.S) which crashes on OpenBSD — local
-    # symbol PIC addressing is broken. Forces pure C fallback.
+    # (curve25519_x25519base.S) which crashes on OpenBSD — broken
+    # PIC local symbol addressing. Forces pure C fallback.
+    # The pure-C fallback triggers SIGILL (ILL_BTCFI) due to OpenBSD's
+    # default Branch Target Control Flow Integrity (CET/BTI). Disable it.
+    export CFLAGS="-fcf-protection=none ${CFLAGS:-}"
+
     if sh -c "ulimit -d 8388608 && AWS_LC_SYS_NO_ASM=1 exec cargo build --profile release-fast --no-default-features --features '${ZED_FEATURES}' -j '${CARGO_BUILD_JOBS}'"; then
         break
     elif [ "$attempt" -eq 2 ]; then
