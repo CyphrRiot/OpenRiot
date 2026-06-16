@@ -3,10 +3,12 @@ package display
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
 	"openriot/notify"
+	"openriot/paths"
 	"openriot/polybar"
 )
 
@@ -200,6 +202,7 @@ func parseXrandrOutputs() map[string]xrandrOutput {
 				s.Rate = r
 				cachedMode[current] = res
 				cachedRate[current] = r
+				saveDisplayMode(current, res, r)
 				result[current] = s
 					break
 				}
@@ -226,7 +229,8 @@ func parseXrandrOutputs() map[string]xrandrOutput {
 }
 
 // turnOn activates an xrandr output with its previous mode+rate, or
-// falls back to --auto if no mode was captured.
+// falls back to --auto if no mode was captured. Mode+rate are persisted
+// to a display-mode cache file so they survive across process invocations.
 func turnOn(name, mode, rate string) {
 	if name == "" {
 		return
@@ -238,6 +242,12 @@ func turnOn(name, mode, rate string) {
 		}
 	}
 	if mode == "" {
+		if fm, fr := loadDisplayMode(name); fm != "" {
+			mode = fm
+			rate = fr
+		}
+	}
+	if mode == "" {
 		exec.Command("xrandr", "--output", name, "--auto").Run()
 		return
 	}
@@ -246,6 +256,57 @@ func turnOn(name, mode, rate string) {
 		args = append(args, "--rate", rate)
 	}
 	exec.Command("xrandr", args...).Run()
+}
+
+// displayModeCachePath returns the path to the per-display mode cache file.
+func displayModeCachePath() string {
+	return paths.Join(".cache", "openriot", "display-modes")
+}
+
+// saveDisplayMode persists a display's current mode+rate to disk so it
+// survives process invocations. Offline displays retain their last-known
+// values.
+func saveDisplayMode(name, mode, rate string) {
+	if name == "" || mode == "" {
+		return
+	}
+	cachePath := displayModeCachePath()
+	os.MkdirAll(paths.Join(".cache", "openriot"), 0700)
+
+	entries := make(map[string][2]string)
+	if data, err := os.ReadFile(cachePath); err == nil {
+		for _, line := range strings.Split(string(data), "\n") {
+			fields := strings.Fields(line)
+			if len(fields) >= 3 {
+				entries[fields[0]] = [2]string{fields[1], fields[2]}
+			}
+		}
+	}
+	entries[name] = [2]string{mode, rate}
+
+	var lines []string
+	for n, mr := range entries {
+		lines = append(lines, fmt.Sprintf("%s %s %s", n, mr[0], mr[1]))
+	}
+	os.WriteFile(cachePath, []byte(strings.Join(lines, "\n")+"\n"), 0600)
+}
+
+// loadDisplayMode reads a saved mode+rate for a display from disk.
+func loadDisplayMode(name string) (mode, rate string) {
+	if name == "" {
+		return "", ""
+	}
+	data, err := os.ReadFile(displayModeCachePath())
+	if err != nil {
+		return "", ""
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		fields := strings.Fields(line)
+		if len(fields) >= 3 && fields[0] == name {
+			return fields[1], fields[2]
+		}
+	}
+	return "", ""
 }
 
 // ToggleHDMI cycles through three display modes:

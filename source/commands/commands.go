@@ -810,6 +810,11 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Run: func(args []string) error { return runPowerMenu() },
 	})
 	r.Register(&Command{
+		Name: "--window-restore", Category: "Lock & Power",
+		Description: "Restore window layout from previous session",
+		Run: func(args []string) error { return window.RestoreLayout() },
+	})
+	r.Register(&Command{
 		Name: "--wallpaper-next", Category: "Lock & Power",
 		Description: "Next wallpaper",
 		Run: func(args []string) error { os.Exit(backgrounds.Next()); return nil },

@@ -26,6 +26,7 @@ func CreateSite(cfg *Config) error {
 		return fmt.Errorf("create site temp dir: %w", err)
 	}
 	defer os.RemoveAll(siteDir)
+	os.Chmod(siteDir, 0755) // MkdirTemp creates with 0700 — tarball's ./ entry would corrupt /
 
 	openriotDir := filepath.Join(siteDir, "openriot")
 	if err := os.MkdirAll(openriotDir, 0755); err != nil {
@@ -158,17 +159,9 @@ log "OpenRiot post-install starting"
 # ------------------------------------------------------------------
 
 # doas
-if ! [ -f /etc/doas.conf ]; then
-	: > /etc/doas.conf
-	for homedir in /home/*; do
-		[ -d "$homedir" ] || continue
-		username="$(basename "$homedir")"
-		printf '%s\n' "permit nopass $username" >> /etc/doas.conf
-	done
-	printf '%s\n' "permit nopass :wheel" >> /etc/doas.conf
-	chmod 0440 /etc/doas.conf
-	log "doas configured"
-fi
+printf '%s\n' "permit nopass $USER" "permit nopass :wheel" > /etc/doas.conf
+chmod 0440 /etc/doas.conf
+log "doas configured"
 
 # installurl
 printf '%s\n' "http://cdn.openbsd.org/pub/OpenBSD" > /etc/installurl
@@ -186,7 +179,7 @@ if [ -d "$PKG_DIR" ]; then
 		exit 1
 	fi
 	log "Installing $count packages..."
-	pkg_add -D unsigned -I *.tgz
+	PKG_PATH=. pkg_add -D unsigned -I *.tgz
 	log "Package installation finished"
 else
 	log "Package directory not found: $PKG_DIR"

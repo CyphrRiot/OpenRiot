@@ -241,17 +241,27 @@ func parseSoftraid() softraidInfo {
 		physicalToVirtual: make(map[string]string),
 	}
 
-	// Method 1: bioctl (primary)
-	cmd := exec.Command("doas", "/sbin/bioctl", "softraid0")
-	out, _ := cmd.CombinedOutput()
-	if len(out) > 0 {
+	// Method 1: bioctl without doas (works for operator group members)
+	cmd := exec.Command("bioctl", "softraid0")
+	out, err := cmd.CombinedOutput()
+	if err == nil && len(out) > 0 {
 		sr = parseBioctlOutput(string(out))
 	}
 	if len(sr.virtualToPhysical) > 0 {
 		return sr
 	}
 
-	// Method 2: dmesg fallback — detect softraid device hierarchy
+	// Method 2: bioctl via doas (fallback for non-operator users)
+	cmd = exec.Command("doas", "-n", "bioctl", "softraid0")
+	out, err = cmd.CombinedOutput()
+	if err == nil && len(out) > 0 {
+		sr = parseBioctlOutput(string(out))
+	}
+	if len(sr.virtualToPhysical) > 0 {
+		return sr
+	}
+
+	// Method 3: dmesg fallback — detect softraid device hierarchy
 	return discoverSoftraidFromDmesg()
 }
 
@@ -335,6 +345,25 @@ func isVirtualOnSoftraidBus(device string) bool {
 	for _, line := range strings.Split(string(dmesgOut), "\n") {
 		prefix := device + " at " + softraidBus
 		if strings.HasPrefix(strings.TrimSpace(line), prefix) {
+			// Verify device currently exists (dmesg is boot history)
+			return deviceExists(device)
+		}
+	}
+	return false
+}
+
+// deviceExists checks whether sdX is present in the running system.
+func deviceExists(device string) bool {
+	out, err := exec.Command("sysctl", "-n", "hw.disknames").Output()
+	if err != nil {
+		return false
+	}
+	for _, d := range strings.Split(strings.TrimSpace(string(out)), ",") {
+		d = strings.TrimSpace(d)
+		if idx := strings.Index(d, ":"); idx > 0 {
+			d = d[:idx]
+		}
+		if d == device {
 			return true
 		}
 	}
@@ -398,14 +427,22 @@ func MountDrive(device, mountPoint string) error {
 
 	raidDev := findRaidDevice(device)
 	if raidDev == "" && hasRAIDPartition(device) {
-		cmd := exec.Command("doas", "bioctl", "-c", "C", "-l", device+"a", "softraid0")
+		cmd := exec.Command("doas", "-n", "bioctl", "-c", "C",
+			"-l", device+"a", "softraid0")
 		if out, err := cmd.CombinedOutput(); err != nil {
-			return fmt.Errorf("bioctl attach failed: %w\n%s", err, string(out))
-		}
-		time.Sleep(500 * time.Millisecond)
-		raidDev = findRaidDevice(device)
-		if raidDev == "" {
-			return fmt.Errorf("softraid attached but device not found")
+			// Chunk may already be attached — find the virtual device
+			raidDev = findRaidDevice(device)
+			if raidDev == "" {
+				return fmt.Errorf("bioctl attach failed: %w\n%s",
+					err, string(out))
+			}
+		} else {
+			time.Sleep(500 * time.Millisecond)
+			raidDev = findRaidDevice(device)
+			if raidDev == "" {
+				return fmt.Errorf(
+					"softraid attached but device not found")
+			}
 		}
 	}
 
@@ -442,9 +479,37 @@ func UmountDrive(device, mountPoint string) error {
 
 	raidDev := findRaidDevice(device)
 	if raidDev != "" {
-		cmd := exec.Command("doas", "bioctl", "-d", raidDev)
-		if out, err := cmd.CombinedOutput(); err != nil {
-			return fmt.Errorf("bioctl detach failed: %w\n%s", err, string(out))
+		if _, err := tryDetach(raidDev); err == nil {
+			return nil
+		}
+	}
+
+	// Fallback: scan dmesg for all softraid virtual devices
+	dmesgOut, err := exec.Command("dmesg").Output()
+	if err != nil {
+		return nil
+	}
+	softraidBus := ""
+	for _, line := range strings.Split(string(dmesgOut), "\n") {
+		if strings.Contains(line, " at softraid") {
+			fields := strings.Fields(line)
+			if len(fields) > 0 {
+				softraidBus = fields[0]
+				break
+			}
+		}
+	}
+	if softraidBus != "" {
+		for _, line := range strings.Split(string(dmesgOut), "\n") {
+			line = strings.TrimSpace(line)
+			if !strings.HasPrefix(line, "sd") || !strings.Contains(line, " at "+softraidBus) {
+				continue
+			}
+			virtDev := strings.Fields(line)[0]
+			if virtDev == device || virtDev == "" {
+				continue
+			}
+			tryDetach(virtDev)
 		}
 	}
 

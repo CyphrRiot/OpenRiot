@@ -18,6 +18,13 @@ import (
 	"openriot/windowicon"
 )
 
+type windowRect struct {
+	X      int64 `json:"x"`
+	Y      int64 `json:"y"`
+	Width  int64 `json:"width"`
+	Height int64 `json:"height"`
+}
+
 type i3Node struct {
 	ID            int64       `json:"id"`
 	Type          string      `json:"type"`
@@ -25,6 +32,7 @@ type i3Node struct {
 	Focused       bool        `json:"focused"`
 	Window        int         `json:"window"`
 	Name          string      `json:"name"`
+	Rect          windowRect  `json:"rect"`
 	WindowProps   windowProps `json:"window_properties"`
 	Nodes         []i3Node    `json:"nodes"`
 	FloatingNodes []i3Node    `json:"floating_nodes"`

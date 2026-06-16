@@ -50,20 +50,26 @@ func mountCmd(device, passphrase string) tea.Cmd {
 				"-p", passFile, "-l", device+"a", "softraid0")
 			out, err := cmd.CombinedOutput()
 			if err != nil {
-				return resultMsg{err: fmt.Errorf(
-					"bioctl attach failed: %w\n%s", err, string(out))}
-			}
-			log.Write(out)
-			time.Sleep(500 * time.Millisecond)
-			for _, tok := range strings.Fields(string(out)) {
-				tok = strings.TrimSuffix(tok, ":")
-				if strings.HasPrefix(tok, "sd") && tok != device {
-					raidDev = tok
-					break
-				}
-			}
-			if raidDev == "" {
+				// Chunk may already be attached — find the virtual device
 				raidDev = findRaidDevice(device)
+				if raidDev == "" {
+					return resultMsg{err: fmt.Errorf(
+						"bioctl attach failed: %w\n%s", err, string(out))}
+				}
+				fmt.Fprintf(&log, "Already attached as %s\n", raidDev)
+			} else {
+				log.Write(out)
+				time.Sleep(500 * time.Millisecond)
+				for _, tok := range strings.Fields(string(out)) {
+					tok = strings.TrimSuffix(tok, ":")
+					if strings.HasPrefix(tok, "sd") && tok != device {
+						raidDev = tok
+						break
+					}
+				}
+				if raidDev == "" {
+					raidDev = findRaidDevice(device)
+				}
 			}
 		}
 
@@ -102,16 +108,9 @@ func umountCmd(device, mountPoint string) tea.Cmd {
 				return resultMsg{err: fmt.Errorf("umount failed: %w\n%s",
 					err, string(out))}
 			}
+			exec.Command("doas", "-n", "sync").Run()
 		}
-		raidDev := findRaidDevice(device)
-		if raidDev != "" {
-			fmt.Fprintf(&log, "Detaching %s\n", raidDev)
-			cmd := exec.Command("doas", "-n", "bioctl", "-d", raidDev)
-			if out, err := cmd.CombinedOutput(); err != nil {
-				return resultMsg{err: fmt.Errorf("detach failed: %w\n%s",
-					err, string(out))}
-			}
-		}
+		detachSoftraidChunk(device, &log)
 		return resultMsg{
 			msg: fmt.Sprintf("Unmounted %s\n%s", device, log.String())}
 	}
@@ -616,10 +615,13 @@ func detachSoftraidChunk(device string, log *strings.Builder) {
 	raidDev := findRaidDevice(device)
 	if raidDev != "" {
 		fmt.Fprintf(log, "Detaching %s ...\n", raidDev)
-		cmd := exec.Command("doas", "-n", "bioctl", "-d", raidDev)
-		if out, err := cmd.CombinedOutput(); err == nil {
-			fmt.Fprintf(log, "Detached\n%s\n", string(out))
-			return
+		time.Sleep(500 * time.Millisecond)
+		for attempt := 0; attempt < 3; attempt++ {
+			if out, err := tryDetach(raidDev); err == nil {
+				fmt.Fprintf(log, "Detached\n%s\n", out)
+				return
+			}
+			time.Sleep(250 * time.Millisecond)
 		}
 	}
 
@@ -628,7 +630,6 @@ func detachSoftraidChunk(device string, log *strings.Builder) {
 	if err != nil {
 		return
 	}
-	// Find softraid bus from dmesg
 	softraidBus := ""
 	for _, line := range strings.Split(string(dmesgOut), "\n") {
 		if strings.Contains(line, " at softraid") {
@@ -642,21 +643,46 @@ func detachSoftraidChunk(device string, log *strings.Builder) {
 	if softraidBus == "" {
 		return
 	}
-	// Find sd devices on that bus (virtual devices)
+	var lastErr error
+	found := false
 	for _, line := range strings.Split(string(dmesgOut), "\n") {
 		line = strings.TrimSpace(line)
 		if !strings.HasPrefix(line, "sd") || !strings.Contains(line, " at "+softraidBus) {
 			continue
 		}
 		virtDev := strings.Fields(line)[0]
-		if virtDev == device || virtDev == "" {
+		if virtDev == "" {
 			continue
 		}
-		// Try detaching this virtual device
-		cmd := exec.Command("doas", "-n", "bioctl", "-d", virtDev)
-		if out, err := cmd.CombinedOutput(); err == nil {
-			fmt.Fprintf(log, "Detached %s\n%s\n", virtDev, string(out))
+		found = true
+		if out, err := tryDetach(virtDev); err == nil {
+			fmt.Fprintf(log, "Detached %s\n%s\n", virtDev, out)
 			return
+		} else {
+			lastErr = err
 		}
 	}
+	if found {
+		msg := "Warning: could not detach softraid volume"
+		if lastErr != nil {
+			msg += ": " + lastErr.Error()
+		}
+		fmt.Fprintln(log, msg)
+	}
+}
+
+// tryDetach attempts bioctl -d first without doas (operator group),
+// then with doas. Returns combined output on success, error on failure.
+func tryDetach(device string) (string, error) {
+	cmd := exec.Command("bioctl", "-d", device)
+	out, err := cmd.CombinedOutput()
+	if err == nil {
+		return string(out), nil
+	}
+	cmd = exec.Command("doas", "-n", "bioctl", "-d", device)
+	out, err = cmd.CombinedOutput()
+	if err == nil {
+		return string(out), nil
+	}
+	return "", err
 }

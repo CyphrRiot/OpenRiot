@@ -22,6 +22,7 @@ import (
 	"openriot/paths"
 	"openriot/polybar"
 	"openriot/rofi"
+	"openriot/window"
 	"openriot/wireguard"
 )
 
@@ -468,11 +469,9 @@ func runPowerMenu() error {
 		lock.Lock()
 		exec.Command("doas", "zzz").Run()
 	case strings.HasPrefix(choice, "󰑐"):
-		notify.SendNotify("power", "Power", "Rebooting...", "normal", 3000, 0)
-		exec.Command("doas", "shutdown", "-r", "now").Run()
+		window.GracefulShutdown("reboot")
 	case strings.HasPrefix(choice, "󰐥"):
-		notify.SendNotify("power", "Power", "Shutting down...", "normal", 5000, 0)
-		exec.Command("doas", "shutdown", "-p", "now").Run()
+		window.GracefulShutdown("shutdown")
 	case strings.HasPrefix(choice, "󰍃"):
 		notify.SendNotify("power", "Power", "Logging out...", "normal", 2000, 0)
 		exec.Command("i3-msg", "exit").Run()

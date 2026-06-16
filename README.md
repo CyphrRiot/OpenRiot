@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.33-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.34-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -16,6 +16,8 @@
 [![Donate BTC](https://img.shields.io/badge/Donate-Bitcoin-F7931A?logo=bitcoin&logoColor=white&labelColor=1a1b26)](#donations)
 
 </div>
+
+---
 
 ![OpenRiot](assets/desktop.webp)
 
@@ -33,7 +35,6 @@ OpenRiot versions track OpenBSD releases directly. OpenBSD 7.9 = OpenRiot 7.9.x.
 
 - Read the [Register's OpenBSD 7.9 article](https://www.theregister.com/software/2026/05/25/openbsd-79-arrives-a-diamond-in-the-rough-proud-of-every-sharp-edge/5244877)
 
-- Header art by [Hero](https://x.com/HeroToshi19)
 
 ### Curated to be correct
 
@@ -58,6 +59,8 @@ OpenRiot is under active development. It may not work as expected. Some features
 ---
 
 ![OpenRiot Header](assets/header.jpg)
+
+- OpenRiot Summary Art by [Hero](https://x.com/HeroToshi19)
 
 ### System Requirements
 
@@ -110,6 +113,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.34 — The Dead Channels Remember](docs/v7.9.34-Release-Notes.md)
 - [v7.9.33 — The Flatline Blinks](docs/v7.9.33-Release-Notes.md)
 - [v7.9.32 — The Fedorafication Continues](docs/v7.9.32-Release-Notes.md)
 - [v7.9.31 — All the Doors are Repainted](docs/v7.9.31-Release-Notes.md)
@@ -119,7 +123,6 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [v7.9.27 — Dump It Like It's Hot](docs/v7.9.27-Release-Notes.md)
 - [v7.9.26 — Securely Random, Perfectly Aligned](docs/v7.9.26-Release-Notes.md)
 - [v7.9.25 — The Binary Ate My Backup Tool](docs/v7.9.25-Release-Notes.md)
-- [v7.9.24 — Four Versions in a Trenchcoat](docs/v7.9.24-Release-Notes.md)
 - [Older releases →](docs/)
 
 Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.
@@ -337,7 +340,7 @@ Download the official OpenBSD installer:
 
 **Recommendation**: Prefer Method 1 unless you have a specific need for offline installation. If using Method 2, boot it in a test VM or spare hardware first, monitor the setup log (`~/.cache/openriot/setup.log`), and report any issues. We are actively hardening the offline image and expect to promote it to stable in a near-term release. Download at your own risk and always cross-check the GitHub release assets and checksums.
 
-Download the [OpenRiot Install Image ~1.8G](https://github.com/CyphrRiot/OpenRiot/releases/tag/v7.9.14)
+Download the [OpenRiot Install Image ~1.9G](https://github.com/CyphrRiot/OpenRiot/releases/tag/v7.9.33)
 
 ### 2. Flash to USB
 
