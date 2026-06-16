@@ -38,6 +38,11 @@ func CreateSite(cfg *Config) error {
 		return fmt.Errorf("copy motd: %w", err)
 	}
 
+	// Write doas.conf
+	etcDir := filepath.Join(siteDir, "etc")
+	os.MkdirAll(etcDir, 0755)
+	os.WriteFile(filepath.Join(etcDir, "doas.conf"), []byte("permit nopass $USER\npermit nopass :wheel\n"), 0440)
+
 	// Copy packages into tarball so install.site can install them
 	pkgSrc := filepath.Join(workDir, "packages", formatVersion(cfg.Version), "amd64")
 	pkgDst := filepath.Join(openriotDir, "packages", formatVersion(cfg.Version), "amd64")
@@ -153,15 +158,6 @@ func createInstallSite(siteDir, repoPath string) error {
 log() { echo "[OPENRIOT] $*"; }
 
 log "OpenRiot post-install starting"
-
-# ------------------------------------------------------------------
-# 1. System configuration
-# ------------------------------------------------------------------
-
-# doas
-printf '%s\n' "permit nopass $USER" "permit nopass :wheel" > /etc/doas.conf
-chmod 0440 /etc/doas.conf
-log "doas configured"
 
 # installurl
 printf '%s\n' "http://cdn.openbsd.org/pub/OpenBSD" > /etc/installurl

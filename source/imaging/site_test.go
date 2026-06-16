@@ -27,8 +27,8 @@ func TestCreateInstallSite(t *testing.T) {
 	data, _ := os.ReadFile(path)
 	content := string(data)
 
-	if !strings.Contains(content, "permit nopass :wheel") {
-		t.Error("missing doas config")
+	if !strings.Contains(content, "PKG_PATH") {
+		t.Error("missing PKG_PATH")
 	}
 	if !strings.Contains(content, "pkg_add") {
 		t.Error("missing pkg_add")

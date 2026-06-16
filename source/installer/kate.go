@@ -31,7 +31,7 @@ func KatePreference() bool {
 
 	// Prompt user
 	logger.Warn("Kate is a heavy KDE-based code editor (~300MB deps).")
-	logger.Ask("Would you like to install Kate (Code IDE)? [y/N] ")
+	logger.Ask("Would you like to install Kate (Code IDE)? [Y/n] ")
 	stdin := os.Stdin
 	if tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0); err == nil {
 		stdin = tty
@@ -41,7 +41,7 @@ func KatePreference() bool {
 	input, _ := reader.ReadString('\n')
 	input = strings.TrimSpace(strings.ToLower(input))
 
-	answer := input == "yes" || input == "y"
+	answer := input == "yes" || input == "y" || input == ""
 
 	// Save choice
 	os.MkdirAll(cfgDir, 0755)

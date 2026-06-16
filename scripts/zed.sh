@@ -214,7 +214,7 @@ done
 echo "Installing binary..."
 mkdir -p "${INSTALL_DIR}/bin"
 cp target/release-fast/zed "${INSTALL_DIR}/bin/zed.bin"
-strip "${INSTALL_DIR}/bin/zed.bin" 2>/dev/null || true
+# Keep debug symbols — needed for crash backtraces. Set ZED_STRIP=1 to strip.
 
 # Create a wrapper that raises datasize limits before exec,
 # so the stripped binary does not OOM at runtime.

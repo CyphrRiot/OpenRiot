@@ -1,11 +1,14 @@
 package imaging
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -140,7 +143,72 @@ func DownloadPackages(cfg *Config) error {
 	}
 
 	fmt.Println() // Ensure clean line before next output
+
+	// Resolve transitive dependencies so the image is fully self-contained
+	if err := resolveDependencies(pkgDir, repoPath); err != nil {
+		logger.Warn(fmt.Sprintf("Dependency resolution: %v", err))
+	}
+
 	return nil
+}
+
+// resolveDependencies runs pkg_add -n to find missing transitive dependencies
+// and downloads them so the image is fully self-contained offline.
+func resolveDependencies(pkgDir, repoPath string) error {
+	seen := map[string]bool{} // package filenames already handled
+
+	// Build initial set of what we already have
+	entries, err := os.ReadDir(pkgDir)
+	if err != nil {
+		return err
+	}
+	for _, e := range entries {
+		if strings.HasSuffix(e.Name(), ".tgz") {
+			seen[strings.TrimSuffix(e.Name(), ".tgz")] = true
+		}
+	}
+
+	// Regex to extract package stem-version from pkg_add error lines.
+	// Matches names like "png-1.6.47", "py3-pip-25.0.1p0", "libfoo_bar-1.0"
+	rePkg := regexp.MustCompile(`[a-zA-Z][a-zA-Z0-9_.]+-[0-9][^- \t\r\n]*`)
+
+	for i := 0; i < 10; i++ {
+		cmd := exec.Command("pkg_add", "-D", "unsigned", "-I", "-n", "*.tgz")
+		cmd.Dir = pkgDir
+		cmd.Env = append(os.Environ(), "PKG_PATH=.")
+
+		var stderr bytes.Buffer
+		cmd.Stderr = &stderr
+		cmd.Run() // expected to fail when deps are missing
+
+		var missing []string
+		for _, line := range strings.Split(stderr.String(), "\n") {
+			lower := strings.ToLower(line)
+			if !strings.Contains(lower, "can't find") && !strings.Contains(lower, "can't resolve") {
+				continue
+			}
+			for _, m := range rePkg.FindAllString(line, -1) {
+				if !seen[m] {
+					seen[m] = true
+					missing = append(missing, m)
+				}
+			}
+		}
+
+		if len(missing) == 0 {
+			return nil
+		}
+
+		for _, pkg := range missing {
+			logger.Info(fmt.Sprintf("Dependency: %s", pkg))
+			pkgPath := filepath.Join(pkgDir, pkg+".tgz")
+			if err := downloadWithRetry(pkgPath, pkg, repoPath); err != nil {
+				logger.Warn(fmt.Sprintf("Failed to download dependency %s: %v", pkg, err))
+			}
+		}
+	}
+
+	return fmt.Errorf("dependency resolution exceeded 10 iterations")
 }
 
 // CleanStalePackages removes packages not in current list or in exceptions

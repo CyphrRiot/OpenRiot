@@ -144,23 +144,9 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 			if ctx.Err() == context.DeadlineExceeded {
 				logger.Warn(fmt.Sprintf("Timed out after %dm: %s", int(timeout.Minutes()), installName))
 			}
-			if cfg.IsSnapshot() && (isSignatureError(outputStr) || isLibraryMismatch(outputStr)) {
-				logger.Fail("Error in package matching.")
-				fmt.Println()
-				fmt.Println("This can be solved 99.9% of the time with:")
-				fmt.Println()
-				fmt.Println("  doas pkg_add -u")
-				fmt.Println()
-				fmt.Println("and then re-installing OpenRiot with:")
-				fmt.Println()
-				fmt.Println("  curl -fsSL https://OpenRiot.org/setup.sh | sh")
-				fmt.Println()
-				os.Exit(1)
-			}
-			// On stable: retry with base name if exact version failed
-			if !cfg.IsSnapshot() {
-				base := config.GetBaseName(pkg)
-				if base != pkg {
+			// Retry with base name if exact version failed
+			base := config.GetBaseName(pkg)
+			if base != pkg {
 					logger.Info(fmt.Sprintf("Retrying %s with latest version...", base))
 					installCmd[len(installCmd)-1] = base
 					ctx, cancel = context.WithTimeout(context.Background(), timeout)
@@ -194,7 +180,6 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 						logger.Warn(fmt.Sprintf("Timed out after %dm: %s", int(timeout.Minutes()), base))
 					}
 				}
-			}
 			logger.Warn(fmt.Sprintf("Failed to install %s:\n    %s", installName, outputStr))
 			failed++
 		} else {
