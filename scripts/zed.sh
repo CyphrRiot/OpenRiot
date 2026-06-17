@@ -222,12 +222,11 @@ EOF
         fi
     done
 
-    # AWS_LC_SYS_NO_ASM=1 disables aws-lc's curve25519 assembly
-    # (curve25519_x25519base.S) which crashes on OpenBSD — broken
-    # PIC local symbol addressing. Forces pure C fallback.
-    # The pure-C fallback triggers SIGILL (ILL_BTCFI) due to OpenBSD's
-    # default Branch Target Control Flow Integrity (CET/BTI). Disable it.
-    export CFLAGS="-fcf-protection=none ${CFLAGS:-}"
+    # Disable CET/BTI (Control-Flow Enforcement Technology) universally.
+    # OpenBSD enables this by default, causing SIGILL in native C/asm code
+    # (e.g., aws-lc-sys, ring, psm, tree-sitter grammars) due to __retguard.
+    export CFLAGS="-fcf-protection=none${CFLAGS:+ $CFLAGS}"
+    export CXXFLAGS="-fcf-protection=none${CXXFLAGS:+ $CXXFLAGS}"
 
     if sh -c "ulimit -d 8388608 && AWS_LC_SYS_NO_ASM=1 exec cargo build --profile release-fast --no-default-features --features '${ZED_FEATURES}' -j '${CARGO_BUILD_JOBS}'"; then
         break
