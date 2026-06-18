@@ -96,6 +96,11 @@ func checkUpgrade() {
 			fmt.Println("  doas pkg_add -u")
 		} else {
 			fmt.Println("Status: base and packages appear in sync")
+			fmt.Println()
+			fmt.Println("To install the latest -current snapshot:")
+			fmt.Println("  doas sysupgrade -s")
+			fmt.Println("  (reboot)")
+			fmt.Println("  doas pkg_add -u")
 		}
 	} else {
 		// We're on stable/release

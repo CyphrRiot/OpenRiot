@@ -160,8 +160,23 @@ cd "$SOURCE_DIR"
 # Force wgpu build-script re-run: cargo clean -p is the only
 # approach that reliably defeats the build-script cache.
 # find-delete of output files alone is insufficient.
-cargo clean -p wgpu -p wgpu-core -p wgpu-hal
-cargo clean -p aws-lc-sys 2>/dev/null || true
+cd "$SOURCE_DIR"
+cargo clean -p wgpu -p wgpu-core -p wgpu-hal 2>/dev/null || true
+
+# cargo clean -p only works on workspace members, not registry crates.
+# For registry crates that compile C/asm code with CET/BTI guards
+# (tree-sitter-*), we must manually nuke their build fingerprints and
+# outputs to force recompilation with the new CFLAGS below.
+for pat in tree-sitter psm ring stacksafe stacker aws-lc-sys; do
+    find target/release-fast/build -maxdepth 1 -type d -name "${pat}-*" -exec rm -rf {} + 2>/dev/null || true
+    find target/release-fast/.fingerprint -maxdepth 1 -type d -name "${pat}-*" -exec rm -rf {} + 2>/dev/null || true
+done
+
+# Disable OpenBSD's default CET/BTI (__retguard) which causes SIGILL
+# in native C/asm code in registry crates (aws-lc-sys, psm, ring,
+# tree-sitter-*) when they execute compiled code on OpenBSD.
+export CFLAGS="-fcf-protection=none"
+export CXXFLAGS="-fcf-protection=none"
 
 echo "Building zed (debug profile, CARGO_BUILD_JOBS=$CARGO_BUILD_JOBS)..."
 
@@ -222,11 +237,19 @@ EOF
         fi
     done
 
-    # Disable CET/BTI (Control-Flow Enforcement Technology) universally.
-    # OpenBSD enables this by default, causing SIGILL in native C/asm code
-    # (e.g., aws-lc-sys, ring, psm, tree-sitter grammars) due to __retguard.
-    export CFLAGS="-fcf-protection=none${CFLAGS:+ $CFLAGS}"
-    export CXXFLAGS="-fcf-protection=none${CXXFLAGS:+ $CXXFLAGS}"
+    # Disable OpenBSD's default CET/BTI (__retguard) which causes SIGILL
+    # in native C/asm crates (aws-lc-sys, psm, tree-sitter, etc.).
+    export CFLAGS="-fcf-protection=none"
+    export CXXFLAGS="-fcf-protection=none"
+
+    # Force recompilation of all native C/asm crates. Cargo caches object 
+    # files and may not invalidate them when CFLAGS changes, leading to 
+    # poisoned builds with __retguard still present.
+    cargo clean -p tree-sitter -p tree-sitter-json -p tree-sitter-rust -p tree-sitter-bash \
+        -p tree-sitter-cpp -p tree-sitter-python -p tree-sitter-go -p tree-sitter-yaml \
+        -p tree-sitter-md -p tree-sitter-diff -p tree-sitter-gitcommit -p tree-sitter-gowork \
+        -p tree-sitter-gomod -p tree-sitter-typescript -p tree-sitter-c -p tree-sitter-jsdoc \
+        -p tree-sitter-regex -p tree-sitter-css -p psm -p stacker -p aws-lc-sys -p ring 2>/dev/null || true
 
     if sh -c "ulimit -d 8388608 && AWS_LC_SYS_NO_ASM=1 exec cargo build --profile release-fast --no-default-features --features '${ZED_FEATURES}' -j '${CARGO_BUILD_JOBS}'"; then
         break
