@@ -149,6 +149,56 @@ else
     echo "WARNING: wgpu source not found in cargo cache; will be patched on attempt 2"
 fi
 
+# Step 2.6: Patch native crates for Intel IBT (Indirect Branch Tracking).
+# OpenBSD Clang defaults to -fcf-protection=branch which enforces IBT on
+# Tiger Lake+. Hand-written assembly in psm/ring lacks endbr64 markers,
+# causing SIGILL on indirect calls. We patch the assembly sources and
+# clear only those crates' build caches.
+IBT_SENTINEL="$SOURCE_DIR/target/release-fast/.ibt-patched"
+if [ ! -f "$IBT_SENTINEL" ]; then
+    echo "Patching native crates for Intel IBT..."
+    
+    # Patch psm: add endbr64 after .cfi_startproc in each FUNCTION
+    PSM_SRC=$(find "${HOME}/.cargo/registry/src" -name "x86_64.s" -path "*/psm-*/src/arch/*" 2>/dev/null | head -1)
+    if [ -n "$PSM_SRC" ] && [ -f "$PSM_SRC" ]; then
+        if ! rg -q 'endbr64' "$PSM_SRC" >/dev/null 2>&1; then
+            awk '
+            /^FUNCTION\(rust_psm_/{p=1}
+            p && /^.cfi_startproc/{print; print "    endbr64"; p=0; next}
+            {print}
+            ' "$PSM_SRC" > "$PSM_SRC.tmp" && mv "$PSM_SRC.tmp" "$PSM_SRC"
+            echo "  ✓ psm x86_64.s patched"
+        else
+            echo "  ✓ psm already patched"
+        fi
+    fi
+    
+    # Patch ring: redefine _CET_ENDBR as endbr64 in asm_base.h
+    RING_ASM_BASE=$(find "${HOME}/.cargo/registry/src" -name "asm_base.h" -path "*/ring-*/include/*" 2>/dev/null | head -1)
+    if [ -n "$RING_ASM_BASE" ] && [ -f "$RING_ASM_BASE" ]; then
+        if ! rg -q '#define _CET_ENDBR endbr64' "$RING_ASM_BASE" >/dev/null 2>&1; then
+            sed -i.bak 's|^#define _CET_ENDBR$|#define _CET_ENDBR endbr64|' "$RING_ASM_BASE"
+            echo "  ✓ ring asm_base.h patched"
+        else
+            echo "  ✓ ring already patched"
+        fi
+    fi
+    
+    # Clear build outputs and fingerprints for patched crates only
+    echo "Clearing build caches for patched crates..."
+    for crate in psm ring; do
+        rm -rf "$SOURCE_DIR/target/release-fast/build/${crate}-"* 2>/dev/null || true
+        rm -rf "$SOURCE_DIR/target/release-fast/.fingerprint/${crate}-"* 2>/dev/null || true
+    done
+    
+    # Create sentinel
+    mkdir -p "$(dirname "$IBT_SENTINEL")"
+    printf '%s' "ibt-patched-$(date +%s)" > "$IBT_SENTINEL"
+    echo "IBT patches applied. Incremental rebuild will recompile psm/ring (~5-10 min)."
+else
+    echo "IBT patches already applied."
+fi
+
 # Step 3: Attempt build, patching registry sources on failure
 echo "Building zed with features=$ZED_FEATURES..."
 export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-1}"
@@ -157,26 +207,45 @@ export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-1}"
 export RUSTFLAGS="-L /usr/local/lib ${RUSTFLAGS:-}"
 cd "$SOURCE_DIR"
 
-# Force wgpu build-script re-run: cargo clean -p is the only
-# approach that reliably defeats the build-script cache.
-# find-delete of output files alone is insufficient.
-cd "$SOURCE_DIR"
-cargo clean -p wgpu -p wgpu-core -p wgpu-hal 2>/dev/null || true
+# OpenBSD Clang defaults enable TWO separate CPU protections:
+# 1. -ret-protector        → emits __retguard XOR canaries in C code (SIGILL)
+# 2. -fcf-protection=branch → requires endbr64 at indirect call targets (SIGILL)
+# Native crates compile C code AND hand-written .s assembly. The assembly
+# files (e.g., psm's x86_64.s) don't know about endbr64, so the CPU's IBT
+# enforcement SIGILLs on indirect calls to them. Disable both.
+export CFLAGS="-fno-ret-protector -fcf-protection=none"
+export CXXFLAGS="-fno-ret-protector -fcf-protection=none"
 
-# cargo clean -p only works on workspace members, not registry crates.
-# For registry crates that compile C/asm code with CET/BTI guards
-# (tree-sitter-*), we must manually nuke their build fingerprints and
-# outputs to force recompilation with the new CFLAGS below.
-for pat in tree-sitter psm ring stacksafe stacker aws-lc-sys; do
-    find target/release-fast/build -maxdepth 1 -type d -name "${pat}-*" -exec rm -rf {} + 2>/dev/null || true
-    find target/release-fast/.fingerprint -maxdepth 1 -type d -name "${pat}-*" -exec rm -rf {} + 2>/dev/null || true
-done
-
-# Disable OpenBSD's default CET/BTI (__retguard) which causes SIGILL
-# in native C/asm code in registry crates (aws-lc-sys, psm, ring,
-# tree-sitter-*) when they execute compiled code on OpenBSD.
-export CFLAGS="-fcf-protection=none"
-export CXXFLAGS="-fcf-protection=none"
+# Track CFLAGS. If they change, delete build outputs and fingerprints for
+# native crates. cargo clean -p doesn't reliably work for registry crates.
+CET_SENTINEL="$SOURCE_DIR/target/release-fast/.cflags"
+EXPECTED_FLAGS="CFLAGS=${CFLAGS}"
+if [ -f "$CET_SENTINEL" ] && [ "$(cat "$CET_SENTINEL")" = "$EXPECTED_FLAGS" ]; then
+    echo "CFLAGS unchanged; skipping native crate rebuild."
+else
+    if [ -f "$CET_SENTINEL" ]; then
+        echo "CFLAGS changed (was: $(cat "$CET_SENTINEL"), now: $EXPECTED_FLAGS)"
+    fi
+    echo "CFLAGS cache invalidation: deleting native crate outputs..."
+    
+    # Delete .o, .a, and build script outputs for all native crates
+    cd "$SOURCE_DIR/target/release-fast/build"
+    for pattern in tree-sitter psm stacker ring aws-lc-sys freetype-sys \
+                   libsqlite3-sys lmdb-master-sys wayland-sys yeslogic-fontconfig-sys \
+                   zstd-sys wgpu wgpu-core wgpu-hal; do
+        find . -maxdepth 1 -type d -name "${pattern}-*" -exec rm -rf {} \; 2>/dev/null || true
+    done
+    cd "$SOURCE_DIR/target/release-fast/.fingerprint"
+    for pattern in tree-sitter psm stacker ring aws-lc-sys freetype-sys \
+                   libsqlite3-sys lmdb-master-sys wayland-sys yeslogic-fontconfig-sys \
+                   zstd-sys wgpu wgpu-core wgpu-hal; do
+        find . -maxdepth 1 -type d -name "${pattern}-*" -exec rm -rf {} \; 2>/dev/null || true
+    done
+    
+    mkdir -p "$(dirname "$CET_SENTINEL")"
+    printf '%s' "$EXPECTED_FLAGS" > "$CET_SENTINEL"
+    echo "Native crate outputs deleted. Rebuild required (~5-10 min)."
+fi
 
 echo "Building zed (debug profile, CARGO_BUILD_JOBS=$CARGO_BUILD_JOBS)..."
 
@@ -236,20 +305,6 @@ EOF
             echo "aws-lc-sys patched (NO_ASM allowed in release)"
         fi
     done
-
-    # Disable OpenBSD's default CET/BTI (__retguard) which causes SIGILL
-    # in native C/asm crates (aws-lc-sys, psm, tree-sitter, etc.).
-    export CFLAGS="-fcf-protection=none"
-    export CXXFLAGS="-fcf-protection=none"
-
-    # Force recompilation of all native C/asm crates. Cargo caches object 
-    # files and may not invalidate them when CFLAGS changes, leading to 
-    # poisoned builds with __retguard still present.
-    cargo clean -p tree-sitter -p tree-sitter-json -p tree-sitter-rust -p tree-sitter-bash \
-        -p tree-sitter-cpp -p tree-sitter-python -p tree-sitter-go -p tree-sitter-yaml \
-        -p tree-sitter-md -p tree-sitter-diff -p tree-sitter-gitcommit -p tree-sitter-gowork \
-        -p tree-sitter-gomod -p tree-sitter-typescript -p tree-sitter-c -p tree-sitter-jsdoc \
-        -p tree-sitter-regex -p tree-sitter-css -p psm -p stacker -p aws-lc-sys -p ring 2>/dev/null || true
 
     if sh -c "ulimit -d 8388608 && AWS_LC_SYS_NO_ASM=1 exec cargo build --profile release-fast --no-default-features --features '${ZED_FEATURES}' -j '${CARGO_BUILD_JOBS}'"; then
         break

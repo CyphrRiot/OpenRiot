@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.36-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.37-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -113,6 +113,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.37 — ICE in the Silicon](docs/v7.9.37-Release-Notes.md)
 - [v7.9.36 — The Turing Police Are Bad at Their Jobs](docs/v7.9.36-Release-Notes.md)
 - [v7.9.35 — A War Is Coming](docs/v7.9.35-Release-Notes.md)
 - [v7.9.34 — The Dead Channels Remember](docs/v7.9.34-Release-Notes.md)
@@ -122,7 +123,6 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [v7.9.30 — `ulimit -d` Saves the World](docs/v7.9.30-Release-Notes.md)
 - [v7.9.29 — Live Long and `ulimit -v`](docs/v7.9.29-Release-Notes.md)
 - [v7.9.28 — Ran in the Streets with Shadows](docs/v7.9.28-Release-Notes.md)
-- [v7.9.27 — Dump It Like It's Hot](docs/v7.9.27-Release-Notes.md)
 - [Older releases →](docs/)
 
 Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.
