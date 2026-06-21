@@ -1,299 +1,224 @@
 # OpenBSD Zed Port — Status
 
-**Last attempt:** `fca2ccd403` (origin/main, pinned)
-**Date:** 2026-06-18 (UPDATED: rebuild optimization + IBT fix)
-**Working tree:** Patched, compiles, installs.
-**Build:** 410 MB unstripped, `release-fast` profile, GLES backend.
-**Runtime:** Crashes with SIGILL in `psm` stack assembly after GPU detection.
+**Last attempt:** `fca2ccd403` (origin/main, pinned)  
+**Date:** 2026-06-20  
+**Working tree:** Patched, compiles, installs.  
+**Build:** 410 MB unstripped, `release-fast` profile, GLES backend.  
+**Runtime:** All crash sources resolved (Rounds 1-9). Zed launches, window
+renders, GPU works, extension host loads. UI glitches remain (missing
+title bar on i3, stray "p" character, broken file dialog). Awaiting
+rebuild with latest fixes.
 
 ## TL;DR for the Next AI
 
-- `~/Code/zed` is checked out at `fca2ccd403` (`origin/main`).
-- `scripts/zed-patch.diff` applies cleanly (36 files, 0 FAILED).
-- `scripts/zed.sh` builds+installs. Full rebuild ~90 min, incremental
-  ~10s (when CFLAGS sentinel matches).
-- The runtime `Backends::empty()` panic is **FIXED**. GLES backend
-  compiles, GPU detected (`Mesa Intel Iris Xe Graphics`).
-- The SIGILL crash has **TWO causes** (both must be disabled):
-  1. **`-ret-protector`**: emits `__retguard` canaries (fixed by `-fno-ret-protector`)
-  2. **`-fcf-protection=branch`**: requires `endbr64` at indirect call targets
-     (hand-written asm like `psm` lacks it, fixed by `-fcf-protection=none`)
-- **Script now sets BOTH flags**: `-fno-ret-protector -fcf-protection=none`
-- **Status**: About to rebuild and test with both flags disabled.
+- `~/Code/zed` checked out at `fca2ccd403`. `scripts/zed-patch.diff`
+  applies cleanly. `scripts/zed.sh` builds+installs.
+- Full rebuild ~90 min; incremental ~1 min when only zed workspace crates
+  change; ~60 min when wasmtime registry crates change.
+- All crash sources **RESOLVED**:
+  - Rounds 1-5: retguard SIGILL and IBT endbr64 in hand-written assembly
+  - Round 6-7: extension-load SIGILL via `-z nobtcfi` linker flag
+  - Round 8: MAP_STACK SIGSEGV (four patches: fiber, continuation,
+    sigaltstack, stacker)
+  - Round 9: PROT_NONE + MAP_STACK EINVAL in sigaltstack allocation
+- **Script flags**: `CFLAGS="-fno-ret-protector"`; `RUSTFLAGS="-C
+  link-arg=-Wl,-z,nobtcfi -L /usr/local/lib ..."`.
+- **Critical bug fixed**: all `find` commands used `-maxdepth 1` which
+  never found crate dirs at depth 2 inside `index.crates.io-*`. Now
+  recursive (no `-maxdepth`), matching the working `aws-lc-sys` pattern.
+- **Cargo tarball extraction trap**: registry patches modify `src/` but
+  cargo extracts build scripts from original `.crate` tarballs in
+  `cache/`. The `aws-lc-sys` cc_builder fix patches both `src/` AND any
+  extracted `target/build/` copies.
+- **Zed-patch.diff additions** (Round 10):
+  - `gpui_linux/.../x11/client.rs`: force `client_side_decorations_supported
+    = true` on OpenBSD (i3 has no compositor, needs CSD title bar)
+  - `gpui/src/platform.rs`: `PlatformScreenCaptureFrame = ()` on
+    OpenBSD (`scap` crate is Linux/Windows only)
+  - `crates/zed/Cargo.toml`: `x11` feature re-export
+- **Status**: all fixes staged in `scripts/zed.sh` and
+  `scripts/zed-patch.diff`. Awaiting rebuild with aws-lc-sys build-dir
+  patch. After rebuild: test CSD title bar, file dialog, and investigate
+  stray "p" character.
 
-## The Problem: Two Separate CPU Protections
+## Crash Progression
 
-OpenBSD's clang 19.1.7 defaults enable **two** independent CPU security features
-that cause SIGILL when violated. Both must be disabled to run Zed.
+| Round | Result | Crash Location | Root Cause |
+|-------|--------|----------------|------------|
+| 1 | ❌ | `migrate_settings` | tree-sitter-json retguard |
+| 2 | ❌ | X11 client init | More retguard in other -sys crates |
+| 3 | ❌ | Window creation | Missing freetype-sys, libsqlite3-sys, etc. |
+| 4 | ❌ | After GPU + window | psm/ring assembly lacks endbr64 |
+| 5 | ❌ | tree_sitter_json | `-fcf-protection=none` broke C code endbr64 |
+| 6 | ✅ | Startup complete | `-fno-ret-protector` + IBT asm patches |
+| 7 | ✅ | Extension load | `-z nobtcfi` (PT_OPENBSD_NOBTCFI) |
+| 8 | ✅ | Post-startup SIGSEGV | Fiber/continuation/signal stacks lack MAP_STACK |
+| 9 | ✅ | `allocate_sigaltstack` EINVAL | PROT_NONE + MAP_STACK rejected by OpenBSD |
+| 10 | 🔄 | UI: missing title bar | i3 has no compositor, CSD disabled |
 
-### 1. Retguard (`-ret-protector`)
+## CPU Protection Issues — Resolved
 
-Emits `__retguard_XXXX` assembly prologues into every C function. At entry:
+### 1. Retguard (`-ret-protector`) — **DISABLED**
 
-```asm
-movq   0x1ca3309(%rip), %r11  ; __retguard_3130
-xorq   (%rsp), %r11           ; XOR return addr with canary
-```
+Emits `__retguard_XXXX` assembly prologues into every C function. On PIC
+code, the canary address can land on an unmapped page — SIGILL before
+`main()` even starts.
 
-On PIC code, the canary address can land on an unmapped page — SIGILL before
-`main()` even starts. Fixed by `-fno-ret-protector`.
+**Fix:** `export CFLAGS="-fno-ret-protector"`
 
-### 2. IBT / Branch Tracking (`-fcf-protection=branch`)
+### 2. IBT / Branch Tracking (`-fcf-protection=branch`) — **KEPT ENABLED**
 
-Requires `endbr64` instruction at every indirect call target. Intel Tiger Lake
-(11th gen) enforces this in hardware. Hand-written assembly files (e.g.,
-`psm`'s `x86_64.s`) don't include `endbr64`, so indirect calls to them SIGILL.
+Requires `endbr64` at every indirect call target. Intel Tiger Lake (11th
+gen) enforces this in hardware. Hand-written assembly in `psm` and `ring`
+crates lacks `endbr64`; patched manually.
 
-**Proof this is the issue:**
+### 3. Linker IBT opt-out (`-z nobtcfi`) — **ENABLED**
 
-Default clang emits `endbr64`:
-```bash
-$ echo 'int foo(){return 1;}' | cc -S -o - -x c - | rg endbr64
-    endbr64
-```
+rustc stable has no `+ibt` target-feature. wasmtime Cranelift JIT makes
+indirect calls into Rust hostcalls that lack `endbr64`. Opt the binary
+out of IBT enforcement at link time via `PT_OPENBSD_NOBTCFI`.
 
-With `-fcf-protection=none`, no `endbr64`:
-```bash
-$ echo 'int foo(){return 1;}' | cc -fcf-protection=none -S -o - -x c - | rg endbr64
-$    # empty
-```
-
-The `psm` crate's `x86_64.s` has no `endbr64` anywhere. The SIGILL happens when
-the stacker crate calls `rust_psm_stack_pointer` via function pointer:
-
-```lldb
-Process 63234 stopped
-* thread #1, stop reason = signal SIGILL
-    frame #0: 0x0000041ad2950840 zed.bin`rust_psm_stack_pointer
-```
-
-Fixed by `-fcf-protection=none`.
-
-### The Combined Fix
-
+Complete flags:
 ```sh
-export CFLAGS="-fno-ret-protector -fcf-protection=none"
-export CXXFLAGS="-fno-ret-protector -fcf-protection=none"
+export CFLAGS="-fno-ret-protector"
+export CXXFLAGS="-fno-ret-protector"
+export RUSTFLAGS="-C link-arg=-Wl,-z,nobtcfi -L /usr/local/lib ${RUSTFLAGS:-}"
 ```
 
-Both flags are required. The script sets them before building native crates.
+## MAP_STACK Enforcement — Resolved
 
-**Previous false lead:** I initially thought `-fcf-protection=none` did nothing
-because `-fno-ret-protector` alone got Zed past the first few crashes. But
-`-fcf-protection=none` was actually disabling the IBT checks all along — I just
-didn't realize both were needed until lldb showed the crash in hand-written asm.
+OpenBSD enforces `MAP_STACK` on every mmap'd region used as a stack.
+Without it, the kernel delivers SIGSEGV. Four allocation sites needed
+fixing:
 
-## SIGILL Crash Progression
+| Crate | File | Allocation |
+|-------|------|-------------|
+| `wasmtime-internal-fiber` | `src/unix.rs:184` | Fiber execution stacks |
+| `wasmtime` | `.../stack_switching/stack/unix.rs:101` | Continuation stacks |
+| `wasmtime` | `.../sys/unix/signals.rs:517` | sigaltstack |
+| `stacker` | `src/mmap_stack_restore_guard.rs:31` | Recursion guard stacks |
 
-Each fix round eliminated one SIGILL source, revealing the next. Zed advanced
-further through startup each time:
+All four patched in `scripts/zed.sh` via `sed`/`ed`. Each patch is
+independently idempotent with its own cache invalidation.
 
-| Round | Result | Notes |
-|-------|--------|-------|
-| 1 | ❌ `migrate_settings` | tree-sitter-json retguard |
-| 2 | ❌ X11 client init | More retguard in other crates |
-| 3 | ❌ Window creation | Still missing `-sys` crates |
-| 4 | ❌ After GPU + window | Almost there |
-| 5 | ✅ `rust_psm_stack_pointer` | IBT crash — hand-written asm lacks `endbr64` |
-| 6 | 🔄 **Pending** | Added `-fcf-protection=none` |
+### PROT_NONE + MAP_STACK EINVAL
 
-Round 5 got past all the C code crashes (retguard fixed) but then hit the same
-SIGILL in hand-written assembly (IBT enforcement). Both issues had to be solved.
+OpenBSD rejects `PROT_NONE | MAP_STACK` with EINVAL. The sigaltstack
+code allocated the region with PROT_NONE then mprotected the usable
+portion. Fix: allocate with PROT_READ|PROT_WRITE + MAP_STACK, then
+mprotect the guard page to PROT_NONE.
 
-## Native Crates Affected
+## UI / Rendering Issues
 
-All C/asm crates compiled via `cc` or `cmake`:
+### Missing title bar (Round 10)
 
-| Crate | Objects (approx) | In clean list? |
-|-------|---|--------|
-| `aws-lc-sys` | 255 | ✅ |
-| `freetype-sys` | ~15 | ✅ |
-| `libsqlite3-sys` | 2 | ✅ |
-| `lmdb-master-sys` | 3 | ✅ |
-| `psm` | ~5 | ✅ |
-| `ring` | ~20 | ✅ |
-| `stacker` | - | ✅ |
-| `tree-sitter` + all grammars | ~10 each | ✅ |
-| `wayland-sys` | - | ✅ |
-| `yeslogic-fontconfig-sys` | ~5 | ✅ |
-| `zstd-sys` | 38 | ✅ |
-| `wasmtime` / `wiggle` | (no C in our build) | ❓ |
-| `alsa-sys`, `coreaudio-sys` | (not built on OpenBSD) | n/a |
+i3 has no compositor (`compositor_present = false`). Zed checks this and
+disables client-side decorations (`window.rs:1750-1752`), expecting the
+WM to draw title bars. i3 only draws thin pixel borders — no title bar.
 
-**Total in binary:** ~2000 `__retguard` symbols observed in a build
-where `-fcf-protection=none` was incorrectly used (i.e., did
-nothing). After `-fno-ret-protector` with the full crate list, the
-count should drop to zero.
+**Fix:** `gpui_linux/.../x11/client.rs:377` —
+`client_side_decorations_supported` is now always `true` on OpenBSD,
+forcing zed to draw its own title bar regardless of compositor status.
 
-## Build Cache Invalidation
+### Stray "p" character in editor
 
-### The problem
+A "p" appears in the empty editor buffer at startup. Likely a key event
+leaking through X11 input handling during initialization. Needs
+investigation — may be related to the "activate not implemented on Linux"
+log message or XIM input method initialization.
 
-Cargo does not invalidate C compilation when `CFLAGS` changes.
-Native crate fingerprints don't track compiler flags from the
-environment. After changing flags, cargo happily re-links old
-object files with `__retguard` still embedded.
+### File dialog broken
 
-### What DID NOT work
+Cannot open folders or files properly. May be related to the missing
+title bar (dialog windows inherit decoration behavior) or to fd
+exhaustion. The wrapper now sets `ulimit -n 1024`.
 
-**Surgical object deletion** (delete `.o`, `.a`, `output` files
-only, keep Rust fingerprints). This triggers `build.rs` to
-re-run, which invalidates the build script output, which cascades
-into Rust recompilation of the crate. End result: same build
-time as a full clean, but more fragile.
+### Cursor icons missing
 
-### What works: Direct deletion + sentinel
+Several X11 cursor names not found in OpenBSD's cursor theme:
+`col-resize`, `sb_h_double_arrow`, `text`, `xterm`. Non-fatal — falls
+back to `left_ptr`.
 
-```sh
-# Sentinel tracks CFLAGS. Only nuke when they change.
-CET_SENTINEL="target/release-fast/.cflags"
-EXPECTED_FLAGS="CFLAGS=${CFLAGS}"
+### Wasm extension loading
 
-if [ -f "$CET_SENTINEL" ] && \
-   [ "$(cat "$CET_SENTINEL")" = "$EXPECTED_FLAGS" ]; then
-    echo "CFLAGS unchanged; skipping."
-else
-    # Delete build outputs AND fingerprints for native crates directly
-    for dir in build fingerprint; do
-        cd "target/release-fast/$dir"
-        for pat in tree-sitter psm stacker ring aws-lc-sys ...; do
-            find . -maxdepth 1 -type d -name "${pat}-*" -exec rm -rf {} \;
-        done
-    done
-    printf '%s' "$EXPECTED_FLAGS" > "$CET_SENTINEL"
-fi
-```
+The `html` extension fails to load with EINVAL (os error 22). Likely the
+same PROT_NONE + MAP_STACK issue in wasmtime's instance instantiation.
+Check `wasmtime/src/runtime/vm/sys/unix/mmap.rs` for similar mmap
+patterns.
 
-`cargo clean -p` doesn't reliably work for registry crates — it silently fails
-or doesn't clean everything. Direct deletion of the `build/` and `.fingerprint/`
-directories is surgical and reliable.
+### D-Bus error
 
-First build with correct flags: ~90 min (full native recompile).
-Subsequent builds: ~5-10 min (native crates only, Rust workspace cached).
-
-### To force a rebuild
-
-```sh
-rm ~/Code/zed/target/release-fast/.cflags
-./scripts/zed.sh
-```
-
-## Runtime Status (as of 2026-06-18 14:02)
-
-Last successful startup sequence before IBT crash:
-
-```
-INFO  [zed] starting zed version 1.8.0+dev...
-INFO  [gpui_linux::linux::x11::client] XInput version: 2.4
-INFO  [gpui_linux::linux::x11::client] x11: compositor present: true
-INFO  [gpui_linux::linux::x11::client] Using scale factor from Xft.dpi: 1
-ERROR [client::telemetry] Failed to load /etc/os-release
-INFO  [prompt_store] Rules-to-skills migration already done
-INFO  [gpui_linux::linux::platform] activate not implemented on Linux
-INFO  [gpui_linux::linux::x11::window] Using Visual { id: 172, depth: 32 }
-INFO  [gpui_linux::linux::x11::window] Creating colormap 56623106
-INFO  [gpui_wgpu] Found 1 GPU adapter(s): Intel Iris Xe (Gl)
-INFO  [gpui_wgpu] Selected GPU (passed configuration test)
-INFO  [gpui_wgpu] Selected GPU adapter: Intel Iris Xe (Gl)
-INFO  [gpui_linux::linux::x11::window] x11: no compositor present...
-```
-
-Zed successfully initializes: X11 client, GPU detection, compositor check,
-window creation — then crashes in stacker's call to `psm`'s hand-written
-assembly.
-
-**lldb backtrace:**
-```
-lldb) run
-Process 63234 stopped
-* thread #1, stop reason = signal SIGILL
-    frame #0: 0x0000041ad2950840 zed.bin`rust_psm_stack_pointer
-zed.bin`rust_psm_stack_pointer:
-->  0x41ad2950840 <+0>: leaq   0x8(%rsp), %rax
-    0x41ad2950845 <+5>: retq   
-```
-
-`rust_psm_stack_pointer` is in `psm`'s `x86_64.s` — hand-written asm with no
-`endbr64`. The `leaq` at the start of the function isn't itself a problem. The
-IBT check happens when the CPU detects the indirect call target lacks `endbr64`.
-
-**Fix in progress:** Script now sets `CFLAGS="-fno-ret-protector -fcf-protection=none"`.
-Full rebuild triggered (sentinel cleared). Pending test.
-
-Zed successfully initializes through:
-- ✅ Settings migration
-- ✅ X11 client + XInput + scale factor
-- ✅ GPU adapter detection + EGL test
-- ✅ Window visual + colormap creation
-- ✅ Window decoration check ("no compositor present")
-- ❌ Crashes in `stacker::on_stack` → `psm::rust_psm_stack_pointer` (IBT failure)
-
-The crash is in hand-written x86_64 assembly that lacks `endbr64` at its entry
-point. Tiger Lake's IBT enforcement SIGILLs on indirect calls to functions
-without `endbr64`.
+Non-fatal. OpenBSD has no D-Bus session bus. Zed gracefully degrades.
 
 ## Known Issues
 
 | Issue | Status | Notes |
 |-------|--------|-------|
-| SIGILL in `psm` asm | 🔄 Fix pending | Added `-fcf-protection=none`, testing |
+| SIGILL crashes | ✅ Resolved | Rounds 1-7 |
+| MAP_STACK SIGSEGV | ✅ Resolved | Round 8 |
+| PROT_NONE EINVAL | ✅ Resolved | Round 9 |
+| Missing title bar | 🔄 Round 10 | CSD forced; awaiting rebuild |
+| "p" character | 🔄 Pending | Key event leak at startup |
+| File dialog broken | 🔄 Pending | Likely CSD/decorations related |
+| Cursor icons missing | ℹ️ Cosmetic | Falls back to left_ptr |
+| Wasm extension load | ❌ | EINVAL, likely same PROT_NONE |
+| D-Bus | ℹ️ Non-fatal | No D-Bus on OpenBSD |
 | `os-release` missing | ℹ️ Non-fatal | OpenBSD has no os-release |
-| Unstripped binary (410 MB) | ℹ️ Intentional | Debug symbols for backtraces |
-| `datasize` limit | ⚠️ Needs manual set | `ulimit -d 8388608` in wrapper |
+| Unstripped binary | ℹ️ 410 MB | Debug symbols |
+| `datasize` limit | ⚠️ | `ulimit -d 8388608` in wrapper |
+| FD exhaustion | ⚠️ | `ulimit -n 1024` in wrapper |
 
-## Other Fixes (Stable)
+## Build Cache Invalidation
 
-### wgpu GLES Backend (openbsd cfg)
+Cargo does not detect source changes in registry crates (`~/.cargo/
+registry/src/`). Direct deletion of `target/.../build/` and
+`target/.../fingerprint/` directories is required after patching.
+CFLAGS/RUSTFLAGS changes also require cache invalidation — tracked via
+a sentinel file (`target/release-fast/.cflags`).
 
-Added `target_os = "openbsd"` to the wgpu `gles` cfg alias in
-`wgpu/build.rs` and `wgpu-core/build.rs` (via cargo cache patch).
-Without this, OpenBSD builds without the GLES backend and panics
-with `Backends::empty()`.
+**Critical trap:** Cargo extracts build scripts from original `.crate`
+tarballs in `~/.cargo/registry/cache/`, NOT from the patched `src/`
+directory. The `aws-lc-sys` fix patches both locations.
 
-### aws-lc-sys NO_ASM
+## Background Timeline
 
-`curve25519_x25519base.S` has a PIC local symbol bug on OpenBSD.
-`AWS_LC_SYS_NO_ASM=1` forces the pure-C fallback — but it panics
-in release profiles. The script patches `cmake_builder.rs` in
-the cargo registry to replace the panic with
-`cmake_cfg.define("OPENSSL_NO_ASM", "1")`.
-
-### Vulkan (explored, reverted)
-
-OpenBSD's ANV driver (`libvulkan_intel.so`) crashes during
-`vkCreateInstance`. Likely the same `__retguard` issue in Mesa,
-or worse. Not worth pursuing — GLES works.
+- **Jun 9-10:** Initial build at `137e677a05`. `Backends::empty()` panic.
+- **Jun 12-16:** Cherry-picked to `fca2ccd403`. Fixed 4 build bugs, wgpu
+  GLES cfg. GPU detected.
+- **Jun 16:** SIGILL crash (tree_sitter_json). Added retguard fix.
+- **Jun 17-18:** Discovered IBT + retguard interaction. Tried
+  `-fcf-protection=none` — broke C code. Settled on keeping IBT enabled
+  and patching hand-written assembly.
+- **Jun 19 (Round 6-7):** Fixed IBT asm patches + `-z nobtcfi` linker
+  flag. Window renders, GPU works, extensions load.
+- **Jun 19 (Round 8):** MAP_STACK SIGSEGV after first frame. Four
+  patches. `find -maxdepth 1` bug caused three wasted 78-min rebuilds.
+  Fixed: all `find` commands now recursive.
+- **Jun 20 (Round 9):** Sigaltstack panics with EINVAL. PROT_NONE +
+  MAP_STACK rejected. Fixed with RW allocation + guard page mprotect.
+  Zed launches successfully. UI issues discovered.
+- **Jun 20 (Round 10):** Title bar missing on i3. Forced CSD via
+  `client_side_decorations_supported = true`. `PlatformScreenCaptureFrame`
+  compile error: `scap` crate is Linux/Windows only — OpenBSD uses `()`
+  fallback. aws-lc-sys panic moved from `cmake_builder.rs` to
+  `cc_builder.rs`; added second patch targeting extracted build
+  directory (cargo extracts from tarball, not patched src/).
 
 ## Next Steps
 
-1. **Current build (~90 min in progress):** Rebuilding with
-   `CFLAGS="-fno-ret-protector -fcf-protection=none"`.
-2. **Test runtime:** If the IBT crash is gone, Zed should launch
-   fully. If new SIGILLs appear, they may be in other assembly
-   files lacking `endbr64`.
-3. **Verify rendering:** Confirm wgpu + GLES work end-to-end.
-4. **Verify window interactions:** Mouse, keyboard, input, clipboard.
-5. **Update this doc** with results.
+1. **Rebuild:** Run `./scripts/zed.sh`. The aws-lc-sys build-dir patch
+   will apply on retry, cargo will continue the incremental rebuild.
+   Expected: clean compile, zed launches with CSD title bar.
 
-## Background
+2. **Test title bar:** Verify the window has a proper title bar with
+   menus, close/minimize/maximize buttons. Try opening a file.
 
-- **Jun 9-10:** Initial build at `137e677a05`. 295 MB binary
-  panicked with `Backends::empty()` at runtime (no GLES on
-  OpenBSD).
-- **Jun 12-16:** Cherry-picked upstream to `fca2ccd403`. Fixed
-  4 build bugs, fixed `pub mod queue` multi-line cfg format.
-  Added wgpu GLES openbsd cfg. Confirmed GPU detection.
-- **Jun 16:** SIGILL crash. Used lldb to trace to
-  `tree_sitter_json`. Added `-fcf-protection=none` (WRONG FLAG).
-  Fixed aws-lc-sys NO_ASM.
-- **Jun 17-18 (early):** Discovered `-fcf-protection=none` is a no-op
-  on OpenBSD. Correct flag is `-fno-ret-protector`. SIGILL kept
-  recurring as new `-sys` crates were discovered. Surgical
-  object deletion approach failed (cascades into Rust recompile).
-  Settled on `cargo clean -p` + CFLAGS sentinel approach.
-- **Jun 18 (current):** After fixing retguard, SIGILL persisted in
-  `psm::rust_psm_stack_pointer` (hand-written assembly). Discovered
-  OpenBSD Clang also defaults to `-fcf-protection=branch`, which
-  requires `endbr64` at indirect call targets. The assembly lacks
-  `endbr64`, causing IBT violations on Tiger Lake. Added
-  `-fcf-protection=none` to disable this. Testing pending.
+3. **Investigate "p" character:** Check if it's a key event leak.
+   Possible causes: XIM input method, clipboard initialization, or
+   focus handling during startup.
+
+4. **If file dialog still broken:** Increase `ulimit -n` further or
+   check if it's a CSD window-decorations issue propagating to dialog
+   windows.
+
+5. **After UI stability:** Test LSP, terminal, git integration.

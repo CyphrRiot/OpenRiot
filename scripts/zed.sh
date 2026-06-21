@@ -204,58 +204,76 @@ echo "Building zed with features=$ZED_FEATURES..."
 export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-1}"
 # OpenBSD doesn't search /usr/local/lib by default; xkbcommon and
 # other native libraries live there.
-export RUSTFLAGS="-L /usr/local/lib ${RUSTFLAGS:-}"
+# Opt the resulting binary out of branch-target CFI (IBT) via the OpenBSD
+# linker. PT_OPENBSD_NOBTCFI tells the kernel to skip endbr64 enforcement
+# for this process, avoiding SIGILL from indirect calls into Rust hostcall
+# functions (rustc stable exposes no `+ibt` target-feature) and from
+# Cranelift JIT'd code (Cranelift has its own BTI codegen flag, but there
+# is no stable Rust path to thread it). The psm/ring asm patches and
+# -fno-ret-protector above are kept as defense in depth.
+export RUSTFLAGS="-C link-arg=-Wl,-z,nobtcfi -L /usr/local/lib ${RUSTFLAGS:-}"
 cd "$SOURCE_DIR"
 
 # OpenBSD Clang defaults enable TWO separate CPU protections:
 # 1. -ret-protector        → emits __retguard XOR canaries in C code (SIGILL)
-# 2. -fcf-protection=branch → requires endbr64 at indirect call targets (SIGILL)
+# 2. -fcf-protection=branch → requires endbr64 at indirect call targets (IBT)
 # Native crates compile C code AND hand-written .s assembly. The assembly
 # files (e.g., psm's x86_64.s) don't know about endbr64, so the CPU's IBT
-# enforcement SIGILLs on indirect calls to them. Disable both.
-export CFLAGS="-fno-ret-protector -fcf-protection=none"
-export CXXFLAGS="-fno-ret-protector -fcf-protection=none"
+# enforcement SIGILLs on indirect calls to them. Disable retguard, keep IBT.
+export CFLAGS="-fno-ret-protector"
+export CXXFLAGS="-fno-ret-protector"
 
-# Track CFLAGS. If they change, delete build outputs and fingerprints for
-# native crates. cargo clean -p doesn't reliably work for registry crates.
+# Track CFLAGS and RUSTFLAGS. If they change, delete build outputs and
+# fingerprints for affected crates. cargo clean -p doesn't reliably work
+# for registry crates.
 CET_SENTINEL="$SOURCE_DIR/target/release-fast/.cflags"
-EXPECTED_FLAGS="CFLAGS=${CFLAGS}"
+EXPECTED_FLAGS="CFLAGS=${CFLAGS} RUSTFLAGS=${RUSTFLAGS}"
 if [ -f "$CET_SENTINEL" ] && [ "$(cat "$CET_SENTINEL")" = "$EXPECTED_FLAGS" ]; then
-    echo "CFLAGS unchanged; skipping native crate rebuild."
+    echo "Build flags unchanged; skipping native crate rebuild."
 else
     if [ -f "$CET_SENTINEL" ]; then
-        echo "CFLAGS changed (was: $(cat "$CET_SENTINEL"), now: $EXPECTED_FLAGS)"
+        echo "Build flags changed (was: $(cat "$CET_SENTINEL"), now: $EXPECTED_FLAGS)"
     fi
-    echo "CFLAGS cache invalidation: deleting native crate outputs..."
-    
-    # Delete .o, .a, and build script outputs for all native crates
+    echo "Build cache invalidation: deleting crate outputs..."
+
+    # Delete .o, .a, and build script outputs. The CFLAGS list is C/C++/asm
+    # crates affected by clang flags. wasmtime is added because RUSTFLAGS
+    # changes (e.g. the -C link-arg= value) alter the final link step,
+    # which makes the embedded ELF program header table inconsistent
+    # with the cached binary.
     cd "$SOURCE_DIR/target/release-fast/build"
     for pattern in tree-sitter psm stacker ring aws-lc-sys freetype-sys \
                    libsqlite3-sys lmdb-master-sys wayland-sys yeslogic-fontconfig-sys \
-                   zstd-sys wgpu wgpu-core wgpu-hal; do
+                   zstd-sys wgpu wgpu-core wgpu-hal wasmtime; do
         find . -maxdepth 1 -type d -name "${pattern}-*" -exec rm -rf {} \; 2>/dev/null || true
     done
     cd "$SOURCE_DIR/target/release-fast/.fingerprint"
     for pattern in tree-sitter psm stacker ring aws-lc-sys freetype-sys \
                    libsqlite3-sys lmdb-master-sys wayland-sys yeslogic-fontconfig-sys \
-                   zstd-sys wgpu wgpu-core wgpu-hal; do
+                   zstd-sys wgpu wgpu-core wgpu-hal wasmtime; do
         find . -maxdepth 1 -type d -name "${pattern}-*" -exec rm -rf {} \; 2>/dev/null || true
     done
-    
+
     mkdir -p "$(dirname "$CET_SENTINEL")"
     printf '%s' "$EXPECTED_FLAGS" > "$CET_SENTINEL"
-    echo "Native crate outputs deleted. Rebuild required (~5-10 min)."
+    echo "Crate outputs deleted. Rebuild required (~5-10 min)."
 fi
 
+cd "$SOURCE_DIR"
 echo "Building zed (debug profile, CARGO_BUILD_JOBS=$CARGO_BUILD_JOBS)..."
+
+# Fetch dependencies first so registry sources are available for patching.
+# On a clean tree this downloads everything; on an existing tree it's fast.
+echo "Fetching dependencies..."
+cargo fetch --manifest-path crates/zed/Cargo.toml --no-default-features --features "$ZED_FEATURES" 2>/dev/null || true
 
 # First build attempt may fail on third-party crates not yet in cargo registry.
 # After failure, patch the extracted sources and retry.
 for attempt in 1 2; do
     if [ "$attempt" -eq 2 ]; then
         echo "Retry $attempt: patching third-party crate sources..."
-        WASMTIME_DIR=$(find "${HOME}/.cargo/registry/src" -maxdepth 1 -type d \
-            -name 'wasmtime-wasi-*' 2>/dev/null | head -1)
+        WASMTIME_DIR=$(find "${HOME}/.cargo/registry/src" -type d \
+            -name 'wasmtime-wasi-[0-9]*' 2>/dev/null | head -1)
         if [ -n "$WASMTIME_DIR" ]; then
             T="$WASMTIME_DIR/src/p2/tcp.rs"
             U="$WASMTIME_DIR/src/sockets/util.rs"
@@ -267,7 +285,7 @@ for attempt in 1 2; do
             sed_i "$U" 's/sockopt::set_tcp_keepcnt(fd, value\.clamp(MIN_CNT, MAX_CNT))?;/return Err(ErrorCode::NotSupported);/'
             echo "wasmtime-wasi patched"
         fi
-        IPC_DIR=$(find "${HOME}/.cargo/registry/src" -maxdepth 1 -type d \
+        IPC_DIR=$(find "${HOME}/.cargo/registry/src" -type d \
             -name 'ipc-channel-*' 2>/dev/null | head -1)
         if [ -n "$IPC_DIR" ]; then
             IPC_MOD="$IPC_DIR/src/platform/unix/mod.rs"
@@ -286,25 +304,96 @@ EOF
         fi
     fi
 
-    # Patch aws-lc-sys to allow NO_ASM in non-debug builds. The
-    # curve25519_x25519base.S assembly crashes on OpenBSD (broken
-    # PIC local symbol addressing). NO_ASM is debug-only by default
-    # — we replace the panic so it works in release-fast too.
-    for AWS_LC_SRC in $(find "${HOME}/.cargo/registry/src" -type d -name 'aws-lc-sys-*' 2>/dev/null); do
-        CMAKE_BUILDER="${AWS_LC_SRC}/builder/cmake_builder.rs"
-        if [ -f "$CMAKE_BUILDER" ] && ! rg -q 'ZED_AWSLC_PATCHED' "$CMAKE_BUILDER" 2>/dev/null; then
-            ed -s "$CMAKE_BUILDER" << 'EOF'
-/AWS_LC_SYS_NO_ASM only allowed for debug builds!
+    # aws-lc-sys >= 0.40.0 handles AWS_LC_SYS_NO_ASM in release builds
+    # without panicking. Clear stale build caches so cargo recompiles the
+    # build script from the current (correct) source.
+    rm -rf "$SOURCE_DIR/target/release-fast/build/aws-lc-sys-"* 2>/dev/null || true
+    rm -rf "$SOURCE_DIR/target/release-fast/.fingerprint/aws-lc-sys-"* 2>/dev/null || true
+
+    # Patch stack-allocating crates to add MAP_STACK on OpenBSD.
+    # OpenBSD enforces MAP_STACK on all mmap'd regions used as stacks.
+    # Each patch is idempotent (checks if source already has the fix).
+    # Cargo does not detect registry source changes, so when a patch is
+    # applied we delete the build cache for that crate.
+    MAPSTACK_PATCHED=false
+
+    WT_FIBER_DIR=$(find "${HOME}/.cargo/registry/src" -type d \
+        -name 'wasmtime-internal-fiber-*' 2>/dev/null | head -1)
+    if [ -n "$WT_FIBER_DIR" ]; then
+        FIBER_SRC="$WT_FIBER_DIR/src/unix.rs"
+        if [ -f "$FIBER_SRC" ] && ! rg -q 'MapFlags::from_bits_retain' "$FIBER_SRC" 2>/dev/null; then
+            sed_i "$FIBER_SRC" 's@rustix::mm::MapFlags::PRIVATE,$@rustix::mm::MapFlags::PRIVATE | rustix::mm::MapFlags::from_bits_retain(0x4000),@'
+            rm -rf "$SOURCE_DIR/target/release-fast/build/wasmtime-internal-fiber-"* 2>/dev/null || true
+            rm -rf "$SOURCE_DIR/target/release-fast/.fingerprint/wasmtime-internal-fiber-"* 2>/dev/null || true
+            echo "wasmtime-internal-fiber patched (MAP_STACK)"
+            MAPSTACK_PATCHED=true
+        fi
+    fi
+
+    WT_MAIN_DIR=$(find "${HOME}/.cargo/registry/src" -type d \
+        -name 'wasmtime-[0-9]*' 2>/dev/null | head -1)
+    if [ -n "$WT_MAIN_DIR" ]; then
+        STACKSW_SRC="$WT_MAIN_DIR/src/runtime/vm/stack_switching/stack/unix.rs"
+        if [ -f "$STACKSW_SRC" ] && ! rg -q 'MapFlags::from_bits_retain' "$STACKSW_SRC" 2>/dev/null; then
+            sed_i "$STACKSW_SRC" 's@rustix::mm::MapFlags::PRIVATE,$@rustix::mm::MapFlags::PRIVATE | rustix::mm::MapFlags::from_bits_retain(0x4000),@'
+            rm -rf "$SOURCE_DIR/target/release-fast/build/wasmtime-"* 2>/dev/null || true
+            rm -rf "$SOURCE_DIR/target/release-fast/.fingerprint/wasmtime-"* 2>/dev/null || true
+            echo "wasmtime stack-switching patched (MAP_STACK)"
+            MAPSTACK_PATCHED=true
+        fi
+
+        SIG_SRC="$WT_MAIN_DIR/src/runtime/vm/sys/unix/signals.rs"
+        if [ -f "$SIG_SRC" ] && ! rg -q 'PROT_NONE.*MAP_STACK.*EINVAL' "$SIG_SRC" 2>/dev/null; then
+            # Ensure MAP_STACK is in the mmap flags (idempotent).
+            sed_i "$SIG_SRC" 's@rustix::mm::MapFlags::PRIVATE,$@rustix::mm::MapFlags::PRIVATE | rustix::mm::MapFlags::from_bits_retain(0x4000),@'
+            # Change PROT_NONE to PROT_READ|PROT_WRITE and insert a
+            # guard-page mprotect.  PROT_NONE + MAP_STACK is EINVAL
+            # on OpenBSD; allocate RW first, then lock the guard page.
+            ed -s "$SIG_SRC" << 'EDEOF'
+/rustix::mm::ProtFlags::empty(),/
 c
-                cmake_cfg.define("OPENSSL_NO_ASM", "1");
-                // ZED_AWSLC_PATCHED
+                rustix::mm::ProtFlags::READ | rustix::mm::ProtFlags::WRITE,
+.
+/let stack_ptr = (ptr as usize + guard_size) as/
+a
+
+        // OpenBSD: PROT_NONE + MAP_STACK is EINVAL; allocate RW
+        // first, then lock the guard page to PROT_NONE.
+        unsafe {
+            rustix::mm::mprotect(
+                ptr,
+                guard_size,
+                rustix::mm::MprotectFlags::empty(),
+            )
+            .expect("mprotect to set guard page failed");
+        }
 .
 w
 q
-EOF
-            echo "aws-lc-sys patched (NO_ASM allowed in release)"
+EDEOF
+            rm -rf "$SOURCE_DIR/target/release-fast/build/wasmtime-"* 2>/dev/null || true
+            rm -rf "$SOURCE_DIR/target/release-fast/.fingerprint/wasmtime-"* 2>/dev/null || true
+            echo "wasmtime signals patched (MAP_STACK + guard page)"
+            MAPSTACK_PATCHED=true
         fi
-    done
+    fi
+
+    STACKER_DIR=$(find "${HOME}/.cargo/registry/src" -type d \
+        -name 'stacker-*' 2>/dev/null | head -1)
+    if [ -n "$STACKER_DIR" ]; then
+        STACKER_SRC="$STACKER_DIR/src/mmap_stack_restore_guard.rs"
+        if [ -f "$STACKER_SRC" ] && rg -q 'libc::MAP_PRIVATE | libc::MAP_ANON,$' "$STACKER_SRC" 2>/dev/null; then
+            sed_i "$STACKER_SRC" 's#libc::MAP_PRIVATE | libc::MAP_ANON,$#libc::MAP_PRIVATE | libc::MAP_ANON | libc::MAP_STACK,#'
+            rm -rf "$SOURCE_DIR/target/release-fast/build/stacker-"* 2>/dev/null || true
+            rm -rf "$SOURCE_DIR/target/release-fast/.fingerprint/stacker-"* 2>/dev/null || true
+            echo "stacker patched (MAP_STACK)"
+            MAPSTACK_PATCHED=true
+        fi
+    fi
+
+    if [ "$MAPSTACK_PATCHED" = "true" ]; then
+        echo "MAP_STACK patches applied. Incremental rebuild."
+    fi
 
     if sh -c "ulimit -d 8388608 && AWS_LC_SYS_NO_ASM=1 exec cargo build --profile release-fast --no-default-features --features '${ZED_FEATURES}' -j '${CARGO_BUILD_JOBS}'"; then
         break
@@ -320,12 +409,13 @@ mkdir -p "${INSTALL_DIR}/bin"
 cp target/release-fast/zed "${INSTALL_DIR}/bin/zed.bin"
 # Keep debug symbols — needed for crash backtraces. Set ZED_STRIP=1 to strip.
 
-# Create a wrapper that raises datasize limits before exec,
-# so the stripped binary does not OOM at runtime.
+# Create a wrapper that raises datasize and file descriptor limits
+# before exec. OpenBSD defaults to 128 FDs which is insufficient for
+# zed scanning large git worktrees.
 cat > "${INSTALL_DIR}/bin/zed" << 'WRAPPER'
 #!/bin/sh
-echo "ulimit -d 8388608..."
 ulimit -d 8388608 2>/dev/null || ulimit -d 4194304 2>/dev/null || true
+ulimit -n 1024 2>/dev/null || true
 exec "$(dirname "$0")/zed.bin" "$@"
 WRAPPER
 chmod +x "${INSTALL_DIR}/bin/zed"
