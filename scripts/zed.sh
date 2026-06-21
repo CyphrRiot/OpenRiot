@@ -415,7 +415,7 @@ cp target/release-fast/zed "${INSTALL_DIR}/bin/zed.bin"
 cat > "${INSTALL_DIR}/bin/zed" << 'WRAPPER'
 #!/bin/sh
 ulimit -d 8388608 2>/dev/null || ulimit -d 4194304 2>/dev/null || true
-ulimit -n 1024 2>/dev/null || true
+ulimit -n 524288 2>/dev/null || true
 exec "$(dirname "$0")/zed.bin" "$@"
 WRAPPER
 chmod +x "${INSTALL_DIR}/bin/zed"
