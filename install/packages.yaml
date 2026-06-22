@@ -506,24 +506,6 @@ system:
                       doas sed -i '/^hw\.allowpowerdown=/d' /etc/sysctl.conf
                       doas sed -i '/^hw\.perfpolicy=/d' /etc/sysctl.conf
                   fi
-            - desc: "Configure login.conf resource limits"
-              cmd: |
-                  UPDATED=0
-                  if ! grep -q 'umask=022.*coredump' /etc/login.conf 2>/dev/null; then
-                      doas sed -i '' 's/:umask=022:/:umask=022: coredump=0:/' /etc/login.conf
-                      UPDATED=1
-                  fi
-                  if ! grep -q 'openfiles-max=65536' /etc/login.conf 2>/dev/null; then
-                      doas sed -i '' 's/:openfiles-max=1024:/:openfiles-max=65536:/' /etc/login.conf
-                      UPDATED=1
-                  fi
-                  if ! grep -q 'openfiles-cur=4096' /etc/login.conf 2>/dev/null; then
-                      doas sed -i '' 's/:openfiles-cur=512:/:openfiles-cur=4096:/' /etc/login.conf
-                      UPDATED=1
-                  fi
-                  if [ "$UPDATED" -eq 1 ]; then
-                      doas cap_mkdb /etc/login.conf
-                  fi
             - desc: "Set kern.maxfiles for large worktrees (Zed needs ~4000+ FDs)"
               cmd: |
                   if ! grep -q 'kern.maxfiles=65536' /etc/sysctl.conf 2>/dev/null; then

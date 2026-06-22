@@ -132,13 +132,17 @@ func RunHDMI() {
 	}
 }
 
-func getSysctl(name string) string {
-	out, _ := exec.Command("sysctl", "-n", name).Output()
-	return strings.TrimSpace(string(out))
+func getSysctl(name string) (string, error) {
+	out, err := exec.Command("sysctl", "-n", name).Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
 }
 
 func setSysctlIfChanged(name, want string) {
-	if getSysctl(name) == want {
+	current, err := getSysctl(name)
+	if err != nil || current == want {
 		return
 	}
 	_ = exec.Command("doas", "sysctl", name+"="+want).Run()

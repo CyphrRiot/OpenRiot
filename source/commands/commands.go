@@ -650,6 +650,11 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Run: func(args []string) error { return runNightLightNotify() },
 	})
 	r.Register(&Command{
+		Name: "--night-light-restore", Category: "Drive & Sync",
+		Description: "Restore night light state on login",
+		Run: func(args []string) error { nightlight.Restore(); return nil },
+	})
+	r.Register(&Command{
 		Name: "--window-title", Category: "Drive & Sync",
 		Description: "Show focused window title",
 		Run: func(args []string) error { fmt.Print(windowtitle.Get()); return nil },

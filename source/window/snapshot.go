@@ -11,7 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	"openriot/lock"
 	"openriot/notify"
 	"openriot/paths"
 )
@@ -99,7 +98,7 @@ func RestoreLayout() error {
 	}
 
 	classCommands := loadRestoreCommands()
-	launched := make(map[string]bool)
+	expectedCount := make(map[string]int)
 
 	for _, w := range snap.Windows {
 		key := strings.ToLower(w.Class)
@@ -109,16 +108,11 @@ func RestoreLayout() error {
 		if key == "" || shutdownSkipClasses[key] {
 			continue
 		}
-		if launched[key] {
-			continue
-		}
 
 		cmdLine, ok := classCommands[key]
 		if !ok {
 			cmdLine = key
 		}
-		launched[key] = true
-
 		args := strings.Fields(cmdLine)
 		if len(args) == 0 {
 			continue
@@ -126,12 +120,41 @@ func RestoreLayout() error {
 		cmd := exec.Command(args[0], args[1:]...)
 		cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 		cmd.Start()
+		expectedCount[key]++
 	}
 
-	time.Sleep(3 * time.Second)
-
-	tree, err := getTree()
-	if err != nil {
+	// Poll for launched windows to appear (up to 15 seconds)
+	deadline := time.Now().Add(15 * time.Second)
+	var tree *i3Node
+	for time.Now().Before(deadline) {
+		time.Sleep(500 * time.Millisecond)
+		tree, _ = getTree()
+		if tree == nil {
+			continue
+		}
+		var current []windowPlacement
+		var cws int
+		collectForPlacement(tree, &current, &cws)
+		actualCount := make(map[string]int)
+		for _, cw := range current {
+			cls := strings.ToLower(cw.Class)
+			if cls == "" {
+				cls = strings.ToLower(cw.Instance)
+			}
+			actualCount[cls]++
+		}
+		ready := true
+		for cls, want := range expectedCount {
+			if actualCount[cls] < want {
+				ready = false
+				break
+			}
+		}
+		if ready {
+			break
+		}
+	}
+	if tree == nil {
 		os.Remove(path)
 		return nil
 	}
@@ -188,15 +211,12 @@ func RestoreLayout() error {
 }
 
 // GracefulShutdown closes applications cleanly, saves the window layout,
-// locks the screen, and shuts down or reboots the system.
+// and shuts down or reboots the system.
 func GracefulShutdown(action string) error {
-	gracefulCloseWindows()
-
 	notify.SendNotify("power", "Power", "Saving window layout...", "normal", 2000, 0)
 	SaveLayout()
 
-	notify.SendNotify("power", "Power", "Locking...", "normal", 2000, 0)
-	lock.Lock()
+	gracefulCloseWindows()
 
 	var notifyMsg string
 	var shutdownArgs []string

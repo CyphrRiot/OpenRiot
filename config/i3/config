@@ -62,6 +62,9 @@ exec --no-startup-id sh -c 'sleep 2; $openriot_bin --resolution-restore'
 # Restore window layout from previous session
 exec --no-startup-id sh -c 'sleep 3; $openriot_bin --window-restore'
 
+# Restore night light state from previous session
+exec --no-startup-id sh -c 'sleep 4; $openriot_bin --night-light-restore'
+
 # Notifications - watchdog starts dunst on first notification
 exec --no-startup-id sh -c 'while true; do pgrep dunst >/dev/null || nohup /usr/local/bin/dunst >/dev/null 2>&1; sleep 5; done'
 

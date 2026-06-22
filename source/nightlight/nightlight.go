@@ -43,6 +43,14 @@ func Toggle() error {
 	return nil
 }
 
+// Restore applies the saved night light state on login. Runs sct if
+// night light was on during the previous session.
+func Restore() {
+	if IsOn() {
+		exec.Command("sct", "4000").Run()
+	}
+}
+
 func getState() int {
 	file := paths.Join(stateFile)
 	data, err := os.ReadFile(file)
