@@ -578,7 +578,7 @@ func (m Model) renderDumpMenu() string {
 
 	ascii := asciiStyle.Render(MigrateASCII)
 	s.WriteString(ascii + "\n")
-	s.WriteString(titleStyle.Render("💾 System Dump (dump/restore)") + "\n\n")
+	s.WriteString(titleStyle.Render("💾 Full Backup (rsync clone)") + "\n\n")
 
 	for i, choice := range m.choices {
 		if m.cursor == i {
@@ -589,8 +589,9 @@ func (m Model) renderDumpMenu() string {
 	}
 
 	availableWidth := safeRenderWidth(m.width) - 8
-	info := infoBoxStyle.Width(availableWidth).Render(`💾 dump(8) creates full or incremental backups of FFS filesystems
-📦 Supports /, /home, /var — works on live systems including softraid CRYPTO`)
+	info := infoBoxStyle.Width(availableWidth).Render(`💾 Clones the root filesystem to /mnt/backup using rsync
+🔧 Only changed files are transferred (incremental)
+🔒 Boot blocks installed for bootability`)
 	s.WriteString(info)
 
 	help := m.renderHelp()
@@ -607,32 +608,56 @@ func (m Model) renderDumpProgress() string {
 	ascii := asciiStyle.Render(MigrateASCII)
 	s.WriteString(ascii + "\n")
 
-	opLabel := "Dump"
-	if currentDumpState.isRestore {
-		opLabel = "Restore"
-	}
+	if m.operation == "full_backup" {
+		s.WriteString(titleStyle.Render("💾 Full Backup in progress...") + "\n\n")
 
-	s.WriteString(titleStyle.Render("💾 "+opLabel+" in progress...") + "\n\n")
-
-	if m.message != "" {
-		msgStyle := lipgloss.NewStyle().Foreground(textColor).Width(safeRenderWidth(m.width) - 8)
-		s.WriteString(msgStyle.Render(m.message) + "\n\n")
-	}
-
-	output := getDumpOutput()
-	if len(output) > 0 {
-		n := len(output)
-		start := 0
-		if n > 10 {
-			start = n - 10
+		if m.message != "" {
+			msgStyle := lipgloss.NewStyle().Foreground(textColor).Width(safeRenderWidth(m.width) - 8)
+			s.WriteString(msgStyle.Render(m.message) + "\n\n")
 		}
-		lines := output[start:]
 
-		msgStyle := lipgloss.NewStyle().Foreground(dimColor)
-		for _, line := range lines {
-			s.WriteString(msgStyle.Render(line) + "\n")
+		output := getCloneOutput()
+		if len(output) > 0 {
+			n := len(output)
+			start := 0
+			if n > 10 {
+				start = n - 10
+			}
+			lines := output[start:]
+			msgStyle := lipgloss.NewStyle().Foreground(dimColor)
+			for _, line := range lines {
+				s.WriteString(msgStyle.Render(line) + "\n")
+			}
+			s.WriteString("\n")
 		}
-		s.WriteString("\n")
+	} else {
+		opLabel := "Dump"
+		if currentDumpState.isRestore {
+			opLabel = "Restore"
+		}
+
+		s.WriteString(titleStyle.Render("💾 "+opLabel+" in progress...") + "\n\n")
+
+		if m.message != "" {
+			msgStyle := lipgloss.NewStyle().Foreground(textColor).Width(safeRenderWidth(m.width) - 8)
+			s.WriteString(msgStyle.Render(m.message) + "\n\n")
+		}
+
+		output := getDumpOutput()
+		if len(output) > 0 {
+			n := len(output)
+			start := 0
+			if n > 10 {
+				start = n - 10
+			}
+			lines := output[start:]
+
+			msgStyle := lipgloss.NewStyle().Foreground(dimColor)
+			for _, line := range lines {
+				s.WriteString(msgStyle.Render(line) + "\n")
+			}
+			s.WriteString("\n")
+		}
 	}
 
 	s.WriteString(m.renderProgressBarWithMessage(m.message))

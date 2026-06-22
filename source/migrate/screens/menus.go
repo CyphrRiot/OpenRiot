@@ -8,7 +8,7 @@ var (
 		"🔍 Verify Backup",
 		"🔄 Restore System",
 		"🔧 Restore Settings",
-		"💾 System Dump",
+		"💾 Full Backup",
 		"📋 About",
 		"❌ Exit",
 	}
@@ -19,7 +19,7 @@ var (
 		"🔧 Backup System Settings",
 		"🔍 Verify Backup",
 		"🔄 Restore System",
-		"💾 System Dump",
+		"💾 Full Backup",
 		"📋 About",
 		"❌ Exit",
 	}
@@ -78,11 +78,9 @@ var (
 		"⬅️ Back",
 	}
 
-	// DumpMenuChoices defines the dump menu options
-	DumpMenuChoices = []string{
-		"💾 Full Dump (level 0)",
-		"📦 Incremental Dump (level 1)",
-		"🔄 Restore from Dump",
+	// FullBackupChoices defines the full backup menu options
+	FullBackupChoices = []string{
+		"💾 Clone to /mnt/backup (rsync + installboot)",
 		"⬅️ Back",
 	}
 )
@@ -105,7 +103,7 @@ func GetMenuChoices(screen Screen) []string {
 	case ScreenConfirm:
 		return ConfirmationChoices
 	case ScreenDump:
-		return DumpMenuChoices
+		return FullBackupChoices
 	default:
 		return []string{}
 	}
@@ -240,22 +238,12 @@ func GetVerifyMenuAction(index int) MenuAction {
 // DumpMenuChoicesAreDefined above — add the routing
 func GetDumpMenuAction(index int) MenuAction {
 	switch index {
-	case 0: // Full dump
+	case 0: // Clone to /mnt/backup
 		return MenuAction{
-			Screen:    ScreenDriveSelect,
-			Operation: "dump_full",
+			Screen:    ScreenConfirm,
+			Operation: "full_backup",
 		}
-	case 1: // Incremental dump
-		return MenuAction{
-			Screen:    ScreenDriveSelect,
-			Operation: "dump_incr",
-		}
-	case 2: // Restore from dump
-		return MenuAction{
-			Screen:    ScreenDriveSelect,
-			Operation: "dump_restore",
-		}
-	case 3: // Back
+	case 1: // Back
 		return MenuAction{Screen: ScreenMain}
 	default:
 		return MenuAction{}

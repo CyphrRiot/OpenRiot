@@ -552,7 +552,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.canceling = false
 
 			// For dump operations, just go to complete screen on cancel
-			if wasCanceling && strings.HasPrefix(m.operation, "dump_") {
+			if wasCanceling && (strings.HasPrefix(m.operation, "dump_") || m.operation == "full_backup") {
 				m.screen = screens.ScreenComplete
 				m.message = "Dump cancelled"
 				return m, nil
@@ -581,7 +581,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.screen = screens.ScreenConfirm
 				m.cursor = 1
 				return m, nil
-			} else if strings.HasPrefix(m.operation, "dump_") && msg.Error == nil {
+			} else if (strings.HasPrefix(m.operation, "dump_") || m.operation == "full_backup") && msg.Error == nil {
 				// Dump completed
 				m.lastScreen = m.screen
 				m.screen = screens.ScreenComplete
@@ -647,6 +647,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if !m.canceling {
 				if strings.HasPrefix(m.operation, "dump_") {
 					return m, CheckDumpProgress()
+				}
+				if m.operation == "full_backup" {
+					return m, CheckCloneProgress()
 				}
 				return m, CheckTUIBackupProgress()
 			}
@@ -766,10 +769,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 
 			case screens.ScreenDumpProgress:
-				// Cancel during dump
 				m.canceling = true
-				m.message = "Canceling dump..."
-				dumpCancel = true
+				if m.operation == "full_backup" {
+					m.message = "Canceling clone..."
+					cloneCancel = true
+				} else {
+					m.message = "Canceling dump..."
+					dumpCancel = true
+				}
 				return m, nil
 
 			case screens.ScreenRestoreOptions:
@@ -1428,6 +1435,14 @@ func (m Model) handleSelection() (tea.Model, tea.Cmd) {
 			m.cursor = 0
 		} else if m.screen == screens.ScreenDriveSelect {
 			return m, LoadDrives()
+		} else if m.screen == screens.ScreenConfirm {
+			m.choices = screens.ConfirmationChoices
+			m.cursor = 0
+			m.confirmation = "💾 Full Backup — rsync clone to /mnt/backup\n\n" +
+				"Only changed files will be transferred.\n" +
+				"Files deleted on source will be removed on target.\n" +
+				"Boot blocks will be installed for bootability.\n\n" +
+				"Proceed?"
 		}
 		return m, nil
 	case screens.ScreenConfirm:
@@ -1572,6 +1587,15 @@ func (m Model) handleSelection() (tea.Model, tea.Cmd) {
 					return m, tea.Batch(
 						startDump(m.selectedDrive, m.operation),
 						CheckDumpProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				case "full_backup":
+					m.screen = screens.ScreenDumpProgress
+					return m, tea.Batch(
+						StartClone(),
+						CheckCloneProgress(),
 						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
 							return state.CylonAnimateMsg{}
 						}),
