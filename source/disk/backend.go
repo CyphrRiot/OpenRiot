@@ -479,38 +479,7 @@ func UmountDrive(device, mountPoint string) error {
 
 	raidDev := findRaidDevice(device)
 	if raidDev != "" {
-		if _, err := tryDetach(raidDev); err == nil {
-			return nil
-		}
-	}
-
-	// Fallback: scan dmesg for all softraid virtual devices
-	dmesgOut, err := exec.Command("dmesg").Output()
-	if err != nil {
-		return nil
-	}
-	softraidBus := ""
-	for _, line := range strings.Split(string(dmesgOut), "\n") {
-		if strings.Contains(line, " at softraid") {
-			fields := strings.Fields(line)
-			if len(fields) > 0 {
-				softraidBus = fields[0]
-				break
-			}
-		}
-	}
-	if softraidBus != "" {
-		for _, line := range strings.Split(string(dmesgOut), "\n") {
-			line = strings.TrimSpace(line)
-			if !strings.HasPrefix(line, "sd") || !strings.Contains(line, " at "+softraidBus) {
-				continue
-			}
-			virtDev := strings.Fields(line)[0]
-			if virtDev == device || virtDev == "" {
-				continue
-			}
-			tryDetach(virtDev)
-		}
+		tryDetach(raidDev)
 	}
 
 	return nil
