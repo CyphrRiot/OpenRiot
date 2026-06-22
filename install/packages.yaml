@@ -508,8 +508,27 @@ system:
                   fi
             - desc: "Configure login.conf resource limits"
               cmd: |
-                  if ! grep -q 'coredump=0' /etc/login.conf 2>/dev/null; then
-                      doas sh -c "sed 's/:umask=022:.*/& coredump=0:/' /etc/login.conf > /tmp/login.conf.tmp && mv /tmp/login.conf.tmp /etc/login.conf && cap_mkdb /etc/login.conf"
+                  UPDATED=0
+                  if ! grep -q 'umask=022.*coredump' /etc/login.conf 2>/dev/null; then
+                      doas sed -i '' 's/:umask=022:/:umask=022: coredump=0:/' /etc/login.conf
+                      UPDATED=1
+                  fi
+                  if ! grep -q 'openfiles-max=65536' /etc/login.conf 2>/dev/null; then
+                      doas sed -i '' 's/:openfiles-max=1024:/:openfiles-max=65536:/' /etc/login.conf
+                      UPDATED=1
+                  fi
+                  if ! grep -q 'openfiles-cur=4096' /etc/login.conf 2>/dev/null; then
+                      doas sed -i '' 's/:openfiles-cur=512:/:openfiles-cur=4096:/' /etc/login.conf
+                      UPDATED=1
+                  fi
+                  if [ "$UPDATED" -eq 1 ]; then
+                      doas cap_mkdb /etc/login.conf
+                  fi
+            - desc: "Set kern.maxfiles for large worktrees (Zed needs ~4000+ FDs)"
+              cmd: |
+                  if ! grep -q 'kern.maxfiles=65536' /etc/sysctl.conf 2>/dev/null; then
+                      doas sh -c 'echo "kern.maxfiles=65536" >> /etc/sysctl.conf'
+                      doas sysctl kern.maxfiles=65536
                   fi
             - desc: "Enable sndiod (audio)"
               cmd: "doas rcctl enable sndiod"

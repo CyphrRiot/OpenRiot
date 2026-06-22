@@ -1116,3 +1116,19 @@ index 2b33614f29..c67038c7e1 100644
      use std::os::unix::net::UnixDatagram;
 
 
+diff --git a/crates/title_bar/src/application_menu.rs b/crates/title_bar/src/application_menu.rs
+index b5cb07f757..329e8cc19f 100644
+--- a/crates/title_bar/src/application_menu.rs
++++ b/crates/title_bar/src/application_menu.rs
+@@ -271,9 +271,8 @@ impl ApplicationMenu {
+     }
+ }
+ 
+-pub(crate) fn show_menus(cx: &mut App) -> bool {
+-    TitleBarSettings::get_global(cx).show_menus
+-        && (cfg!(not(target_os = "macos")) || option_env!("ZED_USE_CROSS_PLATFORM_MENU").is_some())
++pub(crate) fn show_menus(_cx: &mut App) -> bool {
++    cfg!(not(target_os = "macos"))
+ }
+ 
+ impl Render for ApplicationMenu {

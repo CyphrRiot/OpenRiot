@@ -1,13 +1,14 @@
 # OpenBSD Zed Port — Status
 
 **Last attempt:** `fca2ccd403` (origin/main, pinned)  
-**Date:** 2026-06-20  
+**Date:** 2026-06-21  
 **Working tree:** Patched, compiles, installs.  
 **Build:** 410 MB unstripped, `release-fast` profile, GLES backend.  
 **Runtime:** All crash sources resolved (Rounds 1-9). Zed launches, window
-renders, GPU works, extension host loads. UI glitches remain (missing
-title bar on i3, stray "p" character, broken file dialog). Awaiting
-rebuild with latest fixes.
+renders, GPU works, first frame renders, extension host loads. FD
+exhaustion (Round 15) causes "Too many open files" when scanning large
+worktrees — fixed in `install/packages.yaml` (`login.conf` + `sysctl.conf`).
+Remaining UI glitches: title bar, stray "p" character, file dialog.
 
 ## TL;DR for the Next AI
 
@@ -150,6 +151,36 @@ patterns.
 
 Non-fatal. OpenBSD has no D-Bus session bus. Zed gracefully degrades.
 
+
+**Round 11 (Jun 21):** Fixed full recompile issue. The aws-lc-sys cache
+clearing block was triggering full recompile every build (~90 minutes).
+Removed the unconditional cache clearing — aws-lc-sys v0.40.0 now handles
+`AWS_LC_SYS_NO_ASM` gracefully without panicking, so cache clearing is
+unnecessary. Incremental builds now work correctly (~1-2 minutes when
+only zed workspace crates change).
+
+**Round 12 (Jun 21):** Added show_menus patch. The title bar now compiles
+after CSD fix, but File/Edit/View menus were hidden. Root cause:
+`show_menus` in `application_menu.rs` checked the user setting
+`show_menus: false` (default). Patched `show_menus()` to always return
+`true` on non-macOS, bypassing the setting. Patch added to zed-patch.diff.
+
+**Round 13 (Jun 21):** Cleaned up zed-patch.diff. Removed duplicate
+show_menus entries that were added multiple times. Fixed CSD patch line
+numbers to match clean source (374→377 offset). All patches now apply
+cleanly in a single pass.
+
+**Round 15 (Jun 21):** Fixed fd exhaustion at the system level. The
+wrapper script's `ulimit -n 524288` was silently failing against OpenBSD's
+per-process hard cap of 1024 (`login.conf` `openfiles-max`). Root cause:
+both `kern.maxfiles` (system-wide) and `openfiles-max` (per-process) were
+at stock OpenBSD defaults (7030/1024). Zed scanning 19+ git worktrees
+exhausted 1024 FDs almost instantly. Fix: added `kern.maxfiles=65536` to
+`/etc/sysctl.conf` and `openfiles-max=65536`/`openfiles-cur=4096` to
+`/etc/login.conf` via `install/packages.yaml` (system.cleanup module).
+After a fresh login, the wrapper's `ulimit -n 524288` takes effect
+(capped at 65536). New installs get this automatically.
+
 ## Known Issues
 
 | Issue | Status | Notes |
@@ -157,8 +188,10 @@ Non-fatal. OpenBSD has no D-Bus session bus. Zed gracefully degrades.
 | SIGILL crashes | ✅ Resolved | Rounds 1-7 |
 | MAP_STACK SIGSEGV | ✅ Resolved | Round 8 |
 | PROT_NONE EINVAL | ✅ Resolved | Round 9 |
-| Missing title bar | 🔄 Round 10 | CSD forced; awaiting rebuild |
-| "p" character | 🔄 Pending | Key event leak at startup |
+| Missing title bar | ✅ Resolved | Round 10: CSD forced on OpenBSD |
+| Menus not showing | ✅ Resolved | Round 12: show_menus bypassed |
+| Extensions reinstalling | 🔄 Round 14 | ulimit increased to 524288 |
+| "p" character | ✅ Resolved | No longer appears; likely Round 10 side-effect |
 | File dialog broken | 🔄 Pending | Likely CSD/decorations related |
 | Cursor icons missing | ℹ️ Cosmetic | Falls back to left_ptr |
 | Wasm extension load | ❌ | EINVAL, likely same PROT_NONE |
@@ -166,7 +199,8 @@ Non-fatal. OpenBSD has no D-Bus session bus. Zed gracefully degrades.
 | `os-release` missing | ℹ️ Non-fatal | OpenBSD has no os-release |
 | Unstripped binary | ℹ️ 410 MB | Debug symbols |
 | `datasize` limit | ⚠️ | `ulimit -d 8388608` in wrapper |
-| FD exhaustion | ⚠️ | `ulimit -n 1024` in wrapper |
+| FD exhaustion | ✅ Resolved | Round 15: login.conf + sysctl.conf |
+| Full recompile | ✅ Fixed | Round 11: removed aws-lc-sys cache clearing |
 
 ## Build Cache Invalidation
 
@@ -176,10 +210,10 @@ registry/src/`). Direct deletion of `target/.../build/` and
 CFLAGS/RUSTFLAGS changes also require cache invalidation — tracked via
 a sentinel file (`target/release-fast/.cflags`).
 
-**Critical trap:** Cargo extracts build scripts from original `.crate`
-tarballs in `~/.cargo/registry/cache/`, NOT from the patched `src/`
-directory. The `aws-lc-sys` fix patches both locations.
-
+**Removed cache clearing trap:** The aws-lc-sys build-dir cache clearing
+was removed in Round 11 because aws-lc-sys v0.40.0 no longer panics on
+`AWS_LC_SYS_NO_ASM` in release builds. The unconditional cache clearing
+was causing full recompile (~90 minutes) on every build.
 ## Background Timeline
 
 - **Jun 9-10:** Initial build at `137e677a05`. `Backends::empty()` panic.

@@ -305,14 +305,6 @@ EOF
     fi
 
     # aws-lc-sys >= 0.40.0 handles AWS_LC_SYS_NO_ASM in release builds
-    # without panicking. Clear stale build caches so cargo recompiles the
-    # build script from the current (correct) source.
-    rm -rf "$SOURCE_DIR/target/release-fast/build/aws-lc-sys-"* 2>/dev/null || true
-    rm -rf "$SOURCE_DIR/target/release-fast/.fingerprint/aws-lc-sys-"* 2>/dev/null || true
-
-    # Patch stack-allocating crates to add MAP_STACK on OpenBSD.
-    # OpenBSD enforces MAP_STACK on all mmap'd regions used as stacks.
-    # Each patch is idempotent (checks if source already has the fix).
     # Cargo does not detect registry source changes, so when a patch is
     # applied we delete the build cache for that crate.
     MAPSTACK_PATCHED=false
