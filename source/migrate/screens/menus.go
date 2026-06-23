@@ -1,5 +1,10 @@
 package screens
 
+import (
+	"os/exec"
+	"strings"
+)
+
 // Menu choice constants for different screens
 var (
 	// MainMenuChoices defines the main menu options in the correct order
@@ -239,6 +244,14 @@ func GetVerifyMenuAction(index int) MenuAction {
 func GetDumpMenuAction(index int) MenuAction {
 	switch index {
 	case 0: // Clone to /mnt/backup
+		// Check if /mnt/backup is mounted
+		out, err := exec.Command("mount").Output()
+		if err != nil || !strings.Contains(string(out), " on /mnt/backup ") {
+			return MenuAction{
+				Screen:    ScreenError,
+				Operation: "mount_required",
+			}
+		}
 		return MenuAction{
 			Screen:    ScreenConfirm,
 			Operation: "full_backup",

@@ -1426,6 +1426,13 @@ func (m Model) handleSelection() (tea.Model, tea.Cmd) {
 		return m.handleVerifyMenuSelection()
 	case screens.ScreenDump:
 		action := screens.GetDumpMenuAction(m.cursor)
+		if action.Screen == screens.ScreenError {
+			m.message = "/mnt/backup is not mounted\n\nMount the backup drive first:\n  doas mount /dev/sdXi /mnt/backup"
+			m.lastScreen = m.screen
+			m.screen = screens.ScreenError
+			m.errorRequiresManualDismissal = true
+			return m, nil
+		}
 		m.screen = action.Screen
 		if action.Operation != "" {
 			m.operation = action.Operation
