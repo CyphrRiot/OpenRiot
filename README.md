@@ -1690,7 +1690,7 @@ OpenRiot includes the Monero GUI wallet pre-built for OpenBSD with full desktop 
 
 ### Launch
 
-- **Rofi**: Press `Super + D` → select "Monero Wallet"
+- **Rofi**: Press `Super + D` → select Crypto → "Monero Wallet"
 - **Desktop entry**: Available in the app launcher with  icon
 
 ### Prerequisites (installed automatically)
