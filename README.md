@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.40-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.41-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -113,6 +113,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.41 — The Backup That Knew Better](docs/v7.9.41-Release-Notes.md)
 - [v7.9.40 — The Clone Wars](docs/v7.9.40-Release-Notes.md)
 - [v7.9.39 — The Machine Remembers Itself](docs/v7.9.39-Release-Notes.md)
 - [v7.9.38 — Nine Rounds, Eighty-Eight Walls](docs/v7.9.38-Release-Notes.md)
@@ -122,7 +123,6 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [v7.9.34 — The Dead Channels Remember](docs/v7.9.34-Release-Notes.md)
 - [v7.9.33 — The Flatline Blinks](docs/v7.9.33-Release-Notes.md)
 - [v7.9.32 — The Fedorafication Continues](docs/v7.9.32-Release-Notes.md)
-- [v7.9.31 — All the Doors are Repainted](docs/v7.9.31-Release-Notes.md)
 - [Older releases →](docs/)
 
 Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.
@@ -580,26 +580,42 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | Terminal         |    | Alacritty terminal       |
 | File Manager     | 󰝰   | Thunar file browser      |
 | Firefox          |    | Web browser              |
-| Firefox (Private)|    | Private browsing         |
-| Select WiFi      | 󱚹   | Wi-Fi network manager    |
-| Monitor Resolution | 󰹑   | Display resolution picker |
+| Firefox [Private]|    | Private browsing         |
 | Text Editor      | 󰷉   | GNOME text editor        |
 | Helix            |    | Text editor              |
-| Word Processor   | 󰈙   | LibreOffice Writer       |
+| Kate IDE         |    | KDE code editor          |
+| Word Processor   | 󰈬   | LibreOffice Writer       |
+| Spreadsheet      | 󰈛   | LibreOffice Calc         |
 | Media Player     |    | mpv video player         |
 | Music Player     |    | rmpc music player (MPD)  |
 | Proton Mail      | 󰊫   | Email (web app)          |
 | Signal           | 󰬚   | Signal messenger (gurk)  |
-| System Monitor   | 󰍹   | btop resource monitor    |
+| System Monitor   | 󰮡   | btop resource monitor    |
 | Telegram         | 󰭹   | Messaging app            |
-| Discord          |    | Discord (abaddon client) |
+| Discord          | 󰙯   | Discord (abaddon client) |
 | Blockchain       | 󱕵   | Crypto tools sub-menu    |
 | Transmission     | 󰐻   | BitTorrent client        |
 | Crush AI         | 󰚩   | AI CLI assistant         |
-| Settings         | 󰒓   | XFCE settings manager    |
-| Benchmark        | 󰓅   | OpenRiot benchmark       |
-| SolveSpace 3D    | 󰐫   | 3D CAD modeler           |
 | Games            | 󰊗   | Games sub-menu           |
+| Utilities       | 󰢮   | System utilities sub-menu |
+
+### Utilities Sub-menu
+
+The **Utilities** entry opens this sub-menu:
+
+
+| App | Icon | Description |
+| --- | ---- | ----------- |
+| WiFi Config    | 󱚹   | Wi-Fi network manager              |
+| Monitor Config | 󰹑   | Display resolution picker          |
+| Drive Manager  | 󰋊   | Storage TUI (mount/format/encrypt) |
+| Backup & Restore | 󰳿   | OpenRiot migrate utility           |
+| Drive Benchmark | 󰑥   | fio IOPS/throughput tests          |
+| Unison Sync    | 󱍸   | Bidirectional file sync GUI        |
+| SolveSpace 3D  | 󰐫   | Parametric 3D CAD modeler          |
+| System Monitor | 󰮡   | btop resource monitor              |
+| OpenRiot Settings | 󰒓   | OpenRiot TUI settings              |
+| System Settings | 󰒓   | XFCE settings manager              |
 
 ![OpenRiot Terminal](assets/terminal.webp)
 

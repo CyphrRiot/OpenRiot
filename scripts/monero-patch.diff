@@ -1,0 +1,22 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c7d56c82..7168996e 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -20,7 +20,7 @@ if(DEV_MODE)
+   # DEV_MODE checks out the monero submodule to master, which requires C++17.
+   set(CMAKE_CXX_STANDARD 17)
+ else()
+-  set(CMAKE_CXX_STANDARD 14)
++  set(CMAKE_CXX_STANDARD 17)
+ endif()
+ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ 
+@@ -345,7 +345,7 @@ if(MINGW)
+   endif()
+ elseif(APPLE)
+   set(EXTRA_LIBRARIES "-framework AppKit")
+-elseif(OPENBSD OR ANDROID)
++elseif(CMAKE_SYSTEM_NAME MATCHES "kOpenBSD.*|OpenBSD.*" OR OPENBSD OR ANDROID)
+   set(EXTRA_LIBRARIES "")
+ elseif(FREEBSD)
+   set(EXTRA_LIBRARIES execinfo)
