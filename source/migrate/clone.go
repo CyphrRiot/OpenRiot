@@ -94,47 +94,64 @@ func runClone() {
 	}
 	appendCloneOutput(fmt.Sprintf("Target disk: %s", disk))
 
-	// ── 2. Space check ──────────────────────────────────────────────────
+	// ── 2. Space check (supports incremental) ─────────────────────────────
 
 	appendCloneOutput("Checking space...")
-	dfOut, err := exec.Command("df", "-P").Output()
+	dfOut, err := exec.Command("df", "-kP").Output()
 	if err != nil {
 		cloneError = fmt.Errorf("df: %w", err)
 		return
 	}
 
-	var totalUsed, targetAvail int64
+	var totalUsed, targetUsed, targetAvail int64
+	// df -kP returns 1K blocks
 	for _, line := range strings.Split(string(dfOut), "\n") {
 		fields := strings.Fields(line)
 		if len(fields) < 6 {
 			continue
 		}
 		mp := fields[5]
-		// Skip excluded mountpoints
-		switch {
-		case mp == "/mnt" || strings.HasPrefix(mp, "/mnt/"):
-		case mp == "/dev":
-		case mp == "/tmp":
-		case mp == "/var/tmp":
-		default:
-			// Parse "used" column (index 2 in 512-blocks)
-			var used int64
-			fmt.Sscanf(fields[2], "%d", &used)
-			totalUsed += used
+		if fields[0] == "Filesystem" {
+			continue
 		}
-		// Target available
+
+		// Parse used (index 2) and available (index 3) in 1K blocks
+		var used, avail int64
+		fmt.Sscanf(fields[2], "%d", &used)
+		fmt.Sscanf(fields[3], "%d", &avail)
+
+		// Target usage (check before skipping /mnt)
 		if mp == "/mnt/backup" {
-			fmt.Sscanf(fields[3], "%d", &targetAvail)
+			targetUsed = used
+			targetAvail = avail
 		}
+
+		// Skip excluded mountpoints from source total
+		if mp == "/mnt" || strings.HasPrefix(mp, "/mnt/") || mp == "/dev" || mp == "/tmp" || mp == "/var/tmp" {
+			continue
+		}
+
+		totalUsed += used
 	}
 
-	sourceGB := totalUsed * 512 / 1024 / 1024 / 1024
-	targetGB := targetAvail * 512 / 1024 / 1024 / 1024
-	appendCloneOutput(fmt.Sprintf("Source used: ~%d GB, Target free: ~%d GB", sourceGB, targetGB))
+	// For incremental, check if available space is enough for new data only
+	actualNeeded := (totalUsed - targetUsed) / 1024 / 1024 // in GB
+	totalUsedGB := totalUsed / 1024 / 1024
+	targetUsedGB := targetUsed / 1024 / 1024
+	targetAvailGB := targetAvail / 1024 / 1024
 
-	if targetAvail < totalUsed {
-		cloneError = fmt.Errorf("Not enough space: %d GB free < %d GB needed", targetGB, sourceGB)
-		return
+	if targetUsed > 0 {
+		appendCloneOutput(fmt.Sprintf("Source: ~%d GB, Target: ~%d GB used, %d GB free → ~%d GB needed", totalUsedGB, targetUsedGB, targetAvailGB, actualNeeded))
+		if targetAvail < actualNeeded*1024*1024 {
+			cloneError = fmt.Errorf("Not enough space: %d GB free < %d GB needed", targetAvailGB, actualNeeded)
+			return
+		}
+	} else {
+		appendCloneOutput(fmt.Sprintf("Source: ~%d GB, Target free: %d GB", totalUsedGB, targetAvailGB))
+		if targetAvail < totalUsed {
+			cloneError = fmt.Errorf("Not enough space: %d GB free < %d GB needed", targetAvailGB, totalUsedGB)
+			return
+		}
 	}
 
 	// ── 3. Rsync ────────────────────────────────────────────────────────

@@ -351,8 +351,15 @@ func (m model) updateMenu(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(m.spinner.Tick, fetchDrivesCmd())
 		}
 
-		// For all other actions, we need the drive list first
+		// For all other actions, we need the drive list — use cached drives if available
+		if len(m.drives) > 0 {
+			m.filteredDrives = filterDrives(m.drives, m.action)
+			m.cursor = 0
+			m.state = stateDriveList
+			return m, nil
+		}
 		m.state = stateRunning
+		m.filteredDrives = nil
 		return m, tea.Batch(m.spinner.Tick, fetchDrivesCmd())
 	}
 	return m, nil

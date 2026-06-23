@@ -371,6 +371,8 @@ func (m model) renderRunning() string {
 	actionLine := action
 	if len(m.filteredDrives) > 0 && m.cursor < len(m.filteredDrives) {
 		actionLine = fmt.Sprintf("%s — %s", action, m.filteredDrives[m.cursor].Device)
+	} else {
+		actionLine = "Fetching drive list..."
 	}
 	b.WriteString(actionLine)
 	b.WriteString("\n")
