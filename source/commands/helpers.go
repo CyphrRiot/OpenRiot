@@ -55,6 +55,23 @@ func runInstall(testMode *bool) {
 			logger.Info("Running on post-release snapshot. sysupgrade -R would downgrade.")
 			logger.Info("Staying on -current branch.")
 		}
+
+		// Drift check: kernel build date vs current time. On -current,
+		// packages lag the kernel within days; after 14 days they are
+		// almost guaranteed out of sync. Warn here at the top so the
+		// user sees it before any install work happens.
+		if drift, buildDate := hasPackageDrift(); drift {
+			days := int(time.Since(buildDate).Hours() / 24)
+			fmt.Println()
+			logger.Warn("Kernel drift detected")
+			logger.Info(fmt.Sprintf("Kernel built: %s (%d days ago)", buildDate.Format("Jan 2 2006"), days))
+			logger.Info("Base and packages are out of sync. Run:")
+			fmt.Println("  doas sysupgrade -s")
+			fmt.Println("  (reboot)")
+			fmt.Println("  doas pkg_add -u")
+			fmt.Println()
+			logger.Info("Continuing OpenRiot upgrade after drift notice.")
+		}
 	}
 
 	homeDir := paths.HomeDir()
@@ -137,20 +154,6 @@ func runInstall(testMode *bool) {
 		installer.ShowReleaseNotes()
 	}
 
-	// Remind -current user to keep base and packages in sync (only if drift detected)
-	if config.DetectOpenBSDVersion() == "snapshots" {
-		drift, buildDate := hasPackageDrift()
-		if drift {
-			fmt.Println()
-			logger.Warn("You are running OpenBSD -current.")
-			logger.Info(fmt.Sprintf("Kernel built: %s", buildDate.Format("Jan 2 2006")))
-			logger.Info("To keep base and packages in sync, run:")
-			fmt.Println("  doas sysupgrade -s")
-			fmt.Println("  (reboot)")
-			fmt.Println("  doas pkg_add -u")
-		}
-	}
-
 	// Post-install security/reliability patches. Runs last so the full
 	// installation completes before we prompt the user for syspatch.
 	// On -current we skip — snapshots handle their own updates.
@@ -209,7 +212,7 @@ func runPostInstallPatch() {
 }
 
 // hasPackageDrift parses kernel build date from sysctl and returns true if
-// the kernel is more than 7 days old (indicating potential package/base drift).
+// the kernel is more than 14 days old (indicating potential package/base drift).
 func hasPackageDrift() (bool, time.Time) {
 	cmd := exec.Command("sysctl", "-n", "kern.version")
 	output, err := cmd.Output()
@@ -229,7 +232,7 @@ func hasPackageDrift() (bool, time.Time) {
 		return false, time.Time{}
 	}
 
-	return time.Since(buildDate) > 7*24*time.Hour, buildDate
+	return time.Since(buildDate) > 14*24*time.Hour, buildDate
 }
 
 // checkReleasePath determines if a -current system can safely migrate to the

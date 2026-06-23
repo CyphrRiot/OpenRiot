@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.41-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.42-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -113,6 +113,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.42 — The Warning Light That Was Never Lit](docs/v7.9.42-Release-Notes.md)
 - [v7.9.41 — The Backup That Knew Better](docs/v7.9.41-Release-Notes.md)
 - [v7.9.40 — The Clone Wars](docs/v7.9.40-Release-Notes.md)
 - [v7.9.39 — The Machine Remembers Itself](docs/v7.9.39-Release-Notes.md)
@@ -122,7 +123,6 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [v7.9.35 — A War Is Coming](docs/v7.9.35-Release-Notes.md)
 - [v7.9.34 — The Dead Channels Remember](docs/v7.9.34-Release-Notes.md)
 - [v7.9.33 — The Flatline Blinks](docs/v7.9.33-Release-Notes.md)
-- [v7.9.32 — The Fedorafication Continues](docs/v7.9.32-Release-Notes.md)
 - [Older releases →](docs/)
 
 Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.
@@ -645,7 +645,7 @@ The **Utilities** entry opens this sub-menu:
 | 9 | stealth | 󰝴 / 󱊨 | MAC randomization ON / OFF |
 | 10 | network-wifi | 󰤨→󰤥→󰤢→󰤟→󰤯 / 󱛅 | Signal bars / No internet |
 | 11 | network-eth | 󰈀 / (empty) | Connected / Not connected |
-| 12 | openriot-update | 󰋻 / 󰚇 / ? | Update available / Up to date / Unknown |
+| 12 | openriot-update | 󰀦 / 󰋻 / 󰚇 / ? | Drift / Update avail / Current / Unknown |
 | 13 | settings |  | Settings menu |
 | 14 | hdmi | 󰍺 / 󰍹 /  | Both / HDMI only / Laptop only |
 | 15 | volume | //󱄠/󰕾/ | Muted / Very low / Low / Medium / High |
@@ -935,6 +935,27 @@ the release freeze. Those changes are not in the release sets. `sysupgrade
 -R` would replace newer code with older code, creating a mismatch that
 OpenBSD does not handle.
 
+### Kernel Drift Detection
+
+On `-current`, packages lag the kernel within days. After 14 days,
+they are almost guaranteed out of sync — `pkg_add -u` installs from the
+old snapshot's tree and may break against a newer kernel. OpenRiot
+detects this automatically:
+
+- **Polybar:** the update module shows `󰀦` (warning) instead of `󰚇`
+  (up to date). Click → runs `doas sysupgrade -s` for you.
+- **Installer:** every `curl -fsSL https://openriot.org/setup.sh | sh`
+  run prints the drift warning at the top, before any install work.
+- **Threshold:** 14 days since the kernel's `kern.version` build date.
+  Override not exposed — staying in sync is non-negotiable.
+
+If the warning fires, sync before continuing:
+
+```bash
+doas sysupgrade -s   # reboot
+doas pkg_add -u      # after reboot
+```
+
 <a id="disk-manager"></a>
 
 ## 💿 Disk Manager ⚠️ Experimental
@@ -1087,8 +1108,9 @@ Each module is a custom script that outputs an icon + status info. Modules updat
 | **transmission** | 󰐻 | Running | Show state notification |
 | **screenrec** |  | Idle | Toggle screen recording |
 | |  | Recording (red) | | |
-| **openriot-update** | 󰋻 | Update available | Check for updates |
-| | 󰚇 | Up to date | | |
+| **openriot-update** | 󰀦 | Kernel drift (>14 days) | Run `doas sysupgrade -s` |
+| | 󰋻 | Update available | Check for updates |
+| | 󰚇 | Up to date | |
 | | ? | Unknown | | |
 | **settings** |  | — | Open settings menu |
 | **sep** | · | — | Visual separator |
