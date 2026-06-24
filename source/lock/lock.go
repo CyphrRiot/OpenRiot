@@ -7,8 +7,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"syscall"
-	"time"
 
 	"openriot/macspoof"
 	"openriot/notify"
@@ -86,29 +84,13 @@ func Lock() error {
 	// Give user time to see the notification before screen locks
 	notify.SendNotify("lock", "Screen Lock", "Screen is locking...", "normal", 4000, 0)
 
-	// Disable keyboard auto-repeat so i3lock doesn't see phantom keys
-	// from held keys during the X11 grab transition window. `xset r rate
-	// 0 0` does NOT work on this X server (rejected with "unknown option
-	// 0"), so we use `r off` which is the only reliable disable.
-	if out, err := exec.Command("xset", "r", "off").CombinedOutput(); err != nil {
-		notify.SendNotify("lock", "Screen Lock", "xset r off failed: "+strings.TrimSpace(string(out)), "normal", 5000, 0)
-	}
-	time.Sleep(1500 * time.Millisecond)
-
 	cmd := exec.Command("i3lock", "-n", "-i", lockFile)
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
-	cmd.Stdin = nil
-	cmd.Stdout = nil
-	cmd.Stderr = nil
 	err := cmd.Start()
 	if err != nil {
-		exec.Command("xset", "r", "on").Run()
 		notify.SendNotify("lock", "Screen Lock", "Lock failed: i3lock error", "critical", 5000, 0)
 		return err
 	}
 	cmd.Wait()
-	// Re-enable auto-repeat after the screen is unlocked.
-	exec.Command("xset", "r", "on").Run()
 	return nil
 }
 
