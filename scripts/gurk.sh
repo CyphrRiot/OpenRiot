@@ -17,6 +17,7 @@ GURK_COMMIT="${GURK_COMMIT:-}"
 PATCH_FILE="$(dirname "$0")/gurk-patch.diff"
 INSTALL_DIR="${HOME}/.local/share/openriot/config"
 SOURCE_DIR="${HOME}/Code/gurk"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 # Step 0: Install Rust if cargo is missing
 if ! command -v cargo >/dev/null 2>&1; then
@@ -81,7 +82,15 @@ if [ -f "${INSTALL_DIR}/bin/gurk" ]; then
     strip "${INSTALL_DIR}/bin/gurk" 2>/dev/null || true
 fi
 
-# Step 5: Verify
+# Step 5: Copy binary to source tree
+printf "Copy binary to source tree? [y/N] "
+read -r answer
+if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
+    install -m 0755 "${INSTALL_DIR}/bin/gurk" "${REPO_ROOT}/config/bin/gurk"
+    echo "Copied to ${REPO_ROOT}/config/bin/gurk"
+fi
+
+# Step 6: Verify
 if [ -x "${INSTALL_DIR}/bin/gurk" ]; then
     echo "Done! Installed to ${INSTALL_DIR}/bin/gurk"
     "${INSTALL_DIR}/bin/gurk" --version
