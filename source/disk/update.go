@@ -41,16 +41,24 @@ func mountCmd(device, passphrase string) tea.Cmd {
 
 		if raidDev == "" && hasRAID {
 			fmt.Fprintln(&log, "Attaching encrypted volume...")
+
+			detachSoftraidChunk(device, &log)
+
+			raidChunk := findRAIDPartition(device)
+			if raidChunk == "" {
+				raidChunk = device + "a"
+			}
+			fmt.Fprintf(&log, "Using RAID chunk /dev/%s\n", raidChunk)
+
 			passFile := "/tmp/.openriot_" + device
 			exec.Command("doas", "-n", "sh", "-c",
 				fmt.Sprintf("printf '%%s\\n' '%s' > %s && chmod 600 %s",
 					passphrase, passFile, passFile)).Run()
-			defer exec.Command("doas", "-n", "rm", passFile).Run()
+			defer exec.Command("doas", "-n", "rm", "-f", passFile).Run()
 			cmd := exec.Command("doas", "-n", "bioctl", "-c", "C",
-				"-p", passFile, "-l", device+"a", "softraid0")
+				"-p", passFile, "-l", raidChunk, "softraid0")
 			out, err := cmd.CombinedOutput()
 			if err != nil {
-				// Chunk may already be attached — find the virtual device
 				raidDev = findRaidDevice(device)
 				if raidDev == "" {
 					return resultMsg{err: fmt.Errorf(
@@ -62,7 +70,7 @@ func mountCmd(device, passphrase string) tea.Cmd {
 				time.Sleep(500 * time.Millisecond)
 				for _, tok := range strings.Fields(string(out)) {
 					tok = strings.TrimSuffix(tok, ":")
-					if strings.HasPrefix(tok, "sd") && tok != device {
+					if strings.HasPrefix(tok, "sd") && tok != device && tok != raidChunk {
 						raidDev = tok
 						break
 					}
@@ -618,64 +626,26 @@ func actionName(a actionType) string {
 // chunk device. It first tries parseSoftraid, then falls back to scanning
 // dmesg for virtual devices at the softraid bus.
 func detachSoftraidChunk(device string, log *strings.Builder) {
-	// Method 1: try bioctl -d on the virtual device from parseSoftraid
+	rootDev := FindRootDrive()
 	raidDev := findRaidDevice(device)
-	if raidDev != "" {
-		fmt.Fprintf(log, "Detaching %s ...\n", raidDev)
-		time.Sleep(500 * time.Millisecond)
-		for attempt := 0; attempt < 3; attempt++ {
-			if out, err := tryDetach(raidDev); err == nil {
-				fmt.Fprintf(log, "Detached\n%s\n", out)
-				return
-			}
-			time.Sleep(250 * time.Millisecond)
-		}
+	if raidDev == "" {
+		return
+	}
+	if raidDev == rootDev {
+		fmt.Fprintf(log, "Skipping root softraid volume %s\n", raidDev)
+		return
 	}
 
-	// Method 2: scan dmesg for all virtual devices and try each one
-	dmesgOut, err := exec.Command("dmesg").Output()
-	if err != nil {
-		return
-	}
-	softraidBus := ""
-	for _, line := range strings.Split(string(dmesgOut), "\n") {
-		if strings.Contains(line, " at softraid") {
-			fields := strings.Fields(line)
-			if len(fields) > 0 {
-				softraidBus = fields[0]
-				break
-			}
-		}
-	}
-	if softraidBus == "" {
-		return
-	}
-	var lastErr error
-	found := false
-	for _, line := range strings.Split(string(dmesgOut), "\n") {
-		line = strings.TrimSpace(line)
-		if !strings.HasPrefix(line, "sd") || !strings.Contains(line, " at "+softraidBus) {
-			continue
-		}
-		virtDev := strings.Fields(line)[0]
-		if virtDev == "" {
-			continue
-		}
-		found = true
-		if out, err := tryDetach(virtDev); err == nil {
-			fmt.Fprintf(log, "Detached %s\n%s\n", virtDev, out)
+	fmt.Fprintf(log, "Detaching %s ...\n", raidDev)
+	time.Sleep(500 * time.Millisecond)
+	for attempt := 0; attempt < 3; attempt++ {
+		if out, err := tryDetach(raidDev); err == nil {
+			fmt.Fprintf(log, "Detached\n%s\n", out)
 			return
-		} else {
-			lastErr = err
 		}
+		time.Sleep(250 * time.Millisecond)
 	}
-	if found {
-		msg := "Warning: could not detach softraid volume"
-		if lastErr != nil {
-			msg += ": " + lastErr.Error()
-		}
-		fmt.Fprintln(log, msg)
-	}
+	fmt.Fprintln(log, "Warning: could not detach softraid volume")
 }
 
 // tryDetach attempts bioctl -d first without doas (operator group),

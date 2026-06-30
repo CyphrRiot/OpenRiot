@@ -3,6 +3,8 @@ package migrate
 
 import (
 	"strings"
+
+	"github.com/mattn/go-runewidth"
 )
 
 // CreateResponsiveErrorBox creates a terminal-responsive error box.
@@ -20,11 +22,11 @@ func CreateResponsiveErrorBox(title, message string, details []string) string {
 	var lines []string
 	contentWidth := boxWidth - 6
 
-	titlePadding := (boxWidth - len(title) - 2) / 2
+	titlePadding := (boxWidth - runewidth.StringWidth(title) - 2) / 2
 	if titlePadding < 1 {
 		titlePadding = 1
 	}
-	titleLine := "│" + strings.Repeat(" ", titlePadding) + title + strings.Repeat(" ", boxWidth-len(title)-titlePadding-2) + "│"
+	titleLine := "│" + strings.Repeat(" ", titlePadding) + title + strings.Repeat(" ", boxWidth-runewidth.StringWidth(title)-titlePadding-2) + "│"
 
 	lines = append(lines, "┌"+strings.Repeat("─", boxWidth-2)+"┐")
 	lines = append(lines, titleLine)
@@ -34,7 +36,7 @@ func CreateResponsiveErrorBox(title, message string, details []string) string {
 	if message != "" {
 		wrappedMessage := WrapText(message, contentWidth)
 		for _, line := range wrappedMessage {
-			padding := contentWidth - len(line)
+			padding := contentWidth - runewidth.StringWidth(line)
 			lines = append(lines, "│  "+line+strings.Repeat(" ", padding)+"  │")
 		}
 		lines = append(lines, "│"+strings.Repeat(" ", boxWidth-2)+"│")
@@ -43,7 +45,7 @@ func CreateResponsiveErrorBox(title, message string, details []string) string {
 	for _, detail := range details {
 		wrappedDetail := WrapText(detail, contentWidth)
 		for _, line := range wrappedDetail {
-			padding := contentWidth - len(line)
+			padding := contentWidth - runewidth.StringWidth(line)
 			lines = append(lines, "│  "+line+strings.Repeat(" ", padding)+"  │")
 		}
 	}

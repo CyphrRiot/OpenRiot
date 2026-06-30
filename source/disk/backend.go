@@ -292,7 +292,7 @@ func parseBioctlOutput(out string) softraidInfo {
 
 		// Chunk line: "423 MB chunk sd1a" (indented under volume)
 		if currentVirtual != "" && strings.Contains(line, "chunk") {
-			re := regexp.MustCompile(`chunk\s+([a-z]+[0-9]+)a?`)
+			re := regexp.MustCompile(`chunk\s+([a-z]+[0-9]+[a-z])`)
 			matches := re.FindStringSubmatch(line)
 			if len(matches) >= 2 {
 				physical := matches[1]
@@ -370,6 +370,39 @@ func deviceExists(device string) bool {
 	return false
 }
 
+func FindRootDrive() string {
+	cmd := exec.Command("mount")
+	out, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(out), "\n") {
+		if strings.Contains(line, " on / ") {
+			field := strings.Fields(line)[0]
+			dev := strings.TrimPrefix(field, "/dev/")
+			for len(dev) > 0 {
+				c := dev[len(dev)-1]
+				if c < 'a' || c > 'z' {
+					break
+				}
+				dev = dev[:len(dev)-1]
+			}
+			return dev
+		}
+	}
+	if dmesg, err := exec.Command("dmesg").Output(); err == nil {
+		for _, line := range strings.Split(string(dmesg), "\n") {
+			if strings.HasPrefix(line, "root on ") {
+				if fields := strings.Fields(line); len(fields) > 2 {
+					dev := strings.TrimPrefix(fields[2], "/dev/")
+					return strings.TrimSuffix(dev, "a")
+				}
+			}
+		}
+	}
+	return ""
+}
+
 func getDiskInfo(device string) (int, bool, error) {
 	cmd := exec.Command("doas", "disklabel", device)
 	out, err := cmd.Output()
@@ -410,6 +443,20 @@ func getDiskInfo(device string) (int, bool, error) {
 	return sizeGB, hasRAID, nil
 }
 
+func findRAIDPartition(device string) string {
+	cmd := exec.Command("doas", "disklabel", device)
+	out, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	re := regexp.MustCompile(`^  ([a-z]):.*RAID`)
+	for _, line := range strings.Split(string(out), "\n") {
+		if m := re.FindStringSubmatch(line); len(m) >= 2 {
+			return device + m[1]
+		}
+	}
+	return ""
+}
 
 
 // guardDrive prevents operating on root drives or non-removable chunks.

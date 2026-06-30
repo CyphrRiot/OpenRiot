@@ -551,19 +551,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			wasCanceling := m.canceling
 			m.canceling = false
 
-			// For dump operations, just go to complete screen on cancel
+			// For dump operations, show error screen on cancel
 			if wasCanceling && (strings.HasPrefix(m.operation, "dump_") || m.operation == "full_backup") {
-				m.screen = screens.ScreenComplete
-				m.message = "Dump cancelled"
+				m.screen = screens.ScreenError
+				m.message = "ERROR: " + msg.Error.Error()
+				m.errorRequiresManualDismissal = true
+				m.lastScreen = m.screen
 				return m, nil
 			}
 
 			if wasCanceling {
 				// Operation was canceled
-				m.message = "Operation canceled by user"
-				return m, tea.Tick(2*time.Second, func(t time.Time) tea.Msg {
-					return tea.KeyMsg{Type: tea.KeyEsc}
-				})
+				m.screen = screens.ScreenError
+				m.message = "ERROR: Operation canceled by user"
+				m.errorRequiresManualDismissal = true
+				m.lastScreen = m.screen
+				return m, nil
 			}
 
 				// Check if this was a backup operation completion
@@ -706,7 +709,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Handle Ctrl+C during progress - set canceling state
 			if m.screen == screens.ScreenProgress {
 				m.canceling = true
-				m.message = "Canceling operation... Please wait for cleanup to complete."
+				m.message = "Operation cancelled by user"
 				// Signal the backup operation to cancel
 				CancelBackup()
 				// Continue to let the progress update handle the cleanup
@@ -771,10 +774,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case screens.ScreenDumpProgress:
 				m.canceling = true
 				if m.operation == "full_backup" {
-					m.message = "Canceling clone..."
+					m.message = "Clone cancelled by user"
 					cloneCancel = true
 				} else {
-					m.message = "Canceling dump..."
+					m.message = "Dump cancelled by user"
 					dumpCancel = true
 				}
 				return m, nil
@@ -881,7 +884,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case screens.ScreenProgress:
 				// ESC during progress should cancel operation (like Ctrl+C)
 				m.canceling = true
-				m.message = "Canceling operation... Please wait for cleanup to complete."
+				m.message = "Operation cancelled by user"
 				CancelBackup()
 				return m, nil
 

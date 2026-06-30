@@ -825,6 +825,16 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Run: func(args []string) error { return window.RestoreLayout() },
 	})
 	r.Register(&Command{
+		Name: "--save-layout", Category: "Lock & Power",
+		Description: "Save current window layout",
+		Run: func(args []string) error { return window.SaveLayout() },
+	})
+	r.Register(&Command{
+		Name: "--test-layout", Category: "Lock & Power",
+		Description: "Test saved layout without launching windows",
+		Run: func(args []string) error { return window.TestLayout() },
+	})
+	r.Register(&Command{
 		Name: "--wallpaper-next", Category: "Lock & Power",
 		Description: "Next wallpaper",
 		Run: func(args []string) error { os.Exit(backgrounds.Next()); return nil },

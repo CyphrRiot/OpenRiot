@@ -70,7 +70,74 @@ func SaveLayout() error {
 		return fmt.Errorf("mkdir cache: %w", err)
 	}
 
-	return os.WriteFile(snapshotFilePath(), data, 0600)
+	if err := os.WriteFile(snapshotFilePath(), data, 0600); err != nil {
+		return fmt.Errorf("write snapshot: %w", err)
+	}
+
+	// Save i3 layout tree for each workspace (for tiled window layout)
+	layoutDir := paths.Join(".cache", "openriot", "layouts")
+	os.MkdirAll(layoutDir, 0700)
+
+	wsSeen := make(map[int]bool)
+	for _, w := range windows {
+		if wsSeen[w.Workspace] {
+			continue
+		}
+		wsSeen[w.Workspace] = true
+
+		out, err := exec.Command("i3-save-tree", "--workspace", fmt.Sprint(w.Workspace)).Output()
+		if err != nil {
+			continue
+		}
+		layoutFile := fmt.Sprintf("%s/ws-%d.json", layoutDir, w.Workspace)
+		os.WriteFile(layoutFile, out, 0600)
+	}
+
+	return nil
+}
+
+// TestLayout validates saved layout without launching any windows.
+
+// TestLayout validates saved layout without launching any windows.
+func TestLayout() error {
+	if os.Getenv("DISPLAY") == "" {
+		return nil
+	}
+
+	path := snapshotFilePath()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("no snapshot found at %s", path)
+	}
+
+	var snap Snapshot
+	if err := json.Unmarshal(data, &snap); err != nil {
+		return fmt.Errorf("invalid snapshot JSON: %w", err)
+	}
+
+	if len(snap.Windows) == 0 {
+		return nil
+	}
+
+	fmt.Printf("Snapshot from %s, %d windows:\n", snap.Timestamp.Format(time.RFC3339), len(snap.Windows))
+	classCommands := loadRestoreCommands()
+	
+	for _, w := range snap.Windows {
+		cls := strings.ToLower(w.Class)
+		if cls == "" {
+			cls = strings.ToLower(w.Instance)
+		}
+		if cls == "" || shutdownSkipClasses[cls] {
+			continue
+		}
+		cmdLine, ok := classCommands[cls]
+		if !ok {
+			cmdLine = cls
+		}
+		fmt.Printf("  WS%d: %s (%d×%d) %s\n", w.Workspace, cls, w.Rect.Width, w.Rect.Height, cmdLine)
+	}
+
+	return nil
 }
 
 // RestoreLayout reads the saved snapshot and restores windows to their
@@ -95,6 +162,18 @@ func RestoreLayout() error {
 	if len(snap.Windows) == 0 {
 		os.Remove(path)
 		return nil
+	}
+
+	// Append layout files for each workspace
+	layoutDir := paths.Join(".cache", "openriot", "layouts")
+	for _, w := range snap.Windows {
+		layoutFile := fmt.Sprintf("%s/ws-%d.json", layoutDir, w.Workspace)
+		if _, err := os.Stat(layoutFile); err == nil {
+			exec.Command("i3-msg", fmt.Sprintf("workspace %d", w.Workspace)).Run()
+			time.Sleep(100 * time.Millisecond)
+			exec.Command("i3-msg", "append_layout", layoutFile).Run()
+			time.Sleep(100 * time.Millisecond)
+		}
 	}
 
 	classCommands := loadRestoreCommands()
@@ -206,7 +285,6 @@ func RestoreLayout() error {
 	}
 
 	exec.Command("i3-msg", "workspace 1").Run()
-	os.Remove(path)
 	return nil
 }
 

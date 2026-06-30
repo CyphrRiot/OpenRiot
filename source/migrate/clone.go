@@ -222,7 +222,7 @@ func runClone() {
 
 	// ── 4. Installboot ──────────────────────────────────────────────────
 
-	appendCloneOutput(fmt.Sprintf("Installing boot blocks on %s...", disk))
+	appendCloneOutput("Finalizing Clone...")
 	ib := exec.Command("doas", "installboot", "-r", "/mnt/backup", disk)
 	ib.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	if out, err := ib.CombinedOutput(); err != nil {
@@ -230,8 +230,7 @@ func runClone() {
 		return
 	}
 
-	appendCloneOutput(fmt.Sprintf("Boot blocks installed on %s.", disk))
-	appendCloneOutput("Clone complete. Drive is bootable.")
+	appendCloneOutput(fmt.Sprintf("Clone complete. /dev/%s is bootable.", disk))
 }
 
 // CheckCloneProgress returns a command that polls the clone operation.
