@@ -762,7 +762,7 @@ func RegisterAll(r *Registry, testMode *bool) {
 	r.Register(&Command{
 		Name: "--signal-launch", Category: "Lock & Power",
 		Description: "Launch Signal messenger",
-		Run: func(args []string) error { return runAppLauncher("signal", "gurk", "alacritty", "--class", "gurk", "--title", "Signal", "-e") },
+		Run: func(args []string) error { return runAppLauncher("signal", "gurk", "Signal", "alacritty", "--class", "gurk", "--title", "Signal", "-e") },
 	})
 	r.Register(&Command{
 		Name: "--browser", Category: "Lock & Power",
@@ -807,7 +807,7 @@ func RegisterAll(r *Registry, testMode *bool) {
 	r.Register(&Command{
 		Name: "--crush", Category: "Lock & Power",
 		Description: "Launch Crush AI",
-		Run: func(args []string) error { return runAppLauncher("crush", "crush", "alacritty", "--class", "crush", "--title", "Crush AI", "-e") },
+		Run: func(args []string) error { return runAppLauncher("crush", "crush", "crush", "alacritty", "--class", "crush", "--title", "Crush AI", "-e") },
 	})
 	r.Register(&Command{
 		Name: "--suspend", Category: "Lock & Power",

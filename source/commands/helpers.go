@@ -482,11 +482,11 @@ func runPowerMenu() error {
 	return nil
 }
 
-func runAppLauncher(icon, procName string, cmdArgs ...string) error {
+func runAppLauncher(icon, procName, displayName string, cmdArgs ...string) error {
 	cmd := exec.Command("pgrep", "-f", procName)
 	output, _ := cmd.Output()
 	if len(strings.TrimSpace(string(output))) > 0 {
-		notify.SendNotify(icon, procName, procName+" already launched", "normal", 2000, 0)
+		notify.SendNotify(icon, displayName, displayName+" already launched", "normal", 2000, 0)
 		return nil
 	}
 	home := paths.HomeDir()
@@ -494,7 +494,7 @@ func runAppLauncher(icon, procName string, cmdArgs ...string) error {
 		return fmt.Errorf("cannot get home dir")
 	}
 	binPath := paths.OpenRiotDir("config", "bin", procName)
-	notify.SendNotify(icon, procName, "Starting "+procName+"...", "normal", 2000, 0)
+	notify.SendNotify(icon, displayName, "Starting "+displayName+"...", "normal", 2000, 0)
 	exec.Command(cmdArgs[0], append(cmdArgs[1:], binPath)...).Start()
 	return nil
 }
