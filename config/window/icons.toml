@@ -336,7 +336,7 @@ bitcoin = ""
 
 # Blockchain tools
 glyphriot = ""
-zcashmini = "󰬡"
+zcash-mini = "󰬡"
 
 [ai_tools]
 crush = "󰚩"
