@@ -1,11 +1,14 @@
 package lock
 
 import (
+	"bufio"
 	"crypto/rand"
 	"fmt"
 	"math/big"
+	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"openriot/macspoof"
@@ -32,6 +35,90 @@ func filterStealth(matches []string) []string {
 func isProcessRunning(name string) bool {
 	out, _ := exec.Command("pgrep", "-x", name).Output()
 	return len(strings.TrimSpace(string(out))) > 0
+}
+
+// cryptoShuffle performs a Fisher-Yates shuffle using crypto/rand.
+func cryptoShuffle(slice []string) {
+	for i := len(slice) - 1; i > 0; i-- {
+		j := cryptoRandIndex(i + 1)
+		slice[i], slice[j] = slice[j], slice[i]
+	}
+}
+
+// shufflePick reads the shuffle state file, advances to the next lock screen,
+// and returns the full path. If state is missing or stale, it generates a new
+// shuffled order. Guarantees no repeats until all images have been shown once.
+func shufflePick(cacheBase string, matches []string) string {
+	stateFile := filepath.Join(cacheBase, "shuffle.state")
+	oldLast := ""
+
+	if f, err := os.Open(stateFile); err == nil {
+		var names []string
+		scanner := bufio.NewScanner(f)
+		for scanner.Scan() {
+			line := strings.TrimSpace(scanner.Text())
+			if line == "" {
+				continue
+			}
+			names = append(names, line)
+		}
+		f.Close()
+
+		if len(names) == len(matches)+1 {
+			matchSet := make(map[string]bool)
+			for _, m := range matches {
+				matchSet[filepath.Base(m)] = true
+			}
+			valid := true
+			for _, fn := range names[1:] {
+				if !matchSet[fn] {
+					valid = false
+					break
+				}
+			}
+			if valid {
+				idx := 0
+				if n, err := fmt.Sscanf(names[0], "%d", &idx); err == nil && n == 1 {
+					if idx >= len(names)-1 {
+						oldLast = names[len(names)-1]
+					} else {
+						filename := names[idx+1]
+						for _, m := range matches {
+							if filepath.Base(m) == filename {
+								names[0] = fmt.Sprintf("%d", idx+1)
+								if err := os.WriteFile(stateFile, []byte(strings.Join(names, "\n")+"\n"), 0644); err == nil {
+									return m
+								}
+								break
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Regenerate: collect filenames, shuffle, write state
+	names := make([]string, len(matches))
+	for i, m := range matches {
+		names[i] = filepath.Base(m)
+	}
+	sort.Strings(names)
+	cryptoShuffle(names)
+
+	if oldLast != "" && names[0] == oldLast && len(names) > 1 {
+		names[0], names[1] = names[1], names[0]
+	}
+
+	lines := append([]string{"1"}, names...)
+	_ = os.WriteFile(stateFile, []byte(strings.Join(lines, "\n")+"\n"), 0644)
+
+	for _, m := range matches {
+		if filepath.Base(m) == names[0] {
+			return m
+		}
+	}
+	return matches[0]
 }
 
 // cryptoRandIndex returns a cryptographically secure random int [0, max).
@@ -79,7 +166,7 @@ func Lock() error {
 		return nil
 	}
 
-	lockFile := matches[cryptoRandIndex(len(matches))]
+	lockFile := shufflePick(cacheBase, matches)
 
 	// Give user time to see the notification before screen locks
 	notify.SendNotify("lock", "Screen Lock", "Screen is locking...", "normal", 4000, 0)
