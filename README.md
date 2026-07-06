@@ -578,34 +578,49 @@ Press `Super + D` to open the app launcher. Only curated apps are shown — no s
 | App              | Icon | Description              |
 | ---------------- | ---- | ------------------------ |
 | Terminal         |    | Alacritty terminal       |
-| File Manager     | 󰝰   | Thunar file browser      |
 | Firefox          |    | Web browser              |
 | Firefox [Private]|    | Private browsing         |
-| Text Editor      | 󰷉   | GNOME text editor        |
-| Helix            |    | Text editor              |
-| Kate IDE         |    | KDE code editor          |
-| Word Processor   | 󰈬   | LibreOffice Writer       |
-| Spreadsheet      | 󰈛   | LibreOffice Calc         |
+| File Manager     | 󰝰   | Thunar file browser      |
+| Proton Mail      | 󰊫   | Email (web app)          |
 | Media Player     |    | mpv video player         |
 | Music Player     |    | rmpc music player (MPD)  |
-| Proton Mail      | 󰊫   | Email (web app)          |
-| Signal           | 󰬚   | Signal messenger (gurk)  |
-| System Monitor   | 󰮡   | btop resource monitor    |
-| Telegram         | 󰭹   | Messaging app            |
-| Discord          | 󰙯   | Discord (abaddon client) |
-| Blockchain       | 󱕵   | Crypto tools sub-menu    |
-| Transmission     | 󰐻   | BitTorrent client        |
 | Crush AI         | 󰚩   | AI CLI assistant         |
+| Transmission     | 󰐻   | BitTorrent client        |
+| Blockchain       | 󱕵   | Crypto tools sub-menu    |
+| Chat             | 󰭻   | Messaging sub-menu       |
 | Games            | 󰊗   | Games sub-menu           |
-| Utilities       | 󰢮   | System utilities sub-menu |
+| Office           | 󰈙   | Editors & office sub-menu|
+| Utilities        | 󰢮   | System utilities sub-menu|
+
+### Chat Sub-menu
+
+The **Chat** entry opens this sub-menu:
+
+| App | Icon | Description |
+| --- | ---- | ----------- |
+| Signal         | 󰬚   | Signal messenger (gurk)            |
+| Telegram       | 󰭹   | Messaging app                      |
+| Discord        | 󰙯   | Discord (abaddon client)           |
+
+### Office Sub-menu
+
+The **Office** entry opens this sub-menu:
+
+| App | Icon | Description |
+| --- | ---- | ----------- |
+| Helix          |    | Text editor                        |
+| Kate IDE       |    | KDE code editor                    |
+| Text Editor    | 󰷉   | GNOME text editor                  |
+| Word Processor | 󰈬   | LibreOffice Writer                 |
+| Spreadsheet    | 󰈛   | LibreOffice Calc                   |
 
 ### Utilities Sub-menu
 
 The **Utilities** entry opens this sub-menu:
 
-
 | App | Icon | Description |
 | --- | ---- | ----------- |
+| System Monitor | 󰮡   | btop resource monitor              |
 | WiFi Config    | 󱚹   | Wi-Fi network manager              |
 | Monitor Config | 󰹑   | Display resolution picker          |
 | Drive Manager  | 󰋊   | Storage TUI (mount/format/encrypt) |
@@ -613,7 +628,6 @@ The **Utilities** entry opens this sub-menu:
 | Drive Benchmark | 󰑥   | fio IOPS/throughput tests          |
 | Unison Sync    | 󱍸   | Bidirectional file sync GUI        |
 | SolveSpace 3D  | 󰐫   | Parametric 3D CAD modeler          |
-| System Monitor | 󰮡   | btop resource monitor              |
 | OpenRiot Settings | 󰒓   | OpenRiot TUI settings              |
 | System Settings | 󰒓   | XFCE settings manager              |
 
