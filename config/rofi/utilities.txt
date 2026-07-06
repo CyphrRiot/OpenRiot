@@ -1,6 +1,7 @@
 # OpenRiot Utilities Submenu
 # Accessed via apps.txt @submenu:utilities
 
+System Monitor|alacritty --class btop --title "System Monitor" -o font.size=11 -e btop|󰮡
 WiFi Config|alacritty --class openriot_wifi --title "WiFi Config" -e openriot --nmtui|󱚹
 Monitor Config|alacritty --class openriot_resolution --title "Monitor Config" -e openriot --resolution-tui|󰹑
 Drive Manager|alacritty --class openriot_disk --title "Drive Manager" -e openriot --disk|󰋊
@@ -8,6 +9,5 @@ Backup & Restore|alacritty --class openriot_migrate --title "Backup & Restore" -
 Drive Benchmark|alacritty --class openriot_disk --title "Drive Benchmark" -e openriot --disk|󰑥
 Unison Sync|unison-gui|󱍸
 SolveSpace 3D|solvespace|󰐫
-System Monitor|alacritty --class btop --title "System Monitor" -o font.size=11 -e btop|󰮡
 OpenRiot Settings|openriot --settings-menu|󰒓
 System Settings|xfce4-settings-manager|󰒓

@@ -1,0 +1,8 @@
+# OpenRiot Office Sub-menu for Rofi
+# Launched from main apps.txt via @submenu:office
+
+Helix|alacritty --class helix --title Helix -e hx|
+Kate IDE|kate|
+Text Editor|gnome-text-editor|󰷉
+Word Processor|libreoffice --writer|󰈬
+Spreadsheet|libreoffice --calc|󰈛
