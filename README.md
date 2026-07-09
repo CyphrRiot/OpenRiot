@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.45-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.46-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -113,6 +113,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.46 — The Cancel Button Gets a Memory Wipe](docs/v7.9.46-Release-Notes.md)
 - [v7.9.45 — The Junk Drawer](docs/v7.9.45-Release-Notes.md)
 - [v7.9.44 — The Seams Are Gone](docs/v7.9.44-Release-Notes.md)
 - [v7.9.43 — The Construct Remembers Where It Was Standing](docs/v7.9.43-Release-Notes.md)
@@ -1015,6 +1016,8 @@ in the openriot binary — zero external dependencies.
 ```bash
 openriot --backup
 ```
+
+![Backup](assets/backup.webp)
 
 Or launch from **Utilities** submenu in the Rofi launcher.
 

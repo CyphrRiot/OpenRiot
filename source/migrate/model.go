@@ -1593,6 +1593,8 @@ func (m Model) handleSelection() (tea.Model, tea.Cmd) {
 						}),
 					)
 				case "dump_full", "dump_incr":
+					m.canceling = false
+					m.message = ""
 					m.screen = screens.ScreenDumpProgress
 					return m, tea.Batch(
 						startDump(m.selectedDrive, m.operation),
@@ -1602,6 +1604,8 @@ func (m Model) handleSelection() (tea.Model, tea.Cmd) {
 						}),
 					)
 				case "full_backup":
+					m.canceling = false
+					m.message = ""
 					m.screen = screens.ScreenDumpProgress
 					return m, tea.Batch(
 						StartClone(),

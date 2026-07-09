@@ -542,7 +542,7 @@ func coinPercentOfPortfolio(sym string, items []CryptoItem) float64 {
 }
 
 // findRotationTarget returns the best coin to rotate INTO (lowest RSI, below 35% allocation)
-func findRotationTarget(items []CryptoItem, oversold int, currentSym string) string {
+func findRotationTarget(items []CryptoItem, oversold int, currentSym string, totalValue, originalInvestment float64) string {
 	// Collect candidates and their scores
 	type candidate struct {
 		sym   string
@@ -590,6 +590,24 @@ func findRotationTarget(items []CryptoItem, oversold int, currentSym string) str
 		}
 	}
 
+	if bestCoin == "" {
+		// Below 2.5x original investment: always rotate between cryptos, never USD
+		if totalValue < originalInvestment*2.5 {
+			bestScore = 101.0
+			for _, it := range items {
+				if it.Sym == currentSym || it.Sym == "USD" || it.Sym == "USDC" {
+					continue
+				}
+				if it.RSI == 0 {
+					continue
+				}
+				if it.RSI < bestScore {
+					bestScore = it.RSI
+					bestCoin = it.Sym
+				}
+			}
+		}
+	}
 	if bestCoin == "" {
 		return "USD"
 	}
@@ -648,7 +666,16 @@ func calculateSellLimit(sym string, currentPrice, entryPrice, held float64, item
 
 	unitsStr := formatUnits(unitsToSell)
 	targetStr := formatPrice(targetPrice)
-	rotationTarget := findRotationTarget(items, oversold, sym)
+	totalValue, originalInvestment := 0.0, 0.0
+	for _, it := range items {
+		if it.Held > 0 && it.Price > 0 {
+			totalValue += it.Held * it.Price
+		}
+		if it.Held > 0 && it.Entry > 0 {
+			originalInvestment += it.Held * it.Entry
+		}
+	}
+	rotationTarget := findRotationTarget(items, oversold, sym, totalValue, originalInvestment)
 
 	if currentPrice < entryPrice && entryPrice > 0 {
 		return "Hold"
