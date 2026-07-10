@@ -722,9 +722,15 @@ func hasRAIDPartition(device string) bool {
 
 func findRaidDevice(device string) string {
 	sr := parseSoftraid()
-	// If device is a physical chunk, return its virtual device
+	// If device is a physical chunk (exact match), return its virtual device
 	if v := sr.physicalToVirtual[device]; v != "" {
 		return v
+	}
+	// Check for partition letter suffix (e.g., "sd2" matches "sd2d")
+	for k, v := range sr.physicalToVirtual {
+		if strings.HasPrefix(k, device) && len(k) > len(device) && k[len(device)] >= 'a' && k[len(device)] <= 'z' {
+			return v
+		}
 	}
 	// If device is already a virtual device, return itself
 	if sr.virtualToPhysical[device] != "" {

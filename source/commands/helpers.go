@@ -529,3 +529,30 @@ func fixNzbgetPerms() {
 		}
 	}
 }
+
+var windowIDRE = regexp.MustCompile(`0x[0-9a-f]+`)
+
+func firefoxHasTab(pattern string) bool {
+	out, err := exec.Command("xprop", "-root", "_NET_CLIENT_LIST").Output()
+	if err != nil {
+		return false
+	}
+	ids := windowIDRE.FindAllString(string(out), -1)
+	for _, id := range ids {
+		classOut, err := exec.Command("xprop", "-id", id, "WM_CLASS").Output()
+		if err != nil {
+			continue
+		}
+		if !strings.Contains(string(classOut), "firefox") {
+			continue
+		}
+		titleOut, err := exec.Command("xprop", "-id", id, "_NET_WM_NAME").Output()
+		if err != nil {
+			continue
+		}
+		if strings.Contains(strings.ToLower(string(titleOut)), strings.ToLower(pattern)) {
+			return true
+		}
+	}
+	return false
+}

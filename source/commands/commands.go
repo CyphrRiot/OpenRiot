@@ -610,6 +610,10 @@ func RegisterAll(r *Registry, testMode *bool) {
 					return err
 				}
 				notify.SendNotify("nzbget", "NZB Server", "Launching URL http://127.0.0.1:6789", "normal", 3000, 0)
+				if firefoxHasTab("nzbget") {
+					notify.SendNotify("nzbget", "NZB Server", "Already open in browser", "normal", 3000, 0)
+					return nil
+				}
 				exec.Command("firefox", "http://127.0.0.1:6789").Start()
 				return nil
 			}

@@ -352,7 +352,7 @@ func loadOHLCData(items []CryptoItem, ohlcFile string, apiKey string) {
 		// Refresh OHLC data from API
 		ohlcCache := make(map[string][]float64)
 		for i := range items {
-			prices := fetchOHLC(items[i].CoinID, 90, apiKey)
+			prices := fetchOHLC(items[i].CoinID, 180, apiKey)
 			if len(prices) > 0 {
 				ohlcCache[items[i].Sym] = prices
 				items[i].OHLCData = prices
@@ -646,22 +646,37 @@ func calculateSellLimit(sym string, currentPrice, entryPrice, held float64, item
 		}
 	}
 
-	// Calculate target price: entry * 1.20, cap at 90-day high * 0.80
-	targetPrice := entryPrice * 1.20
+	// Calculate target price based on 6-month range and current position
+	targetPrice := currentPrice * 1.20
 	if len(item.OHLCData) > 0 {
 		high := item.OHLCData[0]
+		low := item.OHLCData[0]
 		for _, p := range item.OHLCData {
 			if p > high {
 				high = p
 			}
+			if p < low {
+				low = p
+			}
 		}
-		maxTarget := high * 0.80
-		if targetPrice > maxTarget {
-			targetPrice = maxTarget
+		rangeSize := high - low
+		if rangeSize > 0 {
+			// Where does current price sit in the 6-month range? (0.0 = at low, 1.0 = at high)
+			position := (currentPrice - low) / rangeSize
+			if position > 0.75 {
+				targetPrice = high * 1.05
+			} else if position > 0.25 {
+				targetPrice = high * 0.95
+			} else {
+				targetPrice = high * 0.75
+			}
 		}
 	}
-	if targetPrice <= currentPrice {
-		targetPrice = currentPrice * 1.20
+	if targetPrice < currentPrice*1.10 {
+		targetPrice = currentPrice * 1.10
+	}
+	if targetPrice > currentPrice*1.50 {
+		targetPrice = currentPrice * 1.50
 	}
 
 	unitsStr := formatUnits(unitsToSell)

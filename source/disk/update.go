@@ -629,6 +629,10 @@ func detachSoftraidChunk(device string, log *strings.Builder) {
 	rootDev := FindRootDrive()
 	raidDev := findRaidDevice(device)
 	if raidDev == "" {
+		// Fallback: scan dmesg for virtual devices on the softraid bus
+		raidDev = findVirtualForChunk(device, rootDev)
+	}
+	if raidDev == "" {
 		return
 	}
 	if raidDev == rootDev {
@@ -646,6 +650,59 @@ func detachSoftraidChunk(device string, log *strings.Builder) {
 		time.Sleep(250 * time.Millisecond)
 	}
 	fmt.Fprintln(log, "Warning: could not detach softraid volume")
+}
+
+// findVirtualForChunk scans dmesg for softraid virtual devices not
+// currently mounted, returning the best candidate for the given chunk.
+// Only returns a device if there is exactly one unambiguous candidate.
+func findVirtualForChunk(chunk, rootDev string) string {
+	dmesgOut, err := exec.Command("dmesg").Output()
+	if err != nil {
+		return ""
+	}
+	lines := strings.Split(string(dmesgOut), "\n")
+
+	// Find the softraid scsibus
+	softraidBus := ""
+	for _, line := range lines {
+		if strings.Contains(line, " at softraid") {
+			softraidBus = strings.Fields(line)[0]
+			break
+		}
+	}
+	if softraidBus == "" {
+		return ""
+	}
+
+	// Find all virtual devices on that bus
+	mountOut, _ := exec.Command("mount").Output()
+	var candidates []string
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		prefix := " at " + softraidBus
+		idx := strings.Index(line, prefix)
+		if idx < 0 {
+			continue
+		}
+		dev := line[:idx]
+		if !strings.HasPrefix(dev, "sd") || len(dev) > 4 {
+			continue
+		}
+		if dev == rootDev {
+			continue
+		}
+		if !deviceExists(dev) {
+			continue
+		}
+		if strings.Contains(string(mountOut), "/dev/"+dev) {
+			continue
+		}
+		candidates = append(candidates, dev)
+	}
+	if len(candidates) == 1 {
+		return candidates[0]
+	}
+	return ""
 }
 
 // tryDetach attempts bioctl -d first without doas (operator group),
