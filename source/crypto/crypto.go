@@ -581,7 +581,16 @@ func rangeScore(it CryptoItem) float64 {
 	if avgOlder > 0 {
 		trend = avgRecent / avgOlder // >1 if trending up
 	}
-	return position * upside * trend
+	base := position * upside * trend
+	// RSI modifier: 1.0 at neutral (40-60), bonus for oversold, penalty for overbought
+	if it.RSI > 0 {
+		if it.RSI > 60 {
+			base *= 1.0 - (it.RSI-60)/100
+		} else if it.RSI < 40 {
+			base *= 1.0 + (40-it.RSI)/100
+		}
+	}
+	return base
 }
 
 // rangeRanked returns the best and second-best coin symbols by rangeScore,
