@@ -543,6 +543,45 @@ func coinPercentOfPortfolio(sym string, items []CryptoItem) float64 {
 
 // findRotationTarget returns the best coin to rotate INTO (lowest RSI, below 35% allocation)
 func findRotationTarget(items []CryptoItem, oversold int, currentSym string, totalValue, originalInvestment float64) string {
+	// If current coin is the best performer, rotate to the second-best
+	var currentGain float64
+	for _, it := range items {
+		if it.Sym == currentSym {
+			if it.Price > 0 && it.Entry > 0 {
+				currentGain = (it.Price - it.Entry) / it.Entry * 100
+			}
+			break
+		}
+	}
+	if currentGain != 0 {
+		// Find the best and second-best among other coins
+		bestOther := ""
+		bestOtherGain := -999.0
+		secondOther := ""
+		secondOtherGain := -999.0
+		for _, other := range items {
+			if other.Sym == currentSym || other.Sym == "USD" || other.Sym == "USDC" {
+				continue
+			}
+			if other.Price == 0 || other.Entry == 0 {
+				continue
+			}
+			g := (other.Price - other.Entry) / other.Entry * 100
+			if g > bestOtherGain {
+				secondOtherGain = bestOtherGain
+				secondOther = bestOther
+				bestOtherGain = g
+				bestOther = other.Sym
+			} else if g > secondOtherGain {
+				secondOtherGain = g
+				secondOther = other.Sym
+			}
+		}
+		if currentGain >= bestOtherGain && secondOther != "" {
+			return secondOther
+		}
+	}
+
 	// Collect candidates and their scores
 	type candidate struct {
 		sym   string
@@ -554,34 +593,18 @@ func findRotationTarget(items []CryptoItem, oversold int, currentSym string, tot
 		if it.Sym == currentSym || it.Sym == "USD" || it.Sym == "USDC" {
 			continue
 		}
-		if it.RSI == 0 {
-			continue
-		}
-		// Skip concentrated coins (>35%)
-		if coinIsConcentrated(it.Sym, items) {
+		if it.Price == 0 || it.Entry == 0 {
 			continue
 		}
 
-		// Skip coins >15% of portfolio - avoid concentration
-		if coinPercentOfPortfolio(it.Sym, items) > 0.15 {
-			continue
-		}
-
-		// Score: prefer oversold coins, then lowest RSI
-		score := it.RSI
-		if it.RSI <= float64(oversold) {
-			score -= 50 // Bonus for oversold
-		}
-		// Also penalize if price is above BB upper (overbought)
-		if it.BBUpper > 0 && it.Price > it.BBUpper {
-			score += 30
-		}
+		// Score: prefer undervalued coins with momentum (high gain%, low weight)
+		score := -((it.Price - it.Entry) / it.Entry * 100) + coinPercentOfPortfolio(it.Sym, items)*100
 
 		candidates = append(candidates, candidate{sym: it.Sym, score: score})
 	}
 
-	// Pick best candidate
-	bestScore := 101.0
+	// Pick best candidate (lowest score = highest gain%)
+	bestScore := 999.0
 	bestCoin := ""
 	for _, c := range candidates {
 		if c.score < bestScore {
@@ -593,16 +616,17 @@ func findRotationTarget(items []CryptoItem, oversold int, currentSym string, tot
 	if bestCoin == "" {
 		// Below 2.5x original investment: always rotate between cryptos, never USD
 		if totalValue < originalInvestment*2.5 {
-			bestScore = 101.0
+			bestScore = -999.0
 			for _, it := range items {
 				if it.Sym == currentSym || it.Sym == "USD" || it.Sym == "USDC" {
 					continue
 				}
-				if it.RSI == 0 {
+				if it.Price == 0 || it.Entry == 0 {
 					continue
 				}
-				if it.RSI < bestScore {
-					bestScore = it.RSI
+				gainPct := (it.Price - it.Entry) / it.Entry * 100
+				if gainPct > bestScore {
+					bestScore = gainPct
 					bestCoin = it.Sym
 				}
 			}
@@ -664,9 +688,9 @@ func calculateSellLimit(sym string, currentPrice, entryPrice, held float64, item
 			// Where does current price sit in the 6-month range? (0.0 = at low, 1.0 = at high)
 			position := (currentPrice - low) / rangeSize
 			if position > 0.75 {
-				targetPrice = high * 1.05
+				targetPrice = high * 0.98
 			} else if position > 0.25 {
-				targetPrice = high * 0.95
+				targetPrice = high * 0.90
 			} else {
 				targetPrice = high * 0.75
 			}
@@ -693,6 +717,10 @@ func calculateSellLimit(sym string, currentPrice, entryPrice, held float64, item
 	rotationTarget := findRotationTarget(items, oversold, sym, totalValue, originalInvestment)
 
 	if currentPrice < entryPrice && entryPrice > 0 {
+		return "Hold"
+	}
+
+	if rotationTarget == "Hold" {
 		return "Hold"
 	}
 
