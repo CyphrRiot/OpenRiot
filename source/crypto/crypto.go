@@ -541,48 +541,82 @@ func coinPercentOfPortfolio(sym string, items []CryptoItem) float64 {
 	return 0
 }
 
-// findRotationTarget returns the best coin to rotate INTO (lowest RSI, below 35% allocation)
-func findRotationTarget(items []CryptoItem, oversold int, currentSym string, totalValue, originalInvestment float64) string {
-	// If current coin is the best performer, rotate to the second-best
-	var currentGain float64
-	for _, it := range items {
-		if it.Sym == currentSym {
-			if it.Price > 0 && it.Entry > 0 {
-				currentGain = (it.Price - it.Entry) / it.Entry * 100
-			}
-			break
+// rangeScore computes a momentum score from OHLC data: higher = better buy.
+// position in 6-month range * upside potential * recent trend (last 30 days vs older)
+func rangeScore(it CryptoItem) float64 {
+	if len(it.OHLCData) == 0 || it.Price == 0 {
+		return 0
+	}
+	high := it.OHLCData[0]
+	low := it.OHLCData[0]
+	for _, p := range it.OHLCData {
+		if p > high {
+			high = p
+		}
+		if p < low {
+			low = p
 		}
 	}
-	if currentGain != 0 {
-		// Find the best and second-best among other coins
-		bestOther := ""
-		bestOtherGain := -999.0
-		secondOther := ""
-		secondOtherGain := -999.0
-		for _, other := range items {
-			if other.Sym == currentSym || other.Sym == "USD" || other.Sym == "USDC" {
-				continue
-			}
-			if other.Price == 0 || other.Entry == 0 {
-				continue
-			}
-			g := (other.Price - other.Entry) / other.Entry * 100
-			if g > bestOtherGain {
-				secondOtherGain = bestOtherGain
-				secondOther = bestOther
-				bestOtherGain = g
-				bestOther = other.Sym
-			} else if g > secondOtherGain {
-				secondOtherGain = g
-				secondOther = other.Sym
-			}
+	rangeSize := high - low
+	if rangeSize <= 0 || it.Price <= low {
+		return 0
+	}
+	position := (it.Price - low) / rangeSize // 0=at low, 1=at high
+	upside := high / it.Price                  // >1 if room to run
+	// Recent trend: average of last 30 days vs average of older data
+	avgRecent := 0.0
+	avgOlder := 0.0
+	recentDays := 30
+	if len(it.OHLCData) > recentDays {
+		for i := 0; i < recentDays; i++ {
+			avgRecent += it.OHLCData[i]
 		}
-		if currentGain >= bestOtherGain && secondOther != "" {
-			return secondOther
+		avgRecent /= float64(recentDays)
+		for i := recentDays; i < len(it.OHLCData); i++ {
+			avgOlder += it.OHLCData[i]
 		}
+		avgOlder /= float64(len(it.OHLCData) - recentDays)
+	}
+	trend := 1.0
+	if avgOlder > 0 {
+		trend = avgRecent / avgOlder // >1 if trending up
+	}
+	return position * upside * trend
+}
+
+// rangeRanked returns the best and second-best coin symbols by rangeScore,
+// excluding USD stablecoins. Used to determine if the current coin is the
+// best performer (it should rotate to the second-best).
+func rangeRanked(items []CryptoItem, currentSym string) (best, second string) {
+	bestScore := -999.0
+	secondScore := -999.0
+	for _, it := range items {
+		if it.Sym == "USD" || it.Sym == "USDC" {
+			continue
+		}
+		s := rangeScore(it)
+		if s > bestScore {
+			secondScore = bestScore
+			second = best
+			bestScore = s
+			best = it.Sym
+		} else if s > secondScore {
+			secondScore = s
+			second = it.Sym
+		}
+	}
+	return
+}
+
+// findRotationTarget returns the best coin to rotate INTO (highest range momentum score)
+func findRotationTarget(items []CryptoItem, oversold int, currentSym string, totalValue, originalInvestment float64) string {
+	// If current coin is the best range performer, rotate to second-best
+	bestSym, secondSym := rangeRanked(items, currentSym)
+	if bestSym == currentSym && secondSym != "" {
+		return secondSym
 	}
 
-	// Collect candidates and their scores
+	// Collect candidates and score by range momentum
 	type candidate struct {
 		sym   string
 		score float64
@@ -593,21 +627,18 @@ func findRotationTarget(items []CryptoItem, oversold int, currentSym string, tot
 		if it.Sym == currentSym || it.Sym == "USD" || it.Sym == "USDC" {
 			continue
 		}
-		if it.Price == 0 || it.Entry == 0 {
+		if it.Price == 0 || len(it.OHLCData) == 0 {
 			continue
 		}
 
-		// Score: prefer undervalued coins with momentum (high gain%, low weight)
-		score := -((it.Price - it.Entry) / it.Entry * 100) + coinPercentOfPortfolio(it.Sym, items)*100
-
+		score := rangeScore(it)
 		candidates = append(candidates, candidate{sym: it.Sym, score: score})
 	}
 
-	// Pick best candidate (lowest score = highest gain%)
-	bestScore := 999.0
+	bestScore := -999.0
 	bestCoin := ""
 	for _, c := range candidates {
-		if c.score < bestScore {
+		if c.score > bestScore {
 			bestScore = c.score
 			bestCoin = c.sym
 		}
@@ -621,12 +652,12 @@ func findRotationTarget(items []CryptoItem, oversold int, currentSym string, tot
 				if it.Sym == currentSym || it.Sym == "USD" || it.Sym == "USDC" {
 					continue
 				}
-				if it.Price == 0 || it.Entry == 0 {
+				if it.Price == 0 || len(it.OHLCData) == 0 {
 					continue
 				}
-				gainPct := (it.Price - it.Entry) / it.Entry * 100
-				if gainPct > bestScore {
-					bestScore = gainPct
+				s := rangeScore(it)
+				if s > bestScore {
+					bestScore = s
 					bestCoin = it.Sym
 				}
 			}
