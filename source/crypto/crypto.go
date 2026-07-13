@@ -678,24 +678,22 @@ func findRotationTarget(items []CryptoItem, oversold int, currentSym string, tot
 	return bestCoin
 }
 
-// calculateSellLimit computes the optimal sell limit (max 20% of entry value)
-func calculateSellLimit(sym string, currentPrice, entryPrice, held float64, item CryptoItem, items []CryptoItem, oversold int) string {
-	// Skip USD-like stablecoins - you can't sell USD into another token
+// calculateBuySellLimits returns (buy string, sell price, destination)
+// Buy limit: range-based inverted logic — buy near lows, pullback in mid-range, deep pullback near highs
+// Sell limit: range-based — sell near the top, further out if climbing
+func calculateBuySellLimits(sym string, currentPrice, entryPrice, held float64, item CryptoItem, items []CryptoItem, oversold int) (buyStr string, sellPrice, buyPrice float64, dest string) {
 	upperSym := strings.ToUpper(sym)
 	if upperSym == "USD" || upperSym == "USDC" || upperSym == "USDT" || upperSym == "DAI" {
-		return ""
+		return "", 0, 0, ""
 	}
 
-	// Calculate max sell value: 20% of entry (entry * held * 0.20)
+	// Calculate units for buy and sell (both 20% of entry value)
 	maxSellValue := entryPrice * held * 0.20
 	if maxSellValue <= 0 || currentPrice <= 0 {
-		return ""
+		return "", 0, 0, ""
 	}
-
-	// Calculate max coins we could sell at current price
 	maxCoins := maxSellValue / currentPrice
 
-	// Determine best number to sell (20% of holdings, within max)
 	var unitsToSell float64
 	if held < 1.0 {
 		unitsToSell = held * 0.20
@@ -709,12 +707,14 @@ func calculateSellLimit(sym string, currentPrice, entryPrice, held float64, item
 			unitsToSell = 0.01
 		}
 	}
+	unitsStr := formatUnits(unitsToSell)
 
-	// Calculate target price based on 6-month range and current position
-	targetPrice := currentPrice * 1.20
+	// Find range high and low from OHLC data
+	high := currentPrice
+	low := currentPrice
 	if len(item.OHLCData) > 0 {
-		high := item.OHLCData[0]
-		low := item.OHLCData[0]
+		high = item.OHLCData[0]
+		low = item.OHLCData[0]
 		for _, p := range item.OHLCData {
 			if p > high {
 				high = p
@@ -723,28 +723,28 @@ func calculateSellLimit(sym string, currentPrice, entryPrice, held float64, item
 				low = p
 			}
 		}
-		rangeSize := high - low
-		if rangeSize > 0 {
-			// Where does current price sit in the 6-month range? (0.0 = at low, 1.0 = at high)
-			position := (currentPrice - low) / rangeSize
-			if position > 0.75 {
-				targetPrice = high * 0.98
-			} else if position > 0.25 {
-				targetPrice = high * 0.90
-			} else {
-				targetPrice = high * 0.75
-			}
-		}
-	}
-	if targetPrice < currentPrice*1.10 {
-		targetPrice = currentPrice * 1.10
-	}
-	if targetPrice > currentPrice*1.50 {
-		targetPrice = currentPrice * 1.50
 	}
 
-	unitsStr := formatUnits(unitsToSell)
-	targetStr := formatPrice(targetPrice)
+	// Sell target: range-based
+	sellTarget := currentPrice * 1.20
+	rangeSize := high - low
+	if rangeSize > 0 {
+		position := (currentPrice - low) / rangeSize
+		if position > 0.75 {
+			sellTarget = high * 0.98
+		} else if position > 0.25 {
+			sellTarget = high * 0.90
+		} else {
+			sellTarget = high * 0.75
+		}
+	}
+	if sellTarget < currentPrice*1.10 {
+		sellTarget = currentPrice * 1.10
+	}
+	if sellTarget > currentPrice*1.50 {
+		sellTarget = currentPrice * 1.50
+	}
+
 	totalValue, originalInvestment := 0.0, 0.0
 	for _, it := range items {
 		if it.Held > 0 && it.Price > 0 {
@@ -756,15 +756,49 @@ func calculateSellLimit(sym string, currentPrice, entryPrice, held float64, item
 	}
 	rotationTarget := findRotationTarget(items, oversold, sym, totalValue, originalInvestment)
 
-	if currentPrice < entryPrice && entryPrice > 0 {
-		return "Hold"
-	}
+	sellPrice = sellTarget
 
 	if rotationTarget == "Hold" {
-		return "Hold"
+		dest = ""
+	} else {
+		dest = rotationTarget
 	}
 
-	return fmt.Sprintf("%s @ $%s → %s", unitsStr, targetStr, rotationTarget)
+	// Buy limit: inverted range logic
+	buyTarget := currentPrice * 0.85
+	if rangeSize > 0 {
+		position := (currentPrice - low) / rangeSize
+		if position < 0.25 {
+			buyTarget = low * 1.05
+		} else if position < 0.75 {
+			buyTarget = currentPrice * 0.85
+		} else {
+			buyTarget = currentPrice * 0.75
+		}
+	}
+	if buyTarget > currentPrice*0.95 {
+		buyTarget = currentPrice * 0.90
+	}
+	if buyTarget < currentPrice*0.50 {
+		buyTarget = currentPrice * 0.60
+	}
+
+	buyPrice = buyTarget
+	if buyTarget >= 10000 {
+		buyStr = fmt.Sprintf("%s @ $%.1fk", unitsStr, buyTarget/1000)
+	} else {
+		buyStr = fmt.Sprintf("%s @ $%s", unitsStr, formatPrice(buyTarget))
+	}
+	if len(buyStr) > 10 {
+		// Drop units if it overflows
+		if buyTarget >= 10000 {
+			buyStr = fmt.Sprintf("@ $%.1fk", buyTarget/1000)
+		} else {
+			buyStr = fmt.Sprintf("@ $%s", formatPrice(buyTarget))
+		}
+	}
+
+	return
 }
 
 // Output formatters matching shell script exactly
@@ -947,8 +981,19 @@ func sortCryptoItems(items []CryptoItem) []CryptoItem {
 	return sorted
 }
 
-// formatPriceArrow returns ▲, ▼, or • based on price change
+// formatPriceArrow returns ▲, ▼, or • based on daily change
 func formatPriceArrow(item CryptoItem) string {
+	// Use yesterday's close from OHLC data for daily comparison
+	if len(item.OHLCData) > 1 {
+		prev := item.OHLCData[1]
+		if item.Price > prev {
+			return "▲"
+		} else if item.Price < prev {
+			return "▼"
+		}
+		return "•"
+	}
+	// Fallback to previous run's price
 	if item.Price > 0 && item.PrevPrice > 0 {
 		if item.Price > item.PrevPrice {
 			return "▲"
@@ -983,14 +1028,14 @@ func formatROWMLLine(item CryptoItem, items []CryptoItem, oversold int) string {
 		entryStr = fmtPriceShort(item.Entry)
 		priceStr = fmtPriceShort(item.Price)
 		valStr = fmtValue(item.Held, item.Price)
-		pctStr = fmt.Sprintf("%8s", fmt.Sprintf("%+.1f%%", glPct))
+		pctStr = fmt.Sprintf("%7s", fmt.Sprintf("%+.1f%%", glPct))
 		heldStr = holdStr
 	} else if isUSDStable {
 		heldStr = fmt.Sprintf("%8s", fmt.Sprintf("%.2f", item.Held))
 		entryStr = fmt.Sprintf("%8s", fmt.Sprintf("%.2f", item.Entry))
 		priceStr = fmt.Sprintf("%8s", fmt.Sprintf("%.2f", item.Price))
 		valStr = fmtValue(item.Held, item.Price)
-		pctStr = fmt.Sprintf("%8s", "0.0%")
+		pctStr = fmt.Sprintf("%7s", "0.0%")
 	} else {
 		heldStr = fmtHeldClean(item.Held)
 		entryStr = ""
@@ -1003,12 +1048,43 @@ func formatROWMLLine(item CryptoItem, items []CryptoItem, oversold int) string {
 	portPct := coinPercentOfPortfolio(item.Sym, items) * 100
 	portPctStr = fmt.Sprintf("%6s", fmt.Sprintf("%.1f%%", portPct))
 
-	sellStr := ""
+	buyStr := "—"
+	sellStr := "—"
+	destStr := ""
 	if item.Held > 0 && item.Sym != "USD" && item.Sym != "USDC" {
-		sellStr = calculateSellLimit(item.Sym, item.Price, item.Entry, item.Held, item, items, oversold)
+		buyLimit, sellPrice, _, dest := calculateBuySellLimits(item.Sym, item.Price, item.Entry, item.Held, item, items, oversold)
+		if buyLimit != "" {
+			buyStr = buyLimit
+		}
+		if sellPrice > 0 {
+			// Compute units for sell display
+			var unitsToSell float64
+			if item.Held < 1.0 {
+				unitsToSell = item.Held * 0.20
+			} else {
+				unitsToSell = math.Floor(item.Held * 0.20)
+			}
+			// Format price for sell column: use k-suffix if >= 10000
+			compactPrice := formatPrice(sellPrice)
+			p := sellPrice
+			if p >= 10000 {
+				compactPrice = fmt.Sprintf("%.1fk", p/1000)
+			}
+			sellStr = fmt.Sprintf("%s @ $%s", formatUnits(unitsToSell), compactPrice)
+			if len(sellStr) > 10 {
+				if p >= 10000 {
+					sellStr = fmt.Sprintf("@ $%.1fk", p/1000)
+				} else {
+					sellStr = fmt.Sprintf("@ $%s", formatPrice(p))
+				}
+			}
+			if dest != "" {
+				destStr = "→" + dest
+			}
+		}
 	}
 
-	return fmt.Sprintf("%-4s %s %s %s %s %s %s %s", item.Sym, heldStr, entryStr, priceStr, valStr, pctStr, portPctStr, sellStr)
+	return fmt.Sprintf("%-4s %s %s %s %s %s %s %-10s %-10s %-4s", item.Sym, heldStr, entryStr, priceStr, valStr, pctStr, portPctStr, buyStr, sellStr, destStr)
 }
 
 // calculateTotals returns portfolio totals
@@ -1050,8 +1126,8 @@ func saveCryptoSnapshot(items []CryptoItem, curFile string) {
 
 func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold int) error {
 	lines := []string{
-		fmt.Sprintf("%-4s %8s %8s %8s %7s %8s %6s %s", "Coin", "Held", "Entry", "Price", "Value", "Entry", "Port", "Next Step"),
-		fmt.Sprintf("%-4s %8s %8s %8s %7s %8s %6s %s", "----", "--------", "--------", "--------", "-------", "--------", "------", "---------"),
+		fmt.Sprintf("%-4s %8s %8s %8s %7s %7s %6s %-10s %-10s %-4s", "Coin", "Held", "Entry", "Price", "Value", "Gains", "Port", "Buy Limit", "Sell Limit", "Dest"),
+		fmt.Sprintf("%-4s %8s %8s %8s %7s %7s %6s %-10s %-10s %-4s", "----", "--------", "--------", "--------", "-------", "------", "------", "----------", "----------", "----"),
 	}
 
 	sorted := sortCryptoItems(items)
@@ -1089,14 +1165,7 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold i
 // outputNotify outputs simple format for notifications: "BTC     1.18 x $ 73,237.00 ▲ +10.13%"
 func outputNotify(items []CryptoItem) error {
 	for _, item := range items {
-		arrow := "•"
-		if item.Price > 0 && item.PrevPrice > 0 {
-			if item.Price > item.PrevPrice {
-				arrow = "▲"
-			} else if item.Price < item.PrevPrice {
-				arrow = "▼"
-			}
-		}
+		arrow := formatPriceArrow(item)
 		pct := ""
 		if item.Held > 0 && item.Entry > 0 {
 			glPct := ((item.Price - item.Entry) / item.Entry) * 100

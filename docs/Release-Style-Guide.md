@@ -19,9 +19,12 @@ Ground notes in real changes. Non-negotiable.
 
 ## 3. Study the Voice
 
-Read several release notes across the archive (not just the last two) to
-internalize the range: epic (`v7.9.36`), deadpan (`v7.9.20`), atmospheric
-(`v7.9.33`).
+Read several release notes across the **full archive** — including
+pre-v7 releases (`v5.x`, `v6.x`) — not just the last two. The range
+is wide: epic (`v7.9.36`), deadpan (`v7.9.20`), atmospheric
+(`v7.9.33`), punchy and direct (`v6.3`, `v6.4`), humorous (`v5.0`).
+Match the tone to the scope of the changes. A small release should
+feel small, not forced into epic framing.
 
 ### Structure
 
