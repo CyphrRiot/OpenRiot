@@ -725,18 +725,11 @@ func calculateBuySellLimits(sym string, currentPrice, entryPrice, held float64, 
 		}
 	}
 
-	// Sell target: range-based
+	// Sell target: fixed at 6-month high × 0.95 (doesn't chase price)
 	sellTarget := currentPrice * 1.20
 	rangeSize := high - low
 	if rangeSize > 0 {
-		position := (currentPrice - low) / rangeSize
-		if position > 0.75 {
-			sellTarget = high * 0.98
-		} else if position > 0.25 {
-			sellTarget = high * 0.90
-		} else {
-			sellTarget = high * 0.75
-		}
+		sellTarget = high * 0.95
 	}
 	if sellTarget < currentPrice*1.10 {
 		sellTarget = currentPrice * 1.10
