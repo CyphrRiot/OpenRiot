@@ -171,13 +171,17 @@ func Lock() error {
 	// Give user time to see the notification before screen locks
 	notify.SendNotify("lock", "Screen Lock", "Screen is locking...", "normal", 4000, 0)
 
+	exec.Command("xset", "r", "off").Run()
+
 	cmd := exec.Command("i3lock", "-n", "-i", lockFile)
 	err := cmd.Start()
 	if err != nil {
+		exec.Command("xset", "r", "on").Run()
 		notify.SendNotify("lock", "Screen Lock", "Lock failed: i3lock error", "critical", 5000, 0)
 		return err
 	}
 	cmd.Wait()
+	exec.Command("xset", "r", "on").Run()
 	return nil
 }
 

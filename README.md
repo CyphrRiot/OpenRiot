@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.49-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.50-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -113,6 +113,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.50 — The First Characters Come Back](docs/v7.9.50-Release-Notes.md)
 - [v7.9.49 — Buy the Dip, Sell the Rip](docs/v7.9.49-Release-Notes.md)
 - [v7.9.48 — The Machine Reads the Chart](docs/v7.9.48-Release-Notes.md)
 - [v7.9.47 — The Machine Stops Guessing](docs/v7.9.47-Release-Notes.md)
@@ -122,11 +123,6 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [v7.9.43 — The Construct Remembers Where It Was Standing](docs/v7.9.43-Release-Notes.md)
 - [v7.9.42 — The Warning Light That Was Never Lit](docs/v7.9.42-Release-Notes.md)
 - [v7.9.41 — The Backup That Knew Better](docs/v7.9.41-Release-Notes.md)
-- [v7.9.40 — The Clone Wars](docs/v7.9.40-Release-Notes.md)
-- [v7.9.39 — The Machine Remembers Itself](docs/v7.9.39-Release-Notes.md)
-- [v7.9.38 — Nine Rounds, Eighty-Eight Walls](docs/v7.9.38-Release-Notes.md)
-- [v7.9.37 — ICE in the Silicon](docs/v7.9.37-Release-Notes.md)
-- [v7.9.36 — The Turing Police Are Bad at Their Jobs](docs/v7.9.36-Release-Notes.md)
 - [Older releases →](docs/)
 
 Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.
