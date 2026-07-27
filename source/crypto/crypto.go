@@ -352,7 +352,7 @@ func loadOHLCData(items []CryptoItem, ohlcFile string, apiKey string) {
 		// Refresh OHLC data from API
 		ohlcCache := make(map[string][]float64)
 		for i := range items {
-			prices := fetchOHLC(items[i].CoinID, 180, apiKey)
+			prices := fetchOHLC(items[i].CoinID, 365, apiKey)
 			if len(prices) > 0 {
 				ohlcCache[items[i].Sym] = prices
 				items[i].OHLCData = prices
@@ -734,8 +734,8 @@ func calculateBuySellLimits(sym string, currentPrice, entryPrice, held float64, 
 	if sellTarget < currentPrice*1.10 {
 		sellTarget = currentPrice * 1.10
 	}
-	if sellTarget > currentPrice*1.50 {
-		sellTarget = currentPrice * 1.50
+	if sellTarget > currentPrice*2.50 {
+		sellTarget = currentPrice * 2.50
 	}
 
 	totalValue, originalInvestment := 0.0, 0.0
@@ -1137,16 +1137,16 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold i
 	if haveGain {
 		var gainStr string
 		if gainTotal >= 0 {
-			gainStr = "+" + formatIntWithCommas(gainTotal)
+			gainStr = formatIntWithCommas(gainTotal)
 		} else {
 			gainStr = "-" + formatIntWithCommas(-gainTotal)
 		}
-		gainField := fmt.Sprintf("%8s", gainStr)
+		gainField := fmt.Sprintf("%7s", gainStr)
 		if showTotals && haveValue {
-			valField := fmt.Sprintf("%7s", formatIntWithCommas(math.Round(heldTotal)))
-			lines = append(lines, fmt.Sprintf("%32s%s %s", "", valField, gainField))
+			valField := fmt.Sprintf("%8s", formatIntWithCommas(math.Round(heldTotal)))
+			lines = append(lines, fmt.Sprintf("%14s%s%9s%s", "", valField, "", gainField))
 		} else {
-			lines = append(lines, fmt.Sprintf("%39s%s", "", gainField))
+			lines = append(lines, fmt.Sprintf("%31s%s", "", gainField))
 		}
 	}
 
@@ -1262,4 +1262,75 @@ func formatSignedNumber(v float64) string {
 		v = -v
 	}
 	return sign + "$ " + formatNumberSimple(v)
+}
+
+// RunCryptoHistory prints 24h/48h/72h/7d price changes from the OHLC cache.
+func RunCryptoHistory() error {
+	config, err := loadCryptoConfig()
+	if err != nil {
+		return fmt.Errorf("loading config: %w", err)
+	}
+
+	cacheDir := getCacheDir()
+	ohlcFile := filepath.Join(cacheDir, "ohlc.json")
+	curFile := filepath.Join(cacheDir, "crypto.json")
+
+	ohlcRaw := loadJSON(ohlcFile)
+	curRaw := loadJSON(curFile)
+
+	pairs := make([]PairConfig, 0)
+	for _, p := range config.Pairs {
+		if p.Coin == "" || p.Sym == "USD" || p.Sym == "USDC" || p.Sym == "USDT" || p.Sym == "DAI" {
+			continue
+		}
+		pairs = append(pairs, p)
+	}
+
+	fmt.Printf("%-4s %12s %7s %7s %7s %7s\n", "Coin", "Price", "24h", "48h", "72h", "7d")
+	fmt.Println("---- ------------ ------- ------- ------- -------")
+
+	for _, p := range pairs {
+		now := 0.0
+		if cd, ok := curRaw[p.Coin].(map[string]any); ok {
+			if usd, ok := cd["usd"].(float64); ok {
+				now = usd
+			}
+		}
+		if now == 0 {
+			continue
+		}
+
+		ohlc := []float64{}
+		if arr, ok := ohlcRaw[p.Sym].([]any); ok {
+			for _, v := range arr {
+				if f, ok := v.(float64); ok {
+					ohlc = append(ohlc, f)
+				}
+			}
+		}
+
+		formatDelta := func(daysBack int) string {
+			idx := len(ohlc) - 1 - daysBack
+			if idx < 0 || idx >= len(ohlc) {
+				return "     —"
+			}
+			prev := ohlc[idx]
+			if prev == 0 {
+				return "     —"
+			}
+			pct := (now/prev - 1) * 100
+			sign := "+"
+			if pct < 0 {
+				sign = ""
+			}
+			return fmt.Sprintf("%s%.1f%%", sign, pct)
+		}
+
+		priceStr := "$" + formatNumberWithWidth(now, 11)
+		fmt.Printf("%-4s %s %7s %7s %7s %7s\n",
+			p.Sym, priceStr,
+			formatDelta(1), formatDelta(2),
+			formatDelta(3), formatDelta(7))
+	}
+	return nil
 }

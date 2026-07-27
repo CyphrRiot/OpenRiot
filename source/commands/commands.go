@@ -996,6 +996,13 @@ func RegisterAll(r *Registry, testMode *bool) {
 		},
 	})
 	r.Register(&Command{
+		Name: "--crypto-history", Category: "Polybar Metrics",
+		Description: "Show 24h/48h/72h/7d price changes from OHLC cache",
+		Run: func(args []string) error {
+			return crypto.RunCryptoHistory()
+		},
+	})
+	r.Register(&Command{
 		Name: "--crypto-refresh", Category: "Polybar Metrics",
 		Description: "Clear crypto cache and fetch fresh",
 		Run: func(args []string) error {
