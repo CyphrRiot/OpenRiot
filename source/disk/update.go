@@ -403,7 +403,7 @@ func (m model) updateDriveList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.state = stateResult
 			return m, nil
 		}
-		if d.IsChunk && !d.IsRemovable && m.action != actionDiscover {
+		if d.IsChunk && !d.IsRemovable && d.BusType != "USB" && m.action != actionDiscover {
 			m.err = fmt.Errorf("cannot %s internal softraid drive %s", actionName(m.action), d.Device)
 			m.state = stateResult
 			return m, nil

@@ -4,9 +4,10 @@
 [global]
     monitor = 0
     follow = mouse
-    width = 450
-    height = (0, 300)
-    offset = (16, 42)
+    width = 495
+    height = (0, 330)
+    origin = center
+    offset = (0, 0)
     scale = 0
     notification_limit = 10
     progress_bar = false
@@ -16,12 +17,12 @@
     indicate_hidden = true
     shrink = false
     separator_height = 2
-    padding = 16
-    horizontal_padding = 16
+    padding = 18
+    horizontal_padding = 18
     frame_width = 2
     frame_color = "#9ECE6A"
     sort = no
-    font = FiraCode Nerd Font 11
+    font = FiraCode Nerd Font 12
     markup = full
     format = "<b>%s</b>\n%b"
     alignment = left
@@ -33,7 +34,7 @@
     hide_duplicate_count = false
     sticky_history = true
     history_length = 20
-    corner_radius = 6
+    corner_radius = 7
     close = ctrl+space
     history = ctrl+grave
 
