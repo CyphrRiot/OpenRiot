@@ -182,6 +182,7 @@ func Lock() error {
 	}
 	cmd.Wait()
 	exec.Command("xset", "r", "on").Run()
+	exec.Command("setxkbmap").Run()
 	return nil
 }
 
