@@ -533,16 +533,16 @@ func RegisterAll(r *Registry, testMode *bool) {
 	})
 	r.Register(&Command{
 		Name: "--battery-test", Category: "Network & Battery",
-		Description: "Simulate battery level and trigger alerts",
+		Description: "Simulate battery minutes remaining and trigger alerts",
 		Run: func(args []string) error {
 			if len(args) < 1 {
-				return fmt.Errorf("usage: openriot --battery-test <percent>")
+				return fmt.Errorf("usage: openriot --battery-test <minutes>")
 			}
-			percent, err := strconv.Atoi(args[0])
-			if err != nil || percent < 0 || percent > 100 {
-				return fmt.Errorf("invalid percent: %s", args[0])
+			minutes, err := strconv.Atoi(args[0])
+			if err != nil || minutes < 0 {
+				return fmt.Errorf("invalid minutes: %s", args[0])
 			}
-			battery.TestNotify(percent)
+			battery.TestNotify(minutes)
 			return nil
 		},
 	})
