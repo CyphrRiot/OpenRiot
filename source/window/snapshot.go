@@ -140,10 +140,22 @@ func TestLayout() error {
 	return nil
 }
 
+func shouldRestore() bool {
+	cfgPath := paths.Join(".config", "openriot", "restore.cfg")
+	data, err := os.ReadFile(cfgPath)
+	if err != nil {
+		return false
+	}
+	return strings.TrimSpace(string(data)) == "true"
+}
+
 // RestoreLayout reads the saved snapshot and restores windows to their
 // previous workspaces and positions. Deletes the snapshot file on success.
 func RestoreLayout() error {
 	if os.Getenv("DISPLAY") == "" {
+		return nil
+	}
+	if !shouldRestore() {
 		return nil
 	}
 
