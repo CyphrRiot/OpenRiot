@@ -96,7 +96,9 @@ func Get() string {
 	}
 
 	// Send low-battery notifications only when discharging
-	if ac == 0 {
+	// and percent indicates we're actually low (minutes can be stale
+	// during AC-to-battery transitions)
+	if ac == 0 && percent < 25 && minutes > 0 {
 		if minutes <= 5 && !alerted5m {
 			notify.SendNotify("battery", "Battery Critical",
 				"Less than 5 minutes remaining!", "critical", 0, 0)

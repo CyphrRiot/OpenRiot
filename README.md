@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.54-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.55-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -113,6 +113,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.55 — The Machine Sweats the Details](docs/v7.9.55-Release-Notes.md)
 - [v7.9.54 — The Machine Asks Permission](docs/v7.9.54-Release-Notes.md)
 - [v7.9.53 — The Machine Counts Minutes, Not Percent](docs/v7.9.53-Release-Notes.md)
 - [v7.9.52 — The Machine Centers Itself](docs/v7.9.52-Release-Notes.md)
@@ -122,7 +123,6 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [v7.9.48 — The Machine Reads the Chart](docs/v7.9.48-Release-Notes.md)
 - [v7.9.47 — The Machine Stops Guessing](docs/v7.9.47-Release-Notes.md)
 - [v7.9.46 — The Cancel Button Gets a Memory Wipe](docs/v7.9.46-Release-Notes.md)
-- [v7.9.45 — The Junk Drawer](docs/v7.9.45-Release-Notes.md)
 - [Older releases →](docs/)
 
 Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.

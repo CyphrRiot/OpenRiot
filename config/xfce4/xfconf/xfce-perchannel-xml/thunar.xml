@@ -15,7 +15,7 @@
   <property name="last-separator-position" type="int" value="170"/>
   <property name="last-menubar-visible" type="bool" value="false"/>
   <property name="misc-symbolic-icons-in-toolbar" type="bool" value="false"/>
-  <property name="last-toolbar-items" type="string" value="menu:1,back:1,forward:1,open-parent:1,open-home:1,new-tab:0,new-window:0,toggle-split-view:0,undo:0,redo:0,zoom-out:0,zoom-in:0,zoom-reset:0,view-as-icons:0,view-as-detailed-list:0,view-as-compact-list:0,view-switcher:0,location-bar:1,reload:0,search:1,uca-action-1775862279187963-1:0"/>
+  <property name="last-toolbar-items" type="string" value="menu:1,back:1,forward:1,open-parent:1,open-home:1,new-tab:0,new-window:0,toggle-split-view:0,undo:0,redo:0,zoom-out:0,zoom-in:0,zoom-reset:0,view-as-icons:0,view-as-detailed-list:0,view-as-compact-list:0,view-switcher:0,location-bar:1,reload:0,search:0,uca-action-1775862279187963-1:0"/>
   <property name="last-side-pane" type="string" value="THUNAR_SIDEPANE_TYPE_HIDDEN_SHORTCUTS"/>
   <property name="misc-file-size-binary" type="bool" value="true"/>
   <property name="misc-change-window-icon" type="bool" value="true"/>

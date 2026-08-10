@@ -360,6 +360,9 @@ media:
             - x265-4.1p0
             - cmixer-0.3
         configs:
+            - pattern: "mpv/mpv.conf"
+              target: "~/.config/mpv/mpv.conf"
+              preserve_if_exists: [mpv.conf]
             - pattern: "rmpc/config.ron"
               target: "~/.config/rmpc/config.ron"
             - pattern: "rmpc/themes/*"

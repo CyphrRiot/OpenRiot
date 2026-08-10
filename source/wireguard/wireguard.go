@@ -1,6 +1,7 @@
 package wireguard
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -103,6 +104,23 @@ func setBootPersistence(enabled bool) {
 	_ = cmd.Run()
 }
 
+func getDNSFromConfig() string {
+	data, err := os.ReadFile(ConfigPath)
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "DNS") {
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				return strings.TrimSpace(parts[1])
+			}
+		}
+	}
+	return ""
+}
+
 func Status() string {
 	if !isConfigured() {
 		return ""
@@ -116,13 +134,25 @@ func Status() string {
 func Start() error {
 	notify.SendNotify("wireguard", "VPN", "Starting WireGuard...", "normal", 3000, 0)
 	cmd := exec.Command("doas", "wg-quick", "up", ConfigPath)
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	if dns := getDNSFromConfig(); dns != "" {
+		exec.Command("doas", "sh", "-c",
+			fmt.Sprintf("echo 'nameserver %s' >> /etc/resolv.conf", dns)).Run()
+		exec.Command("doas", "rcctl", "restart", "resolvd").Run()
+	}
+	return nil
 }
 
 func Stop() error {
 	notify.SendNotify("wireguard", "VPN", "Stopping WireGuard...", "normal", 3000, 0)
 	cmd := exec.Command("doas", "wg-quick", "down", ConfigPath)
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	exec.Command("doas", "rcctl", "restart", "resolvd").Run()
+	return nil
 }
 
 func Restart() error {
