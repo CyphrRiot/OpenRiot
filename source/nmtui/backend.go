@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -72,6 +73,8 @@ func FindWiFiInterface() (string, error) {
 
 // ScanWiFi runs `ifconfig <iface> scan` and returns parsed access points.
 func ScanWiFi(iface string) ([]WiFiAP, error) {
+	exec.Command("doas", "/sbin/ifconfig", iface, "scan").Run()
+	time.Sleep(2 * time.Second)
 	out, err := exec.Command("/sbin/ifconfig", iface, "scan").Output()
 	if err != nil {
 		return nil, fmt.Errorf("ifconfig %s scan failed: %w", iface, err)
@@ -301,7 +304,11 @@ func parseScanOutput(raw string) []WiFiAP {
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		if !strings.HasPrefix(line, "nwid") {
+		if strings.HasPrefix(line, "nwid") {
+			// standard scan line
+		} else if strings.HasPrefix(line, "ieee80211: nwid") {
+			line = strings.TrimPrefix(line, "ieee80211: ")
+		} else {
 			continue
 		}
 
