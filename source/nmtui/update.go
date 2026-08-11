@@ -3,6 +3,7 @@ package nmtui
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -52,10 +53,10 @@ func connectToWifiCmd(iface, ssid, password string) tea.Cmd {
 		if err != nil {
 			return connResultMsg{err: err, msg: ""}
 		}
-		time.Sleep(3 * time.Second)
-		ping := exec.Command("ping", "-c", "2", "-w", "5", "cdn.openbsd.org")
-		if ping.Run() != nil {
-			return connResultMsg{err: fmt.Errorf("no internet — wrong password or DHCP failure"), msg: ""}
+		time.Sleep(5 * time.Second)
+		ping := exec.Command("ping", "-c", "2", "-w", "10", "8.8.8.8")
+		if out, err := ping.CombinedOutput(); err != nil {
+			return connResultMsg{err: fmt.Errorf("no internet — %s", strings.TrimSpace(string(out))), msg: ""}
 		}
 		if wireguard.IsRunning() {
 			wireguard.Restart()
