@@ -515,6 +515,12 @@ system:
                       doas sh -c 'echo "kern.maxfiles=65536" >> /etc/sysctl.conf'
                       doas sysctl kern.maxfiles=65536
                   fi
+            - desc: "Disable kernel audio key handler (prevents double-fire with i3)"
+              cmd: |
+                  if ! grep -q 'kern.audio.kbdcontrol=0' /etc/sysctl.conf 2>/dev/null; then
+                      doas sh -c 'echo "kern.audio.kbdcontrol=0" >> /etc/sysctl.conf'
+                      doas sysctl kern.audio.kbdcontrol=0
+                  fi
             - desc: "Enable sndiod (audio)"
               cmd: "doas rcctl enable sndiod"
             - desc: "Enable xenodm (X11 display manager)"
