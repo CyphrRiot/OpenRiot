@@ -121,6 +121,41 @@ func getDNSFromConfig() string {
 	return ""
 }
 
+func GetServerName() string {
+	data, err := os.ReadFile(ConfigPath)
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "Endpoint") {
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) != 2 {
+				continue
+			}
+			host := strings.TrimSpace(parts[1])
+			if idx := strings.LastIndex(host, ":"); idx > 0 {
+				host = host[:idx]
+			}
+			out, err := exec.Command("host", host).Output()
+			if err != nil {
+				return host
+			}
+			fields := strings.Fields(string(out))
+			if len(fields) >= 5 {
+				name := fields[4]
+				name = strings.TrimSuffix(name, ".")
+				if idx := strings.Index(name, "."); idx > 0 {
+					name = name[:idx]
+				}
+				return name
+			}
+			return host
+		}
+	}
+	return ""
+}
+
 func Status() string {
 	if !isConfigured() {
 		return ""
@@ -142,16 +177,25 @@ func Start() error {
 			fmt.Sprintf("echo 'nameserver %s' >> /etc/resolv.conf", dns)).Run()
 		exec.Command("doas", "rcctl", "restart", "resolvd").Run()
 	}
+	if server := GetServerName(); server != "" {
+		notify.SendNotify("wireguard", "WireGuard VPN",
+			fmt.Sprintf("Connected to %s", server), "normal", 5000, 0)
+	}
 	return nil
 }
 
 func Stop() error {
 	notify.SendNotify("wireguard", "VPN", "Stopping WireGuard...", "normal", 3000, 0)
+	server := GetServerName()
 	cmd := exec.Command("doas", "wg-quick", "down", ConfigPath)
 	if err := cmd.Run(); err != nil {
 		return err
 	}
 	exec.Command("doas", "rcctl", "restart", "resolvd").Run()
+	if server != "" {
+		notify.SendNotify("wireguard", "WireGuard VPN",
+			fmt.Sprintf("Disconnected from %s", server), "normal", 5000, 0)
+	}
 	return nil
 }
 

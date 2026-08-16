@@ -372,7 +372,14 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Description: "Toggle or notify WireGuard",
 		Run: func(args []string) error {
 			if wireguard.IsRunning() {
-				notify.SendNotify("wireguard", "WireGuard VPN", "WireGuard VPN is Enabled\nDisable in Settings Menu\nOr Super+Shift+G", "normal", 5000, 0)
+				server := wireguard.GetServerName()
+				if server != "" {
+					notify.SendNotify("wireguard", "WireGuard VPN",
+						fmt.Sprintf("WireGuard VPN is Enabled\n%s\nDisable in Settings Menu\nOr Super+Shift+G", server), "normal", 5000, 0)
+				} else {
+					notify.SendNotify("wireguard", "WireGuard VPN",
+						"WireGuard VPN is Enabled\nDisable in Settings Menu\nOr Super+Shift+G", "normal", 5000, 0)
+				}
 			} else {
 				wireguard.Toggle()
 			}

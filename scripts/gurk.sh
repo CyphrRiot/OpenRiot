@@ -13,7 +13,7 @@
 set -e
 
 GURK_REPO="https://github.com/boxdot/gurk-rs"
-GURK_COMMIT="${GURK_COMMIT:-}"
+GURK_COMMIT="${GURK_COMMIT:-v0.10.1}"
 PATCH_FILE="$(dirname "$0")/gurk-patch.diff"
 INSTALL_DIR="${HOME}/.local/share/openriot/config"
 SOURCE_DIR="${HOME}/Code/gurk"

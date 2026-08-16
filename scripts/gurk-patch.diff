@@ -1,8 +1,8 @@
 diff --git a/src/app/message.rs b/src/app/message.rs
-index 8c41284..0974ed0 100644
+index 15bef7f..030e5ab 100644
 --- a/src/app/message.rs
 +++ b/src/app/message.rs
-@@ -720,23 +720,10 @@ impl App {
+@@ -882,23 +882,10 @@ impl App {
          attachments
      }
  
