@@ -129,9 +129,16 @@ func GetServerName() string {
 	}
 	var result struct {
 		Hostname string `json:"mullvad_exit_ip_hostname"`
+		City     string `json:"city"`
 	}
 	if err := json.Unmarshal(out, &result); err != nil {
 		return ""
+	}
+	if result.Hostname == "" {
+		return ""
+	}
+	if result.City != "" {
+		return result.Hostname + "\n" + result.City
 	}
 	return result.Hostname
 }
