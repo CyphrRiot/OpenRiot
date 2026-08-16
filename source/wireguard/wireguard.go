@@ -1,6 +1,7 @@
 package wireguard
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -122,38 +123,17 @@ func getDNSFromConfig() string {
 }
 
 func GetServerName() string {
-	data, err := os.ReadFile(ConfigPath)
+	out, err := exec.Command("ftp", "-o", "-", "https://am.i.mullvad.net/json").Output()
 	if err != nil {
 		return ""
 	}
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "Endpoint") {
-			parts := strings.SplitN(line, "=", 2)
-			if len(parts) != 2 {
-				continue
-			}
-			host := strings.TrimSpace(parts[1])
-			if idx := strings.LastIndex(host, ":"); idx > 0 {
-				host = host[:idx]
-			}
-			out, err := exec.Command("host", host).Output()
-			if err != nil {
-				return host
-			}
-			fields := strings.Fields(string(out))
-			if len(fields) >= 5 {
-				name := fields[4]
-				name = strings.TrimSuffix(name, ".")
-				if idx := strings.Index(name, "."); idx > 0 {
-					name = name[:idx]
-				}
-				return name
-			}
-			return host
-		}
+	var result struct {
+		Hostname string `json:"mullvad_exit_ip_hostname"`
 	}
-	return ""
+	if err := json.Unmarshal(out, &result); err != nil {
+		return ""
+	}
+	return result.Hostname
 }
 
 func Status() string {
