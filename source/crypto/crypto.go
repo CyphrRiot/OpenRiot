@@ -809,7 +809,7 @@ func fmtHeld(h float64) string {
 func fmtHeldClean(h float64) string {
 	if h > 0 {
 		if h < 1 {
-			return fmt.Sprintf("%8s", fmt.Sprintf("%.4f", h))
+			return fmt.Sprintf("%8s", fmt.Sprintf("%.3f", h))
 		}
 		return fmt.Sprintf("%8s", fmt.Sprintf("%.2f", h))
 	}
@@ -1001,13 +1001,13 @@ func formatPriceArrow(item CryptoItem) string {
 // fmtPriceShort formats price with comma separators, stripping ".00" for whole dollars, right-padded to 8
 func fmtPriceShort(v float64) string {
 	if math.IsNaN(v) || math.IsInf(v, 0) || v == 0 {
-		return fmt.Sprintf("%8s", "")
+		return fmt.Sprintf("%9s", "")
 	}
 	str := formatNumberWithWidth(v, 0)
 	if strings.HasSuffix(str, ".00") {
 		str = str[:len(str)-3]
 	}
-	return fmt.Sprintf("%8s", str)
+	return fmt.Sprintf("%9s", str)
 }
 
 // formatROWMLLine formats a single crypto line for ROWML output as an aligned table
@@ -1119,8 +1119,8 @@ func saveCryptoSnapshot(items []CryptoItem, curFile string) {
 
 func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold int) error {
 	lines := []string{
-		fmt.Sprintf("%-4s %8s %8s %7s %7s %6s %8s %-10s %-10s %-4s", "Coin", "Held", "Entry", "Value", "Gains", "Port", "Price", "Buy Limit", "Sell Limit", "Dest"),
-		fmt.Sprintf("%-4s %8s %8s %7s %7s %6s %8s %-10s %-10s %-4s", "----", "--------", "--------", "-------", "------", "------", "--------", "----------", "----------", "----"),
+		fmt.Sprintf("%-4s %8s %9s %7s %7s %6s %9s %-10s %-10s %-4s", "Coin", "Held", "Entry", "Value", "Gains", "Port", "Price", "Buy Limit", "Sell Limit", "Dest"),
+			fmt.Sprintf("%-4s %8s %9s %7s %7s %6s %9s %-10s %-10s %-4s", "----", "--------", "---------", "-------", "------", "------", "---------", "----------", "----------", "----"),
 	}
 
 	sorted := sortCryptoItems(items)
