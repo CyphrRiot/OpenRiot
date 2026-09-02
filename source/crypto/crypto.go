@@ -809,11 +809,11 @@ func fmtHeld(h float64) string {
 func fmtHeldClean(h float64) string {
 	if h > 0 {
 		if h < 1 {
-			return fmt.Sprintf("%8s", fmt.Sprintf("%.3f", h))
+			return fmt.Sprintf("%11s", fmt.Sprintf("%.3f", h))
 		}
-		return fmt.Sprintf("%8s", fmt.Sprintf("%.2f", h))
+		return formatNumberWithWidth(h, 11)
 	}
-	return fmt.Sprintf("%8s", "0.00")
+	return fmt.Sprintf("%11s", "0.00")
 }
 
 // fmtValue formats current value (held \u00d7 price) as whole dollars with commas, right-padded to 7
@@ -1024,9 +1024,9 @@ func formatROWMLLine(item CryptoItem, items []CryptoItem, oversold int) string {
 		pctStr = fmt.Sprintf("%7s", fmt.Sprintf("%+.1f%%", glPct))
 		heldStr = holdStr
 	} else if isUSDStable {
-		heldStr = fmt.Sprintf("%8s", fmt.Sprintf("%.2f", item.Held))
-		entryStr = fmt.Sprintf("%8s", fmt.Sprintf("%.2f", item.Entry))
-		priceStr = fmt.Sprintf("%8s", fmt.Sprintf("%.2f", item.Price))
+		heldStr = formatNumberWithWidth(item.Held, 11)
+		entryStr = fmt.Sprintf("%9s", fmt.Sprintf("%.2f", item.Entry))
+		priceStr = fmt.Sprintf("%9s", fmt.Sprintf("%.2f", item.Price))
 		valStr = fmtValue(item.Held, item.Price)
 		pctStr = fmt.Sprintf("%7s", "0.0%")
 	} else {
@@ -1119,8 +1119,8 @@ func saveCryptoSnapshot(items []CryptoItem, curFile string) {
 
 func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold int) error {
 	lines := []string{
-		fmt.Sprintf("%-4s %8s %9s %7s %7s %6s %9s %-10s %-10s %-4s", "Coin", "Held", "Entry", "Value", "Gains", "Port", "Price", "Buy Limit", "Sell Limit", "Dest"),
-			fmt.Sprintf("%-4s %8s %9s %7s %7s %6s %9s %-10s %-10s %-4s", "----", "--------", "---------", "-------", "------", "------", "---------", "----------", "----------", "----"),
+		fmt.Sprintf("%-4s %11s %9s %7s %7s %6s %9s %-10s %-10s %-4s", "Coin", "Held", "Entry", "Value", "Gains", "Port", "Price", "Buy Limit", "Sell Limit", "Dest"),
+			fmt.Sprintf("%-4s %11s %9s %7s %7s %6s %9s %-10s %-10s %-4s", "----", "-----------", "---------", "-------", "------", "------", "---------", "----------", "----------", "----"),
 	}
 
 	sorted := sortCryptoItems(items)
@@ -1143,8 +1143,9 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold i
 		}
 		gainField := fmt.Sprintf("%7s", gainStr)
 		if showTotals && haveValue {
-			valField := fmt.Sprintf("%8s", formatIntWithCommas(math.Round(heldTotal)))
-			lines = append(lines, fmt.Sprintf("%14s%s%9s%s", "", valField, "", gainField))
+			valField := formatNumberWithWidth(heldTotal, 11)
+			lines = append(lines, fmt.Sprintf("%-4s %11s %9s %7s", "", "-----------", "", "-------"))
+			lines = append(lines, fmt.Sprintf("%-4s %11s %9s %7s", "", valField, "", gainField))
 		} else {
 			lines = append(lines, fmt.Sprintf("%31s%s", "", gainField))
 		}
