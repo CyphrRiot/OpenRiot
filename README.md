@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.58-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.59-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -113,6 +113,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.59 — The Machine Knows When the Tunnel Is Dead](docs/v7.9.59-Release-Notes.md)
 - [v7.9.58 — The Machine Behind Glass](docs/v7.9.58-Release-Notes.md)
 - [v7.9.57 — The Machine Knows Where It Is](docs/v7.9.57-Release-Notes.md)
 - [v7.9.56 — Two Hands on the Wheel](docs/v7.9.56-Release-Notes.md)
@@ -122,7 +123,6 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [v7.9.52 — The Machine Centers Itself](docs/v7.9.52-Release-Notes.md)
 - [v7.9.51 — The Machine Looks Further Back](docs/v7.9.51-Release-Notes.md)
 - [v7.9.50 — The First Characters Come Back](docs/v7.9.50-Release-Notes.md)
-- [v7.9.49 — Buy the Dip, Sell the Rip](docs/v7.9.49-Release-Notes.md)
 - [Older releases →](docs/)
 
 Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.
@@ -1413,7 +1413,16 @@ doas mkdir -p /etc/wireguard
 ```bash
 # Move the downloaded config to WireGuard directory
 doas mv ~/Downloads/mullvad.conf /etc/wireguard/wg0.conf
+
+# The file holds your private key: lock it down
+doas chmod 600 /etc/wireguard/wg0.conf
+
+# Persistent keepalive: re-negotiates the tunnel after idle or Wi-Fi drops
+echo "PersistentKeepalive = 25" | doas tee -a /etc/wireguard/wg0.conf
 ```
+
+Re-run the `chmod` and `PersistentKeepalive` commands after every fresh
+Mullvad config download, since the new file overwrites `wg0.conf`.
 
 #### Using the VPN
 

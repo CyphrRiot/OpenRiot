@@ -3,6 +3,7 @@ package wireguard
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
@@ -81,7 +82,7 @@ func setBootPersistence(enabled bool) {
 
 	var out []string
 	for _, line := range lines {
-		if strings.Contains(line, rcLocalMarker) {
+		if strings.Contains(line, rcLocalMarker) || strings.Contains(line, rcLocalCmd) {
 			continue
 		}
 		out = append(out, line)
@@ -122,25 +123,40 @@ func getDNSFromConfig() string {
 	return ""
 }
 
-func GetServerName() string {
-	out, err := exec.Command("ftp", "-o", "-", "https://am.i.mullvad.net/json").Output()
+type mullvadStatus struct {
+	Hostname string `json:"mullvad_exit_ip_hostname"`
+	City     string `json:"city"`
+	ExitIP   bool   `json:"mullvad_exit_ip"`
+}
+
+func fetchMullvadStatus() (mullvadStatus, error) {
+	var status mullvadStatus
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Get("https://am.i.mullvad.net/json")
 	if err != nil {
+		return status, err
+	}
+	defer resp.Body.Close()
+	if err := json.NewDecoder(resp.Body).Decode(&status); err != nil {
+		return status, err
+	}
+	return status, nil
+}
+
+func IsConnected() bool {
+	status, err := fetchMullvadStatus()
+	return err == nil && status.ExitIP
+}
+
+func GetServerName() string {
+	status, err := fetchMullvadStatus()
+	if err != nil || status.Hostname == "" {
 		return ""
 	}
-	var result struct {
-		Hostname string `json:"mullvad_exit_ip_hostname"`
-		City     string `json:"city"`
+	if status.City != "" {
+		return status.Hostname + "\n" + status.City
 	}
-	if err := json.Unmarshal(out, &result); err != nil {
-		return ""
-	}
-	if result.Hostname == "" {
-		return ""
-	}
-	if result.City != "" {
-		return result.Hostname + "\n" + result.City
-	}
-	return result.Hostname
+	return status.Hostname
 }
 
 func Status() string {
@@ -163,6 +179,12 @@ func Start() error {
 		exec.Command("doas", "sh", "-c",
 			fmt.Sprintf("echo 'nameserver %s' >> /etc/resolv.conf", dns)).Run()
 		exec.Command("doas", "rcctl", "restart", "resolvd").Run()
+	}
+	time.Sleep(2 * time.Second)
+	if !IsConnected() {
+		notify.SendNotify("wireguard", "WireGuard VPN",
+			"Failed to connect. Mullvad account may be expired or out of credits.", "critical", 0, 0)
+		return nil
 	}
 	if server := GetServerName(); server != "" {
 		notify.SendNotify("wireguard", "WireGuard VPN",
