@@ -18,6 +18,22 @@ func ConvertPngToWebP() error {
 		if err != nil {
 			return fmt.Errorf("glob %s: %w", dir, err)
 		}
+		if len(files) == 0 {
+			continue
+		}
+
+		webps, _ := filepath.Glob(filepath.Join(dir, "*.webp"))
+		for _, w := range webps {
+			src := strings.TrimSuffix(w, ".webp") + ".png"
+			if _, err := os.Stat(src); os.IsNotExist(err) {
+				if err := os.Remove(w); err != nil {
+					fmt.Fprintf(os.Stderr, "remove stale %s: %v\n", w, err)
+				} else {
+					fmt.Printf("removed stale: %s\n", w)
+				}
+			}
+		}
+
 		for _, f := range files {
 			out := strings.TrimSuffix(f, ".png") + ".webp"
 			cmd := exec.Command("cwebp", f, "-o", out)
