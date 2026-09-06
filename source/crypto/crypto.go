@@ -687,29 +687,6 @@ func calculateBuySellLimits(sym string, currentPrice, entryPrice, held float64, 
 		return "", 0, 0, ""
 	}
 
-	// Calculate units for buy and sell (both 20% of entry value)
-	maxSellValue := entryPrice * held * 0.20
-	if maxSellValue <= 0 || currentPrice <= 0 {
-		return "", 0, 0, ""
-	}
-	maxCoins := maxSellValue / currentPrice
-
-	var unitsToSell float64
-	if held < 1.0 {
-		unitsToSell = held * 0.20
-		if unitsToSell < 0.01 {
-			unitsToSell = held
-		}
-	} else {
-		unitsToSell = math.Min(held*0.20, maxCoins)
-		unitsToSell = math.Ceil(unitsToSell*100) / 100
-		if unitsToSell < 0.01 {
-			unitsToSell = 0.01
-		}
-	}
-	unitsStr := formatUnits(unitsToSell)
-	_ = unitsStr
-
 	// Find range high and low from OHLC data
 	high := currentPrice
 	low := currentPrice
