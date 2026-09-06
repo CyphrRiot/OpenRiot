@@ -1025,8 +1025,8 @@ func formatROWMLLine(item CryptoItem, items []CryptoItem, oversold int) string {
 		heldStr = holdStr
 	} else if isUSDStable {
 		heldStr = formatNumberWithWidth(item.Held, 11)
-		entryStr = fmt.Sprintf("%9s", fmt.Sprintf("%.2f", item.Entry))
-		priceStr = fmt.Sprintf("%9s", fmt.Sprintf("%.2f", item.Price))
+		entryStr = fmt.Sprintf("%10s", fmt.Sprintf("%.2f", item.Entry))
+		priceStr = fmt.Sprintf("%10s", fmt.Sprintf("%.2f", item.Price))
 		valStr = fmtValue(item.Held, item.Price)
 		pctStr = fmt.Sprintf("%7s", "0.0%")
 	} else {
