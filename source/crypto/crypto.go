@@ -755,7 +755,7 @@ func calculateBuySellLimits(sym string, currentPrice, entryPrice, held float64, 
 	}
 
 	buyPrice = buyTarget
-	buyStr = "$" + formatNumberWithWidth(buyTarget, 0)
+	buyStr = formatNumberWithWidth(buyTarget, 0)
 
 	return
 }
@@ -1015,11 +1015,11 @@ func formatROWMLLine(item CryptoItem, items []CryptoItem, oversold int) string {
 			buyStr = buyLimit
 		}
 		if sellPrice > 0 {
-			sellStr = "$" + formatNumberWithWidth(sellPrice, 0)
+			sellStr = formatNumberWithWidth(sellPrice, 0)
 		}
 	}
 
-	return fmt.Sprintf("%-4s %s %s %s %s %s %s %12s %12s", item.Sym, heldStr, priceStr, valStr, pctStr, portPctStr, entryStr, buyStr, sellStr)
+	return fmt.Sprintf("%-4s %s %s %s %s %s %s %11s %11s", item.Sym, heldStr, priceStr, valStr, pctStr, portPctStr, entryStr, buyStr, sellStr)
 }
 
 // calculateTotals returns portfolio totals
@@ -1061,8 +1061,8 @@ func saveCryptoSnapshot(items []CryptoItem, curFile string) {
 
 func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold int) error {
 	lines := []string{
-		fmt.Sprintf("%-4s %11s %10s %7s %7s %6s %10s %12s %12s", "Coin", "Held", "Price", "Value", "Gains", "Port", "Entry", "Buy Limit", "Sell Limit"),
-					fmt.Sprintf("%-4s %11s %10s %7s %7s %6s %10s %12s %12s", "----", "-----------", "----------", "-------", "------", "------", "----------", "------------", "------------"),
+		fmt.Sprintf("%-4s %11s %10s %7s %7s %6s %10s %11s %11s", "Coin", "Held", "Price", "Value", "Gains", "Port", "Entry", "Buy Limit", "Sell Limit"),
+					fmt.Sprintf("%-4s %11s %10s %7s %7s %6s %10s %11s %11s", "----", "-----------", "----------", "-------", "------", "------", "----------", "-----------", "-----------"),
 	}
 
 	sorted := sortCryptoItems(items)
