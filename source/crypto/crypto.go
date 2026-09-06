@@ -1140,8 +1140,8 @@ func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold i
 		gainField := fmt.Sprintf("%7s", gainStr)
 		if showTotals && haveValue {
 			valField := formatNumberWithWidth(heldTotal, 11)
-			lines = append(lines, fmt.Sprintf("%-4s %11s %9s %7s", "", "-----------", "", "-------"))
-			lines = append(lines, fmt.Sprintf("%-4s %11s %9s %7s", "", valField, "", gainField))
+			lines = append(lines, fmt.Sprintf("%-4s %11s %10s %7s", "", "-----------", "", "-------"))
+			lines = append(lines, fmt.Sprintf("%-4s %11s %10s %7s", "", valField, "", gainField))
 		} else {
 			lines = append(lines, fmt.Sprintf("%31s%s", "", gainField))
 		}
