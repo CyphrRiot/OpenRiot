@@ -708,6 +708,7 @@ func calculateBuySellLimits(sym string, currentPrice, entryPrice, held float64, 
 		}
 	}
 	unitsStr := formatUnits(unitsToSell)
+	_ = unitsStr
 
 	// Find range high and low from OHLC data
 	high := currentPrice
@@ -777,19 +778,7 @@ func calculateBuySellLimits(sym string, currentPrice, entryPrice, held float64, 
 	}
 
 	buyPrice = buyTarget
-	if buyTarget >= 10000 {
-		buyStr = fmt.Sprintf("%s @ $%.1fk", unitsStr, buyTarget/1000)
-	} else {
-		buyStr = fmt.Sprintf("%s @ $%s", unitsStr, formatPrice(buyTarget))
-	}
-	if len(buyStr) > 10 {
-		// Drop units if it overflows
-		if buyTarget >= 10000 {
-			buyStr = fmt.Sprintf("@ $%.1fk", buyTarget/1000)
-		} else {
-			buyStr = fmt.Sprintf("@ $%s", formatPrice(buyTarget))
-		}
-	}
+	buyStr = "$" + formatNumberWithWidth(buyTarget, 0)
 
 	return
 }
@@ -1049,31 +1038,11 @@ func formatROWMLLine(item CryptoItem, items []CryptoItem, oversold int) string {
 			buyStr = buyLimit
 		}
 		if sellPrice > 0 {
-			// Compute units for sell display
-			var unitsToSell float64
-			if item.Held < 1.0 {
-				unitsToSell = item.Held * 0.20
-			} else {
-				unitsToSell = math.Floor(item.Held * 0.20)
-			}
-			// Format price for sell column: use k-suffix if >= 10000
-			compactPrice := formatPrice(sellPrice)
-			p := sellPrice
-			if p >= 10000 {
-				compactPrice = fmt.Sprintf("%.1fk", p/1000)
-			}
-			sellStr = fmt.Sprintf("%s @ $%s", formatUnits(unitsToSell), compactPrice)
-			if len(sellStr) > 10 {
-				if p >= 10000 {
-					sellStr = fmt.Sprintf("@ $%.1fk", p/1000)
-				} else {
-					sellStr = fmt.Sprintf("@ $%s", formatPrice(p))
-				}
-			}
+			sellStr = "$" + formatNumberWithWidth(sellPrice, 0)
 		}
 	}
 
-	return fmt.Sprintf("%-4s %s %s %s %s %s %s %-10s %-10s", item.Sym, heldStr, priceStr, valStr, pctStr, portPctStr, entryStr, buyStr, sellStr)
+	return fmt.Sprintf("%-4s %s %s %s %s %s %s %12s %12s", item.Sym, heldStr, priceStr, valStr, pctStr, portPctStr, entryStr, buyStr, sellStr)
 }
 
 // calculateTotals returns portfolio totals
@@ -1115,8 +1084,8 @@ func saveCryptoSnapshot(items []CryptoItem, curFile string) {
 
 func outputROWML(items []CryptoItem, showTotals bool, curFile string, oversold int) error {
 	lines := []string{
-		fmt.Sprintf("%-4s %11s %10s %7s %7s %6s %10s %-10s %-10s", "Coin", "Held", "Price", "Value", "Gains", "Port", "Entry", "Buy Limit", "Sell Limit"),
-				fmt.Sprintf("%-4s %11s %10s %7s %7s %6s %10s %-10s %-10s", "----", "-----------", "----------", "-------", "------", "------", "----------", "----------", "----------"),
+		fmt.Sprintf("%-4s %11s %10s %7s %7s %6s %10s %12s %12s", "Coin", "Held", "Price", "Value", "Gains", "Port", "Entry", "Buy Limit", "Sell Limit"),
+					fmt.Sprintf("%-4s %11s %10s %7s %7s %6s %10s %12s %12s", "----", "-----------", "----------", "-------", "------", "------", "----------", "------------", "------------"),
 	}
 
 	sorted := sortCryptoItems(items)
