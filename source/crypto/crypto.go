@@ -687,13 +687,17 @@ func calculateBuySellLimits(sym string, currentPrice, entryPrice, held float64, 
 		return "", 0, 0, ""
 	}
 
-	// Find range high and low from OHLC data
+	// Find range high and low from the last 90 days of OHLC data
 	high := currentPrice
 	low := currentPrice
 	if len(item.OHLCData) > 0 {
-		high = item.OHLCData[0]
-		low = item.OHLCData[0]
-		for _, p := range item.OHLCData {
+		window := item.OHLCData
+		if len(window) > 90 {
+			window = window[len(window)-90:]
+		}
+		high = window[0]
+		low = window[0]
+		for _, p := range window {
 			if p > high {
 				high = p
 			}
@@ -703,17 +707,14 @@ func calculateBuySellLimits(sym string, currentPrice, entryPrice, held float64, 
 		}
 	}
 
-	// Sell target: fixed at 6-month high × 0.95 (doesn't chase price)
-	sellTarget := currentPrice * 1.20
-	rangeSize := high - low
-	if rangeSize > 0 {
-		sellTarget = high * 0.95
+	// Sell target: 90-day resistance. If price has already broken above it,
+	// project a measured move (90-day range height) above the breakout.
+	sellTarget := high * 0.97
+	if sellTarget <= currentPrice {
+		sellTarget = high + (high - low)
 	}
-	if sellTarget < currentPrice*1.10 {
-		sellTarget = currentPrice * 1.10
-	}
-	if sellTarget > currentPrice*2.50 {
-		sellTarget = currentPrice * 2.50
+	if sellTarget <= currentPrice {
+		sellTarget = currentPrice * 1.05
 	}
 
 	totalValue, originalInvestment := 0.0, 0.0
@@ -735,23 +736,13 @@ func calculateBuySellLimits(sym string, currentPrice, entryPrice, held float64, 
 		dest = rotationTarget
 	}
 
-	// Buy limit: inverted range logic
-	buyTarget := currentPrice * 0.85
-	if rangeSize > 0 {
-		position := (currentPrice - low) / rangeSize
-		if position < 0.25 {
-			buyTarget = low * 1.05
-		} else if position < 0.75 {
-			buyTarget = currentPrice * 0.85
-		} else {
-			buyTarget = currentPrice * 0.75
-		}
+	// Buy limit: 90-day support, clamped to a realistic dip (max -20% from current).
+	buyTarget := low * 1.03
+	if buyTarget < currentPrice*0.80 {
+		buyTarget = currentPrice * 0.80
 	}
 	if buyTarget > currentPrice*0.95 {
 		buyTarget = currentPrice * 0.90
-	}
-	if buyTarget < currentPrice*0.50 {
-		buyTarget = currentPrice * 0.60
 	}
 
 	buyPrice = buyTarget
