@@ -709,8 +709,8 @@ func calculateBuySellLimits(sym string, currentPrice, entryPrice, held float64, 
 
 	// Sell target: 90-day resistance. If price has already broken above it,
 	// project a measured move (90-day range height) above the breakout.
-	sellTarget := high * 0.97
-	if sellTarget <= currentPrice {
+	sellTarget := high
+	if currentPrice >= high {
 		sellTarget = high + (high - low)
 	}
 	if sellTarget <= currentPrice {
