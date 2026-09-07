@@ -106,23 +106,6 @@ func setBootPersistence(enabled bool) {
 	_ = cmd.Run()
 }
 
-func getDNSFromConfig() string {
-	data, err := os.ReadFile(ConfigPath)
-	if err != nil {
-		return ""
-	}
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "DNS") {
-			parts := strings.SplitN(line, "=", 2)
-			if len(parts) == 2 {
-				return strings.TrimSpace(parts[1])
-			}
-		}
-	}
-	return ""
-}
-
 type mullvadStatus struct {
 	Hostname string `json:"mullvad_exit_ip_hostname"`
 	City     string `json:"city"`
@@ -175,15 +158,17 @@ func Start() error {
 	if err := cmd.Run(); err != nil {
 		return err
 	}
-	if dns := getDNSFromConfig(); dns != "" {
-		exec.Command("doas", "sh", "-c",
-			fmt.Sprintf("echo 'nameserver %s' >> /etc/resolv.conf", dns)).Run()
-		exec.Command("doas", "rcctl", "restart", "resolvd").Run()
+	var connected bool
+	for i := 0; i < 10; i++ {
+		time.Sleep(time.Second)
+		if IsConnected() {
+			connected = true
+			break
+		}
 	}
-	time.Sleep(2 * time.Second)
-	if !IsConnected() {
+	if !connected {
 		notify.SendNotify("wireguard", "WireGuard VPN",
-			"Failed to connect. Mullvad account may be expired or out of credits.", "critical", 0, 0)
+			"WireGuard started but the connection could not be verified.", "critical", 0, 0)
 		return nil
 	}
 	if server := GetServerName(); server != "" {
