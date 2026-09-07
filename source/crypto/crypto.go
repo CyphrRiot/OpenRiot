@@ -961,9 +961,6 @@ func fmtPriceShort(v float64) string {
 		return fmt.Sprintf("%10s", "")
 	}
 	str := formatNumberWithWidth(v, 0)
-	if strings.HasSuffix(str, ".00") {
-		str = str[:len(str)-3]
-	}
 	return fmt.Sprintf("%10s", str)
 }
 
