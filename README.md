@@ -373,17 +373,22 @@ Download the [OpenRiot Install Image ~1.9G](https://github.com/CyphrRiot/OpenRio
 | Use (W)hole disk MBR | ⚠️ **Choose `G` for GPT** (MBR won't boot)        |
 | Encrypt disk         | Type `p` or `no`                                      |
 | Partition layout     | Type `c` for custom                                   |
-| Label editor         | `z` → `a /` → size → `a swap` → `a /home` → `w` → `q` |
+| Label editor         | `a` (auto) → `e` (edit) → remove all except `i` → resize `/` → `a swap` → `a /home` → `w` → `q` |
 | Location of sets     | Type `disk` → Select your USB device                    |
 | Set name(s)          | Press `*` and then `Enter` (all sets)                  |
 | SHA256 verification | Type `yes` → Enter                                   |
 
 **Partition layout (choose `c`):**
 ```
+i       (auto-created by `a`, required for GPT boot)
 /       50G (or more)
 swap    2G (or more)
 /home   * (rest of disk)
 ```
+
+**Important:** Do NOT use `z` — it deletes the `i` partition required for GPT booting.
+Use `a` (auto) instead, which creates a valid layout including `i`, then `e` (edit) to
+remove the partitions you don't want. Keep `i`.
 
 **Why this layout and sizing guidance (with nuances):**
 - **/** (root): 50GB+ gives ample room for `/usr/local`, packages, logs, and the Go-built `openriot` binary + its dependencies without constant cleanup. OpenBSD keeps a relatively lean base, but development tools, Helix, and GUI apps add up. You can grow it later with `growfs` if needed.
