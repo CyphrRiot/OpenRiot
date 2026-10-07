@@ -247,6 +247,14 @@ func RegisterAll(r *Registry, testMode *bool) {
 		},
 	})
 	r.Register(&Command{
+		Name: "--syspatch-check", Category: "Tools & Upgrades",
+		Description: "Check and apply system security patches",
+		Run: func(args []string) error {
+			checkAndRunSyspatch()
+			return nil
+		},
+	})
+	r.Register(&Command{
 		Name: "--gurk-setup", Category: "Tools & Upgrades",
 		Description: "Configure gurk keybindings",
 		Run: func(args []string) error { return gurk.Run() },

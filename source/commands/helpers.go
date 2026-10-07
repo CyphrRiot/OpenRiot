@@ -162,30 +162,31 @@ func runInstall(testMode *bool) {
 	runPostInstallPatch()
 }
 
-// runPostInstallPatch offers to run doas syspatch if patches are pending.
-// On -current this is a no-op (drift warning above handles the -current case).
-func runPostInstallPatch() {
+// checkAndRunSyspatch checks for pending syspatches and offers to apply them.
+func checkAndRunSyspatch() {
 	if config.DetectOpenBSDVersion() == "snapshots" {
+		fmt.Println("Running on -current. System updates are handled by sysupgrade -s, not syspatch.")
 		return
 	}
 
-	cmd := exec.Command("syspatch", "-c")
+	fmt.Println("Checking for system patches...")
+	cmd := exec.Command("doas", "syspatch", "-c")
 	output, err := cmd.Output()
 	if err != nil {
+		fmt.Println("No patches available.")
 		return
 	}
 	pending := strings.TrimSpace(string(output))
 	if pending == "" {
+		fmt.Println("System is up to date. No patches available.")
 		return
 	}
 
-	fmt.Println()
-	fmt.Print("Security/reliability patches are available. Apply now? [y/N] ")
-	// Read from /dev/tty explicitly — stdin is a pipe during curl | sh
+	fmt.Printf("Patches available: %s\n", pending)
+	fmt.Print("Apply system patches now? [y/N] ")
 	tty, err := os.OpenFile("/dev/tty", os.O_RDONLY, 0)
 	if err != nil {
-		fmt.Println(" (no terminal detected, continuing...)")
-		fmt.Printf("Apply later: doas syspatch\n")
+		fmt.Println(" (no terminal, run manually: doas syspatch)")
 		return
 	}
 	defer tty.Close()
@@ -194,7 +195,7 @@ func runPostInstallPatch() {
 	input, _ := reader.ReadString('\n')
 	input = strings.TrimSpace(strings.ToLower(input))
 	if input != "y" && input != "yes" {
-		fmt.Printf("Apply later: doas syspatch\n")
+		fmt.Printf("Run manually when ready: doas syspatch\n")
 		return
 	}
 
@@ -207,8 +208,15 @@ func runPostInstallPatch() {
 	patchCmd.Stdin = os.Stdin
 	if err := patchCmd.Run(); err != nil {
 		logger.Warn(fmt.Sprintf("syspatch failed: %v", err))
-		fmt.Println("Please run manually: doas syspatch")
+		fmt.Println("Run manually: doas syspatch")
+		return
 	}
+	fmt.Println()
+	fmt.Println("Patches applied. Reboot when convenient to activate the new kernel.")
+}
+// runPostInstallPatch offers to run doas syspatch if patches are pending.
+func runPostInstallPatch() {
+	checkAndRunSyspatch()
 }
 
 // hasPackageDrift parses kernel build date from sysctl and returns true if
