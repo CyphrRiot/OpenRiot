@@ -10,6 +10,7 @@ import (
 	"openriot/network"
 	"openriot/nightlight"
 	"openriot/notify"
+	"openriot/paths"
 	"openriot/polybar"
 	"openriot/screenrec"
 	"openriot/screenshot"
@@ -43,14 +44,6 @@ func setVolume(level int) error {
 
 func toggleMute() error {
 	return exec.Command("sh", "-c", "sndioctl output.mute=!").Run()
-}
-
-func incVolume() error {
-	return exec.Command("sndioctl", "output.level=+0.05").Run()
-}
-
-func decVolume() error {
-	return exec.Command("sndioctl", "output.level=-0.05").Run()
 }
 
 type batteryInfo struct {
@@ -103,7 +96,7 @@ func shutdownCmd() error {
 }
 
 func lockCmd() error {
-	return exec.Command("sh", "-c", "openriot --lock").Start()
+	return exec.Command(paths.OpenRiotDir("install", "openriot"), "--lock").Start()
 }
 
 func getBrightness() int {
@@ -119,7 +112,12 @@ func hdmiInfo() (hasExternal bool, externalActive bool) {
 }
 
 func toggleHDMI() error {
-	return exec.Command("openriot", "--hdmi-toggle").Start()
+	return exec.Command(paths.OpenRiotDir("install", "openriot"), "--hdmi-toggle").Start()
+}
+
+func launchResolution() error {
+	return exec.Command("alacritty", "--class", "openriot_resolution", "-e",
+		paths.OpenRiotDir("install", "openriot"), "--resolution-tui").Start()
 }
 
 type systemState struct {

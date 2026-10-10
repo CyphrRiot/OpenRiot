@@ -1,7 +1,6 @@
 package control
 
 import (
-	"os/exec"
 	"time"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -55,6 +54,17 @@ func tickCmd() tea.Cmd {
 	})
 }
 
+type refreshMsg struct{}
+
+// run executes a possibly-blocking action off the UI goroutine, then asks
+// for a state refresh so the panel shows the true result.
+func run(fn func() error) tea.Cmd {
+	return func() tea.Msg {
+		_ = fn()
+		return refreshMsg{}
+	}
+}
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -69,7 +79,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.batPercent = msg.battery.percent
 		m.batAC = msg.battery.ac
 		m.batMinutes = msg.battery.minutes
-		return m, nil
+		return m.clampCursor(), nil
 	case displayMsg:
 		m.brightness = msg.brightness
 		m.hdmiHasExt = msg.hasExt
@@ -84,9 +94,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.proton = msg.state.proton
 		m.recording = msg.state.recording
 		m.version = msg.state.version
-		return m, nil
+		return m.clampCursor(), nil
 	case tickMsg:
-		return m, tea.Batch(fetchVolumeCmd, fetchPowerCmd, fetchSystemCmd, tickCmd())
+		return m, tea.Batch(fetchVolumeCmd, fetchPowerCmd, fetchDisplayCmd, fetchSystemCmd, tickCmd())
+	case refreshMsg:
+		return m, tea.Batch(fetchVolumeCmd, fetchPowerCmd, fetchDisplayCmd, fetchSystemCmd)
 	case tea.KeyMsg:
 		return m.handleKey(msg)
 	}
@@ -94,6 +106,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	m = m.clampCursor()
+
 	if m.showHelp {
 		if key.Matches(msg, m.keys.Help) || key.Matches(msg, m.keys.Quit) {
 			m.showHelp = false
@@ -146,31 +160,6 @@ func (m model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m.handleBrightnessAdjust(-5)
 		}
 		return m, nil
-	case "r", "R":
-		if m.section == 1 {
-			_ = exec.Command("alacritty", "--class", "openriot_resolution", "-e", "openriot", "--resolution-tui").Start()
-		}
-		if m.section == 3 && m.cursor == 3 {
-			_ = rebootCmd()
-		}
-		return m, nil
-	case "m":
-		return m.handleMuteToggle()
-	case "p", "P":
-		if m.section == 3 && m.cursor == 2 {
-			_ = suspendCmd()
-		}
-		return m, nil
-	case "s", "S":
-		if m.section == 3 && m.cursor == 4 {
-			_ = shutdownCmd()
-		}
-		return m, nil
-	case "l", "L":
-		if m.section == 3 && m.cursor == 5 {
-			_ = lockCmd()
-		}
-		return m, nil
 	}
 
 	if key.Matches(msg, m.keys.Up) {
@@ -220,34 +209,48 @@ func (m model) itemsInSection() int {
 	return 1
 }
 
+func (m model) clampCursor() model {
+	n := m.itemsInSection()
+	if n < 1 {
+		n = 1
+	}
+	if m.cursor >= n {
+		m.cursor = n - 1
+	}
+	if m.cursor < 0 {
+		m.cursor = 0
+	}
+	return m
+}
+
 func (m model) handleSelect() (tea.Model, tea.Cmd) {
 	switch m.section {
 	case 0:
-		if m.cursor == 0 {
-			return m.handleVolumeAdjust(5)
+		if m.cursor == 1 {
+			return m.handleMuteToggle()
 		}
-		return m.handleMuteToggle()
+		return m, nil
 	case 1:
 		if m.cursor == 0 {
 			return m.handleBrightnessAdjust(5)
 		}
 		if m.cursor == 1 {
-			return m.handleHDMIToggle()
+			return m, run(toggleHDMI)
 		}
 		if m.cursor == 2 {
-			_ = exec.Command("alacritty", "--class", "openriot_resolution", "-e", "openriot", "--resolution-tui").Start()
+			return m, run(launchResolution)
 		}
 		return m, nil
 	case 3:
 		switch m.cursor {
 		case 2:
-			_ = suspendCmd()
+			return m, run(suspendCmd)
 		case 3:
-			_ = rebootCmd()
+			return m, run(rebootCmd)
 		case 4:
-			_ = shutdownCmd()
+			return m, run(shutdownCmd)
 		case 5:
-			_ = lockCmd()
+			return m, run(lockCmd)
 		}
 		return m, nil
 	case 2:
@@ -255,37 +258,29 @@ func (m model) handleSelect() (tea.Model, tea.Cmd) {
 		case 0:
 			wifiAction()
 		case 2:
-			if err := toggleWireguard(); err == nil {
-				m.wg = !m.wg
-			}
+			return m, run(toggleWireguard)
 		}
 		return m, nil
 	case 4:
 		switch m.cursor {
 		case 0:
-			if err := toggleNightlight(); err == nil {
-				m.night = !m.night
-			}
+			return m, run(toggleNightlight)
 		case 1:
-			if err := toggleStealth(); err == nil {
-				m.stealth = !m.stealth
-			}
+			return m, run(toggleStealth)
 		case 2:
 			if m.proton {
-				_ = triggerProtonSync()
+				return m, run(triggerProtonSync)
 			}
 		}
 		return m, nil
 	case 5:
 		switch m.cursor {
 		case 0:
-			_ = runUpdate()
+			return m, run(runUpdate)
 		case 1:
-			if err := toggleRecording(); err == nil {
-				m.recording = !m.recording
-			}
+			return m, run(toggleRecording)
 		case 2:
-			_ = takeScreenshot()
+			return m, run(takeScreenshot)
 		}
 		return m, nil
 	}
@@ -300,15 +295,13 @@ func (m model) handleVolumeAdjust(delta int) (tea.Model, tea.Cmd) {
 	if newVol < 0 {
 		newVol = 0
 	}
-	_ = setVolume(newVol)
 	m.volume = newVol
-	return m, nil
+	return m, run(func() error { return setVolume(newVol) })
 }
 
 func (m model) handleMuteToggle() (tea.Model, tea.Cmd) {
-	_ = toggleMute()
 	m.muted = !m.muted
-	return m, nil
+	return m, run(toggleMute)
 }
 
 func (m model) handleBrightnessAdjust(delta int) (tea.Model, tea.Cmd) {
@@ -319,13 +312,6 @@ func (m model) handleBrightnessAdjust(delta int) (tea.Model, tea.Cmd) {
 	if newB < 0 {
 		newB = 0
 	}
-	_ = setBrightness(newB)
 	m.brightness = newB
-	return m, nil
-}
-
-func (m model) handleHDMIToggle() (tea.Model, tea.Cmd) {
-	_ = toggleHDMI()
-	m.hdmiActive = !m.hdmiActive
-	return m, nil
+	return m, run(func() error { return setBrightness(newB) })
 }

@@ -224,7 +224,7 @@ func (m model) renderAudio() string {
 	b.WriteString("\n")
 
 	b.WriteString("\n")
-	b.WriteString(styleFooter.Render("+/- adjust  enter/m toggle"))
+	b.WriteString(styleFooter.Render("+/- adjust  enter toggle"))
 	return b.String()
 }
 
@@ -250,7 +250,7 @@ func (m model) renderDisplay() string {
 	b.WriteString("\n")
 
 	b.WriteString("\n")
-	b.WriteString(styleFooter.Render("+/- adjust  enter toggle  r resolution"))
+	b.WriteString(styleFooter.Render("+/- adjust  enter toggle/resolution"))
 	return b.String()
 }
 
@@ -295,14 +295,13 @@ func (m model) renderPower() string {
 	b.WriteString("\n\n")
 
 	actions := []string{"Suspend", "Reboot", "Shutdown", "Lock"}
-	keys := []string{"p", "r", "s", "l"}
 	for i, a := range actions {
-		b.WriteString(row(m, 2+i, fmt.Sprintf("%s  [%s]", a, keys[i])))
+		b.WriteString(row(m, 2+i, a))
 		b.WriteString("\n")
 	}
 
 	b.WriteString("\n")
-	b.WriteString(styleFooter.Render("enter activate  keys: p r s l"))
+	b.WriteString(styleFooter.Render("enter activate"))
 	return b.String()
 }
 
