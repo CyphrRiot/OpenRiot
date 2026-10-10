@@ -120,6 +120,11 @@ func launchResolution() error {
 		paths.OpenRiotDir("install", "openriot"), "--resolution-tui").Start()
 }
 
+func launchInstallPackages() error {
+	return exec.Command("alacritty", "--class", "openriot_upgrade", "-e",
+		paths.OpenRiotDir("install", "openriot"), "--install-packages").Start()
+}
+
 type systemState struct {
 	wifi      bool
 	eth       bool

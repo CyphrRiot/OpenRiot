@@ -20,6 +20,7 @@ var sections = []section{
 	{icon: "󰁹", name: "Power"},
 	{icon: "󰌵", name: "Privacy"},
 	{icon: "󰙨", name: "System"},
+	{icon: "󰓙", name: "Health"},
 }
 
 // keyMap defines every user-actionable key binding.
@@ -104,6 +105,7 @@ type model struct {
 	proton       bool
 	recording    bool
 	version      string
+	health       []check
 }
 
 // NewModel creates a new model.
@@ -117,5 +119,5 @@ func NewModel() tea.Model {
 
 // Init is the Bubble Tea entry command.
 func (m model) Init() tea.Cmd {
-	return tea.Batch(fetchVolumeCmd, fetchPowerCmd, fetchDisplayCmd, fetchSystemCmd, tickCmd())
+	return tea.Batch(fetchVolumeCmd, fetchPowerCmd, fetchDisplayCmd, fetchSystemCmd, fetchHealthCmd, tickCmd())
 }

@@ -125,6 +125,8 @@ func (m model) renderPanel() string {
 		b.WriteString(m.renderPrivacy())
 	case 5:
 		b.WriteString(m.renderSystem())
+	case 6:
+		b.WriteString(m.renderHealth())
 	}
 
 	return b.String()
@@ -180,11 +182,6 @@ func (m model) renderPrivacy() string {
 func (m model) renderSystem() string {
 	var b strings.Builder
 
-	recState := "idle"
-	if m.recording {
-		recState = "RECORDING"
-	}
-
 	version := m.version
 	if version == "" {
 		version = "unknown"
@@ -192,13 +189,37 @@ func (m model) renderSystem() string {
 
 	b.WriteString(row(m, 0, fmt.Sprintf("OpenRiot  %s  (check updates)", version)))
 	b.WriteString("\n")
-	b.WriteString(row(m, 1, fmt.Sprintf("Screen Recording  %s", recState)))
+	b.WriteString(row(m, 1, "Take screenshot"))
 	b.WriteString("\n")
-	b.WriteString(row(m, 2, "Take screenshot"))
-	b.WriteString("\n")
+
+	if m.recording {
+		b.WriteString(row(m, 2, "Screen Recording  RECORDING"))
+		b.WriteString("\n")
+	}
 
 	b.WriteString("\n")
 	b.WriteString(styleFooter.Render("enter activate"))
+	return b.String()
+}
+
+func (m model) renderHealth() string {
+	var b strings.Builder
+
+	if len(m.health) == 0 {
+		b.WriteString(row(m, 0, "Checking..."))
+		b.WriteString("\n")
+	} else {
+		for i, c := range m.health {
+			label := fmt.Sprintf("%-10s %-4s %s", c.name, statusLabel(c.status), c.detail)
+			b.WriteString(row(m, i, label))
+			b.WriteString("\n")
+		}
+	}
+
+	if m.cursor >= 0 && m.cursor < len(m.health) && m.health[m.cursor].fix != nil {
+		b.WriteString("\n")
+		b.WriteString(styleFooter.Render("enter fix"))
+	}
 	return b.String()
 }
 

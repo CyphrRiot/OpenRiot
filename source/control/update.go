@@ -26,6 +26,10 @@ type systemMsg struct {
 	state systemState
 }
 
+type healthMsg struct {
+	checks []check
+}
+
 type tickMsg time.Time
 
 func fetchVolumeCmd() tea.Msg {
@@ -46,6 +50,10 @@ func fetchDisplayCmd() tea.Msg {
 
 func fetchSystemCmd() tea.Msg {
 	return systemMsg{state: fetchSystemState()}
+}
+
+func fetchHealthCmd() tea.Msg {
+	return healthMsg{checks: runChecks()}
 }
 
 func tickCmd() tea.Cmd {
@@ -95,10 +103,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.recording = msg.state.recording
 		m.version = msg.state.version
 		return m.clampCursor(), nil
+	case healthMsg:
+		m.health = msg.checks
+		return m.clampCursor(), nil
 	case tickMsg:
 		return m, tea.Batch(fetchVolumeCmd, fetchPowerCmd, fetchDisplayCmd, fetchSystemCmd, tickCmd())
 	case refreshMsg:
-		return m, tea.Batch(fetchVolumeCmd, fetchPowerCmd, fetchDisplayCmd, fetchSystemCmd)
+		return m, tea.Batch(fetchVolumeCmd, fetchPowerCmd, fetchDisplayCmd, fetchSystemCmd, fetchHealthCmd)
 	case tea.KeyMsg:
 		return m.handleKey(msg)
 	}
@@ -204,7 +215,15 @@ func (m model) itemsInSection() int {
 		}
 		return 2
 	case 5:
-		return 3
+		if m.recording {
+			return 3
+		}
+		return 2
+	case 6:
+		if len(m.health) < 1 {
+			return 1
+		}
+		return len(m.health)
 	}
 	return 1
 }
@@ -278,9 +297,18 @@ func (m model) handleSelect() (tea.Model, tea.Cmd) {
 		case 0:
 			return m, run(runUpdate)
 		case 1:
-			return m, run(toggleRecording)
-		case 2:
 			return m, run(takeScreenshot)
+		case 2:
+			if m.recording {
+				return m, run(toggleRecording)
+			}
+		}
+		return m, nil
+	case 6:
+		if m.cursor >= 0 && m.cursor < len(m.health) {
+			if fn := m.health[m.cursor].fix; fn != nil {
+				return m, run(fn)
+			}
 		}
 		return m, nil
 	}

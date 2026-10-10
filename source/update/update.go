@@ -48,6 +48,12 @@ func hasKernelDrift() (bool, time.Time) {
 	return time.Since(buildDate) > driftThreshold, buildDate
 }
 
+// KernelDrift reports whether the running kernel is older than the drift
+// threshold on -current, i.e. base and packages are out of sync.
+func KernelDrift() (bool, time.Time) {
+	return hasKernelDrift()
+}
+
 func Get() string {
 	drift, _ := hasKernelDrift()
 	if drift {
