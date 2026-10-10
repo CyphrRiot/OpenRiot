@@ -57,7 +57,7 @@ separator-padding = 0
 ; Modules layout: i3 workspaces | arrow | date | arrow | volume | network | battery | arrow | power
 modules-left = launcher all
 modules-center = weather date
-modules-right = crypto proton-drive night-light sep transmission nzbget cpu memory sep wireguard stealth network-wifi network-eth openriot-update sep hdmi volume battery sep screenrec settings power lock
+modules-right = crypto proton-drive night-light sep transmission nzbget cpu memory sep wireguard stealth network-wifi network-eth openriot-update sep hdmi volume battery sep screenrec control-panel settings power lock
 
 ; Colors
 background = ${colors.alpha-bg}
@@ -163,6 +163,14 @@ format-foreground = ${colors.cyan-dim}
 
 format-padding = 0
 click-left = $HOME/.local/share/openriot/install/openriot --settings-menu
+
+[module/control-panel]
+type = custom/text
+format = "%{T1}󰐰%{T-}%{O2}"
+format-foreground = ${colors.cyan-dim}
+
+format-padding = 0
+click-left = alacritty --title "OpenRiot Control Center" --class openriot_control -e openriot --control-center
 
 [module/openriot-update]
 type = custom/script

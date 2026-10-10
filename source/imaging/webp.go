@@ -8,10 +8,10 @@ import (
 	"strings"
 )
 
-// ConvertPngToWebP converts all .png files in backgrounds/, Locked/ and assets/ to .webp
-// and removes the original .png files.
+// ConvertPngToWebP converts all .png files in backgrounds/ and Locked/ to
+// .webp and removes the original .png files.
 func ConvertPngToWebP() error {
-	dirs := []string{"backgrounds", "Locked", "assets"}
+	dirs := []string{"backgrounds", "Locked"}
 	converted := 0
 	for _, dir := range dirs {
 		files, err := filepath.Glob(filepath.Join(dir, "*.png"))
@@ -20,18 +20,6 @@ func ConvertPngToWebP() error {
 		}
 		if len(files) == 0 {
 			continue
-		}
-
-		webps, _ := filepath.Glob(filepath.Join(dir, "*.webp"))
-		for _, w := range webps {
-			src := strings.TrimSuffix(w, ".webp") + ".png"
-			if _, err := os.Stat(src); os.IsNotExist(err) {
-				if err := os.Remove(w); err != nil {
-					fmt.Fprintf(os.Stderr, "remove stale %s: %v\n", w, err)
-				} else {
-					fmt.Printf("removed stale: %s\n", w)
-				}
-			}
 		}
 
 		for _, f := range files {

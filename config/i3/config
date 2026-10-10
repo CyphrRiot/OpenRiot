@@ -115,7 +115,7 @@ for_window [class="^openriot_migrate$"] floating enable, resize set 40 ppt 50 pp
 for_window [class="^openriot_resolution$"] floating enable, resize set 40 ppt 50 ppt, move position center
 for_window [class="^glyphriot$"] floating enable, resize set 40 ppt 50 ppt, move position center
 for_window [class="^zcash-mini$"] floating enable, resize set 40 ppt 50 ppt, move position center
-for_window [title="^(OpenRiot Control Panel)$"] floating enable, resize set 900 85%, move position center
+for_window [title="^(OpenRiot Control Center)$"] floating enable, resize set 480 340, move position center
 
 # Popups
 for_window [class="^(xdg-desktop-portal-gtk)$" title="^(Save a File)$"] floating enable

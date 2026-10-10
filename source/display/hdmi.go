@@ -132,6 +132,26 @@ func RunHDMI() {
 	}
 }
 
+// HDMIStatus reports whether an external display is physically connected and
+// whether it is currently driven. Uses xrandr, which is authoritative for
+// connection state; i3 drops or mislabels outputs that xrandr still drives.
+func HDMIStatus() (connected bool, active bool) {
+	outputs := parseXrandrOutputs()
+	for name, out := range outputs {
+		if strings.HasPrefix(name, "eDP") || strings.HasPrefix(name, "LVDS") {
+			continue
+		}
+		if name == "xroot-0" {
+			continue
+		}
+		connected = true
+		if out.Active {
+			return true, true
+		}
+	}
+	return connected, false
+}
+
 func getSysctl(name string) (string, error) {
 	out, err := exec.Command("sysctl", "-n", name).Output()
 	if err != nil {

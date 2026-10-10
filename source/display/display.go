@@ -10,6 +10,45 @@ import (
 	"openriot/notify"
 )
 
+// GetBrightness returns the current backlight percentage (0-100).
+// Tries wsconsctl (0-255) then xbacklight (0-100). Returns 0 if unavailable.
+func GetBrightness() int {
+	out, _ := exec.Command("sh", "-c", "wsconsctl display.brightness 2>/dev/null | cut -d= -f2").Output()
+	val, err := strconv.Atoi(strings.TrimSpace(string(out)))
+	if err == nil && val > 0 {
+		return val * 100 / 255
+	}
+	out, _ = exec.Command("xbacklight", "-get").Output()
+	f, err := strconv.ParseFloat(strings.TrimSpace(string(out)), 64)
+	if err == nil {
+		return int(f + 0.5)
+	}
+	return 0
+}
+
+// SetBrightness sets the backlight to the given percentage (0-100).
+// Tries wsconsctl first, falls back to xbacklight.
+func SetBrightness(pct int) error {
+	wsval := pct * 255 / 100
+	if exec.Command("wsconsctl", fmt.Sprintf("display.brightness=%d", wsval)).Run() == nil {
+		return nil
+	}
+	return exec.Command("xbacklight", "-set", strconv.Itoa(pct)).Run()
+}
+
+// AdjustBrightness raises or lowers the backlight by pct percent.
+func AdjustBrightness(delta int) error {
+	if exec.Command("wsconsctl", fmt.Sprintf("display.brightness=%+d", delta)).Run() == nil {
+		return nil
+	}
+	verb := "-inc"
+	if delta < 0 {
+		verb = "-dec"
+		delta = -delta
+	}
+	return exec.Command("xbacklight", verb, strconv.Itoa(delta)).Run()
+}
+
 // Run executes brightness subcommands.
 // Tries wsconsctl (OpenBSD console) first, falls back to xbacklight (X11).
 // Always shows notification (like volume) - even on failure.
@@ -24,74 +63,24 @@ func Run(args []string) int {
 		notify.SendNotify("nightlight-on", "Settings", msg, "normal", 3000, 0)
 	}
 
-	// Try wsconsctl (OpenBSD console), then xbacklight (X11)
-	runCmd := func(action string) bool {
-		// Try wsconsctl first
-		if exec.Command("wsconsctl", fmt.Sprintf("display.brightness=%s", action)).Run() == nil {
-			return true
-		}
-		// Fallback to xbacklight
-		var xbArgs []string
-		switch action {
-		case "+10":
-			xbArgs = []string{"-inc", "10"}
-		case "-10":
-			xbArgs = []string{"-dec", "10"}
-		default:
-			// For set command, action is the value
-			xbArgs = []string{"-set", action}
-		}
-		if exec.Command("xbacklight", xbArgs...).Run() == nil {
-			return true
-		}
-		return false
-	}
-
-	// Get brightness - wsconsctl (0-255) or xbacklight (0-100)
-	getBrightness := func() (int, bool) {
-		// Try wsconsctl first
-		out, _ := exec.Command("sh", "-c", "wsconsctl display.brightness 2>/dev/null | cut -d= -f2").Output()
-		val, err := strconv.Atoi(strings.TrimSpace(string(out)))
-		if err == nil && val > 0 {
-			return val * 100 / 255, true
-		}
-		// Fallback to xbacklight
-		out, _ = exec.Command("xbacklight", "-get").Output()
-		val, err = strconv.Atoi(strings.TrimSpace(string(out)))
-		if err == nil && val > 0 {
-			return val, true
-		}
-		return 0, false
-	}
-
 	if len(args) < 1 {
 		return usage()
 	}
 
 	switch args[0] {
 	case "up":
-		if !runCmd("+10") {
+		if err := AdjustBrightness(10); err != nil {
 			showNotify("No backlight")
 			return 1
 		}
-		b, ok := getBrightness()
-		if ok {
-			showNotify(fmt.Sprintf("%d%%", b))
-		} else {
-			showNotify("Brightness up")
-		}
+		showNotify(fmt.Sprintf("%d%%", GetBrightness()))
 		return 0
 	case "down":
-		if !runCmd("-10") {
+		if err := AdjustBrightness(-10); err != nil {
 			showNotify("No backlight")
 			return 1
 		}
-		b, ok := getBrightness()
-		if ok {
-			showNotify(fmt.Sprintf("%d%%", b))
-		} else {
-			showNotify("Brightness down")
-		}
+		showNotify(fmt.Sprintf("%d%%", GetBrightness()))
 		return 0
 	case "set":
 		if len(args) < 2 {
@@ -102,21 +91,14 @@ func Run(args []string) int {
 			fmt.Fprintln(os.Stderr, "Error: brightness must be 0-100")
 			return 1
 		}
-		// Try wsconsctl first (0-255), then xbacklight (0-100)
-		wsval := val * 255 / 100
-		if exec.Command("wsconsctl", fmt.Sprintf("display.brightness=%d", wsval)).Run() != nil {
-			if exec.Command("xbacklight", "-set", args[1]).Run() != nil {
-				showNotify("No backlight")
-				return 1
-			}
+		if err := SetBrightness(val); err != nil {
+			showNotify("No backlight")
+			return 1
 		}
 		showNotify(fmt.Sprintf("%d%%", val))
 		return 0
 	case "get":
-		b, ok := getBrightness()
-		if ok {
-			fmt.Println(b)
-		}
+		fmt.Println(GetBrightness())
 		return 0
 	default:
 		return usage()

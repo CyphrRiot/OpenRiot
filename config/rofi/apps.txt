@@ -5,7 +5,6 @@ Terminal|alacritty|
 Firefox|firefox|
 Firefox [Private]|firefox --class firefox-private --private-window|
 File Manager|thunar|󰝰
-Proton Mail|firefox --class proton-mail https://mail.protonmail.com|󰊫
 Media Player|mpv --player-operation-mode=pseudo-gui|
 Music Player|alacritty --class rmpc --title "Music Player" -e ~/.local/bin/rmpc|
 Crush AI|alacritty --class crush --title "Crush AI" -e crush|󰚩
@@ -15,3 +14,4 @@ Chat|@submenu:chat|󰭻
 Games|@submenu:games|󰊗
 Office|@submenu:office|󰈙
 Utilities|@submenu:utilities|󰢮
+Control Center|alacritty --title "OpenRiot Control Center" --class openriot_control -e openriot --control-center|󰐰

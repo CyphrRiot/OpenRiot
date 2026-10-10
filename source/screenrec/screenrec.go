@@ -103,6 +103,12 @@ func isRecording() (bool, int) {
 	return true, pid
 }
 
+// IsRecording reports whether a screen recording is currently active.
+func IsRecording() bool {
+	recording, _ := isRecording()
+	return recording
+}
+
 func cleanupState() {
 	os.Remove(pidFilePath())
 	os.Remove(pathFilePath())

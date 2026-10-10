@@ -6,3 +6,4 @@ Kate IDE|kate|
 Text Editor|gnome-text-editor|󰷉
 Word Processor|libreoffice --writer|󰈬
 Spreadsheet|libreoffice --calc|󰈛
+Proton Mail|firefox --class proton-mail https://mail.protonmail.com|󰊫

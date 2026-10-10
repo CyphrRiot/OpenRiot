@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.65-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-7.9.66-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -79,6 +79,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [💎 Donations](#donations)
 - [🚀 Installing OpenRiot](#installing-openriot)
 - [⌨️ Master Your OpenRiot Desktop](#master-your-openriot-desktop)
+- [🎛️ Control Center](#control-center)
 - [🎮 Games](#games)
 - [󱕵 Blockchain](#blockchain)
 - [ Kate](#kate)
@@ -113,6 +114,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v7.9.66 — The Control Room](docs/v7.9.66-Release-Notes.md)
 - [v7.9.65 — The Machine Asks doas](docs/v7.9.65-Release-Notes.md)
 - [v7.9.64 — The Column That Lied](docs/v7.9.64-Release-Notes.md)
 - [v7.9.63 — The Machine Keeps the Door Open](docs/v7.9.63-Release-Notes.md)
@@ -122,7 +124,6 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [v7.9.59 — The Machine Knows When the Tunnel Is Dead](docs/v7.9.59-Release-Notes.md)
 - [v7.9.58 — The Machine Behind Glass](docs/v7.9.58-Release-Notes.md)
 - [v7.9.57 — The Machine Knows Where It Is](docs/v7.9.57-Release-Notes.md)
-- [v7.9.56 — Two Hands on the Wheel](docs/v7.9.56-Release-Notes.md)
 - [Older releases →](docs/)
 
 Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.
@@ -684,6 +685,44 @@ The **Utilities** entry opens this sub-menu:
 - `` unfocused with windows
 - `` empty workspace
 - Icons show running apps: `` Alacritty, `󰈹` Firefox, `󰝰` Thunar, etc.
+
+<a id="control-center"></a>
+
+## 🎛️ Control Center
+
+![OpenRiot Control Center](assets/control_center.webp)
+
+The Control Center pulls audio, display, network, power, privacy, and system
+controls into a single keyboard-driven panel — no hunting through separate
+menus or memorizing toggle keys. **Beta:** the feature set is still growing.
+
+Launch it any of three ways:
+
+- `Super + Ctrl + Space`
+- Click the 󰐰 faders icon in Polybar
+- Select **Control Center** from the app launcher (`Super + D`)
+
+### Sections
+
+| Section | Icon | Controls |
+| ------- | ---- | -------- |
+| Audio | 󰕾 | Volume bar, mute toggle |
+| Display | 󰹑 | Brightness bar, HDMI state + toggle, resolution picker |
+| Network | 󱚹 | WiFi status, Ethernet status, WireGuard toggle |
+| Power | 󰁹 | Battery level + remaining time, suspend / reboot / shutdown / lock |
+| Privacy | 󰌵 | Night Light, Stealth Mode, Proton Drive sync |
+| System | 󰙨 | OpenRiot update check, screen recording, screenshot |
+
+### Keys
+
+| Key | Action |
+| --- | ------ |
+| `↑` / `↓` | Move between items |
+| `←` / `→` | Move between sections |
+| `enter` | Activate the selected item |
+| `+` / `-` | Adjust volume (Audio) or brightness (Display) |
+| `?` | Toggle help |
+| `q` | Quit |
 
 <a id="games"></a>
 

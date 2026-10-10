@@ -15,6 +15,7 @@ import (
 	"openriot/backgrounds"
 	"openriot/battery"
 	"openriot/config"
+	"openriot/control"
 	"openriot/crypto"
 	"openriot/detect"
 	"openriot/disk"
@@ -514,6 +515,11 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--resolution-tui", Category: "Network & Battery",
 		Description: "Monitor resolution TUI",
 		Run: func(args []string) error { return resolution.Run() },
+	})
+	r.Register(&Command{
+		Name: "--control-center", Category: "System Controls",
+		Description: "Unified control center (audio, display, network, power, privacy, system)",
+		Run: func(args []string) error { return control.Run() },
 	})
 	r.Register(&Command{
 		Name: "--disk", Category: "System Controls",

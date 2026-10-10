@@ -143,6 +143,12 @@ func IsConnected() bool {
 	return connected
 }
 
+// IsEthernetConnected reports whether an ethernet interface has carrier.
+func IsEthernetConnected() bool {
+	_, connected := getEthInterface()
+	return connected
+}
+
 func getWifiInterface() (string, bool) {
 	cmd := exec.Command("/sbin/ifconfig")
 	output, _ := cmd.Output()
