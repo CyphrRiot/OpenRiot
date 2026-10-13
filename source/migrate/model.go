@@ -554,7 +554,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// For dump operations, show error screen on cancel
 			if wasCanceling && (strings.HasPrefix(m.operation, "dump_") || m.operation == "full_backup") {
 				m.screen = screens.ScreenError
-				m.message = "ERROR: " + msg.Error.Error()
+				if msg.Error != nil {
+					m.message = "ERROR: " + msg.Error.Error()
+				} else {
+					m.message = "ERROR: Operation canceled by user"
+				}
 				m.errorRequiresManualDismissal = true
 				m.lastScreen = m.screen
 				return m, nil
@@ -648,11 +652,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			// NOT DONE - Schedule next progress update (unless canceling)
 			if !m.canceling {
+				if m.operation == "full_backup" || m.operation == "dump_clone" {
+					return m, CheckCloneProgress()
+				}
 				if strings.HasPrefix(m.operation, "dump_") {
 					return m, CheckDumpProgress()
-				}
-				if m.operation == "full_backup" {
-					return m, CheckCloneProgress()
 				}
 				return m, CheckTUIBackupProgress()
 			}
@@ -667,7 +671,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case state.CylonAnimateMsg:
 		// Update cylon animation frame
 		m.cylonFrame = (m.cylonFrame + 1) % 20 // 20-frame cycle
-		if m.screen == screens.ScreenProgress {
+		if m.screen == screens.ScreenProgress || m.screen == screens.ScreenDumpProgress {
 			// Keep animating while on progress screen
 			return m, tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
 				return state.CylonAnimateMsg{}
@@ -773,7 +777,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case screens.ScreenDumpProgress:
 				m.canceling = true
-				if m.operation == "full_backup" {
+				if m.operation == "full_backup" || m.operation == "dump_clone" {
 					m.message = "Clone cancelled by user"
 					cloneCancel = true
 				} else {
@@ -1448,11 +1452,19 @@ func (m Model) handleSelection() (tea.Model, tea.Cmd) {
 		} else if m.screen == screens.ScreenConfirm {
 			m.choices = screens.ConfirmationChoices
 			m.cursor = 0
-			m.confirmation = "💾 Full Backup — rsync clone to /mnt/backup\n\n" +
-				"Only changed files will be transferred.\n" +
-				"Files deleted on source will be removed on target.\n" +
-				"Boot blocks will be installed for bootability.\n\n" +
-				"Proceed?"
+			if m.operation == "dump_clone" {
+				m.confirmation = "💾 Full Clone — dump | restore to /mnt/backup\n\n" +
+					"Sequential I/O — safe for encrypted disks.\n" +
+					"Copies the entire root and home partitions.\n" +
+					"Boot blocks will be installed for bootability.\n\n" +
+					"Proceed?"
+			} else {
+				m.confirmation = "💾 Full Backup — rsync clone to /mnt/backup\n\n" +
+					"Only changed files will be transferred.\n" +
+					"Files deleted on source will be removed on target.\n" +
+					"Boot blocks will be installed for bootability.\n\n" +
+					"Proceed?"
+			}
 		}
 		return m, nil
 	case screens.ScreenConfirm:
@@ -1609,6 +1621,17 @@ func (m Model) handleSelection() (tea.Model, tea.Cmd) {
 					m.screen = screens.ScreenDumpProgress
 					return m, tea.Batch(
 						StartClone(),
+						CheckCloneProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				case "dump_clone":
+					m.canceling = false
+					m.message = ""
+					m.screen = screens.ScreenDumpProgress
+					return m, tea.Batch(
+						StartDumpClone(),
 						CheckCloneProgress(),
 						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
 							return state.CylonAnimateMsg{}

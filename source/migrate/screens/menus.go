@@ -86,6 +86,7 @@ var (
 	// FullBackupChoices defines the full backup menu options
 	FullBackupChoices = []string{
 		"💾 Clone to /mnt/backup (rsync + installboot)",
+		"💾 Clone to /mnt/backup (dump | restore — safe for crypto)",
 		"⬅️ Back",
 	}
 )
@@ -243,20 +244,19 @@ func GetVerifyMenuAction(index int) MenuAction {
 // DumpMenuChoicesAreDefined above — add the routing
 func GetDumpMenuAction(index int) MenuAction {
 	switch index {
-	case 0: // Clone to /mnt/backup
-		// Check if /mnt/backup is mounted
+	case 0: // rsync clone
 		out, err := exec.Command("mount").Output()
 		if err != nil || !strings.Contains(string(out), " on /mnt/backup ") {
-			return MenuAction{
-				Screen:    ScreenError,
-				Operation: "mount_required",
-			}
+			return MenuAction{Screen: ScreenError, Operation: "mount_required"}
 		}
-		return MenuAction{
-			Screen:    ScreenConfirm,
-			Operation: "full_backup",
+		return MenuAction{Screen: ScreenConfirm, Operation: "full_backup"}
+	case 1: // dump|restore clone
+		out, err := exec.Command("mount").Output()
+		if err != nil || !strings.Contains(string(out), " on /mnt/backup ") {
+			return MenuAction{Screen: ScreenError, Operation: "mount_required"}
 		}
-	case 1: // Back
+		return MenuAction{Screen: ScreenConfirm, Operation: "dump_clone"}
+	case 2: // Back
 		return MenuAction{Screen: ScreenMain}
 	default:
 		return MenuAction{}

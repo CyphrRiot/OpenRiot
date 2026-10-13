@@ -608,8 +608,12 @@ func (m Model) renderDumpProgress() string {
 	ascii := asciiStyle.Render(MigrateASCII)
 	s.WriteString(ascii + "\n")
 
-	if m.operation == "full_backup" {
-		s.WriteString(titleStyle.Render("💾 Full Backup in progress...") + "\n\n")
+	if m.operation == "full_backup" || m.operation == "dump_clone" {
+		label := "💾 Full Backup in progress..."
+		if m.operation == "dump_clone" {
+			label = "💾 Full Clone (dump | restore) in progress..."
+		}
+		s.WriteString(titleStyle.Render(label) + "\n\n")
 
 		if m.message != "" {
 			msgStyle := lipgloss.NewStyle().Foreground(textColor).Width(safeRenderWidth(m.width) - 8)
