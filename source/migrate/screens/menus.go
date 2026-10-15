@@ -87,6 +87,7 @@ var (
 	FullBackupChoices = []string{
 		"💾 Clone to /mnt/backup (rsync + installboot)",
 		"💾 Clone to /mnt/backup (dump | restore — safe for crypto)",
+		"💾 Dump to file /mnt/backup (dump → root.dump + home.dump)",
 		"⬅️ Back",
 	}
 )
@@ -256,7 +257,13 @@ func GetDumpMenuAction(index int) MenuAction {
 			return MenuAction{Screen: ScreenError, Operation: "mount_required"}
 		}
 		return MenuAction{Screen: ScreenConfirm, Operation: "dump_clone"}
-	case 2: // Back
+	case 2: // dump to file
+		out, err := exec.Command("mount").Output()
+		if err != nil || !strings.Contains(string(out), " on /mnt/backup ") {
+			return MenuAction{Screen: ScreenError, Operation: "mount_required"}
+		}
+		return MenuAction{Screen: ScreenConfirm, Operation: "dump_file"}
+	case 3: // Back
 		return MenuAction{Screen: ScreenMain}
 	default:
 		return MenuAction{}

@@ -347,11 +347,12 @@ func runDumpClone() {
 		cloneOutputMu.Lock()
 		cloneTargetBase = dfUsedKB("/mnt/backup")
 		cloneSourceKB = dfUsedKB(part.mount)
+		cloneProgress = 0
 		cloneOutputMu.Unlock()
 
 		appendCloneOutput(fmt.Sprintf("Cloning %s partition (%s)...", part.label, part.raw))
 		cmd := exec.Command("doas", "sh", "-c",
-			fmt.Sprintf("dump 0af - %s | (cd /mnt/backup && restore -rf -)", part.raw))
+			fmt.Sprintf("dump 0af - %s | pv -q -L 15M | (cd /mnt/backup && restore -rf -)", part.raw))
 		stderr, _ := cmd.StderrPipe()
 		cmd.Start()
 
@@ -373,6 +374,11 @@ func runDumpClone() {
 					acc = acc[idx+1:]
 					if strings.Contains(token, "DUMP:") {
 						appendCloneOutput(token)
+						if p := dumpProgress(token); p >= 0 {
+							cloneOutputMu.Lock()
+							cloneProgress = p
+							cloneOutputMu.Unlock()
+						}
 					}
 				}
 			}
@@ -395,6 +401,89 @@ func runDumpClone() {
 		return
 	}
 	appendCloneOutput(fmt.Sprintf("Clone complete. /dev/%s is bootable.", disk))
+}
+
+// ── Dump-to-file clone (single pipe, no softraid queue contention) ───
+
+func StartDumpFile() tea.Cmd {
+	resetCloneState()
+	cloneOutputMu.Lock()
+	cloneRunning = true
+	cloneOutputMu.Unlock()
+	go watchCloneCancel("dump")
+	go runDumpFile()
+	return CheckCloneProgress()
+}
+
+func runDumpFile() {
+	defer func() {
+		cloneOutputMu.Lock()
+		cloneCompleted = true
+		cloneOutputMu.Unlock()
+	}()
+
+	appendCloneOutput("Checking /mnt/backup mount...")
+	out, err := exec.Command("mount").Output()
+	if err != nil {
+		cloneError = fmt.Errorf("mount: %w", err)
+		return
+	}
+	if !strings.Contains(string(out), " on /mnt/backup ") {
+		cloneError = fmt.Errorf("/mnt/backup is not mounted")
+		return
+	}
+
+	for _, part := range []struct{ raw, file, mount string }{
+		{"/dev/rsd1a", "root.dump", "/"},
+		{"/dev/rsd1d", "home.dump", "/home"},
+	} {
+		cloneOutputMu.Lock()
+		cloneTargetBase = dfUsedKB("/mnt/backup")
+		cloneSourceKB = dfUsedKB(part.mount)
+		cloneProgress = 0
+		cloneOutputMu.Unlock()
+
+		path := "/mnt/backup/" + part.file
+		appendCloneOutput(fmt.Sprintf("Dumping %s to %s...", part.mount, path))
+		cmd := exec.Command("doas", "sh", "-c",
+			fmt.Sprintf("dump 0af - %s | pv -q -L 15M > %s", part.raw, path))
+		stderr, _ := cmd.StderrPipe()
+		cmd.Start()
+
+		buf := make([]byte, 4096)
+		var acc []byte
+		for {
+			n, err := stderr.Read(buf)
+			if n > 0 {
+				acc = append(acc, buf[:n]...)
+				for {
+					idx := bytes.IndexAny(acc, "\r\n")
+					if idx < 0 {
+						break
+					}
+					token := strings.TrimSpace(string(acc[:idx]))
+					acc = acc[idx+1:]
+					if strings.Contains(token, "DUMP:") {
+						appendCloneOutput(token)
+						if p := dumpProgress(token); p >= 0 {
+							cloneOutputMu.Lock()
+							cloneProgress = p
+							cloneOutputMu.Unlock()
+						}
+					}
+				}
+			}
+			if err != nil {
+				break
+			}
+		}
+		if err := cmd.Wait(); err != nil {
+			cloneError = fmt.Errorf("dump %s failed: %w", part.mount, err)
+			return
+		}
+		appendCloneOutput(fmt.Sprintf("%s dumped.", part.mount))
+	}
+	appendCloneOutput("Dump complete. root.dump and home.dump on /mnt/backup.")
 }
 
 // ── Progress ────────────────────────────────────────────────────────────
@@ -425,13 +514,17 @@ func CheckCloneProgress() tea.Cmd {
 		if len(lines) > 0 {
 			msg = lines[len(lines)-1]
 		}
-		// Progress = how much the target has grown vs the source total.
+		// Prefer dump's own reported percentage; fall back to target
+		// growth vs source size only until the first report arrives.
 		cloneOutputMu.Lock()
+		dp := cloneProgress
 		base := cloneTargetBase
 		src := cloneSourceKB
 		cloneOutputMu.Unlock()
 		prog := -1.0
-		if src > 0 {
+		if dp > 0 {
+			prog = dp
+		} else if src > 0 {
 			used := dfUsedKB("/mnt/backup")
 			prog = float64(used-base) / float64(src)
 			if prog < 0 {

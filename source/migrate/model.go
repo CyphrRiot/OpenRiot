@@ -552,7 +552,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.canceling = false
 
 			// For dump operations, show error screen on cancel
-			if wasCanceling && (strings.HasPrefix(m.operation, "dump_") || m.operation == "full_backup") {
+			if wasCanceling && (strings.HasPrefix(m.operation, "dump_") || m.operation == "full_backup" || m.operation == "dump_file") {
 				m.screen = screens.ScreenError
 				if msg.Error != nil {
 					m.message = "ERROR: " + msg.Error.Error()
@@ -588,7 +588,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.screen = screens.ScreenConfirm
 				m.cursor = 1
 				return m, nil
-			} else if (strings.HasPrefix(m.operation, "dump_") || m.operation == "full_backup") && msg.Error == nil {
+			} else if (strings.HasPrefix(m.operation, "dump_") || m.operation == "full_backup" || m.operation == "dump_file") && msg.Error == nil {
 				// Dump completed
 				m.lastScreen = m.screen
 				m.screen = screens.ScreenComplete
@@ -652,7 +652,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			// NOT DONE - Schedule next progress update (unless canceling)
 			if !m.canceling {
-				if m.operation == "full_backup" || m.operation == "dump_clone" {
+				if m.operation == "full_backup" || m.operation == "dump_clone" || m.operation == "dump_file" {
 					return m, CheckCloneProgress()
 				}
 				if strings.HasPrefix(m.operation, "dump_") {
@@ -777,7 +777,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case screens.ScreenDumpProgress:
 				m.canceling = true
-				if m.operation == "full_backup" || m.operation == "dump_clone" {
+				if m.operation == "full_backup" || m.operation == "dump_clone" || m.operation == "dump_file" {
 					m.message = "Clone cancelled by user"
 					cloneCancel = true
 				} else {
@@ -1452,13 +1452,20 @@ func (m Model) handleSelection() (tea.Model, tea.Cmd) {
 		} else if m.screen == screens.ScreenConfirm {
 			m.choices = screens.ConfirmationChoices
 			m.cursor = 0
-			if m.operation == "dump_clone" {
+			switch {
+			case m.operation == "dump_clone":
 				m.confirmation = "💾 Full Clone — dump | restore to /mnt/backup\n\n" +
 					"Sequential I/O — safe for encrypted disks.\n" +
 					"Copies the entire root and home partitions.\n" +
 					"Boot blocks will be installed for bootability.\n\n" +
 					"Proceed?"
-			} else {
+			case m.operation == "dump_file":
+				m.confirmation = "💾 Dump to File — dump → /mnt/backup/*.dump\n\n" +
+					"Writes root.dump and home.dump to the backup drive.\n" +
+					"Single pipe per partition — no softraid queue contention.\n" +
+					"To restore: cd /mnt/backup && doas restore -rf root.dump\n\n" +
+					"Proceed?"
+			default:
 				m.confirmation = "💾 Full Backup — rsync clone to /mnt/backup\n\n" +
 					"Only changed files will be transferred.\n" +
 					"Files deleted on source will be removed on target.\n" +
@@ -1632,6 +1639,17 @@ func (m Model) handleSelection() (tea.Model, tea.Cmd) {
 					m.screen = screens.ScreenDumpProgress
 					return m, tea.Batch(
 						StartDumpClone(),
+						CheckCloneProgress(),
+						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+							return state.CylonAnimateMsg{}
+						}),
+					)
+				case "dump_file":
+					m.canceling = false
+					m.message = ""
+					m.screen = screens.ScreenDumpProgress
+					return m, tea.Batch(
+						StartDumpFile(),
 						CheckCloneProgress(),
 						tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
 							return state.CylonAnimateMsg{}

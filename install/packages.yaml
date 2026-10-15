@@ -496,8 +496,8 @@ system:
     services:
         type: "Package"
         commands:
-            - desc: "Enable and start apmd (adaptive performance)"
-              cmd: "doas rcctl enable apmd && doas rcctl set apmd flags -A -a -z 5 && doas rcctl start apmd"
+            - desc: "Enable and start apmd (power events)"
+              cmd: "doas rcctl enable apmd && doas rcctl set apmd flags -a -z 5 && doas rcctl start apmd"
             - desc: "Install apmd resume hook for OpenRiot"
               cmd: |
                   doas mkdir -p /etc/apm
@@ -511,7 +511,8 @@ system:
                   fi
             - desc: "Set kern.maxfiles for large worktrees (Zed needs ~4000+ FDs)"
               cmd: |
-                  if ! grep -q 'kern.maxfiles=65536' /etc/sysctl.conf 2>/dev/null; then
+                  if ! grep -q '^kern\.maxfiles=65536$' /etc/sysctl.conf 2>/dev/null; then
+                      doas sed -i '/^kern\.maxfiles=/d' /etc/sysctl.conf
                       doas sh -c 'echo "kern.maxfiles=65536" >> /etc/sysctl.conf'
                       doas sysctl kern.maxfiles=65536
                   fi
@@ -537,13 +538,14 @@ system:
                   else
                       echo "[SKIP] pf.conf not found"
                   fi
-            - desc: "Remove cupsd from pkg_scripts (opens port 631)"
+            - desc: "Remove cupsd (port 631) and obsdfreqd (conflicts with hw.perfpolicy) from pkg_scripts"
               cmd: |
                   if grep -q '^pkg_scripts=' /etc/rc.conf.local 2>/dev/null; then
                       doas sed -i 's/\bcupsd\b//g' /etc/rc.conf.local
+                      doas sed -i 's/\bobsdfreqd\b//g' /etc/rc.conf.local
                       doas sed -i 's/pkg_scripts=[[:space:]]*/pkg_scripts=/' /etc/rc.conf.local
                       doas sed -i 's/pkg_scripts=$/# pkg_scripts=/' /etc/rc.conf.local
-                      echo "[DONE] cupsd removed from pkg_scripts"
+                      echo "[DONE] cupsd and obsdfreqd removed from pkg_scripts"
                   fi
             - desc: "Update firmware (may take several minutes)"
               cmd: "doas fw_update -a"
