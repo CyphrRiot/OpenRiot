@@ -126,6 +126,31 @@ func RunCheckPackages() error {
 	return nil
 }
 
+// PackagesCurrent reports whether every pinned package is installed at
+// the exact pinned version. It produces no output.
+func PackagesCurrent() error {
+	configPath := findPackagesYaml()
+
+	cfg, err := config.LoadConfig(configPath)
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	installed := GetInstalledPackages()
+	if len(installed) == 0 {
+		return fmt.Errorf("no packages found from pkg_info")
+	}
+
+	for _, pkg := range cfg.GetPackages() {
+		base := config.GetBaseName(pkg)
+		installedVer, exists := installed[base]
+		if !exists || installedVer != pkg {
+			return fmt.Errorf("packages outdated")
+		}
+	}
+	return nil
+}
+
 // RunSyncPackages updates packages.yaml to latest installed versions.
 // Returns an error on any failure.
 func RunSyncPackages() error {

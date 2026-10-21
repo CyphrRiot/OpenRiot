@@ -410,10 +410,12 @@ main() {
     }
     install_x11_sets
 
-    if ! run_openriot --pkg-update "$LOG_FILE"; then
-        error "Package update failed. Fix the package database and rerun setup."
-        wait_for_key
-        exit 1
+    if ! run_openriot --packages-current "$LOG_FILE"; then
+        if ! run_openriot --pkg-update "$LOG_FILE"; then
+            error "Package update failed. Fix the package database and rerun setup."
+            wait_for_key
+            exit 1
+        fi
     fi
 
     run_openriot --install-packages "$LOG_FILE"

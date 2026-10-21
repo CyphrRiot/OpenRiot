@@ -185,6 +185,16 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Run: func(args []string) error { return installer.RunCheckPackages() },
 	})
 	r.Register(&Command{
+		Name: "--packages-current", Category: "Installation",
+		Description: "Exit nonzero when installed packages differ from pins",
+		Run: func(args []string) error {
+			if installer.PackagesCurrent() != nil {
+				os.Exit(1)
+			}
+			return nil
+		},
+	})
+	r.Register(&Command{
 		Name: "--sync-packages", Category: "Installation",
 		Description: "Update packages.yaml to installed versions",
 		Run: func(args []string) error { return installer.RunSyncPackages() },
