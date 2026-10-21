@@ -100,7 +100,7 @@ base name. If that fails, `tryInstall()` retries with `-D snap`, even on
 a release host. That fallback can pull snapshot packages onto a stable
 system.
 
-## 4. Phase 0: Preflight and Backup
+## 4. Phase 0: Preflight and Optional Backup
 
 Run on the 7.9 machine before any migration work:
 
@@ -117,11 +117,13 @@ Run on the 7.9 machine before any migration work:
    df -h /usr
    ```
 
-3. Create a full backup:
+3. Create a full backup (optional):
 
    ```sh
    openriot --backup
    ```
+
+   Skipping this removes the only rollback path.
 
 4. Record installed packages and custom configuration:
 
@@ -534,9 +536,9 @@ Acceptance:
 4. Merge configuration and update the rest of the system:
 
    ```sh
-   doas sysmerge
-   doas fw_update
-   doas pkg_add -u
+   doas sysmerge      # recommended: merge base config changes
+   doas fw_update     # optional: only if firmware updates are available
+   doas pkg_add -u    # required: align packages with 8.0
    ```
 
 5. Re-run the installer to apply the OpenRiot release:
