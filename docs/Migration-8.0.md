@@ -29,7 +29,7 @@ install followed by `setup.sh`, and a 7.9 to 8.0 upgrade followed by
 | Decision | Choice | Reason |
 |----------|--------|--------|
 | Target | OpenBSD 8.0 amd64 | Current release line |
-| Upgrade method | `doas sysupgrade -R 8.0 -n` then `doas reboot` | User controls reboot |
+| Upgrade method | `sysupgrade -R 8.0 -n`, then reboot | User controls reboot |
 | Release date constant | October 6, 2026 | Convention uses sets build date |
 | Desktop | Keep i3 and X11 | 8.0 breaks nothing used by OpenRiot |
 | Wayland | No migration in this plan | No functional need |
@@ -644,7 +644,7 @@ Do not promise an in-place rollback in release notes.
 - `make image` produces a bootable 8.0 image.
 - Path A passes: clean 8.0 install plus setup yields a desktop.
 - Path B passes: 7.9 upgrades to 8.0 and setup restores OpenRiot.
-- A 7.9 stable system upgrades with `sysupgrade -R 8.0 -n` and a controlled reboot.
+- A 7.9 system upgrades with `-n` and a controlled reboot.
 - A fresh offline install completes.
 - `install/openriot` is rebuilt and shipped with the release.
 - Package pins resolve on a clean 8.0 host.
