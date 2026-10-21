@@ -30,10 +30,10 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 	for _, pkg := range packages {
 		base := config.GetBaseName(pkg)
 		if installedVer, ok := installed[base]; ok {
-			if installedVer != pkg {
-				logger.Warn(fmt.Sprintf("Newer version of %s installed", pkg))
+			if installedVer == pkg {
+				continue
 			}
-			continue
+			logger.Info(fmt.Sprintf("Updating %s: %s -> %s", base, installedVer, pkg))
 		}
 		toInstall = append(toInstall, pkg)
 	}
