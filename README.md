@@ -1002,13 +1002,15 @@ doas reboot
 the one-shot upgrade. `doas sysupgrade` without `-R` also selects the
 next release. `-R 8.0` makes the target explicit.
 
-#### 3. Merge and update after reboot
+#### 3. Merge and update firmware
 
 ```bash
 doas sysmerge      # recommended: merge base config changes
 doas fw_update     # optional: only if firmware updates are available
-doas pkg_add -u    # required: align packages with 8.0
 ```
+
+Setup runs `pkg_add -Iu` before installing its pins. You do not need to
+run `pkg_add -u` separately unless setup cannot complete.
 
 `sysmerge` may ask about files OpenRiot manages, including
 `/etc/pf.conf`, `/etc/sysctl.conf`, `/etc/rc.conf.local`, and

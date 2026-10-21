@@ -533,13 +533,15 @@ Acceptance:
    ```sh
    doas reboot
    ```
-4. Merge configuration and update the rest of the system:
+4. Merge configuration and update firmware:
 
    ```sh
    doas sysmerge      # recommended: merge base config changes
    doas fw_update     # optional: only if firmware updates are available
-   doas pkg_add -u    # required: align packages with 8.0
    ```
+
+   Setup runs `pkg_add -Iu` before installing pins. You do not need to
+   run `pkg_add -u` separately unless setup cannot complete.
 
 5. Re-run the installer to apply the OpenRiot release:
 
