@@ -978,15 +978,17 @@ installing packages or changing configuration.
 OpenBSD supports upgrades only one release at a time. A 7.8 system must
 go through 7.9 first, or use a fresh 8.0 install.
 
-#### 1. Back up
+#### 1. Backup (Optional)
 
 ```bash
 openriot --backup
 df -h /usr
 ```
 
-`/usr` needs at least 1.1G free. `sysupgrade` also refuses to proceed
-when the filesystem is more than 90 percent full.
+Skipping the backup removes the only rollback path. OpenBSD's upgrade
+guide requires at least 1.1G free on `/usr`. The sets are smaller, but
+keep the official margin. `sysupgrade` also refuses to proceed when the
+filesystem is more than 90 percent full.
 
 #### 2. Upgrade the base system
 
@@ -1003,9 +1005,9 @@ next release. `-R 8.0` makes the target explicit.
 #### 3. Merge and update after reboot
 
 ```bash
-doas sysmerge
-doas fw_update
-doas pkg_add -u
+doas sysmerge      # recommended: merge base config changes
+doas fw_update     # optional: only if firmware updates are available
+doas pkg_add -u    # required: align packages with 8.0
 ```
 
 `sysmerge` may ask about files OpenRiot manages, including
