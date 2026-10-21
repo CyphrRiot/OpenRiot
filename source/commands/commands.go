@@ -256,7 +256,7 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Description: "Update packages from " + installer.TargetOpenBSD + " stable release",
 		Run: func(args []string) error {
 			fmt.Printf("Updating packages from OpenBSD %s stable...\n", installer.TargetOpenBSD)
-			cmd := exec.Command("doas", "sh", "-c", fmt.Sprintf("PKG_PATH=https://cdn.openbsd.org/pub/OpenBSD/%s/packages/amd64/ pkg_add -u", installer.TargetOpenBSD))
+			cmd := exec.Command("doas", "sh", "-c", fmt.Sprintf("PKG_PATH=https://cdn.openbsd.org/pub/OpenBSD/%s/packages/amd64/ pkg_add -Iu", installer.TargetOpenBSD))
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			return cmd.Run()
