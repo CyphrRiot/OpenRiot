@@ -294,7 +294,7 @@ run_openriot() {
     fi
     cd "$INSTALL_DIR/install" || { error "Cannot cd to $INSTALL_DIR/install"; exit 1; }
     mkdir -p "$(dirname "$logfile")"
-    tmp=$(mktemp -t openriot-setup) || exit 1
+    tmp=$(mktemp "${TMPDIR:-/tmp}/openriot-setup.XXXXXX") || exit 1
     ./openriot "$flag" >"$tmp" 2>&1
     status=$?
     tee -a "$logfile" <"$tmp"
