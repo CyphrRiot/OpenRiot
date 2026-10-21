@@ -8,7 +8,9 @@ BINARY_NAME = openriot
 SOURCE_DIR  = source
 INSTALL_DIR = install
 ARCH        = amd64
-OPENBSD_VERSION = 7.9
+OPENBSD_VERSION != cat OPENBSD_VERSION
+OPENBSD_RELEASE_DATE != cat OPENBSD_RELEASE_DATE
+OPENBSD_SETS = $(OPENBSD_VERSION:S/.//g)
 
 # ============================================================
 # Targets
@@ -22,7 +24,7 @@ all:
 	cd $(SOURCE_DIR) && \
 	CGO_ENABLED=0 GOOS=openbsd GOARCH=$(ARCH) \
 	go build \
-	-ldflags="-s -w -X main.version=$$OPENRIOT_VERSION -X main.openbsdVersion=$(OPENBSD_VERSION)" \
+	-ldflags="-s -w -X main.version=$$OPENRIOT_VERSION -X openriot/buildinfo.OpenBSDVersion=$(OPENBSD_VERSION) -X openriot/buildinfo.OpenBSDReleaseDate=$(OPENBSD_RELEASE_DATE)" \
 	-trimpath \
 	-o ../$(INSTALL_DIR)/$(BINARY_NAME) . && \
 	chmod 0755 ../$(INSTALL_DIR)/$(BINARY_NAME) && \
@@ -160,7 +162,7 @@ ultra:
 	cd $(SOURCE_DIR) && \
 	CGO_ENABLED=0 GOOS=openbsd GOARCH=$(ARCH) \
 	go build \
-	-ldflags="-s -w -X main.version=$$OPENRIOT_VERSION -X main.openbsdVersion=$(OPENBSD_VERSION) -extldflags=-static" \
+	-ldflags="-s -w -X main.version=$$OPENRIOT_VERSION -X openriot/buildinfo.OpenBSDVersion=$(OPENBSD_VERSION) -X openriot/buildinfo.OpenBSDReleaseDate=$(OPENBSD_RELEASE_DATE) -extldflags=-static" \
 	-trimpath \
 	-o ../$(INSTALL_DIR)/$(BINARY_NAME) . && \
 	chmod 0755 ../$(INSTALL_DIR)/$(BINARY_NAME) && \
@@ -275,7 +277,7 @@ prune:
 	echo "  Remotes preserved. To publish rewritten history:"; \
 	echo "    git push --force --all && git push --force --tags"
 # Custom installer image
-# Requires OpenBSD 7.9 host - cross-compilation not possible for bsd.rd modification
+# Requires OpenBSD $(OPENBSD_VERSION) host - cross-compilation not possible for bsd.rd modification
 image: all
 	@if [ "$$(uname -s)" != "OpenBSD" ]; then \
 		echo "ERROR: image target requires OpenBSD $(OPENBSD_VERSION)"; \
@@ -287,7 +289,7 @@ image: all
 		echo "  3. doas make image"; \
 		exit 1; \
 	fi
-	@doas rm -rf Build/Output Build/work/site79.tgz
+	@doas rm -rf Build/Output Build/work/site$(OPENBSD_SETS).tgz
 	@doas ./install/openriot --make-image
 
 img:

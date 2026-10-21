@@ -256,29 +256,30 @@ func injectContent(cfg *Config) error {
 	}
 
 	// Inject tarball into the sets directory so the installer can find it
-	setsDir := filepath.Join("/mnt", "7.9", "amd64")
+	setsDir := filepath.Join("/mnt", formatVersion(cfg.Version), "amd64")
+	siteName := fmt.Sprintf("site%s.tgz", cfg.Version)
 	logger.Info(fmt.Sprintf("Creating sets directory %s...", setsDir))
 	if err := os.MkdirAll(setsDir, 0755); err != nil {
 		return fmt.Errorf("create sets dir: %w", err)
 	}
 
-	logger.Info("Injecting site79.tgz...")
+	logger.Info(fmt.Sprintf("Injecting %s...", siteName))
 	tgzSrc := cfg.OpenriotTgz
-	tgzDst := filepath.Join(setsDir, "site79.tgz")
+	tgzDst := filepath.Join(setsDir, siteName)
 	if err := fsutil.CopyFile(tgzSrc, tgzDst); err != nil {
 		return fmt.Errorf("copy tgz: %w", err)
 	}
 
-	// index.txt is required for the installer to discover site79.tgz.
+	// index.txt is required for the installer to discover the site set.
 	// Append to existing index.txt (base image already lists standard sets).
 	// Use actual ls -lT output so the installer parser recognizes the entry.
 	logger.Info("Updating index.txt...")
 	idxPath := filepath.Join(setsDir, "index.txt")
-	cmd = exec.Command("ls", "-lT", "site79.tgz")
+	cmd = exec.Command("ls", "-lT", siteName)
 	cmd.Dir = setsDir
 	out, err := cmd.Output()
 	if err != nil {
-		return fmt.Errorf("ls -lT site79.tgz: %w", err)
+		return fmt.Errorf("ls -lT %s: %w", siteName, err)
 	}
 	idxLine := string(out)
 	if !strings.HasSuffix(idxLine, "\n") {

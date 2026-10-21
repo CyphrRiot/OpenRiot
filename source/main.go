@@ -14,11 +14,9 @@ import (
 // Injected at build time via Makefile ldflags:
 //
 //	-X main.version=$(OPENRIOT_VERSION)
-//	-X main.openbsdVersion=$(OPENBSD_VERSION)
 //
 // Do NOT hardcode these here - change Makefile instead.
 var version = "dev"
-var openbsdVersion = "7.9"
 
 var testMode bool
 

@@ -179,10 +179,10 @@ Modes:
   help          Show this help
 
 Flags:
-  --base-img PATH    Base OpenBSD image (default: Build/Images/install79.img)
+  --base-img PATH    Base OpenBSD image (default: host release)
   --output-img PATH  Output image (default: Build/Images/openriot.img)
   --work-dir PATH    Working directory (default: Build/work)
-  --version X.Y      OpenBSD version to target (default: 79)
+  --version X.Y      OpenBSD version to target (default: host release)
   --no-burn          Skip drive detection and burn prompt
 
 Examples:

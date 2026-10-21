@@ -11,7 +11,7 @@ import (
 	"openriot/logger"
 )
 
-// CreateSite creates the site79.tgz tarball
+// CreateSite creates the site<version>.tgz tarball
 func CreateSite(cfg *Config) error {
 	workDir := cfg.WorkDir
 

@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
+
+	"openriot/buildinfo"
+	"openriot/config"
 )
 
 // ReleasePathResult classifies a system's upgrade path.
@@ -24,8 +28,53 @@ var ErrUpgradeRequired = fmt.Errorf("pre-release snapshot: sysupgrade -R availab
 var ErrDowngradeRisk = fmt.Errorf("post-release snapshot: sysupgrade -R is a downgrade")
 
 // ReleaseDate is the build date of the current OpenBSD release sets.
-// Update this when a new OpenBSD version is released.
-var ReleaseDate = time.Date(2026, time.May, 6, 0, 0, 0, 0, time.UTC)
+var ReleaseDate = parseReleaseDate(buildinfo.OpenBSDReleaseDate)
+
+var TargetOpenBSD = buildinfo.OpenBSDVersion
+
+func CompareRelease(a, b string) int {
+	aparts := strings.SplitN(a, ".", 3)
+	bparts := strings.SplitN(b, ".", 3)
+	for i := 0; i < 2; i++ {
+		av, bv := 0, 0
+		if i < len(aparts) {
+			av, _ = strconv.Atoi(aparts[i])
+		}
+		if i < len(bparts) {
+			bv, _ = strconv.Atoi(bparts[i])
+		}
+		if av < bv {
+			return -1
+		}
+		if av > bv {
+			return 1
+		}
+	}
+	return 0
+}
+
+func CheckReleaseRequirement() error {
+	target := TargetOpenBSD
+	if target == "" || target == "dev" {
+		return nil
+	}
+	running := config.DetectOpenBSDVersion()
+	if running == "snapshots" {
+		return nil
+	}
+	if CompareRelease(running, target) < 0 {
+		return fmt.Errorf("OpenBSD %s detected; OpenRiot requires OpenBSD %s", running, target)
+	}
+	return nil
+}
+
+func parseReleaseDate(value string) time.Time {
+	date, err := time.Parse("2006-01-02", value)
+	if err != nil {
+		return time.Time{}
+	}
+	return date
+}
 
 // CheckReleasePath parses the kernel version and determines the migration
 // status relative to a known release date.

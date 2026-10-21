@@ -71,7 +71,7 @@ func loadConfigOrError() (*config.Config, error) {
 }
 
 // checkUpgrade prints system upgrade information for the user
-func checkUpgrade() {
+func checkUpgrade() error {
 	version := config.DetectOpenBSDVersion()
 
 	if version == "snapshots" {
@@ -103,13 +103,36 @@ func checkUpgrade() {
 			fmt.Println("  (reboot)")
 			fmt.Println("  doas pkg_add -u")
 		}
+		return nil
 	} else {
 		// We're on stable/release
+		target := installer.TargetOpenBSD
 		fmt.Printf("Version: %s (stable)\n", version)
-		fmt.Println()
-		fmt.Println("Check for errata updates:")
-		fmt.Println("  doas sysupgrade")
+		if target == "" || target == "dev" {
+			fmt.Println()
+			fmt.Println("Check for errata updates:")
+			fmt.Println("  doas sysupgrade")
+			return nil
+		}
+		switch installer.CompareRelease(version, target) {
+		case -1:
+			printOSUpgradePlan(version, target)
+			return fmt.Errorf("OpenBSD %s upgrade required before installing OpenRiot", target)
+		case 0:
+			fmt.Println()
+			fmt.Println("This is the current OpenRiot target release.")
+			fmt.Println("Check for errata updates:")
+			fmt.Println("  doas sysupgrade")
+			fmt.Println("Then update packages:")
+			fmt.Println("  doas pkg_add -u")
+		default:
+			fmt.Println()
+			fmt.Printf("OpenRiot targets OpenBSD %s. Running %s.\n", target, version)
+			fmt.Println("Packages will be installed by base name, without exact pins.")
+			fmt.Println("Update OpenRiot when a release for this OpenBSD version is available.")
+		}
 	}
+	return nil
 }
 
 // RegisterAll populates the registry with all openriot commands.
@@ -222,7 +245,7 @@ func RegisterAll(r *Registry, testMode *bool) {
 	})
 	r.Register(&Command{
 		Name: "--check-release-path", Category: "Tools & Upgrades",
-		Description: "Check if you can safely migrate from -current to 7.9 stable",
+		Description: "Check if you can safely migrate from -current to " + installer.TargetOpenBSD + " stable",
 		Run: func(args []string) error {
 			checkReleasePath()
 			return nil
@@ -230,10 +253,10 @@ func RegisterAll(r *Registry, testMode *bool) {
 	})
 	r.Register(&Command{
 		Name: "--pkg-update", Category: "Tools & Upgrades",
-		Description: "Update packages from 7.9 stable release",
+		Description: "Update packages from " + installer.TargetOpenBSD + " stable release",
 		Run: func(args []string) error {
-			fmt.Println("Updating packages from OpenBSD 7.9 stable...")
-			cmd := exec.Command("doas", "sh", "-c", "PKG_PATH=https://cdn.openbsd.org/pub/OpenBSD/7.9/packages/amd64/ pkg_add -u")
+			fmt.Printf("Updating packages from OpenBSD %s stable...\n", installer.TargetOpenBSD)
+			cmd := exec.Command("doas", "sh", "-c", fmt.Sprintf("PKG_PATH=https://cdn.openbsd.org/pub/OpenBSD/%s/packages/amd64/ pkg_add -u", installer.TargetOpenBSD))
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			return cmd.Run()
@@ -243,8 +266,7 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--check-upgrade", Category: "Tools & Upgrades",
 		Description: "Check if system upgrade is needed",
 		Run: func(args []string) error {
-			checkUpgrade()
-			return nil
+			return checkUpgrade()
 		},
 	})
 	r.Register(&Command{

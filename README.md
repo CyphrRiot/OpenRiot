@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-7.9.70-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-8.0.0-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -25,11 +25,11 @@
 
 ## 𝕆𝕡𝕖𝕟ℝ𝕚𝕠𝕥
 
-A ridiculously polished i3 desktop for OpenBSD 7.9 with fish, Helix, and Polybar — tuned so everything just works. No config drama. No package fights. No Linux copium.
+A ridiculously polished i3 desktop for OpenBSD 8.0 with fish, Helix, and Polybar — tuned so everything just works. No config drama. No package fights. No Linux copium.
 
-Base OpenBSD 7.9 install → one script → fast, dark, beautiful desktop that respects OpenBSD’s strengths instead of fighting them.
+Base OpenBSD 8.0 install → one script → fast, dark, beautiful desktop that respects OpenBSD’s strengths instead of fighting them.
 
-OpenRiot versions track OpenBSD releases directly. OpenBSD 7.9 = OpenRiot 7.9.x. 
+OpenRiot versions track OpenBSD releases directly. OpenBSD 8.0 = OpenRiot 8.0.x.
 
 - Read the [original Post on X](https://x.com/CyphrRiot/status/2043140621398127012?s=20)
 
@@ -85,6 +85,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [ Kate](#kate)
 - [📝 Using Helix (Editor)](#using-helix)
 - [🔄 System Management](#system-management)
+    - [🔄 Upgrading from 7.9 to 8.0](#upgrading-from-79-to-80)
 - [󰋊 Disk Manager](#disk-manager)
 - [🔄 Backup & Restore](#backup-restore)
 - [🧰 Advanced Usage](#advanced-usage)
@@ -114,6 +115,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v8.0.0 — One File to Point Them All](docs/v8.0.0-Release-Notes.md)
 - [v7.9.70 — One Pipe, One Clock](docs/v7.9.70-Release-Notes.md)
 - [v7.9.69 — The Machine Copies Itself and Lives](docs/v7.9.69-Release-Notes.md)
 - [v7.9.68 — The Machine Checks Itself](docs/v7.9.68-Release-Notes.md)
@@ -123,7 +125,6 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [v7.9.64 — The Column That Lied](docs/v7.9.64-Release-Notes.md)
 - [v7.9.63 — The Machine Keeps the Door Open](docs/v7.9.63-Release-Notes.md)
 - [v7.9.62 — The Dots Remember Their Color](docs/v7.9.62-Release-Notes.md)
-- [v7.9.61 — Purple Glass, Honest Lines](docs/v7.9.61-Release-Notes.md)
 - [Older releases →](docs/)
 
 Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.
@@ -312,7 +313,7 @@ For the best OpenBSD + i3 experience:
 
 There are two ways to install OpenRiot on a fresh machine. **Method 1 is strongly recommended for most users** because it uses the official, up-to-date OpenBSD installer and fetches the latest packages during setup. This ensures you get current firmware, security patches, and a fully tested base. Method 2 provides an offline experience by bundling everything into a custom image, which is ideal for air-gapped environments, slow/unreliable internet, or initial testing without network exposure — but it comes with caveats (see below).
 
-**Method 1 (Recommended):** Install standard OpenBSD from `install79.img`, then run `setup.sh`.
+**Method 1 (Recommended):** Install standard OpenBSD from `install80.img`, then run `setup.sh`.
 
 **Method 2 (Offline):** *Experimental!* Flash `openriot.img` which bundles packages. Base install happens offline, then run `setup.sh` after first login.
 
@@ -329,7 +330,7 @@ There are two ways to install OpenRiot on a fresh machine. **Method 1 is strongl
 
 #### Method 1: OpenBSD Installer (Recommended)
 Download the official OpenBSD installer:
-- [install79.img](https://cdn.openbsd.org/pub/OpenBSD/7.9/amd64/install79.img)
+- [install80.img](https://cdn.openbsd.org/pub/OpenBSD/8.0/amd64/install80.img)
 
 #### Method 2: OpenRiot Image (Offline)
 
@@ -345,9 +346,9 @@ Download the [OpenRiot Install Image ~1.9G](https://github.com/CyphrRiot/OpenRio
 
 ### 2. Flash to USB
 
-**Linux:** `dd if=install79.img of=/dev/sdX bs=4M status=progress oflag=sync`
+**Linux:** `dd if=install80.img of=/dev/sdX bs=4M status=progress oflag=sync`
 
-**OpenBSD:** `doas dd if=install79.img of=/dev/rsdXc bs=1M && sync`
+**OpenBSD:** `doas dd if=install80.img of=/dev/rsdXc bs=1M && sync`
 
 (Replace `sdX`/`rsdXc` with your USB device. Find with `dmesg | grep ^sd`.)
 
@@ -908,13 +909,13 @@ pkg_info -Q <package-name>
 # List all installed packages
 pkg_info -m
 
-# Check for updates (OpenBSD doesn't have a rolling update model)
-# Fresh install is always the current release
+# Check for errata updates (release branches do not roll forward)
+# A new OpenBSD release requires sysupgrade, not pkg_add
 ```
 
 ### Updating the System
 
-OpenBSD doesn't use `apt update` or `pacman -Syu`. Use `pkg_add -u` to update packages:
+OpenBSD doesn't use `apt update` or `pacman -Syu`. Use `pkg_add -u` to update packages within the running release:
 
 ```bash
 # Update all packages
@@ -966,7 +967,70 @@ The script automatically detects:
 - Older version → upgrade (git pull + re-run)
 - Same version → config refresh only
 
-> **Note:** Upgrade also updates OpenBSD packages to the latest stable versions via `pkg_add -u`. This applies to both the Polybar upgrade click and `curl -fsSL https://openriot.org/setup.sh | sh`.
+> **Note:** Updating OpenRiot refreshes its source, configs, and package set. It does not upgrade the OpenBSD base system. A new OpenBSD release requires `sysupgrade` first, then setup again. Running setup on an older release prints the required steps and exits before changing packages.
+
+### Upgrading from 7.9 to 8.0
+
+OpenRiot 8.0.x requires OpenBSD 8.0. If you run `setup.sh` on 7.9, it
+detects the old release, prints the steps below, and exits before
+installing packages or changing configuration.
+
+OpenBSD supports upgrades only one release at a time. A 7.8 system must
+go through 7.9 first, or use a fresh 8.0 install.
+
+#### 1. Back up
+
+```bash
+openriot --backup
+df -h /usr
+```
+
+`/usr` needs at least 1.1G free. `sysupgrade` also refuses to proceed
+when the filesystem is more than 90 percent full.
+
+#### 2. Upgrade the base system
+
+```bash
+doas sysupgrade -R 8.0 -n
+doas reboot
+```
+
+`-n` downloads the 8.0 sets, verifies them with `signify`, writes
+`/bsd.upgrade`, and skips the automatic reboot. `doas reboot` then runs
+the one-shot upgrade. `doas sysupgrade` without `-R` also selects the
+next release. `-R 8.0` makes the target explicit.
+
+#### 3. Merge and update after reboot
+
+```bash
+doas sysmerge
+doas fw_update
+doas pkg_add -u
+```
+
+`sysmerge` may ask about files OpenRiot manages, including
+`/etc/pf.conf`, `/etc/sysctl.conf`, `/etc/rc.conf.local`, and
+`/etc/X11/xenodm/Xsetup_0`. Resolve the prompts. Re-running setup
+afterwards reapplies the OpenRiot versions.
+
+#### 4. Re-run setup
+
+```bash
+curl -fsSL https://openriot.org/setup.sh | sh
+```
+
+#### 5. Verify
+
+```bash
+openriot --check-upgrade
+openriot --version
+openriot --check-packages
+```
+
+Then lock the screen once so the lock cache rebuilds.
+
+There is no supported downgrade from 8.0 to 7.9. Keep a backup or keep
+the old machine available until the upgrade is verified.
 
 ### Migrating from -current to Stable Release
 
@@ -984,9 +1048,9 @@ openriot --check-release-path
 
 | Snapshot Date | Status | Action |
 | --- | --- | --- |
-| Before 7.9 release (May 6, 2026) | Pre-release | `doas sysupgrade -R 7.9`, reboot, `doas pkg_add -u` |
-| After 7.9 release (May 6, 2026) | Post-release | Stay on `-current` with `doas sysupgrade`, or fresh install |
-| Already on 7.9 (no `-current`) | Stable | `doas sysupgrade` for errata, `doas pkg_add -u` for packages |
+| Before 8.0 sets (Oct 6, 2026) | Pre-release | `doas sysupgrade -R 8.0 -n`, `doas reboot`, `doas pkg_add -u` |
+| After 8.0 sets (Oct 6, 2026) | Post-release | Stay on `-current` with `doas sysupgrade`, or fresh install |
+| Already on 8.0 (no `-current`) | Stable | `doas sysupgrade` for errata, `doas pkg_add -u` for packages |
 
 **Why this matters:** Post-release snapshots contain changes made *after*
 the release freeze. Those changes are not in the release sets. `sysupgrade

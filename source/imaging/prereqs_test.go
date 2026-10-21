@@ -22,7 +22,11 @@ func TestLoadConfig(t *testing.T) {
 		t.Fatalf("LoadConfig failed: %v", err)
 	}
 	
-	if cfg.BaseImg != "Build/Images/install79.img" {
+	wantVersion := hostVersion()
+	if wantVersion == "" {
+		t.Skip("host OpenBSD version unavailable")
+	}
+	if cfg.BaseImg != "Build/Images/install"+wantVersion+".img" {
 		t.Errorf("expected default BaseImg, got %s", cfg.BaseImg)
 	}
 	if cfg.OutputImg != "Build/Output/openriot.img" {
@@ -31,8 +35,8 @@ func TestLoadConfig(t *testing.T) {
 	if cfg.WorkDir == "" {
 		t.Errorf("expected default WorkDir, got empty")
 	}
-	if cfg.Version != "79" {
-		t.Errorf("expected default Version 79, got %s", cfg.Version)
+	if cfg.Version != wantVersion {
+		t.Errorf("expected default Version %s, got %s", wantVersion, cfg.Version)
 	}
 	if cfg.NoBurn != false {
 		t.Errorf("expected NoBurn false, got %v", cfg.NoBurn)

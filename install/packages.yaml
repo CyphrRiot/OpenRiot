@@ -1,31 +1,31 @@
 # OpenRiot YAML Package Configuration
-# OpenBSD pkg_add package list for OpenBSD 7.9
+# OpenBSD pkg_add package list for OpenBSD 8.0
 # Only includes packages that exist in OpenBSD packages/
 # Base system packages (doas, less, man, etc.) are NOT listed
 
-openbsd_version: "7.9"
+openbsd_version: "8.0"
 
-# Firmware files for the installer image (OpenBSD 7.9)
+# Firmware files for the installer image (OpenBSD 8.0)
 # Update these when firmware.openbsd.org updates
 firmware:
     - athn-firmware-1.1p4
-    - intel-firmware-20260512v0
-    - inteldrm-firmware-20250708
+    - intel-firmware-20260925v0
+    - inteldrm-firmware-20260519
     - iwm-firmware-20240410
     - iwx-firmware-20251021p0
 
 core:
     base:
         packages:
-            - rsync-3.4.1
-            - python-3.13.13
-            - fastfetch-2.60.0
+            - rsync-3.5.1
+            - python-3.14.7p0
+            - fastfetch-2.69.0
             - exfat-fuse-1.4.0
-            - xz-5.8.3
+            - xz-5.8.4
             - zip-3.0p3
             - unzip-6.0p18
             - wget-1.25.0p0
-            - lowdown-3.0.1
+            - lowdown-3.1.1
         configs:
             - pattern: fastfetch/*
               target: "~/.config/fastfetch"
@@ -44,14 +44,14 @@ core:
 
     shell:
         packages:
-            - fish-4.6.0
-            - bash-5.3.9
-            - alacritty-0.16.1
-            - ripgrep-15.1.0
-            - pv-1.10.5
-            - btop-1.4.6p0
-            - gnupg-2.5.18
-            - meson-1.10.2v0
+            - fish-4.9.3
+            - bash-5.3.20
+            - alacritty-0.17.0
+            - ripgrep-15.2.0
+            - pv-1.12.0
+            - btop-1.4.7
+            - gnupg-2.5.24p0v0
+            - meson-1.12.1v0
             - ninja-1.11.1p1v1
         configs:
             - pattern: fish/*
@@ -79,18 +79,18 @@ desktop:
             - xautolock-2.2
             - polybar-3.7.2
             - rofi-1.7.9.1
-            - maim-5.8.1p0
-            - feh-3.12.1
+            - maim-5.8.2
+            - feh-3.13
             - picom-13
             - xclip-0.13p1
-            - ImageMagick-6.9.13.43
-            - ffmpeg-8.0.1p1v1
-            - dunst-1.13.1
+            - ImageMagick-6.9.13.55
+            - ffmpeg-9.0.2v1
+            - dunst-1.13.2
             - clipmenu-6.2.0
             # - clipnotify-1.0.2  # Optional: for clipboard change detection scripts
             - libqalculate-5.8.0p1
             - sct-0.5
-            - noto-emoji-2.051v0
+            - noto-emoji-2.051p0v0
             - zathura-0.5.14
             - zathura-pdf-poppler-0.3.4
         configs:
@@ -168,30 +168,30 @@ desktop:
         end: "Lock screen images completed"
     apps:
         packages:
-            - firefox-150.0
-            - tdesktop-6.7.6
-            - abaddon-0.2.3
-            - solvespace-3.1p1
-            - helix-25.07.1
+            - firefox-157.0p0
+            - tdesktop-7.2.9
+            - abaddon-0.2.4p0
+            - solvespace-3.2
+            - helix-25.07.1p0
             - lsd-1.1.5p2
-            - thunar-4.20.8
+            - thunar-4.20.10
             - thunar-archive-0.6.0
-            - tumbler-4.20.1p0
+            - tumbler-4.20.2
             - webp-pixbuf-loader-0.2.7
             - xfconf-4.20.0
-            - xfce4-settings-4.20.4
+            - xfce4-settings-4.20.5
             - gnome-themes-extra-3.28p7
-            - papirus-icon-theme-20250501p1
-            - lf-41
+            - papirus-icon-theme-20260801
+            - lf-42
             - xdg-utils-1.2.1
             - dconf-0.40.0p2
-            - libreoffice-26.2.2.2v0
-            - gnome-text-editor-49.1
-            - qtquickcontrols-5.15.18pl0
-            - qtquickcontrols2-5.15.18pl5
-            - qtgraphicaleffects-5.15.18pl0
-            - qtdeclarative-5.15.18pl22
-            - unison-gui-2.53.8
+            - libreoffice-26.8.0.3v0
+            - gnome-text-editor-50.1
+            - qtquickcontrols-5.15.19pl0
+            - qtquickcontrols2-5.15.19pl0
+            - qtgraphicaleffects-5.15.19pl0
+            - qtdeclarative-5.15.19pl0
+            - unison-gui-2.54.0
         configs:
             - pattern: gtk-3.0/*
             - pattern: gtk-4.0/*
@@ -264,7 +264,7 @@ desktop:
                   doas sh -c 'gdk-pixbuf-query-loaders > /usr/local/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache'
     kate:
         packages:
-            - kate-25.12.3
+            - kate-26.08.1
         depends: [desktop.apps]
         start: "Installing Kate (Code IDE)..."
         end: "Kate IDE installed"
@@ -276,23 +276,23 @@ desktop:
             - 0ad-0.28.0
             - extremetuxracer-0.8.4
             - cromagrally-3.0.1
-            - nudoku-8.0.0
+            - nudoku-8.0.1
             - xgalaga-sdl-2.1.1.0p0
             - openclonk-8.1p7
-            - micropolis-20080211p9
+            - micropolis-20080211p10
             - gottet-1.2.7
             - defendguin-0.0.13
-            - supertux-0.6.3p3
+            - supertux-0.6.3p4
             - sdlpop-1.22v0
             - zelda_roth_se-1.1.0p1
             - endless-sky-0.10.12p0
             - openttd-15.3
-            - cataclysm-dda-0.Hp1v0
+            - cataclysm-dda-0.Ip0v0
             - taisei-1.4.4
             - angband-4.2.5-sdl
-            - wesnoth-1.18.7
-            - boswars-2.7p4
-            - slash-3.2.2.e8p8
+            - wesnoth-1.18.8
+            - boswars-2.8
+            - slash-3.2.2.e8p9
             - brogue-1.15.1
             - frozen-bubble-2.2.0p17
             - heroes-0.21p10
@@ -338,7 +338,7 @@ crypto:
     bitcoin:
         type: "Package"
         packages:
-            - bitcoin-30.2p0
+            - bitcoin-31.1
         configs:
             - pattern: "applications/bitcoin-qt.desktop"
               target: "~/.local/share/applications/bitcoin-qt.desktop"
@@ -349,15 +349,15 @@ crypto:
 media:
     media:
         packages:
-            - mpv-0.41.0p0
-            - mpd-0.24.9
+            - mpv-0.41.0p1
+            - mpd-0.24.15
             - socat-1.7.4.1
-            - transmission-gtk-4.1.1p0
-            - ffmpeg-8.0.1p1v1
+            - transmission-gtk-4.1.3
+            - ffmpeg-9.0.2v1
             - ffmpegthumbnailer-2.2.2p0
-            - yt-dlp-2026.03.17
+            - yt-dlp-2026.08.19
             - x264-20250909
-            - x265-4.1p0
+            - x265-4.3
             - cmixer-0.3
         configs:
             - pattern: "mpv/mpv.conf"
@@ -476,11 +476,11 @@ fonts:
 system:
     tools:
         packages:
-            - rclone-1.73.5
+            - rclone-1.75.1
             - wireguard-tools-1.0.20210914p3v0
             - sysbench-0.4.8p17
-            - ntfs_3g-2022.10.3p1
-            - fio-3.41
+            - ntfs_3g-2026.2.25
+            - fio-3.43
         depends: [core.base]
         start: "Installing system tools"
         end: "System tools installed"

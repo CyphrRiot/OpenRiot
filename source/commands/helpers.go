@@ -26,27 +26,60 @@ import (
 	"openriot/wireguard"
 )
 
+func printOSUpgradePlan(from, to string) {
+	fmt.Printf("\nOpenBSD %s detected. This OpenRiot release requires OpenBSD %s.\n\n", from, to)
+	fmt.Println("Upgrade the base system first:")
+	fmt.Println("  openriot --backup")
+	fmt.Printf("  doas sysupgrade -R %s -n\n", to)
+	fmt.Println("  doas reboot")
+	fmt.Println("  doas sysmerge")
+	fmt.Println("  doas fw_update")
+	fmt.Println("  doas pkg_add -u")
+	fmt.Println("  curl -fsSL https://OpenRiot.org/setup.sh | sh")
+	fmt.Println()
+	fmt.Println("If you are more than one release behind, upgrade one release at a time.")
+}
+
+func waitForEnter() {
+	tty, err := os.OpenFile("/dev/tty", os.O_RDONLY, 0)
+	if err != nil {
+		return
+	}
+	defer tty.Close()
+	fmt.Print("\nPress ENTER to exit...")
+	bufio.NewReader(tty).ReadString('\n')
+}
+
 func runInstall(testMode *bool) {
 	logger.Info("OpenRiot installer starting...")
 
+	running := config.DetectOpenBSDVersion()
+	if running != "snapshots" {
+		if err := installer.CheckReleaseRequirement(); err != nil {
+			printOSUpgradePlan(running, installer.TargetOpenBSD)
+			waitForEnter()
+			os.Exit(1)
+		}
+	}
+
 	// Pre-install release path check for -current users
-	if config.DetectOpenBSDVersion() == "snapshots" {
+	if running == "snapshots" {
 		res, err := installer.CheckReleasePath(installer.ReleaseDate)
 		if err == installer.ErrUpgradeRequired {
-			if installer.PrintReleasePathBanner(res, "7.9") {
+			if installer.PrintReleasePathBanner(res, installer.TargetOpenBSD) {
 				fmt.Println()
-				logger.Info("Running: doas sysupgrade -R 7.9")
+				logger.Info(fmt.Sprintf("Running: doas sysupgrade -R %s", installer.TargetOpenBSD))
 				fmt.Println()
 				fmt.Println("The system will reboot into the upgrade kernel.")
 				fmt.Println("After boot completes, re-run the installer:")
 				fmt.Println("  curl -fsSL https://OpenRiot.org/setup.sh | sh")
 				fmt.Println()
-				cmd := exec.Command("doas", "sysupgrade", "-R", "7.9")
+				cmd := exec.Command("doas", "sysupgrade", "-R", installer.TargetOpenBSD)
 				cmd.Stdout = os.Stdout
 				cmd.Stderr = os.Stderr
 				if err := cmd.Run(); err != nil {
 					logger.Warn(fmt.Sprintf("sysupgrade failed: %v", err))
-					fmt.Println("Please run manually: doas sysupgrade -R 7.9")
+					fmt.Printf("Please run manually: doas sysupgrade -R %s\n", installer.TargetOpenBSD)
 				}
 				os.Exit(0)
 			}
@@ -244,8 +277,8 @@ func hasPackageDrift() (bool, time.Time) {
 }
 
 // checkReleasePath determines if a -current system can safely migrate to the
-// 7.9 release. Pre-release snapshots (built before the release date) can use
-// sysupgrade -R. Post-release snapshots cannot; fresh install is required.
+// current release. Pre-release snapshots (built before the release date) can
+// use sysupgrade -R. Post-release snapshots cannot; fresh install is required.
 func checkReleasePath() {
 	res, err := installer.CheckReleasePath(installer.ReleaseDate)
 
@@ -261,26 +294,26 @@ func checkReleasePath() {
 		fmt.Println("Then: doas pkg_add -u")
 	case "pre-release":
 		fmt.Printf("Kernel build date: %s\n", res.BuildDate.Format("2006-01-02"))
-		fmt.Printf("7.9 release date:  %s\n", res.ReleaseDate.Format("2006-01-02"))
+		fmt.Printf("%s release date:  %s\n", installer.TargetOpenBSD, res.ReleaseDate.Format("2006-01-02"))
 		fmt.Println()
 		fmt.Println("Status: PRE-RELEASE snapshot")
-		fmt.Println("You can safely upgrade to the 7.9 release.")
+		fmt.Printf("You can safely upgrade to the %s release.\n", installer.TargetOpenBSD)
 		fmt.Println()
 		fmt.Println("Run these commands:")
-		fmt.Println("  doas sysupgrade -R 7.9")
+		fmt.Printf("  doas sysupgrade -R %s\n", installer.TargetOpenBSD)
 		fmt.Println("  (reboot when prompted)")
 		fmt.Println("  doas pkg_add -u")
 	case "post-release":
 		fmt.Printf("Kernel build date: %s\n", res.BuildDate.Format("2006-01-02"))
-		fmt.Printf("7.9 release date:  %s\n", res.ReleaseDate.Format("2006-01-02"))
+		fmt.Printf("%s release date:  %s\n", installer.TargetOpenBSD, res.ReleaseDate.Format("2006-01-02"))
 		fmt.Println()
 		fmt.Println("Status: POST-RELEASE snapshot")
-		fmt.Println("WARNING: sysupgrade -R 7.9 would be a DOWNGRADE.")
+		fmt.Printf("WARNING: sysupgrade -R %s would be a DOWNGRADE.\n", installer.TargetOpenBSD)
 		fmt.Println("OpenBSD does not support downgrades. Do NOT run it.")
 		fmt.Println()
 		fmt.Println("Your options:")
 		fmt.Println("  1. Stay on -current: doas sysupgrade (no -R)")
-		fmt.Println("  2. Fresh install 7.9 release from install79.img")
+		fmt.Printf("  2. Fresh install %s release from install%s.img\n", installer.TargetOpenBSD, strings.ReplaceAll(installer.TargetOpenBSD, ".", ""))
 	}
 }
 

@@ -42,6 +42,10 @@ func RunInstallPackages() error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
+	if err := CheckReleaseRequirement(); err != nil {
+		return err
+	}
+
 	// Check games preference before package installation
 	if !GamesPreference() {
 		delete(cfg.Desktop, "games")

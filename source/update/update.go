@@ -2,10 +2,13 @@ package update
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
 
+	"openriot/config"
+	"openriot/installer"
 	"openriot/notify"
 	"openriot/polybar"
 )
@@ -54,7 +57,22 @@ func KernelDrift() (bool, time.Time) {
 	return hasKernelDrift()
 }
 
+func needsOSUpgrade() (string, string, bool) {
+	target := installer.TargetOpenBSD
+	if target == "" || target == "dev" {
+		return "", "", false
+	}
+	running := config.DetectOpenBSDVersion()
+	if running == "snapshots" {
+		return "", "", false
+	}
+	return running, target, installer.CompareRelease(running, target) < 0
+}
+
 func Get() string {
+	if _, _, upgrade := needsOSUpgrade(); upgrade {
+		return polybar.Icon(updateIcon)
+	}
 	drift, _ := hasKernelDrift()
 	if drift {
 		return polybar.Icon(driftIcon)
@@ -89,6 +107,17 @@ func Click() error {
 			"printf 'Kernel built: %s (%%d days ago)\\n\\nBase and packages are out of sync.\\n\\nSync now?\\n  [y] doas sysupgrade -s && (reboot) && doas pkg_add -u\\n  [N] Skip\\n\\n[y/N]: ' %d; read -r ans; case \"$ans\" in [yY]) doas sysupgrade -s ;; *) echo Skipped.; sleep 1 ;; esac",
 			dateStr, days)
 		exec.Command("alacritty", "--class", "openriot_drift", "-e", "sh", "-c", script).Start()
+		return nil
+	}
+
+	if from, to, upgrade := needsOSUpgrade(); upgrade {
+		notify.SendNotify("openbsd",
+			"OpenBSD Upgrade Required",
+			fmt.Sprintf("OpenBSD %s to %s is required before the next OpenRiot install", from, to),
+			"normal", 5000, 0)
+		if exe, err := os.Executable(); err == nil {
+			exec.Command("alacritty", "--class", "openriot_os_upgrade", "-e", exe, "--check-upgrade").Start()
+		}
 		return nil
 	}
 

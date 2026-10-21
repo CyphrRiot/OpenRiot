@@ -15,10 +15,15 @@ BLUE='\033[1;36m'
 NC='\033[0m' # No Color
 
 # Configuration
-OPENBSD_MIN_VERSION="7.9"
+OPENBSD_REQUIRED=""
+OPENBSD_REQUIRED_URL="${OPENBSD_REQUIRED_URL:-https://openriot.org/OPENBSD_VERSION}"
+OPENBSD_REQUIRED_FALLBACK_URL="${OPENBSD_REQUIRED_FALLBACK_URL:-https://raw.githubusercontent.com/CyphrRiot/OpenRiot/main/OPENBSD_VERSION}"
 
-# Target OpenBSD branch: "snapshots" for -current, or release version like "7.9", "8.0"
-OPENBSD_BRANCH="7.9"
+# Target OpenBSD branch: "snapshots" for -current, or the running release
+OPENBSD_BRANCH=$(uname -r | sed 's/-.*//')
+case "$(sysctl -n kern.version 2>/dev/null)" in
+    *-current*) OPENBSD_BRANCH="snapshots" ;;
+esac
 
 CDN_BRANCH="$OPENBSD_BRANCH"
 INSTALLURL="https://cdn.openbsd.org/pub/OpenBSD"
@@ -62,6 +67,54 @@ error() { printf '%b%s%b\n' "$RED" "[ERROR] $1" "$NC" | tee -a "$LOG_FILE" >&2; 
 
 log() { printf '[OPENRIOT] %s\n' "$1" | tee -a "$LOG_FILE"; }
 
+wait_for_key() {
+    printf '\nPress ENTER to continue...'
+    if [ -r /dev/tty ]; then
+        read -r _ < /dev/tty
+    else
+        printf '\n'
+    fi
+}
+
+get_required_openbsd() {
+    if [ "$LOCAL_MODE" -eq 1 ] && [ -f "$INSTALL_DIR/OPENBSD_VERSION" ]; then
+        tr -d '[:space:]' < "$INSTALL_DIR/OPENBSD_VERSION"
+        return
+    fi
+    value=$(curl -fsSL --max-time 5 "$OPENBSD_REQUIRED_URL" 2>/dev/null | tr -d '[:space:]')
+    if [ -n "$value" ]; then
+        echo "$value"
+        return
+    fi
+    value=$(curl -fsSL --max-time 5 "$OPENBSD_REQUIRED_FALLBACK_URL" 2>/dev/null | tr -d '[:space:]')
+    if [ -n "$value" ]; then
+        echo "$value"
+        return
+    fi
+    if [ -f "$INSTALL_DIR/OPENBSD_VERSION" ]; then
+        tr -d '[:space:]' < "$INSTALL_DIR/OPENBSD_VERSION"
+    fi
+}
+
+print_upgrade_plan() {
+    from="$1"
+    to="$2"
+    echo ""
+    echo "This OpenRiot release requires OpenBSD $to."
+    echo "Detected OpenBSD $from."
+    echo ""
+    echo "Upgrade the base system first:"
+    echo "  openriot --backup"
+    echo "  doas sysupgrade -R $to -n"
+    echo "  doas reboot"
+    echo "  doas sysmerge"
+    echo "  doas fw_update"
+    echo "  doas pkg_add -u"
+    echo "  curl -fsSL https://OpenRiot.org/setup.sh | sh"
+    echo ""
+    echo "If you are more than one release behind, upgrade one release at a time."
+}
+
 # Upload log to tmpfiles.org for sharing with developers
 share_log() {
     log_file="${1:-$LOG_FILE}"
@@ -90,16 +143,23 @@ check_openbsd_version() {
     os=$(uname -s)
     if [ "$os" != "OpenBSD" ]; then
         error "This script is for OpenBSD only."
+        wait_for_key
         exit 1
     fi
     version=$(uname -r | sed 's/-.*//')
     major=$(echo "$version" | cut -d. -f1)
     minor=$(echo "$version" | cut -d. -f2)
-    min_major=$(echo "$OPENBSD_MIN_VERSION" | cut -d. -f1)
-    min_minor=$(echo "$OPENBSD_MIN_VERSION" | cut -d. -f2)
-    if [ "$major" -lt "$min_major" ] || ([ "$major" -eq "$min_major" ] && [ "$minor" -lt "$min_minor" ]); then
-        error "OpenBSD $OPENBSD_MIN_VERSION or higher required. Detected: $version"
+    req_major=$(echo "$OPENBSD_REQUIRED" | cut -d. -f1)
+    req_minor=$(echo "$OPENBSD_REQUIRED" | cut -d. -f2)
+    if [ "$major" -lt "$req_major" ] || ([ "$major" -eq "$req_major" ] && [ "$minor" -lt "$req_minor" ]); then
+        error "OpenBSD $OPENBSD_REQUIRED or higher required. Detected: $version"
+        print_upgrade_plan "$version" "$OPENBSD_REQUIRED"
+        wait_for_key
         exit 1
+    fi
+    if [ "$major" -gt "$req_major" ] || ([ "$major" -eq "$req_major" ] && [ "$minor" -gt "$req_minor" ]); then
+        warn "OpenRiot targets OpenBSD $OPENBSD_REQUIRED. Running $version."
+        warn "Packages will be installed by base name, without exact pins."
     fi
     success "OpenBSD $version detected"
 }
@@ -234,7 +294,12 @@ run_openriot() {
     fi
     cd "$INSTALL_DIR/install" || { error "Cannot cd to $INSTALL_DIR/install"; exit 1; }
     mkdir -p "$(dirname "$logfile")"
-    ./openriot "$flag" 2>&1 | tee -a "$logfile"
+    tmp=$(mktemp -t openriot-setup) || exit 1
+    ./openriot "$flag" >"$tmp" 2>&1
+    status=$?
+    tee -a "$logfile" <"$tmp"
+    rm -f "$tmp"
+    return $status
 }
 
 usage() {
@@ -289,8 +354,16 @@ main() {
         banner_ver=$(get_remote_version 2>/dev/null || echo "?.?")
     fi
 
+    OPENBSD_REQUIRED=$(get_required_openbsd)
+    if [ -z "$OPENBSD_REQUIRED" ]; then
+        error "Cannot determine the required OpenBSD release."
+        error "Checked $OPENBSD_REQUIRED_URL"
+        wait_for_key
+        exit 1
+    fi
+
     echo ""
-    echo "=== OpenRiot v${banner_ver} Setup (OpenBSD ${OPENBSD_MIN_VERSION}) ==="
+    echo "=== OpenRiot v${banner_ver} Setup (OpenBSD ${OPENBSD_REQUIRED}) ==="
     echo ""
 
     check_openbsd_version
@@ -311,6 +384,11 @@ main() {
     fi
 
     check_disk_space 1
+
+    if ! run_openriot --check-upgrade "$LOG_FILE"; then
+        wait_for_key
+        exit 1
+    fi
 
     # Install X11 file sets if missing (MUST be before packages)
     install_x11_sets() {

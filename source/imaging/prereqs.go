@@ -33,19 +33,7 @@ func LoadConfig(args []string) (*Config, error) {
 		BaseImg:   os.Getenv("BASE_IMG"),
 		OutputImg: os.Getenv("OUTPUT_IMG"),
 		WorkDir:   os.Getenv("WORK_DIR"),
-		Version:   "79",
 		NoBurn:    false,
-	}
-
-	// Default paths
-	if cfg.BaseImg == "" {
-		cfg.BaseImg = "Build/Images/install79.img"
-	}
-	if cfg.OutputImg == "" {
-		cfg.OutputImg = "Build/Output/openriot.img"
-	}
-	if cfg.WorkDir == "" {
-		cfg.WorkDir = "Build/work"
 	}
 
 	// Parse flags
@@ -81,6 +69,22 @@ func LoadConfig(args []string) (*Config, error) {
 		}
 	}
 
+	if cfg.Version == "" {
+		cfg.Version = hostVersion()
+	}
+	if cfg.Version == "" {
+		return nil, fmt.Errorf("cannot determine OpenBSD version; use --version")
+	}
+	if cfg.BaseImg == "" {
+		cfg.BaseImg = fmt.Sprintf("Build/Images/install%s.img", cfg.Version)
+	}
+	if cfg.OutputImg == "" {
+		cfg.OutputImg = "Build/Output/openriot.img"
+	}
+	if cfg.WorkDir == "" {
+		cfg.WorkDir = "Build/work"
+	}
+
 	// Compute derived paths
 	absWorkDir, err := filepath.Abs(cfg.WorkDir)
 	if err != nil {
@@ -99,6 +103,18 @@ func LoadConfig(args []string) (*Config, error) {
 	cfg.OpenriotBin = filepath.Join(repoRoot, "install", "openriot")
 
 	return cfg, nil
+}
+
+func hostVersion() string {
+	out, err := exec.Command("uname", "-r").Output()
+	if err != nil {
+		return ""
+	}
+	version := strings.TrimSpace(string(out))
+	if idx := strings.Index(version, "-"); idx >= 0 {
+		version = version[:idx]
+	}
+	return strings.ReplaceAll(version, ".", "")
 }
 
 // IsOpenBSD returns true if running on OpenBSD
@@ -142,19 +158,20 @@ func CheckPrereqs(cfg *Config) error {
 		return nil
 	}
 
-	// Check Build/Images/install79.img relative to repo root
+	// Check Build/Images/install<version>.img relative to repo root
 	execDir, _ := os.Executable()
 	repoRoot := filepath.Dir(filepath.Dir(execDir))
-	fallbackImg := filepath.Join(repoRoot, "Build", "Images", "install79.img")
+	imgName := fmt.Sprintf("install%s.img", cfg.Version)
+	fallbackImg := filepath.Join(repoRoot, "Build", "Images", imgName)
 	if info, err := os.Stat(fallbackImg); err == nil && info.Size() > 0 {
 		cfg.BaseImg = fallbackImg
 		return nil
 	}
 
-	// Check Build/Images/install79.iso and warn
-	fallbackIso := filepath.Join(repoRoot, "Build", "Images", "install79.iso")
+	// Check Build/Images/install<version>.iso and warn
+	fallbackIso := filepath.Join(repoRoot, "Build", "Images", fmt.Sprintf("install%s.iso", cfg.Version))
 	if _, err := os.Stat(fallbackIso); err == nil {
-		return fmt.Errorf("found %s but image builder requires .img (disk image), not .iso\ndownload the .img from https://cdn.openbsd.org/pub/OpenBSD/%s/amd64/install79.img", fallbackIso, formatVersion(cfg.Version))
+		return fmt.Errorf("found %s but image builder requires .img (disk image), not .iso\ndownload the .img from https://cdn.openbsd.org/pub/OpenBSD/%s/amd64/%s", fallbackIso, formatVersion(cfg.Version), imgName)
 	}
 
 	// Download base image
@@ -165,7 +182,7 @@ func CheckPrereqs(cfg *Config) error {
 	return nil
 }
 
-// downloadBaseImage fetches install79.img from OpenBSD CDN
+// downloadBaseImage fetches install<version>.img from OpenBSD CDN
 func downloadBaseImage(cfg *Config) error {
 	dir := filepath.Dir(cfg.BaseImg)
 	if err := os.MkdirAll(dir, 0755); err != nil {
