@@ -295,11 +295,10 @@ run_openriot() {
     cd "$INSTALL_DIR/install" || { error "Cannot cd to $INSTALL_DIR/install"; exit 1; }
     mkdir -p "$(dirname "$logfile")"
     tmp=$(mktemp "${TMPDIR:-/tmp}/openriot-setup.XXXXXX") || exit 1
-    ./openriot "$flag" >"$tmp" 2>&1
-    status=$?
-    tee -a "$logfile" <"$tmp"
+    { ./openriot "$flag" 2>&1; echo $? >"$tmp"; } | tee -a "$logfile"
+    status=$(cat "$tmp")
     rm -f "$tmp"
-    return $status
+    return "$status"
 }
 
 usage() {
