@@ -990,7 +990,7 @@ func deleteExtraFilesFromBackupWithSelectiveSupport(sourcePath, backupPath strin
 
 	deletedCount := 0
 
-	return filepath.WalkDir(backupPath, func(backupFile string, d os.DirEntry, err error) error {
+	walkErr := filepath.WalkDir(backupPath, func(backupFile string, d os.DirEntry, err error) error {
 		// Check for cancellation every 50 files
 		if deletedCount%50 == 0 && shouldCancelBackup() {
 			return fmt.Errorf("operation canceled during deletion phase")
@@ -1056,6 +1056,10 @@ func deleteExtraFilesFromBackupWithSelectiveSupport(sourcePath, backupPath strin
 
 		return nil
 	})
+
+	if walkErr != nil {
+		return walkErr
+	}
 
 	// Log final deletion summary
 	if logFile != nil && deletedCount > 0 {

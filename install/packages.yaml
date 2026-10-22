@@ -83,7 +83,7 @@ desktop:
             - feh-3.13
             - picom-13
             - xclip-0.13p1
-            - ImageMagick-6.9.13.55
+            - ImageMagick-6.9.13.59
             - ffmpeg-9.0.2v1
             - dunst-1.13.2
             - clipmenu-6.2.0
@@ -168,7 +168,7 @@ desktop:
         end: "Lock screen images completed"
     apps:
         packages:
-            - firefox-157.0p0
+            - firefox-158.0.1
             - tdesktop-7.2.9
             - abaddon-0.2.4p0
             - solvespace-3.2
@@ -475,7 +475,7 @@ fonts:
 system:
     tools:
         packages:
-            - rclone-1.75.1
+            - rclone-1.75.2
             - wireguard-tools-1.0.20210914p3v0
             - sysbench-0.4.8p17
             - ntfs_3g-2026.2.25
