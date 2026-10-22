@@ -1,0 +1,65 @@
+diff --git a/src/device/device_io_hid.cpp b/src/device/device_io_hid.cpp
+index 3116a8713..2abd511da 100644
+--- a/src/device/device_io_hid.cpp
++++ b/src/device/device_io_hid.cpp
+@@ -92,7 +92,11 @@ namespace hw {
+  
+     void device_io_hid::init() {
+       int r;
++#if HID_API_VERSION >= HID_API_MAKE_VERSION(0, 15, 0)
++      r = hidapi_hid_init();
++#else
+       r = hid_init();
++#endif
+       ASSERT_X(r>=0, "Unable to init hidapi library. Error "+std::to_string(r)+": "+safe_hid_error(this->usb_device));
+     }
+ 
+diff --git a/src/serialization/binary_archive.h b/src/serialization/binary_archive.h
+index f0c9b1a6d..6e5933343 100644
+--- a/src/serialization/binary_archive.h
++++ b/src/serialization/binary_archive.h
+@@ -36,6 +36,7 @@
+ #include <cassert>
+ #include <iostream>
+ #include <iterator>
++#include <type_traits>
+ #include <boost/endian/conversion.hpp>
+ #include <boost/type_traits/make_unsigned.hpp>
+ 
+@@ -43,6 +44,18 @@
+ #include "span.h"
+ #include "warnings.h"
+ 
++template <class T, bool = std::is_enum<T>::value>
++struct varint_unsigned
++{
++  using type = typename boost::make_unsigned<T>::type;
++};
++
++template <class T>
++struct varint_unsigned<T, true>
++{
++  using type = typename std::make_unsigned<typename std::underlying_type<T>::type>::type;
++};
++
+ /* I have no clue what these lines means */
+ PUSH_WARNINGS
+ DISABLE_VS_WARNINGS(4244)
+@@ -137,7 +150,7 @@ struct binary_archive<false> : public binary_archive_base<false>
+   template <class T>
+   void serialize_varint(T &v)
+   {
+-    serialize_uvarint(*(typename boost::make_unsigned<T>::type *)(&v));
++    serialize_uvarint(*(typename varint_unsigned<T>::type *)(&v));
+   }
+ 
+   template <class T>
+@@ -209,7 +222,7 @@ struct binary_archive<true> : public binary_archive_base<true>
+   template <class T>
+   void serialize_varint(T &v)
+   {
+-    serialize_uvarint(*(typename boost::make_unsigned<T>::type *)(&v));
++    serialize_uvarint(*(typename varint_unsigned<T>::type *)(&v));
+   }
+ 
+   template <class T>

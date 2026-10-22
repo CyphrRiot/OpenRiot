@@ -321,16 +321,15 @@ crypto:
     monero:
         type: "Source"
         build:
-            - desc: "Checking for Monero wallet GUI"
-              cmd: |
-                  if [ -f "$HOME/.local/bin/monero-wallet-gui" ]; then
-                      echo "[SKIP] monero-wallet-gui already installed"
-                      exit 0
-                  fi
             - desc: "Installing Monero wallet GUI"
               cmd: |
-                  mkdir -p "$HOME/.local/bin" && \
-                  tar -xzf "$HOME/.local/share/openriot/config/monero/monero.tgz" -C "$HOME/.local/bin"
+                  if [ -f "$HOME/.local/share/openriot/config/monero/monero.tgz" ]; then
+                      mkdir -p "$HOME/.local/bin"
+                      tar -xzf "$HOME/.local/share/openriot/config/monero/monero.tgz" -C "$HOME/.local/bin"
+                      echo "[DONE] Monero wallet GUI installed"
+                  else
+                      echo "[SKIP] Monero bundle not found"
+                  fi
         depends: [desktop.apps]
         start: "Installing Monero wallet GUI"
         end: "Monero wallet GUI installed"
