@@ -13,7 +13,7 @@
 set -e
 
 GURK_REPO="https://github.com/boxdot/gurk-rs"
-GURK_COMMIT="${GURK_COMMIT:-v0.10.1}"
+GURK_COMMIT="${GURK_COMMIT:-v0.10.2}"
 PATCH_FILE="$(dirname "$0")/gurk-patch.diff"
 INSTALL_DIR="${HOME}/.local/share/openriot/config"
 SOURCE_DIR="${HOME}/Code/gurk"
@@ -34,8 +34,8 @@ if [ -d "$SOURCE_DIR/.git" ]; then
             echo "Source already at pinned commit ($GURK_COMMIT), using existing checkout"
         else
             echo "Updating to pinned commit $GURK_COMMIT..."
-            git -C "$SOURCE_DIR" fetch origin
-            git -C "$SOURCE_DIR" checkout "$GURK_COMMIT"
+            git -C "$SOURCE_DIR" fetch origin --tags
+            git -C "$SOURCE_DIR" checkout -f "$GURK_COMMIT"
         fi
     else
         echo "Updating to latest origin/main..."
