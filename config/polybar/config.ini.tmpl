@@ -28,12 +28,10 @@ margin-bottom = 1
 [bar/main]
 type = xcb
 enable-ipc = true
-fixed-center = false
+fixed-center = true
 width = 100%
 height = 26
 radius = 8
-border-size = 1
-border-color = ${colors.fg3}
 underline-size = 0
 underline-color = ${colors.cyan}
 line-size = 0
@@ -48,7 +46,7 @@ clickareas = 64
 
 ; Fonts
 font-0 = "Hurmit Nerd Font:size=11;2"
-font-1 = "Hurmit Nerd Font:size=18;2"
+font-1 = "Hurmit Nerd Font:size=11;2"
 font-2 = "Hurmit Nerd Font:size=12;2"
 
 ; Separator style
@@ -56,9 +54,9 @@ separator = ""
 separator-padding = 0
 
 ; Modules layout: workspaces | weather + date | status icons
-modules-left = launcher all
+modules-left = all
 modules-center = weather date
-modules-right = crypto proton-drive night-light sep transmission nzbget cpu memory sep wireguard stealth network-wifi network-eth openriot-update sep hdmi volume battery sep screenrec control-panel settings power lock
+modules-right = crypto proton-drive night-light sep transmission nzbget cpu memory sep wireguard stealth network-wifi network-eth openriot-update sep hdmi volume battery sep screenrec control-panel settings lock power
 
 ; Colors
 background = ${colors.alpha-bg}
@@ -77,13 +75,13 @@ interval = 4
 tail = false
 format = <label>
 format-foreground = ${colors.fg}
-format-padding = 0
+format-padding = 1
 label = %output%
 
 [module/launcher]
 type = custom/text
-format = "%{T2}%{T-}"
-format-foreground = ${colors.green}
+format = "%{T2}"
+format-foreground = ${colors.cyan}
 
 format-padding = 0
 click-left = $HOME/.local/share/openriot/install/openriot --rofi
@@ -100,7 +98,7 @@ format = <label>
 format-foreground = ${colors.fg}
 format-offset = 0
 format-padding = 0
-date = "%A • %B %d • %I:%M %p"
+date = "%A · %B %d · %I:%M %p"
 label = %date%
 click-left = $HOME/.local/share/openriot/install/openriot --wallpaper-next
 
@@ -159,7 +157,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --battery-notify
 
 [module/settings]
 type = custom/text
-format = "%{T1}%{T-}%{O2}"
+format = "%{O2}"
 format-foreground = ${colors.cyan}
 
 format-padding = 0
@@ -167,7 +165,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --settings-menu
 
 [module/control-panel]
 type = custom/text
-format = "%{T1}󰐰%{T-}%{O2}"
+format = "󰐰%{O2}"
 format-foreground = ${colors.violet}
 
 format-padding = 0
@@ -241,7 +239,7 @@ type = custom/script
 exec = $HOME/.local/share/openriot/install/openriot --crypto-icon
 interval = 60
 format = <label>
-format-foreground = ${colors.orange}
+format-foreground = ${colors.yellow}
 
 format-padding = 0
 label = %output%

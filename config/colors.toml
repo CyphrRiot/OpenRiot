@@ -16,6 +16,7 @@ dim = "#3b4261"
 name = "bondi-green"
 fg = "#9ECE6A"
 fg-light = "#8BB85A"
+dim = "#6d9a4e"
 bg = "#2B3A1A"
 
 [semantic]

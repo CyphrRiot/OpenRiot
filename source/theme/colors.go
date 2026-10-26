@@ -32,6 +32,7 @@ type AccentColors struct {
 	Name    string
 	FG      string
 	FGLight string
+	Dim     string
 	BG      string
 }
 
@@ -162,6 +163,7 @@ func loadColors() {
 		Name:    str(raw.Accent, "name"),
 		FG:      str(raw.Accent, "fg"),
 		FGLight: str(raw.Accent, "fg-light"),
+		Dim:     str(raw.Accent, "dim"),
 		BG:      str(raw.Accent, "bg"),
 	}
 
@@ -197,7 +199,7 @@ func loadColors() {
 		Muted:      str(raw.Extended, "muted"),
 		SecYellow:  str(raw.Extended, "sec-yellow"),
 		SecOrange:  str(raw.Extended, "sec-orange"),
-		AlphaBG:    alpha(str(raw.Extended, "bg-dark"), 0xB3),
+		AlphaBG:    alpha(str(raw.Extended, "bg-dark"), 0x99),
 	}
 
 	buildStyles()
@@ -374,6 +376,7 @@ func LoadColors(path string) (ColorPalette, error) {
 		Name:    str(raw.Accent, "name"),
 		FG:      str(raw.Accent, "fg"),
 		FGLight: str(raw.Accent, "fg-light"),
+		Dim:     str(raw.Accent, "dim"),
 		BG:      str(raw.Accent, "bg"),
 	}
 
@@ -409,7 +412,7 @@ func LoadColors(path string) (ColorPalette, error) {
 		Muted:      str(raw.Extended, "muted"),
 		SecYellow:  str(raw.Extended, "sec-yellow"),
 		SecOrange:  str(raw.Extended, "sec-orange"),
-		AlphaBG:    alpha(str(raw.Extended, "bg-dark"), 0xB3),
+		AlphaBG:    alpha(str(raw.Extended, "bg-dark"), 0x99),
 	}
 
 	return p, nil

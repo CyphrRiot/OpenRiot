@@ -535,6 +535,7 @@ func Setup() int {
 			"Hurmit Nerd Font:" + font0},
 		{"Hurmit Nerd Font:size=12",
 			"Hurmit Nerd Font:" + font2},
+		{"\uf328", "\ueb17"},
 	}
 
 	for _, r := range replacements {
@@ -671,8 +672,8 @@ func buildWorkspacesPolybar(tree *i3Tree, workspaces []i3Workspace, windowIcons 
 
 		dimFG := "#414868"
 		emptyFG := theme.Palette.Base.BG
-		accentFG := theme.GetAccent()
-		accentLight := theme.Palette.Accent.FG
+		accentFG := theme.Palette.Accent.Dim
+		accentLight := theme.Palette.Accent.Dim
 		urgentFG := theme.Palette.Semantic.Warning
 
 		if state == "unfocused" && len(icons) > 0 {
