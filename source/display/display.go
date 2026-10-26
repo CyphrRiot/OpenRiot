@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"openriot/notify"
+	"openriot/osd"
 )
 
 // GetBrightness returns the current backlight percentage (0-100).
@@ -59,6 +60,11 @@ func Run(args []string) int {
 	}
 
 	showNotify := func(msg string) {
+		if pct, ok := osd.ParsePercent(msg); ok {
+			if osd.Show("brightness", pct) == nil {
+				return
+			}
+		}
 		exec.Command("openriot", "--notify-dismiss").Run()
 		notify.SendNotify("nightlight-on", "Settings", msg, "normal", 3000, 0)
 	}

@@ -11,10 +11,11 @@ font pango:FiraCode Nerd Font 11
 default_border pixel 1
 default_floating_border pixel 1
 default_orientation horizontal
-hide_edge_borders smart
-smart_gaps on
+hide_edge_borders none
+smart_gaps off
 gaps inner 0
 gaps outer 0
+gaps top 1
 
 # Force border on GTK CSD apps
 for_window [class="gnome-text-editor"] border pixel 2
@@ -25,7 +26,7 @@ for_window [class="^XConsole$"] kill
 for_window [class="^xconsole$"] kill
 
 # Colors
-client.focused           #9ECE6A #285577 #ffffff #9ECE6A #9ECE6A
+client.focused           #6d9a4e #285577 #ffffff #6d9a4e #6d9a4e
 client.focused_inactive  #333333 #333333 #ffffff
 client.unfocused         #333333 #333333 #888888
 client.urgent            #d12121 #880000 #ffffff

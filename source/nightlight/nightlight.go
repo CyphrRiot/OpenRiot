@@ -19,7 +19,7 @@ const (
 
 func Get() string {
 	if IsOn() {
-		return polybar.Icon(iconOn)
+		return "%{F#5f5fae}" + polybar.Icon(iconOn) + "%{F-}"
 	}
 	return polybar.Icon(iconOff)
 }

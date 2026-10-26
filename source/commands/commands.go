@@ -33,6 +33,7 @@ import (
 	"openriot/nightlight"
 	"openriot/nmtui"
 	"openriot/notify"
+	"openriot/osd"
 	"openriot/paths"
 	"openriot/polybar"
 	"openriot/resolution"
@@ -366,6 +367,11 @@ func RegisterAll(r *Registry, testMode *bool) {
 		Name: "--notify", Category: "System Controls",
 		Description: "Send notification",
 		Run: func(args []string) error { return runNotify(args) },
+	})
+	r.Register(&Command{
+		Name: "--osd", Category: "System Controls",
+		Description: "Show on-screen display",
+		Run: func(args []string) error { os.Exit(osd.Run(args)); return nil },
 	})
 	r.Register(&Command{
 		Name: "--crypto", Category: "System Controls",

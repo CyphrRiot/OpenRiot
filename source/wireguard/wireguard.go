@@ -16,6 +16,7 @@ import (
 
 const (
 	ConfigPath = "/etc/wireguard/wg0.conf"
+	Interface  = "wg0"
 	stateFile  = ".config/openriot/wireguard.enabled"
 )
 
@@ -73,7 +74,7 @@ func setAutostart(enabled bool) {
 }
 
 const rcLocalMarker = "# OpenRiot: wireguard autostart"
-const rcLocalCmd = "[ -f /etc/wireguard/wg0.conf ] && wg-quick up /etc/wireguard/wg0.conf 2>/dev/null"
+const rcLocalCmd = "[ -f /etc/wireguard/wg0.conf ] && wg-quick up wg0 2>/dev/null"
 
 func setBootPersistence(enabled bool) {
 	data, err := os.ReadFile("/etc/rc.local")
@@ -154,7 +155,7 @@ func Status() string {
 
 func Start() error {
 	notify.SendNotify("wireguard", "VPN", "Starting WireGuard...", "normal", 3000, 0)
-	cmd := exec.Command("doas", "wg-quick", "up", ConfigPath)
+	cmd := exec.Command("doas", "wg-quick", "up", Interface)
 	if err := cmd.Run(); err != nil {
 		return err
 	}
@@ -181,7 +182,7 @@ func Start() error {
 func Stop() error {
 	notify.SendNotify("wireguard", "VPN", "Stopping WireGuard...", "normal", 3000, 0)
 	server := GetServerName()
-	cmd := exec.Command("doas", "wg-quick", "down", ConfigPath)
+	cmd := exec.Command("doas", "wg-quick", "down", Interface)
 	if err := cmd.Run(); err != nil {
 		return err
 	}

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"openriot/notify"
+	"openriot/osd"
 	"openriot/paths"
 )
 
@@ -94,6 +95,16 @@ func Run(args []string) int {
 	}
 
 	sendNotify := func(icon, msg string) {
+		kind := osd.KindForIcon(icon)
+		if kind != "" && !strings.Contains(strings.ToLower(msg), "error") {
+			pct, ok := osd.ParsePercent(msg)
+			if !ok {
+				pct = 0
+			}
+			if osd.Show(kind, pct) == nil {
+				return
+			}
+		}
 		notify.SendNotify(icon, "Settings", msg, "normal", 1500, 0)
 	}
 

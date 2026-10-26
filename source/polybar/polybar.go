@@ -17,6 +17,7 @@ import (
 	"openriot/notify"
 	"openriot/paths"
 	"openriot/screen"
+	"openriot/theme"
 	"openriot/windowicon"
 	"openriot/windowtitle"
 )
@@ -528,11 +529,11 @@ func Setup() int {
 		{"height = 26", "height = " + height},
 		{"module-margin = 1",
 			"module-margin = " + modMargin},
-		{"Hurmit Nerd Font:size=20",
+		{"Hurmit Nerd Font:size=18",
 			"Hurmit Nerd Font:" + font1},
 		{"Hurmit Nerd Font:size=11",
 			"Hurmit Nerd Font:" + font0},
-		{"Hurmit Nerd Font:size=13",
+		{"Hurmit Nerd Font:size=12",
 			"Hurmit Nerd Font:" + font2},
 	}
 
@@ -540,10 +541,8 @@ func Setup() int {
 		content = strings.ReplaceAll(content, r.old, r.new)
 	}
 
-	// On small screens reduce title length and tighten bar padding
+	// On small screens reduce title length
 	if width < 1360 {
-		content = strings.ReplaceAll(content,
-			"padding-right = 3", "padding-right = 0")
 		windowtitle.SetMaxLen(24)
 	}
 
@@ -605,7 +604,7 @@ func RunAll() error {
 	wsStr := buildWorkspacesPolybar(tree, workspaces, windowIcons)
 	titleStr := findFocusedTitleInTree(tree)
 
-	fmt.Print(wsStr + "  %{F#565F89}" + titleStr + "%{F-}\n")
+	fmt.Print(wsStr + "  %{F" + theme.Palette.Base.FG3 + "}" + titleStr + "%{F-}\n")
 	return nil
 }
 
@@ -670,22 +669,28 @@ func buildWorkspacesPolybar(tree *i3Tree, workspaces []i3Workspace, windowIcons 
 
 		indicator := getIndicator(state, len(icons) > 0)
 
+		dimFG := "#414868"
+		emptyFG := theme.Palette.Base.BG
+		accentFG := theme.GetAccent()
+		accentLight := theme.Palette.Accent.FG
+		urgentFG := theme.Palette.Semantic.Warning
+
 		if state == "unfocused" && len(icons) > 0 {
 			for i := 0; i < len(icons); i++ {
-				allSlots[i] = fmt.Sprintf("%%{T0}%%{F#565F89}%s%%{F-}%%{T-}", icons[i])
+				allSlots[i] = fmt.Sprintf("%%{T0}%%{F%s}%s%%{F-}%%{T-}", dimFG, icons[i])
 			}
-			indicator = fmt.Sprintf("%%{F#565F89}%s%%{F-}", indicator)
+			indicator = fmt.Sprintf("%%{F%s}%s%%{F-}", dimFG, indicator)
 		}
 		if state == "unfocused" && len(icons) == 0 {
-			indicator = fmt.Sprintf("%%{F#1A1D26}%s%%{F-}", indicator)
+			indicator = fmt.Sprintf("%%{F%s}%s%%{F-}", emptyFG, indicator)
 		}
 
 		content := fmt.Sprintf("%s %s", indicator, strings.Join(allSlots, " "))
 		if state == "focused" {
-			content = fmt.Sprintf("%%{F#9ECE6A}%s%%{F-} %%{F#8BB85A}%s%%{F-}", indicator, strings.Join(allSlots, " "))
+			content = fmt.Sprintf("%%{F%s}%s%%{F-} %%{F%s}%s%%{F-}", accentFG, indicator, accentLight, strings.Join(allSlots, " "))
 		}
 		if state == "urgent" {
-			content = fmt.Sprintf("%%{F#F7768E}%s%%{F-}", content)
+			content = fmt.Sprintf("%%{F%s}%s%%{F-}", urgentFG, content)
 		}
 		results = append(results,
 			fmt.Sprintf("%%{A:$HOME/.local/share/openriot/install/openriot --workspace-switch %d:}%s%%{A}", wsNum, content))

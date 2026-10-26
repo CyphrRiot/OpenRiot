@@ -23,7 +23,7 @@ cyan-dim = {{.ExtendedCyanDim}}
 muted = {{.ExtendedMuted}}
 
 [global/wm]
-margin-bottom = 3
+margin-bottom = 1
 
 [bar/main]
 type = xcb
@@ -31,30 +31,31 @@ enable-ipc = true
 fixed-center = false
 width = 100%
 height = 26
-radius = 0
+radius = 8
+border-size = 1
+border-color = ${colors.fg3}
 underline-size = 0
 underline-color = ${colors.cyan}
 line-size = 0
 dpi-x = 96
 dpi-y = 96
-offset-y = 3
+offset-y = 0
 padding-right = 1
 padding-left = 1
 module-margin = 1
 spacing = 0
 clickareas = 64
 
-
 ; Fonts
-font-0 = "Hurmit Nerd Font:size=11"
-font-1 = "Hurmit Nerd Font:size=18"
-font-2 = "Hurmit Nerd Font:size=12"
+font-0 = "Hurmit Nerd Font:size=11;2"
+font-1 = "Hurmit Nerd Font:size=18;2"
+font-2 = "Hurmit Nerd Font:size=12;2"
 
 ; Separator style
 separator = ""
 separator-padding = 0
 
-; Modules layout: i3 workspaces | arrow | date | arrow | volume | network | battery | arrow | power
+; Modules layout: workspaces | weather + date | status icons
 modules-left = launcher all
 modules-center = weather date
 modules-right = crypto proton-drive night-light sep transmission nzbget cpu memory sep wireguard stealth network-wifi network-eth openriot-update sep hdmi volume battery sep screenrec control-panel settings power lock
@@ -82,7 +83,7 @@ label = %output%
 [module/launcher]
 type = custom/text
 format = "%{T2}%{T-}"
-format-foreground = {{.ExtendedLauncherFG}}
+format-foreground = ${colors.green}
 
 format-padding = 0
 click-left = $HOME/.local/share/openriot/install/openriot --rofi
@@ -96,7 +97,7 @@ format-foreground = {{.ExtendedSepBG}}
 type = internal/date
 interval = 60
 format = <label>
-format-foreground = ${colors.fg2}
+format-foreground = ${colors.fg}
 format-offset = 0
 format-padding = 0
 date = "%A • %B %d • %I:%M %p"
@@ -110,7 +111,7 @@ exec-click = true
 interval = 29
 tail = false
 format = <label>
-format-foreground = ${colors.cyan}
+format-foreground = ${colors.green}
 
 format-padding = 0
 label = %output%
@@ -124,7 +125,7 @@ exec = $HOME/.local/share/openriot/install/openriot --network-wifi
 interval = 60
 tail = false
 format = <label>
-format-foreground = ${colors.sky}
+format-foreground = ${colors.cyan}
 
 format-padding = 0
 label = %output%
@@ -137,7 +138,7 @@ exec = $HOME/.local/share/openriot/install/openriot --network-eth
 interval = 37
 tail = false
 format = <label>
-format-foreground = ${colors.sky}
+format-foreground = ${colors.cyan-dim}
 
 format-padding = 0
 label = %output%
@@ -149,7 +150,7 @@ exec = $HOME/.local/share/openriot/install/openriot --battery
 interval = 34
 tail = false
 format = <label>
-format-foreground = ${colors.cyan}
+format-foreground = ${colors.green}
 
 format-padding = 0
 label = %output%
@@ -159,7 +160,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --battery-notify
 [module/settings]
 type = custom/text
 format = "%{T1}%{T-}%{O2}"
-format-foreground = ${colors.cyan-dim}
+format-foreground = ${colors.cyan}
 
 format-padding = 0
 click-left = $HOME/.local/share/openriot/install/openriot --settings-menu
@@ -167,7 +168,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --settings-menu
 [module/control-panel]
 type = custom/text
 format = "%{T1}󰐰%{T-}%{O2}"
-format-foreground = ${colors.cyan-dim}
+format-foreground = ${colors.violet}
 
 format-padding = 0
 click-left = alacritty --title "OpenRiot Control Center" --class openriot_control -e openriot --control-center
@@ -178,7 +179,7 @@ exec = $HOME/.local/share/openriot/install/openriot --update-status
 interval = 14400
 tail = false
 format = <label>
-format-foreground = ${colors.sky}
+format-foreground = ${colors.violet}
 
 format-padding = 0
 label = %output%
@@ -190,7 +191,7 @@ exec = $HOME/.local/share/openriot/install/openriot --hdmi
 interval = 65
 tail = false
 format = <label>
-format-foreground = ${colors.cyan}
+format-foreground = ${colors.sky}
 
 format-padding = 0
 label = %output%
@@ -203,7 +204,7 @@ exec = $HOME/.local/share/openriot/install/openriot --weather
 interval = 1800
 tail = false
 format = <label>
-format-foreground = ${colors.fg3}
+format-foreground = ${colors.sky}
 format-offset = 0
 format-padding = 0
 label = %output%
@@ -215,7 +216,7 @@ exec = $HOME/.local/share/openriot/install/openriot --polybar-proton-drive
 interval = 60
 tail = false
 format = <label>
-format-foreground = ${colors.teal}
+format-foreground = ${colors.sky}
 
 format-padding = 0
 label = %output%
@@ -240,7 +241,7 @@ type = custom/script
 exec = $HOME/.local/share/openriot/install/openriot --crypto-icon
 interval = 60
 format = <label>
-format-foreground = ${colors.teal}
+format-foreground = ${colors.orange}
 
 format-padding = 0
 label = %output%
@@ -253,7 +254,7 @@ exec = $HOME/.local/share/openriot/install/openriot --polybar-nzbget
 interval = 26
 tail = false
 format = <label>
-format-foreground = ${colors.teal}
+format-foreground = ${colors.red}
 
 format-padding = 0
 label = %output%
@@ -266,7 +267,7 @@ exec = $HOME/.local/share/openriot/install/openriot --night-light-status
 interval = 60
 tail = false
 format = <label>
-format-foreground = ${colors.teal}
+format-foreground = ${colors.orange}
 
 format-padding = 0
 label = %output%
@@ -279,7 +280,7 @@ exec = $HOME/.local/share/openriot/install/openriot --screenrec-status
 interval = 7
 tail = false
 format = <label>
-format-foreground = ${colors.cyan-dim}
+format-foreground = ${colors.red}
 
 format-padding = 0
 label = %output%
@@ -292,7 +293,7 @@ exec = $HOME/.local/share/openriot/install/openriot --wireguard-status
 interval = 60
 tail = false
 format = <label>
-format-foreground = ${colors.sky}
+format-foreground = ${colors.electric}
 
 format-padding = 0
 label = %output%
@@ -305,7 +306,7 @@ exec = $HOME/.local/share/openriot/install/openriot --stealth-status
 interval = 60
 tail = false
 format = <label>
-format-foreground = ${colors.sky}
+format-foreground = ${colors.purple}
 
 format-padding = 0
 label = %output%
@@ -317,8 +318,7 @@ exec = $HOME/.local/share/openriot/install/openriot --polybar-metrics
 interval = 60
 tail = false
 format = <label>
-format-foreground = ${colors.blue}
-
+format-foreground = ${colors.teal}
 format-padding = 0
 label = %output%
 click-left = $HOME/.local/share/openriot/install/openriot --cpu-notify
@@ -329,7 +329,7 @@ exec = $HOME/.local/share/openriot/install/openriot --polybar-memory
 interval = 60
 tail = false
 format = <label>
-format-foreground = ${colors.blue}
+format-foreground = ${colors.purple}
 
 format-padding = 0
 label = %output%
@@ -338,7 +338,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --mem-notify
 [module/power]
 type = custom/text
 format = ⏻%{O2}
-format-foreground = ${colors.cyan-dim}
+format-foreground = ${colors.red}
 
 format-padding = 0
 click-left = $HOME/.local/share/openriot/install/openriot --power-menu
@@ -346,7 +346,7 @@ click-left = $HOME/.local/share/openriot/install/openriot --power-menu
 [module/lock]
 type = custom/text
 format = 󰌾%{O2}
-format-foreground = ${colors.cyan-dim}
+format-foreground = ${colors.fg2}
 
 format-padding = 0
 click-left = $HOME/.local/share/openriot/install/openriot --lock
