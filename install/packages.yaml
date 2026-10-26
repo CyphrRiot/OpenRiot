@@ -18,7 +18,7 @@ core:
     base:
         packages:
             - rsync-3.5.1
-            - python-3.14.7p0
+            - python-3.14.9
             - fastfetch-2.69.0
             - exfat-fuse-1.4.0
             - xz-5.8.4
