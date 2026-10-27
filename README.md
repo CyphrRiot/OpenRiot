@@ -77,6 +77,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 ## 📚 Navigate This Guide
 
 - [💎 Donations](#donations)
+- [✅ Supported Systems](#supported-systems)
 - [🚀 Installing OpenRiot](#installing-openriot)
 - [⌨️ Master Your OpenRiot Desktop](#master-your-openriot-desktop)
 - [🎛️ Control Center](#control-center)
@@ -178,14 +179,16 @@ These ThinkPads have excellent OpenBSD support for WiFi, trackpoints, and suspen
 
 | Adapter                      | Chip   | OpenBSD Driver | Support Level        | Buy                                                         |
 | ---------------------------- | ------ | -------------- | -------------------- | ----------------------------------------------------------- |
-| **Intel Wi-Fi 6 AX200**      | `iwm`  | `iwm(4)`       | ⭐⭐⭐⭐⭐                | [Check ThinkPad T14s](https://www.amazon.com/s?k=thinkpad+t14s) |
-| **Intel Wi-Fi 6 AX201**      | `iwm`  | `iwm(4)`       | ⭐⭐⭐⭐⭐                | Common in 10th-gen+ ThinkPads                               |
+| **Intel Wi-Fi 6 AX200**      | `iwx`  | `iwx(4)`       | ⭐⭐⭐⭐⭐                | [Check ThinkPad T14s](https://www.amazon.com/s?k=thinkpad+t14s) |
+| **Intel Wi-Fi 6 AX201**      | `iwx`  | `iwx(4)`       | ⭐⭐⭐⭐⭐                | CNVi, needs matching chipset                                |
+| **Intel Wi-Fi 6E AX210**     | `iwx`  | `iwx(4)`       | ⭐⭐⭐⭐⭐                | M.2 PCIe, standalone                                        |
+| **Intel Wi-Fi 6E AX211**     | `iwx`  | `iwx(4)`       | ⭐⭐⭐⭐                | CNVi, needs matching chipset                                |
 | **Intel Wireless 8265**      | `iwm`  | `iwm(4)`       | ⭐⭐⭐⭐                | Found in T470, X270, others                                 |
 | **Intel Wireless 8260**      | `iwm`  | `iwm(4)`       | ⭐⭐⭐⭐                | Older but well-supported                                    |
 | **Intel Wireless 3165**      | `iwm`  | `iwm(4)`       | ⭐⭐⭐                | Older, 802.11ac only                                        |
 | **Intel Wireless 7265**      | `iwm`  | `iwm(4)`       | ⭐⭐⭐⭐                | Found in T450, X250                                         |
-| **Qualcomm Atheros QCA6174** | `athn` | `athn(4)`      | ⭐⭐⭐⭐                | Found in some ThinkPads                                     |
-| **Broadcom BCM4360**         | `brcm` | `brcm(4)`      | ⚠️ Requires firmware | Avoid if possible                                           |
+| **Broadcom BCM43602**        | `bwfm` | `bwfm(4)`      | ⭐⭐⭐                | `fw_update bwfm` required                                   |
+| **Broadcom BCM4378**         | `bwfm` | `bwfm(4)`      | ⭐⭐⭐                | `fw_update bwfm` required                                   |
 
 ### USB WiFi Adapters (Nano/Compact)
 
@@ -202,6 +205,8 @@ These ThinkPads have excellent OpenBSD support for WiFi, trackpoints, and suspen
 
 | Adapter                            | Chip        | Reason                                                  |
 | ---------------------------------- | ----------- | ------------------------------------------------------- |
+| **Broadcom BCM4360**               | `brcmfmac`  | Not supported by `bwfm(4)`; no `brcm(4)` driver         |
+| **Qualcomm Atheros QCA6174**       | `ath10k`    | No OpenBSD driver; `athn(4)` stops at AR9287            |
 | **Any Broadcom** (e.g., BCM94352Z) | `brcmfmac`  | Requires proprietary firmware; OpenBSD will not load it |
 | **Realtek 8812AU/8821AU**          | `rtl8812au` | No OpenBSD driver exists                                |
 | **MediaTek MT7921**                | `mt7921u`   | No OpenBSD driver                                       |
