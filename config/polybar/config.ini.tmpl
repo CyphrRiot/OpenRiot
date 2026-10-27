@@ -3,6 +3,9 @@
 [colors]
 bg = {{.ExtendedBGDark}}
 alpha-bg = {{.ExtendedAlphaBG}}
+bar-left = #9906070B
+bar-center = #3306070B
+bar-right = #9906070B
 bg2 = {{.ExtendedBGMid}}
 fg = {{.ExtendedFGBright}}
 fg2 = {{.BaseFG2}}
@@ -25,41 +28,114 @@ muted = {{.ExtendedMuted}}
 [global/wm]
 margin-bottom = 1
 
-[bar/main]
+[bar/left]
 type = xcb
+override-redirect = true
+enable-struts = false
 enable-ipc = true
-fixed-center = true
-width = 100%
+fixed-center = false
+width = 38%
 height = 26
-radius = 8
+radius = 12
 underline-size = 0
 underline-color = ${colors.cyan}
 line-size = 0
 dpi-x = 96
 dpi-y = 96
+offset-x = 0.5%
 offset-y = 0
-padding-right = 1
-padding-left = 1
+padding-right = 2
+padding-left = 2
 module-margin = 1
 spacing = 0
 clickareas = 64
 
-; Fonts
 font-0 = "Hurmit Nerd Font:size=11;2"
 font-1 = "Hurmit Nerd Font:size=11;2"
 font-2 = "Hurmit Nerd Font:size=12;2"
 
-; Separator style
 separator = ""
 separator-padding = 0
 
-; Modules layout: workspaces | weather + date | status icons
 modules-left = all
+modules-center =
+modules-right =
+
+background = ${colors.bar-left}
+foreground = ${colors.fg}
+line-color = ${colors.cyan}
+
+[bar/center]
+type = xcb
+override-redirect = true
+enable-struts = false
+enable-ipc = true
+fixed-center = true
+width = 21%
+height = 26
+radius = 12
+underline-size = 0
+underline-color = ${colors.cyan}
+line-size = 0
+dpi-x = 96
+dpi-y = 96
+offset-x = 40%
+offset-y = 0
+padding-right = 2
+padding-left = 2
+module-margin = 1
+spacing = 0
+clickareas = 64
+
+font-0 = "Hurmit Nerd Font:size=11;4"
+font-1 = "Hurmit Nerd Font:size=11;4"
+font-2 = "Hurmit Nerd Font:size=12;4"
+
+separator = ""
+separator-padding = 0
+
+modules-left =
 modules-center = weather date
+modules-right =
+
+background = ${colors.bar-center}
+foreground = ${colors.fg}
+line-color = ${colors.cyan}
+
+[bar/right]
+type = xcb
+override-redirect = true
+enable-struts = false
+enable-ipc = true
+fixed-center = false
+width = 37%
+height = 26
+radius = 12
+underline-size = 0
+underline-color = ${colors.cyan}
+line-size = 0
+dpi-x = 96
+dpi-y = 96
+offset-x = 62.5%
+offset-y = 0
+padding-right = 2
+padding-left = 2
+module-margin = 1
+spacing = 0
+clickareas = 64
+
+font-0 = "Hurmit Nerd Font:size=11;2"
+font-1 = "Hurmit Nerd Font:size=11;2"
+font-2 = "Hurmit Nerd Font:size=12;2"
+
+separator = ""
+separator-padding = 0
+
+modules-left =
+modules-center =
 modules-right = crypto proton-drive night-light sep transmission nzbget cpu memory sep wireguard stealth network-wifi network-eth openriot-update sep hdmi volume battery sep screenrec control-panel settings lock power
 
-; Colors
-background = ${colors.alpha-bg}
+background = ${colors.bar-right}
 foreground = ${colors.fg}
 line-color = ${colors.cyan}
 

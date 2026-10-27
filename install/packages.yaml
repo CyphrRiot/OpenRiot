@@ -84,7 +84,7 @@ desktop:
             - picom-13
             - xclip-0.13p1
             - ImageMagick-6.9.13.59
-            - libwebp-1.6.0
+            - libwebp-1.6.0p2
             - ffmpeg-9.0.2v1
             - dunst-1.13.2
             - xosd-2.2.14p2
@@ -578,7 +578,7 @@ system:
                       echo "[SKIP] No X11, skipping polybar kill"
                   else
                       pkill -9 polybar 2>/dev/null || true
-                      echo "[DONE] Polybar killed (will restart automatically)"
+                      echo "[DONE] Polybar killed (will restart on i3 reload)"
                   fi
         depends: [desktop.i3, source.polybar-scaling]
         start: "Cleaning up stale menus..."

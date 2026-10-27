@@ -15,7 +15,7 @@ hide_edge_borders none
 smart_gaps off
 gaps inner 0
 gaps outer 0
-gaps top 1
+gaps top 28
 
 # Force border on GTK CSD apps
 for_window [class="gnome-text-editor"] border pixel 2
@@ -41,9 +41,12 @@ include keybindings.conf
 
 # Status bar - generate scaled config, wait for i3 IPC readiness, then launch polybar
 exec --no-startup-id $openriot_bin --polybar-setup
-exec --no-startup-id sh -c 'while ! i3-msg -t get_version >/dev/null 2>&1; do sleep 1; done; sleep 2; $openriot_bin --notify info "Polybar" "Starting Polybar..." normal 5000; polybar main'
-# Defensive: if polybar crashes, restart it quickly
-exec --no-startup-id sh -c 'sleep 10; while true; do pgrep -x polybar >/dev/null || polybar main; sleep 5; done'
+exec --no-startup-id sh -c 'while ! i3-msg -t get_version >/dev/null 2>&1; do sleep 1; done; sleep 2; $openriot_bin --notify info "Polybar" "Starting Polybar..." normal 5000'
+exec_always --no-startup-id sh -c 'sleep 2; pgrep -f "^polybar left$" >/dev/null || polybar left'
+exec_always --no-startup-id sh -c 'sleep 2; pgrep -f "^polybar center$" >/dev/null || polybar center'
+exec_always --no-startup-id sh -c 'sleep 2; pgrep -f "^polybar right$" >/dev/null || polybar right'
+# Defensive: if a polybar section crashes, restart it quickly
+exec_always --no-startup-id sh -c 'lock=/tmp/openriot-polybar-watchdog.pid; [ -f "$lock" ] && kill -0 "$(cat "$lock")" 2>/dev/null && exit 0; echo $$ > "$lock"; trap "rm -f $lock" EXIT; sleep 10; while true; do for b in left center right; do pgrep -f "^polybar $b$" >/dev/null || polybar $b; done; sleep 5; done'
 
 # Wallpaper
 exec --no-startup-id $openriot_bin --wallpaper-load

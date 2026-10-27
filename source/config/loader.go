@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 	"openriot/paths"
@@ -354,4 +355,26 @@ func GetBaseName(pkg string) string {
 		}
 	}
 	return pkg
+}
+
+// PackageSpec converts a pinned package into a versionless pkg_add spec,
+// preserving flavors (e.g., "angband-4.2.5-sdl" -> "angband--sdl").
+func PackageSpec(pkg string) string {
+	parts := strings.Split(pkg, "-")
+	version := len(parts)
+	for i := 1; i < len(parts); i++ {
+		if parts[i] != "" && parts[i][0] >= '0' && parts[i][0] <= '9' {
+			version = i
+			break
+		}
+	}
+	if version == len(parts) {
+		return pkg
+	}
+	base := strings.Join(parts[:version], "-")
+	flavors := parts[version+1:]
+	if len(flavors) == 0 {
+		return base
+	}
+	return base + "--" + strings.Join(flavors, "-")
 }

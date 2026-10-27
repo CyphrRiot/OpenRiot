@@ -144,8 +144,8 @@ func InstallPackages(cfg *config.Config, packages []string) (int, error) {
 			if ctx.Err() == context.DeadlineExceeded {
 				logger.Warn(fmt.Sprintf("Timed out after %dm: %s", int(timeout.Minutes()), installName))
 			}
-			// Retry with base name if exact version failed
-			base := config.GetBaseName(pkg)
+			// Retry with a versionless spec if exact version failed
+			base := config.PackageSpec(pkg)
 			if base != pkg {
 				if errOut := tryInstall(installCmd, base, timeout); errOut == "" {
 					continue
@@ -316,28 +316,33 @@ func UpdatePinnedPackages() error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
+	installed := GetInstalledPackages()
 	seen := make(map[string]bool)
-	var bases []string
+	var specs []string
 	for _, pkg := range cfg.GetPackages() {
-		base := config.GetBaseName(pkg)
-		if seen[base] {
+		if installedVer, ok := installed[config.GetBaseName(pkg)]; ok && installedVer == pkg {
 			continue
 		}
-		seen[base] = true
-		bases = append(bases, base)
+		spec := config.PackageSpec(pkg)
+		if seen[spec] {
+			continue
+		}
+		seen[spec] = true
+		specs = append(specs, spec)
 	}
-	if len(bases) == 0 {
-		return fmt.Errorf("no packages found in packages.yaml")
+	if len(specs) == 0 {
+		logger.Done("All pinned packages already installed")
+		return nil
 	}
 
-	logger.Info(fmt.Sprintf("Updating %d pinned packages...", len(bases)))
+	logger.Info(fmt.Sprintf("Updating %d pinned packages...", len(specs)))
 
 	args := []string{"doas", "pkg_add"}
 	if cfg.IsSnapshot() {
 		args = append(args, "-D", "snapshot")
 	}
 	args = append(args, "-Iu")
-	args = append(args, bases...)
+	args = append(args, specs...)
 
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdout = os.Stdout

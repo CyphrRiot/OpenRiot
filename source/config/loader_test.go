@@ -148,3 +148,22 @@ func containsHelper(s, sub string) bool {
 	}
 	return false
 }
+
+func TestPackageSpec(t *testing.T) {
+	tests := []struct {
+		pkg  string
+		want string
+	}{
+		{"fish-4.6.0", "fish"},
+		{"angband-4.2.5-sdl", "angband--sdl"},
+		{"0ad-0.0.26", "0ad"},
+		{"python-3.11.9", "python"},
+		{"gtk+3-3.24.38", "gtk+3"},
+		{"nogood", "nogood"},
+	}
+	for _, tt := range tests {
+		if got := PackageSpec(tt.pkg); got != tt.want {
+			t.Errorf("PackageSpec(%q) = %q, want %q", tt.pkg, got, tt.want)
+		}
+	}
+}
