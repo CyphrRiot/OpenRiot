@@ -916,7 +916,7 @@ func RegisterAll(r *Registry, testMode *bool) {
 	})
 	r.Register(&Command{
 		Name: "--convert-webp", Category: "System Controls",
-		Description: "Convert backgrounds/*.png and Locked/*.png to .webp",
+		Description: "Convert backgrounds/*.{png,jpg} and Locked/*.{png,jpg} to .webp",
 		Run: func(args []string) error { return imaging.ConvertPngToWebP() },
 	})
 	r.Register(&Command{

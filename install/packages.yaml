@@ -84,6 +84,7 @@ desktop:
             - picom-13
             - xclip-0.13p1
             - ImageMagick-6.9.13.59
+            - libwebp-1.6.0
             - ffmpeg-9.0.2v1
             - dunst-1.13.2
             - xosd-2.2.14p2

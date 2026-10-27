@@ -8,25 +8,29 @@ import (
 	"strings"
 )
 
-// ConvertPngToWebP converts all .png files in backgrounds/ and Locked/ to
-// .webp and removes the original .png files.
+// ConvertPngToWebP converts all .png and .jpg files in backgrounds/ and
+// Locked/ to .webp and removes the original files.
 func ConvertPngToWebP() error {
 	dirs := []string{"backgrounds", "Locked"}
 	converted := 0
 	for _, dir := range dirs {
-		files, err := filepath.Glob(filepath.Join(dir, "*.png"))
-		if err != nil {
-			return fmt.Errorf("glob %s: %w", dir, err)
+		var files []string
+		for _, pat := range []string{"*.png", "*.jpg", "*.jpeg"} {
+			m, err := filepath.Glob(filepath.Join(dir, pat))
+			if err != nil {
+				return fmt.Errorf("glob %s/%s: %w", dir, pat, err)
+			}
+			files = append(files, m...)
 		}
 		if len(files) == 0 {
 			continue
 		}
 
 		for _, f := range files {
-			out := strings.TrimSuffix(f, ".png") + ".webp"
-			cmd := exec.Command("cwebp", f, "-o", out)
-			if err := cmd.Run(); err != nil {
-				// try convert (ImageMagick) as fallback
+			out := strings.TrimSuffix(
+				strings.TrimSuffix(strings.TrimSuffix(f, ".png"), ".jpg"), ".jpeg") + ".webp"
+			cwebp := exec.Command("cwebp", f, "-o", out)
+			if err := cwebp.Run(); err != nil {
 				cmd2 := exec.Command("convert", f, out)
 				if err2 := cmd2.Run(); err2 != nil {
 					fmt.Fprintf(os.Stderr, "skip %s: %v\n", f, err)
