@@ -130,6 +130,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.
 
+<a id="supported-systems"></a>
 ## ✅ Supported Systems
 
 ### Highly Recommended ThinkPad Series
