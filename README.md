@@ -2271,6 +2271,6 @@ This makes the underlying X server far more resistant to client-side abuse than 
 > **OpenRiot was built by one person over hundreds of hours.**
 > OpenRiot is the first truly usable OpenBSD system with a working window manager, curated applications, and a complete desktop workflow — no compromises, no Linux copium.
 > If it saved you time, consider donating (in Bitcoin):
-> `bc1qscxvn9clw6n3a4kykl2nlu8w2f2aqdftfp4hyq`
+> `bc1q77vh5x2ujgzjesc8s877hsvuzgx8z8m20flww8`
 
 ![Donation QR Code](assets/qr-code.webp)
