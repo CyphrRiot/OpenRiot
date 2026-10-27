@@ -4,7 +4,7 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
-![Version](https://img.shields.io/badge/version-8.0.7-9ECE6A?labelColor=1a1b26)
+![Version](https://img.shields.io/badge/version-8.0.8-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)
 ![Last Commit](https://img.shields.io/github/last-commit/CyphrRiot/OpenRiot?color=8BB85A&labelColor=1a1b26)
@@ -115,6 +115,7 @@ OpenRiot is under active development. It may not work as expected. Some features
 
 ## 📋 Release Notes
 
+- [v8.0.8: Only the Named](docs/v8.0.8-Release-Notes.md)
 - [v8.0.7: Thirty-Two Walls](docs/v8.0.7-Release-Notes.md)
 - [v8.0.6 — It Comes in Colors Everywhere](docs/v8.0.6-Release-Notes.md)
 - [v8.0.5 — It Comes in Colors Everywhere](docs/v8.0.5-Release-Notes.md)
@@ -124,7 +125,6 @@ OpenRiot is under active development. It may not work as expected. Some features
 - [v8.0.1 — The Prompts Were Always There](docs/v8.0.1-Release-Notes.md)
 - [v8.0.0 — One File to Point Them All](docs/v8.0.0-Release-Notes.md)
 - [v7.9.70 — One Pipe, One Clock](docs/v7.9.70-Release-Notes.md)
-- [v7.9.69 — The Machine Copies Itself and Lives](docs/v7.9.69-Release-Notes.md)
 - [Older releases →](docs/)
 
 Previous release notes can be found at [GitHub](https://github.com/CyphrRiot/OpenRiot) or in the [Documents](https://github.com/CyphrRiot/OpenRiot/tree/main/docs) folder.

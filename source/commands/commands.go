@@ -265,14 +265,11 @@ func RegisterAll(r *Registry, testMode *bool) {
 	})
 	r.Register(&Command{
 		Name: "--pkg-update", Category: "Tools & Upgrades",
-		Description: "Update packages from " + installer.TargetOpenBSD + " stable release",
+		Description: "Update pinned packages from " + installer.TargetOpenBSD + " stable release",
 		Run: func(args []string) error {
-			logger.Info(fmt.Sprintf("Updating packages from OpenBSD %s stable...", installer.TargetOpenBSD))
-			logger.Warn("This can take up to an hour.")
-			cmd := exec.Command("doas", "sh", "-c", fmt.Sprintf("PKG_PATH=https://cdn.openbsd.org/pub/OpenBSD/%s/packages/amd64/ pkg_add -Iu", installer.TargetOpenBSD))
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			return cmd.Run()
+			logger.Info(fmt.Sprintf("Updating pinned packages from OpenBSD %s stable...", installer.TargetOpenBSD))
+			logger.Warn("This may take a while.")
+			return installer.UpdatePinnedPackages()
 		},
 	})
 	r.Register(&Command{

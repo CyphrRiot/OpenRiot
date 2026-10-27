@@ -304,3 +304,48 @@ func strip0adFromGames() {
 	}
 	os.WriteFile(gamesPath, []byte(strings.Join(out, "\n")), 0644)
 }
+
+// UpdatePinnedPackages updates only the packages listed in packages.yaml.
+// It never updates unrelated installed packages.
+func UpdatePinnedPackages() error {
+	SetupMirror()
+
+	configPath := paths.OpenRiotDir("install", "packages.yaml")
+	cfg, err := config.LoadConfig(configPath)
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	seen := make(map[string]bool)
+	var bases []string
+	for _, pkg := range cfg.GetPackages() {
+		base := config.GetBaseName(pkg)
+		if seen[base] {
+			continue
+		}
+		seen[base] = true
+		bases = append(bases, base)
+	}
+	if len(bases) == 0 {
+		return fmt.Errorf("no packages found in packages.yaml")
+	}
+
+	logger.Info(fmt.Sprintf("Updating %d pinned packages...", len(bases)))
+
+	args := []string{"doas", "pkg_add"}
+	if cfg.IsSnapshot() {
+		args = append(args, "-D", "snapshot")
+	}
+	args = append(args, "-Iu")
+	args = append(args, bases...)
+
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("pkg_add failed: %w", err)
+	}
+
+	logger.Done("Pinned packages updated")
+	return nil
+}
