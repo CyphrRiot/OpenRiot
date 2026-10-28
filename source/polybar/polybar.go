@@ -555,6 +555,10 @@ func Setup() int {
 		0600); err != nil {
 		return 1
 	}
+	if os.Getenv("DISPLAY") != "" {
+		exec.Command("i3-msg", "gaps", "top", "all", "set",
+			height).Run()
+	}
 	fmt.Println("[DONE] Polybar scaled. Run `Super+Shift+R` to " +
 		"apply changes.")
 	return 0

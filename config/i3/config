@@ -46,7 +46,7 @@ exec_always --no-startup-id sh -c 'sleep 2; pgrep -f "^polybar left$" >/dev/null
 exec_always --no-startup-id sh -c 'sleep 2; pgrep -f "^polybar center$" >/dev/null || polybar center'
 exec_always --no-startup-id sh -c 'sleep 2; pgrep -f "^polybar right$" >/dev/null || polybar right'
 # Defensive: if a polybar section crashes, restart it quickly
-exec_always --no-startup-id sh -c 'lock=/tmp/openriot-polybar-watchdog.pid; [ -f "$lock" ] && kill -0 "$(cat "$lock")" 2>/dev/null && exit 0; echo $$ > "$lock"; trap "rm -f $lock" EXIT; sleep 10; while true; do for b in left center right; do pgrep -f "^polybar $b$" >/dev/null || polybar $b; done; sleep 5; done'
+exec_always --no-startup-id sh -c 'lock=/tmp/openriot-polybar-watchdog.pid; [ -f "$lock" ] && kill -0 "$(cat "$lock")" 2>/dev/null && exit 0; echo $$ > "$lock"; trap "rm -f $lock" EXIT; sleep 10; while true; do for b in left center right; do pgrep -f "^polybar $b$" >/dev/null || { nohup polybar $b >/dev/null 2>&1 & }; done; sleep 5; done'
 
 # Wallpaper
 exec --no-startup-id $openriot_bin --wallpaper-load

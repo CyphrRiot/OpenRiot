@@ -11,6 +11,7 @@ import (
 	"openriot/lock"
 	"openriot/notify"
 	"openriot/paths"
+	"openriot/polybar"
 )
 
 // Display represents a connected monitor output.
@@ -170,6 +171,15 @@ func RestoreResolution() error {
 
 // Apply executes xrandr, persists the choice, and triggers desktop refresh.
 func Apply(displayName, resolution string, rate float64) error {
+	current := fmt.Sprintf("%s@%.2f", resolution, rate)
+	if displays, err := GetDis(); err == nil {
+		for _, d := range displays {
+			if d.Name == displayName && d.Current == current {
+				return nil
+			}
+		}
+	}
+
 	cmd := exec.Command("xrandr",
 		"--output", displayName,
 		"--mode", resolution,
@@ -182,7 +192,8 @@ func Apply(displayName, resolution string, rate float64) error {
 	// Persist for next reboot
 	_ = SaveResolution(displayName, resolution, rate)
 
-	// Restart polybar so it scales to the new resolution
+	// Rescale the bars for the new screen before restarting them
+	polybar.Setup()
 	exec.Command("pkill", "-9", "polybar").Run()
 
 	// Reload wallpaper at new resolution
