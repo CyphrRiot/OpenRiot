@@ -18,7 +18,7 @@ import (
 
 // RunMenu launches a rofi settings menu with toggles for VPN, Transmission,
 // Night Light, and Proton Sync. Each entry shows its current ON/OFF state.
-func RunMenu() {
+func RunMenu(dropdown bool) {
 	entries := buildEntries()
 	if len(entries) == 0 {
 		return
@@ -38,7 +38,18 @@ func RunMenu() {
 		fmt.Fprintf(&rofiInput, "%s %s %s\n", e.icon, e.name, stateStr)
 	}
 
-	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", "Settings", "-format", "i", "-theme", themePath, "-theme-str", fmt.Sprintf("window { width: 450px; border: 2px; border-color: %s; }", theme.GetPurple()))
+	themeStr := fmt.Sprintf(
+		"window { width: 450px; border: 2px; border-color: %s; }",
+		theme.GetPurple())
+	if dropdown {
+		themeStr = fmt.Sprintf(
+			"window { anchor: north east; location: north east; "+
+				"x-offset: 0px; y-offset: 30px; width: 450px; "+
+				"border: 2px; border-color: %s; } "+
+				"element selected { background-color: %s; }",
+			theme.GetPurple(), theme.GetPurple())
+	}
+	cmd := exec.Command("rofi", "-dmenu", "-i", "-p", "Settings", "-format", "i", "-theme", themePath, "-theme-str", themeStr)
 	cmd.Stdin = &rofiInput
 	var out bytes.Buffer
 	cmd.Stdout = &out

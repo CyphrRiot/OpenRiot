@@ -110,7 +110,7 @@ override-redirect = true
 enable-struts = false
 screenchange-reload = true
 enable-ipc = true
-fixed-center = false
+fixed-center = true
 width = 37%
 height = 26
 radius = 12
@@ -136,7 +136,7 @@ separator-padding = 0
 
 modules-left =
 modules-center =
-modules-right = crypto proton-drive night-light sep transmission nzbget cpu memory sep wireguard stealth network-wifi network-eth openriot-update sep hdmi volume battery sep screenrec control-panel settings lock power
+modules-right = crypto proton-drive night-light sep transmission nzbget cpu memory sep wireguard stealth network-wifi network-eth openriot-update sep hdmi volume battery sep screenrec control-panel settings power
 
 background = ${colors.bar-right}
 foreground = ${colors.fg}
@@ -240,7 +240,7 @@ format = "%{O2}"
 format-foreground = ${colors.cyan}
 
 format-padding = 0
-click-left = $HOME/.local/share/openriot/install/openriot --settings-menu
+click-left = $HOME/.local/share/openriot/install/openriot --settings-dropdown
 
 [module/control-panel]
 type = custom/text
@@ -418,7 +418,7 @@ format = ⏻%{O2}
 format-foreground = ${colors.red}
 
 format-padding = 0
-click-left = $HOME/.local/share/openriot/install/openriot --power-menu
+click-left = $HOME/.local/share/openriot/install/openriot --power-dropdown
 
 [module/lock]
 type = custom/text

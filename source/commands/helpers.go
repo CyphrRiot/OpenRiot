@@ -22,6 +22,7 @@ import (
 	"openriot/paths"
 	"openriot/polybar"
 	"openriot/rofi"
+	"openriot/theme"
 	"openriot/window"
 	"openriot/wireguard"
 )
@@ -493,12 +494,23 @@ func runNightLightNotify() error {
 	return nil
 }
 
-func runPowerMenu() error {
-	theme := paths.ConfigDir("rofi", "simple-tokyonight.rasi")
-	if _, err := os.Stat(theme); os.IsNotExist(err) {
-		theme = "simple-tokyonight"
+func runPowerMenu(dropdown bool) error {
+	themePath := paths.ConfigDir("rofi", "simple-tokyonight.rasi")
+	if _, err := os.Stat(themePath); os.IsNotExist(err) {
+		themePath = "simple-tokyonight"
 	}
-	cmd := exec.Command("rofi", "-dmenu", "-p", "Power: ", "-theme", theme)
+	args := []string{"-dmenu", "-p", "Power: ", "-theme", themePath}
+	if dropdown {
+		args = []string{"-dmenu", "-p", "", "-theme", themePath,
+			"-theme-str", fmt.Sprintf(
+				"window { anchor: north east; location: north east; "+
+					"x-offset: 0px; y-offset: 30px; width: 220px; "+
+					"border: 2px; border-color: %s; } "+
+					"listview { lines: 6; } "+
+					"element selected { background-color: %s; }",
+				theme.GetPurple(), theme.GetPurple())}
+	}
+	cmd := exec.Command("rofi", args...)
 	cmd.Stdin = strings.NewReader("󰌾 Lock\n󰒲 Suspend\n󰑐 Reboot\n󰐥 Shutdown\n󰍃 Logout")
 	out, err := cmd.Output()
 	if err != nil {

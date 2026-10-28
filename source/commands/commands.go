@@ -470,7 +470,12 @@ func RegisterAll(r *Registry, testMode *bool) {
 	r.Register(&Command{
 		Name: "--settings-menu", Category: "Polybar Status",
 		Description: "Show settings menu",
-		Run: func(args []string) error { settings.RunMenu(); return nil },
+		Run: func(args []string) error { settings.RunMenu(false); return nil },
+	})
+	r.Register(&Command{
+		Name: "--settings-dropdown", Category: "Polybar Status",
+		Description: "Show settings menu as a bar dropdown",
+		Run: func(args []string) error { settings.RunMenu(true); return nil },
 	})
 	r.Register(&Command{
 		Name: "--games-menu", Category: "Polybar Status",
@@ -879,7 +884,12 @@ func RegisterAll(r *Registry, testMode *bool) {
 	r.Register(&Command{
 		Name: "--power-menu", Category: "Lock & Power",
 		Description: "Show power menu",
-		Run: func(args []string) error { return runPowerMenu() },
+		Run: func(args []string) error { return runPowerMenu(false) },
+	})
+	r.Register(&Command{
+		Name: "--power-dropdown", Category: "Lock & Power",
+		Description: "Show power menu as a bar dropdown",
+		Run: func(args []string) error { return runPowerMenu(true) },
 	})
 	r.Register(&Command{
 		Name: "--window-restore", Category: "Lock & Power",
