@@ -70,7 +70,7 @@ exec --no-startup-id sh -c 'sleep 3; $openriot_bin --window-restore'
 exec --no-startup-id sh -c 'sleep 4; $openriot_bin --night-light-restore'
 
 # Notifications - watchdog starts dunst on first notification
-exec --no-startup-id sh -c 'while true; do if ! dunstctl count displayed >/dev/null 2>&1; then pkill dunst 2>/dev/null || true; nohup /usr/local/bin/dunst >/dev/null 2>&1 & fi; sleep 5; done'
+exec --no-startup-id sh -c 'while true; do if ! dunstctl count displayed >/dev/null 2>&1; then pkill dunst 2>/dev/null || true; i=0; while [ $i -lt 20 ] && pgrep dunst >/dev/null; do sleep 0.1; i=$((i+1)); done; nohup /usr/local/bin/dunst >/dev/null 2>&1 & fi; sleep 5; done'
 
 # Clipboard manager - disabled: confirmed X selection polling causes keyboard input loss in Alacritty
 # exec --no-startup-id clipmenud
