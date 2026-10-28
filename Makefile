@@ -353,7 +353,7 @@ ui: install
 	@pkill -9 polybar 2>/dev/null || true
 	@cp config/dunst/dunstrc $$HOME/.local/share/openriot/config/dunst/dunstrc
 	@openriot --dunst-setup
-	@pkill -9 dunst 2>/dev/null || true
+	@pkill -9 dunst 2>/dev/null || true; i=0; while [ $$i -lt 20 ] && pgrep dunst >/dev/null; do sleep 0.1; i=$$((i+1)); done; nohup /usr/local/bin/dunst >/dev/null 2>&1 & i=0; while [ $$i -lt 20 ]; do dunstctl count displayed >/dev/null 2>&1 && break; sleep 0.1; i=$$((i+1)); done
 	@cp config/i3/config $$HOME/.config/i3/config
 	@cp config/i3/keybindings.conf $$HOME/.config/i3/keybindings.conf
 	@i3-msg restart 2>/dev/null || true

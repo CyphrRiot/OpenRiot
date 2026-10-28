@@ -453,7 +453,23 @@ source:
                       echo "[SKIP] No X11, skipping dunst restart"
                   else
                       pkill -9 dunst 2>/dev/null || true
-                      echo "[DONE] Dunst restarted with new config"
+                      i=0
+                      while [ $i -lt 20 ] && pgrep dunst >/dev/null; do
+                          sleep 0.1
+                          i=$((i+1))
+                      done
+                      nohup /usr/local/bin/dunst >/dev/null 2>&1 &
+                      i=0
+                      while [ $i -lt 20 ]; do
+                          dunstctl count displayed >/dev/null 2>&1 && break
+                          sleep 0.1
+                          i=$((i+1))
+                      done
+                      if dunstctl count displayed >/dev/null 2>&1; then
+                          echo "[DONE] Dunst restarted with new config"
+                      else
+                          echo "[WARN] Dunst did not register notification service"
+                      fi
                   fi
         depends: []
         start: "Scaling polybar and dunst configs for display"
