@@ -151,41 +151,89 @@ func startRecording() error {
 		audioAvailable = true
 	}
 
-	var cmdStr string
-	if audioAvailable {
-		cmdStr = fmt.Sprintf(
-			"ffmpeg -y -f sndio -thread_queue_size 4096 -i snd/0.mon -f x11grab -thread_queue_size 4096 -framerate 30 -s %s -i :0.0 -c:v libx264 -crf 23 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 192k '%s'",
-			res, outPath,
-		)
-	} else {
-		cmdStr = fmt.Sprintf(
-			"ffmpeg -y -f x11grab -thread_queue_size 4096 -framerate 30 -s %s -i :0.0 -c:v libx264 -crf 23 -preset ultrafast -pix_fmt yuv420p -an '%s'",
-			res, outPath,
-		)
-	}
-
-	cmd := exec.Command("sh", "-c", cmdStr+" &")
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
-	if err := cmd.Start(); err != nil {
+	audio := audioAvailable
+	cmd, err := launchFFmpeg(audio, res, outPath)
+	if err != nil {
+		if audio {
+			restoreSndioFlags()
+		}
 		return fmt.Errorf("failed to start ffmpeg: %w", err)
 	}
-
-	// Wait a moment for ffmpeg to spawn, then capture its PID
-	time.Sleep(200 * time.Millisecond)
-	pgrep := exec.Command("pgrep", "-n", "-f", "ffmpeg.*x11grab")
-	out, _ := pgrep.Output()
-	var pid int
-	fmt.Sscanf(strings.TrimSpace(string(out)), "%d", &pid)
-	if pid > 0 {
-		os.WriteFile(pidFilePath(), []byte(fmt.Sprintf("%d", pid)), 0600)
-		os.WriteFile(pathFilePath(), []byte(outPath), 0600)
+	if !waitRunning(cmd, 700*time.Millisecond) {
+		if audio {
+			restoreSndioFlags()
+			audio = false
+		}
+		cmd, err = launchFFmpeg(false, res, outPath)
+		if err != nil {
+			return fmt.Errorf("failed to start ffmpeg: %w", err)
+		}
+		if !waitRunning(cmd, 700*time.Millisecond) {
+			return fmt.Errorf("ffmpeg exited before recording started")
+		}
 	}
 
-	if !audioAvailable {
-		notify.SendNotify("screenrec", "Screen Recorder", "No audio monitor available\nScreen only", "normal", 3000, 0)
+	pid := cmd.Process.Pid
+	if err := os.WriteFile(pidFilePath(),
+		[]byte(fmt.Sprintf("%d", pid)), 0600); err != nil {
+		return fmt.Errorf("failed to write pid file: %w", err)
+	}
+	os.WriteFile(pathFilePath(), []byte(outPath), 0600)
+
+	if !audio {
+		notify.SendNotify("screenrec", "Screen Recorder",
+			"No audio monitor available\nScreen only",
+			"normal", 3000, 0)
 	}
 
 	return nil
+}
+
+func waitRunning(cmd *exec.Cmd, d time.Duration) bool {
+	done := make(chan error, 1)
+	go func() { done <- cmd.Wait() }()
+	select {
+	case <-time.After(d):
+		return true
+	case <-done:
+		return false
+	}
+}
+
+func launchFFmpeg(audio bool, res, outPath string) (*exec.Cmd, error) {
+	args := []string{"-y"}
+	if audio {
+		args = append(args, "-f", "sndio", "-thread_queue_size",
+			"4096", "-i", "snd/0.mon")
+	}
+	args = append(args, "-f", "x11grab", "-thread_queue_size", "4096",
+		"-framerate", "30", "-s", res, "-i", ":0.0",
+		"-c:v", "libx264", "-crf", "23", "-preset", "ultrafast",
+		"-pix_fmt", "yuv420p")
+	if audio {
+		args = append(args, "-c:a", "aac", "-b:a", "192k")
+	} else {
+		args = append(args, "-an")
+	}
+	args = append(args, outPath)
+
+	cmd := exec.Command("ffmpeg", args...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+
+	logPath := filepath.Join(getCacheDir(), "screenrec.log")
+	if err := os.MkdirAll(getCacheDir(), 0755); err == nil {
+		if logFile, err := os.OpenFile(logPath,
+			os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600); err == nil {
+			cmd.Stdout = logFile
+			cmd.Stderr = logFile
+			defer logFile.Close()
+		}
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+	return cmd, nil
 }
 
 func stopRecording(pid int) error {

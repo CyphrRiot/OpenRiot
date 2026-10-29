@@ -62,7 +62,7 @@ func GetEth() string {
 	if hasCarrier {
 		return polybar.Icon("󰌘")
 	}
-	return polybar.Icon("󰈀")
+	return ""
 }
 
 func GetWifiDetails() string {

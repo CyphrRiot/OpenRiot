@@ -50,6 +50,8 @@ padding-left = 0
 module-margin = 1
 spacing = 0
 clickareas = 64
+cursor-click = default
+cursor-scroll = default
 
 font-0 = "Hurmit Nerd Font:size=11;2"
 font-1 = "Hurmit Nerd Font:size=11;2"
@@ -88,6 +90,8 @@ padding-left = 2
 module-margin = 1
 spacing = 0
 clickareas = 64
+cursor-click = default
+cursor-scroll = default
 
 font-0 = "Hurmit Nerd Font:size=11;4"
 font-1 = "Hurmit Nerd Font:size=11;4"
@@ -126,6 +130,8 @@ padding-left = 2
 module-margin = 1
 spacing = 0
 clickareas = 64
+cursor-click = default
+cursor-scroll = default
 
 font-0 = "Hurmit Nerd Font:size=11;2"
 font-1 = "Hurmit Nerd Font:size=11;2"
@@ -136,7 +142,7 @@ separator-padding = 0
 
 modules-left =
 modules-center =
-modules-right = crypto proton-drive night-light sep transmission nzbget cpu memory sep wireguard stealth network-wifi network-eth openriot-update sep hdmi volume battery sep screenrec control-panel settings power
+modules-right = crypto proton-drive night-light sep transmission nzbget cpu memory sep wireguard stealth network-wifi network-eth openriot-update sep hdmi volume battery sep control-panel settings power
 
 background = ${colors.bar-right}
 foreground = ${colors.fg}
@@ -219,6 +225,7 @@ format-foreground = ${colors.cyan-dim}
 
 format-padding = 0
 label = %output%
+label-empty =
 click-left = $HOME/.local/share/openriot/install/openriot --eth-info
 
 [module/battery]
