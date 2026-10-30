@@ -1,4 +1,4 @@
-# OpenRiot Alacritty Config — Neo Tokyo + Bondi Green
+# OpenRiot Alacritty Config — Neo Tokyo + Candy Cyan
 
 [window]
 padding = { x = 8, y = 8 }
@@ -19,8 +19,8 @@ size = 11.0
 [colors]
 primary = { background = "#0f0f0f", foreground = "#c0caf5" }
 cursor = { text = "#12131b", cursor = "#7AA2F7" }
-normal = { black = "#01060E", red = "#F7768E", green = "#9ECE6A", yellow = "#E0AF68", blue = "#7AA2F7", magenta = "#7D56F4", cyan = "#0DB9D7", white = "#C0CAF5" }
-bright = { black = "#565F89", red = "#F7768E", green = "#9ECE6A", yellow = "#E0AF68", blue = "#7AA2F7", magenta = "#BB9AF7", cyan = "#0DB9D7", white = "#FAFAFA" }
+normal = { black = "#01060E", red = "#F7768E", green = "#50c9c3", yellow = "#E0AF68", blue = "#7AA2F7", magenta = "#7D56F4", cyan = "#0DB9D7", white = "#C0CAF5" }
+bright = { black = "#565F89", red = "#F7768E", green = "#50c9c3", yellow = "#E0AF68", blue = "#7AA2F7", magenta = "#BB9AF7", cyan = "#0DB9D7", white = "#FAFAFA" }
 selection = { text = "#12131b", background = "#7AA2F7" }
 
 [keyboard]
