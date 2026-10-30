@@ -118,7 +118,10 @@ release:
 		echo "Would you like to push and tag? [Y/n]"; \
 		read -r PUSH_CONF; \
 		if [ "$${PUSH_CONF:-y}" = "y" ] || [ "$${PUSH_CONF:-y}" = "Y" ]; then \
-			git push && git push origin "v$$NEW_VERSION"; \
+			for _i in 1 2 3; do \
+				git push origin main "v$$NEW_VERSION" && break; \
+				echo "Push failed, retrying ($$_i/3)..."; sleep 5; \
+			done; \
 		fi \
 	fi
 

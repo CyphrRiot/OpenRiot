@@ -51,7 +51,7 @@ tabbar tab {
 
 tabbar tab:selected {
     background-color: transparent;
-    border-bottom: 3px solid #9ECE6A;
+    border-bottom: 3px solid #50c9c3;
     color: #c0caf5;
 }
 
