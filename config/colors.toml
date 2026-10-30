@@ -13,11 +13,11 @@ dim = "#3b4261"
 [accent]
 # Cycle through: green → violet → cyan → blue → orange
 # Each accent* key gets the new palette when wheel rotates
-name = "bondi-green"
-fg = "#9ECE6A"
-fg-light = "#8BB85A"
-dim = "#6d9a4e"
-bg = "#2B3A1A"
+name = "candy-cyan"
+fg = "#50c9c3"
+fg-light = "#96deda"
+dim = "#37a29c"
+bg = "#1A3330"
 
 [semantic]
 error = "#c46a7d"

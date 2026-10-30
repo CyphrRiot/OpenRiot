@@ -217,6 +217,9 @@ validate:
 	@if [ ! -f assets/themes/kora.tgz ]; then \
 		echo "[FAIL] Kora theme archive not found at assets/themes/kora.tgz"; exit 1; \
 	fi
+	@if [ ! -f assets/themes/candy-kora.tgz ]; then \
+		echo "[FAIL] Candy-Kora theme archive not found at assets/themes/candy-kora.tgz"; exit 1; \
+	fi
 	@echo "[DONE] Kora theme present"
 	@./$(INSTALL_DIR)/$(BINARY_NAME) --validate-config || exit 1
 	@$(MAKE) verify

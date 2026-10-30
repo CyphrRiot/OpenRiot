@@ -113,6 +113,8 @@ desktop:
               target: "~/.config/alacritty"
             - pattern: nvim/*
             - pattern: lf/*
+            - pattern: tumbler/*
+              target: "~/.config/tumbler"
             - pattern: bin/*
               target: "~/.local/bin"
             - pattern: user-dirs.dirs
@@ -427,9 +429,10 @@ source:
         type: "Source"
         build:
             - "$HOME/.local/share/openriot/install/openriot --install-asset kora"
+            - "$HOME/.local/share/openriot/install/openriot --install-asset candy-kora"
         depends: []
-        start: "Installing Kora icon theme"
-        end: "Kora icon theme installed"
+        start: "Installing Kora and Candy-Kora icon themes"
+        end: "Kora and Candy-Kora icon themes installed"
     polybar-scaling:
         type: "Source"
         build:

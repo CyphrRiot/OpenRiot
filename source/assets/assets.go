@@ -16,7 +16,7 @@ const cursorDest = "/usr/local/share/icons"
 // Run installs assets like cursors and icon themes
 func Run(args []string) error {
 	if len(args) < 1 {
-		return fmt.Errorf("usage: openriot --install-asset <name>\nSupported: bibata, kora")
+		return fmt.Errorf("usage: openriot --install-asset <name>\nSupported: bibata, kora, candy-kora")
 	}
 
 	name := args[0]
@@ -25,8 +25,10 @@ func Run(args []string) error {
 		return installBibata()
 	case "kora":
 		return installKora()
+	case "candy-kora":
+		return installCandyKora()
 	default:
-		return fmt.Errorf("unknown asset: %s\nSupported: bibata, kora", name)
+		return fmt.Errorf("unknown asset: %s\nSupported: bibata, kora, candy-kora", name)
 	}
 }
 
@@ -157,6 +159,52 @@ func installKora() error {
 		fmt.Println("[DONE] Kora icon theme installed")
 	} else {
 		fmt.Println("[SKIP] Kora icon theme already installed")
+	}
+	return nil
+}
+
+func installCandyKora() error {
+	destPath := paths.Join(".local", "share", "icons", "candy-kora")
+	panelPath := filepath.Join(destPath, "places")
+	appsPath := filepath.Join(destPath, "apps")
+
+	needsInstall := false
+	if _, err := os.Stat(panelPath); os.IsNotExist(err) {
+		needsInstall = true
+	}
+	if _, err := os.Stat(appsPath); os.IsNotExist(err) {
+		needsInstall = true
+	}
+
+	if needsInstall {
+		if _, err := os.Stat(destPath); err == nil {
+			if err := os.RemoveAll(destPath); err != nil {
+				return fmt.Errorf("failed to remove stale candy-kora: %w", err)
+			}
+		}
+	}
+
+	sourceTgz := paths.OpenRiotDir("assets", "themes", "candy-kora.tgz")
+	iconsDir := paths.Join(".local", "share", "icons")
+
+	if _, err := os.Stat(sourceTgz); os.IsNotExist(err) {
+		fmt.Println("[SKIP] Candy-Kora theme archive not found (run setup.sh first)")
+		return nil
+	}
+
+	if err := os.MkdirAll(iconsDir, 0755); err != nil {
+		return fmt.Errorf("failed to create icons directory: %w", err)
+	}
+
+	if needsInstall {
+		fmt.Println("[INFO] Installing Candy-Kora icon theme... (be patient)")
+		cmd := exec.Command("tar", "xzf", sourceTgz, "-C", iconsDir)
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("failed to extract Candy-Kora theme: %w", err)
+		}
+		fmt.Println("[DONE] Candy-Kora icon theme installed")
+	} else {
+		fmt.Println("[SKIP] Candy-Kora icon theme already installed")
 	}
 	return nil
 }

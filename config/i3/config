@@ -26,7 +26,7 @@ for_window [class="^XConsole$"] kill
 for_window [class="^xconsole$"] kill
 
 # Colors
-client.focused           #6d9a4e #285577 #ffffff #6d9a4e #6d9a4e
+client.focused           #37a29c #285577 #ffffff #50c9c3 #37a29c
 client.focused_inactive  #333333 #333333 #ffffff
 client.unfocused         #333333 #333333 #888888
 client.urgent            #d12121 #880000 #ffffff
