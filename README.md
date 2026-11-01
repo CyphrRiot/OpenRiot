@@ -2041,6 +2041,21 @@ doas vi /etc/myname
 # Then reboot.
 ```
 
+### Clock shows the wrong time after a DST change
+
+OpenRiot does not set the timezone. It inherits `/etc/localtime`
+from the OpenBSD install, and the polybar date module reads the
+system clock. If the clock is off by an hour after a daylight
+saving transition, the timezone is the problem, not the module.
+
+```bash
+ls -l /etc/localtime
+doas ln -sf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
+```
+
+Replace the zone with your own. Polybar updates within its
+60 second interval.
+
 ### Multiple wsmouse devices in settings
 
 You may see `wsmouse`, `wsmouse0`, `wsmouse2`, `wsmouse3`, etc. in mouse settings. This is normal OpenBSD kernel behavior.
