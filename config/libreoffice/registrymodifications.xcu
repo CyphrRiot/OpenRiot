@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <oor:items xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 <item oor:path="/org.openoffice.Office.Common/Misc"><prop oor:name="SymbolStyle" oor:op="fuse"><value>breeze_dark_svg</value></prop></item>
+<item oor:path="/org.openoffice.Office.Common/Misc"><prop oor:name="FirstRun" oor:op="fuse"><value>false</value></prop></item>
+<item oor:path="/org.openoffice.Setup/Office"><prop oor:name="ooSetupInstCompleted" oor:op="fuse"><value>true</value></prop></item>
 <item oor:path="/org.openoffice.Office.UI/ColorScheme"><prop oor:name="CurrentColorScheme" oor:op="fuse"><value>COLOR_SCHEME_LIBREOFFICE_DARK</value></prop></item>
 <item oor:path="/org.openoffice.Office.Writer/DefaultFont"><prop oor:name="Standard" oor:op="fuse"><value>Paper Mono</value></prop></item>
 <item oor:path="/org.openoffice.Office.Writer/DefaultFont"><prop oor:name="StandardHeight" oor:op="fuse"><value>353</value></prop></item>
