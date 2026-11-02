@@ -115,6 +115,8 @@ desktop:
             - pattern: lf/*
             - pattern: tumbler/*
               target: "~/.config/tumbler"
+            - pattern: libreoffice/registrymodifications.xcu
+              target: "~/.config/libreoffice/4/user/registrymodifications.xcu"
             - pattern: bin/*
               target: "~/.local/bin"
             - pattern: user-dirs.dirs
