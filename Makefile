@@ -107,6 +107,11 @@ release:
 		echo "Building binary with v$$NEW_VERSION..."; make; \
 		echo "Updating README badge..."; \
 		sed -i "s/version-[0-9.]*/version-$$NEW_VERSION/" README.md; \
+		NOTE="docs/v$$NEW_VERSION-Release-Notes.md"; \
+		if [ ! -f "$$NOTE" ]; then \
+			printf '# OpenRiot v%s: <Title>\n\n> _""_\n> -- The OpenRiot Crew, v%s\n\n---\n\n## Release Overview\n\n' "$$NEW_VERSION" "$$NEW_VERSION" > "$$NOTE"; \
+			echo "Created $$NOTE"; \
+		fi; \
 		echo "Committing..."; \
 		git add -A; \
 		GIT_EDITOR=hx git commit; \
