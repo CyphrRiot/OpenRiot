@@ -114,7 +114,7 @@ release:
 		fi; \
 		echo "Committing..."; \
 		git add -A; \
-		GIT_EDITOR=hx git commit; \
+		GIT_EDITOR=hx git commit --cleanup=verbatim -e -F "docs/v$$NEW_VERSION-Release-Notes.md"; \
 		echo "Creating tag..."; \
 		git tag -a "v$$NEW_VERSION" -m "OpenRiot v$$NEW_VERSION"; \
 		echo ""; \
