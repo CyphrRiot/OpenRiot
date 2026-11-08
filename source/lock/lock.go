@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"openriot/macspoof"
 	"openriot/notify"
@@ -131,6 +132,10 @@ func cryptoRandIndex(max int) int {
 }
 
 func Lock() error {
+	// Reset any leaked keyboard state from a previous lock cycle.
+	exec.Command("xset", "r", "on").Run()
+	exec.Command("setxkbmap").Run()
+
 	// Check if i3lock is already running
 	if checkLockRunning() {
 		return nil // Already locked, skip
@@ -168,10 +173,11 @@ func Lock() error {
 
 	lockFile := shufflePick(cacheBase, matches)
 
-	exec.Command("xset", "r", "off").Run()
+	// Give user time to see the notification before screen locks.
+	notify.SendNotify("lock", "Screen Lock", "Screen is locking...", "normal", 4000, 0)
 
-	// Give user time to see the notification before screen locks
-	go notify.SendNotify("lock", "Screen Lock", "Screen is locking...", "normal", 4000, 0)
+	exec.Command("xset", "r", "off").Run()
+	time.Sleep(1500 * time.Millisecond)
 
 	cmd := exec.Command("i3lock", "-n", "-i", lockFile)
 	err := cmd.Start()
@@ -182,6 +188,7 @@ func Lock() error {
 	}
 	cmd.Wait()
 	exec.Command("xset", "r", "on").Run()
+	exec.Command("xset", "r", "rate", "250", "30").Run()
 	exec.Command("setxkbmap").Run()
 	return nil
 }

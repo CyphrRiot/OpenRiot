@@ -14,6 +14,10 @@ set -e
 
 GURK_REPO="https://github.com/boxdot/gurk-rs"
 GURK_COMMIT="${GURK_COMMIT:-v0.10.2}"
+# presage 4b817406 bumps libsignal-service-rs to a rev that sends the
+# uploadLength query param the Signal server now requires for attachment
+# uploads. gurk 0.10.2 pins an older rev and gets HTTP 400 on every upload.
+PRESAGE_REV="4b81740610c301cbd54d95f4dbd4cadd692af95e"
 PATCH_FILE="$(dirname "$0")/gurk-patch.diff"
 INSTALL_DIR="${HOME}/.local/share/openriot/config"
 SOURCE_DIR="${HOME}/Code/gurk"
@@ -53,12 +57,18 @@ else
     fi
 fi
 
-# Step 2: Apply patch (idempotent)
+# Step 2: Pin presage to the attachment-upload fix
+if [ -f "$SOURCE_DIR/Cargo.toml" ]; then
+    sed -i -e "/whisperfish\/presage/s/rev = \"[0-9a-f]\{40\}\"/rev = \"${PRESAGE_REV}\"/" "$SOURCE_DIR/Cargo.toml"
+    echo "Pinned presage to ${PRESAGE_REV}"
+fi
+
+# Step 3: Apply patch (idempotent)
 echo "Applying SIGSEGV fix patch..."
 if patch -d "$SOURCE_DIR" -p1 --dry-run -f < "$PATCH_FILE" >/dev/null 2>&1; then
     patch -d "$SOURCE_DIR" -p1 -f < "$PATCH_FILE"
     echo "Patch applied"
-elif grep -q "notify-rust disabled on OpenBSD" "$SOURCE_DIR/src/app/message.rs" 2>/dev/null; then
+elif rg -q "notify-rust disabled on OpenBSD" "$SOURCE_DIR/src/app/message.rs" 2>/dev/null; then
     echo "Patch already applied"
 else
     echo "ERROR: Patch cannot be applied and notify-rust is not disabled."
@@ -66,23 +76,22 @@ else
     exit 1
 fi
 
-# Step 3: Build with optimizations for smaller binary
+# Step 4: Build with optimizations for smaller binary
 echo "Building gurk with LTO and strip..."
 export CARGO_PROFILE_RELEASE_LTO=thin
 export CARGO_PROFILE_RELEASE_STRIP=debuginfo
 PKG_CONFIG=echo \
   cargo install gurk --force \
-    --locked \
     --path "$SOURCE_DIR" \
     --root "$INSTALL_DIR"
 
-# Step 4: Strip debug symbols for smaller binary
+# Step 5: Strip debug symbols for smaller binary
 echo "Stripping debug symbols..."
 if [ -f "${INSTALL_DIR}/bin/gurk" ]; then
     strip "${INSTALL_DIR}/bin/gurk" 2>/dev/null || true
 fi
 
-# Step 5: Copy binary to source tree
+# Step 6: Copy binary to source tree
 printf "Copy binary to source tree? [y/N] "
 read -r answer
 if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
@@ -90,7 +99,7 @@ if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
     echo "Copied to ${REPO_ROOT}/config/bin/gurk"
 fi
 
-# Step 6: Verify
+# Step 7: Verify
 if [ -x "${INSTALL_DIR}/bin/gurk" ]; then
     echo "Done! Installed to ${INSTALL_DIR}/bin/gurk"
     "${INSTALL_DIR}/bin/gurk" --version
