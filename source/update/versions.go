@@ -4,10 +4,10 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
+	"openriot/installer"
 	"openriot/paths"
 )
 
@@ -38,23 +38,5 @@ func GetRemoteVersion() string {
 // CompareVersions compares two semantic versions (a vs b)
 // Returns -1 if a < b, 0 if a == b, 1 if a > b
 func CompareVersions(a, b string) int {
-	partsA := strings.Split(a, ".")
-	partsB := strings.Split(b, ".")
-
-	for i := range 3 {
-		var vA, vB int
-		if i < len(partsA) {
-			vA, _ = strconv.Atoi(partsA[i])
-		}
-		if i < len(partsB) {
-			vB, _ = strconv.Atoi(partsB[i])
-		}
-		if vA < vB {
-			return -1
-		}
-		if vA > vB {
-			return 1
-		}
-	}
-	return 0
+	return installer.CompareVersions(a, b)
 }

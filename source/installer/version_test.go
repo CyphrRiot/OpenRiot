@@ -5,6 +5,26 @@ import (
 	"time"
 )
 
+func TestCompareVersions(t *testing.T) {
+	tests := []struct {
+		a, b string
+		want int
+	}{
+		{"0.99.0", "0.100.0", -1},
+		{"0.100.0", "0.99.0", 1},
+		{"0.99.0", "0.99.0", 0},
+		{"1.0", "1.0.1", -1},
+		{"1.0.1", "1.0", 1},
+		{"2.0.0", "1.99.99", 1},
+		{"", "0.0.1", -1},
+	}
+	for _, tt := range tests {
+		if got := CompareVersions(tt.a, tt.b); got != tt.want {
+			t.Errorf("CompareVersions(%q, %q) = %d, want %d", tt.a, tt.b, got, tt.want)
+		}
+	}
+}
+
 func TestCompareRelease(t *testing.T) {
 	tests := []struct {
 		a, b string

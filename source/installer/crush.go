@@ -43,7 +43,7 @@ func (c *CrushUpgrade) Run() error {
 
 	logger.Info(fmt.Sprintf("Latest version: v%s", latestVer))
 
-	if currentVer != "" && strings.Compare(currentVer, latestVer) >= 0 {
+	if currentVer != "" && CompareVersions(currentVer, latestVer) >= 0 {
 		logger.Info(fmt.Sprintf("crush v%s is up to date", currentVer))
 		return nil
 	}
