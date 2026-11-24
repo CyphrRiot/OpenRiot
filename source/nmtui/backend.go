@@ -35,6 +35,7 @@ type ConnectionInfo struct {
 
 var (
 	ifaceLineRE    = regexp.MustCompile(`^([a-z]+[0-9]+):\s+flags=`)
+	ifaceNameRE    = regexp.MustCompile(`^[a-z]+[0-9]+$`)
 	scanLineRE     = regexp.MustCompile(`^\s+nwid\s+(.+?)(?:\s+|$)`)
 	signalRE       = regexp.MustCompile(`(\d+)%`)
 	bssidRE        = regexp.MustCompile(`bssid\s+([0-9a-fA-F:]{17})`)
@@ -218,9 +219,45 @@ func requireDoas() error {
 	return nil
 }
 
+func validIfaceName(iface string) bool {
+	return ifaceNameRE.MatchString(iface)
+}
+
+func escapeHostnameValue(s string) (string, error) {
+	if strings.ContainsAny(s, "\n\r\x00") {
+		return "", fmt.Errorf("value contains control characters")
+	}
+	r := strings.NewReplacer(
+		`\`, `\\`,
+		`"`, `\"`,
+		`$`, `\$`,
+		"`", "\\`",
+	)
+	return r.Replace(s), nil
+}
+
+func hostnameNwidLine(ssid, key string) (string, error) {
+	escapedSSID, err := escapeHostnameValue(ssid)
+	if err != nil {
+		return "", err
+	}
+	line := fmt.Sprintf(`nwid "%s"`, escapedSSID)
+	if key != "" {
+		escapedKey, err := escapeHostnameValue(key)
+		if err != nil {
+			return "", err
+		}
+		line += fmt.Sprintf(` wpakey "%s"`, escapedKey)
+	}
+	return line, nil
+}
+
 // writeHostnameIf writes the nwid line to /etc/hostname.{iface}, preserving
 // all other lines (dhcp, inet, etc.). The SSID is always quoted.
 func writeHostnameIf(iface, ssid, key string) error {
+	if !validIfaceName(iface) {
+		return fmt.Errorf("invalid interface name: %s", iface)
+	}
 	path := "/etc/hostname." + iface
 	var lines []string
 
@@ -238,15 +275,14 @@ func writeHostnameIf(iface, ssid, key string) error {
 		}
 	}
 
-	escaped := strings.ReplaceAll(ssid, `"`, `\"`)
-	nwidLine := fmt.Sprintf(`nwid "%s"`, escaped)
-	if key != "" {
-		nwidLine += " wpakey " + key
+	nwidLine, err := hostnameNwidLine(ssid, key)
+	if err != nil {
+		return err
 	}
 	lines = append([]string{nwidLine}, lines...)
 
 	content := strings.Join(lines, "\n") + "\n"
-	cmd := exec.Command("doas", "sh", "-c", "cat > "+path)
+	cmd := exec.Command("doas", "tee", path)
 	cmd.Stdin = strings.NewReader(content)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -258,6 +294,9 @@ func writeHostnameIf(iface, ssid, key string) error {
 // clearHostnameIf removes all nwid lines from /etc/hostname.{iface}. If the
 // file becomes empty it is removed entirely.
 func clearHostnameIf(iface string) error {
+	if !validIfaceName(iface) {
+		return fmt.Errorf("invalid interface name: %s", iface)
+	}
 	path := "/etc/hostname." + iface
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -286,7 +325,7 @@ func clearHostnameIf(iface string) error {
 	}
 
 	content := strings.Join(lines, "\n") + "\n"
-	cmd := exec.Command("doas", "sh", "-c", "cat > "+path)
+	cmd := exec.Command("doas", "tee", path)
 	cmd.Stdin = strings.NewReader(content)
 	out, err := cmd.CombinedOutput()
 	if err != nil {

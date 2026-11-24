@@ -4,6 +4,8 @@
 
 ## One command. Complete OpenBSD desktop. Zero compromises.
 
+#### Rather run Linux? [NixRiot](https://nixriot.org) is OpenRiot's ideas, for Linux.
+
 ![Version](https://img.shields.io/badge/version-8.0.19-9ECE6A?labelColor=1a1b26)
 ![Platform](https://img.shields.io/badge/platform-OpenBSD-9ECE6A?logo=openbsd&logoColor=white&labelColor=1a1b26)
 ![i3](https://img.shields.io/badge/i3-X11-9ECE6A?logo=x11&logoColor=9ECE6A&labelColor=1a1b26)

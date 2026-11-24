@@ -28,6 +28,69 @@ The single largest code risk is window layout restore (`source/window`),
 because i3 has `append_layout` and Hyprland has no equivalent. The largest
 packaging risk is the Hyprland dependency chain, not Hyprland itself.
 
+### Decision
+
+Add Hyprland as an opt-in Wayland session. Keep i3 and X11 as the default
+through the 8.x series. Revisit the default in 9.0 only if every gate below
+passes.
+
+The configuration is the cheap part: the ArchRiot setup gives us working
+keybindings, monitors and window rules. The expensive part is the Go code
+that talks to X11 and i3 today.
+
+| Metric | Current |
+|--------|---------|
+| Direct X11 tool calls | 60 |
+| Go files invoking them | 17 |
+| i3 keybindings | 88 |
+| i3 directives and window rules | 40 |
+| Polybar modules | 25 |
+| Approximate LOC in affected packages | 7,000 |
+
+### Effort
+
+Assuming the ports@ tarball holds up:
+
+| Workstream | Effort | Confidence |
+|------------|--------|------------|
+| Package the Hyprland stack | 2 to 4 weeks | Medium |
+| Go desktop abstraction and backends | 2 to 3 weeks | High |
+| Waybar config plus JSON commands | 1 to 2 weeks | High |
+| Launcher, notifications, lock, session | 1 to 2 weeks | High |
+| Wallpaper, display, screenshots, clipboard | 1 week | High |
+| Screen recording and sharing | 1 to 3 weeks, or cut | Low |
+| QA on i915 and amdgpu | 2 weeks | Medium |
+
+Total: roughly 9 to 15 focused person-weeks, or 6 to 10 if packaging lands
+first. One developer is looking at two to four months of calendar time.
+Confidence is medium because packaging depends on upstream patches and
+ports review, and the recording path is unresolved.
+
+### Decision Gates
+
+Start the opt-in session only when all of these are true:
+
+1. Hyprland and required libraries are in the ports tree, not only on the
+   mailing list.
+2. Lua 5.5 is packaged.
+3. Lock, idle and suspend pass on both i915 and amdgpu.
+4. Screen recording has an approved solution or is explicitly dropped.
+5. The Wayland session passes the full test matrix in this document for one
+   release cycle.
+6. No OpenRiot command regresses on either session.
+
+### Next Step
+
+Run a one-week spike before committing to backend work:
+
+- Build Hyprland from the PoC.
+- Run it alongside i3 with the existing OpenRiot binary unchanged.
+- Record which commands fail and why.
+- Test lock, screenshots, display hotplug and one XWayland app.
+
+That produces real numbers for the Go work. Rewriting backends before the
+compositor is packaged is how a two-month project becomes a six-month one.
+
 ## 2. Current Architecture
 
 The current desktop is a set of X11 clients coordinated by i3.

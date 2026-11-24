@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -32,7 +33,17 @@ func GetRemoteVersion() string {
 	if err != nil {
 		return "unknown"
 	}
-	return strings.TrimSpace(string(data))
+	version := strings.TrimSpace(string(data))
+	if !validVersion(version) {
+		return "unknown"
+	}
+	return version
+}
+
+var remoteVersionRE = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
+
+func validVersion(s string) bool {
+	return remoteVersionRE.MatchString(s)
 }
 
 // CompareVersions compares two semantic versions (a vs b)

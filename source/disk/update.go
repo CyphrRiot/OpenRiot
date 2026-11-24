@@ -50,13 +50,7 @@ func mountCmd(device, passphrase string) tea.Cmd {
 			}
 			fmt.Fprintf(&log, "Using RAID chunk /dev/%s\n", raidChunk)
 
-			passFile := "/tmp/.openriot_" + device
-			exec.Command("doas", "-n", "sh", "-c",
-				fmt.Sprintf("printf '%%s\\n' '%s' > %s && chmod 600 %s",
-					passphrase, passFile, passFile)).Run()
-			defer exec.Command("doas", "-n", "rm", "-f", passFile).Run()
-			cmd := exec.Command("doas", "-n", "bioctl", "-c", "C",
-				"-p", passFile, "-l", raidChunk, "softraid0")
+			cmd := bioctlCryptoCmd(raidChunk, passphrase, false)
 			out, err := cmd.CombinedOutput()
 			if err != nil {
 				raidDev = findRaidDevice(device)
@@ -192,13 +186,7 @@ func encryptCmd(device, passphrase string) tea.Cmd {
 
 		// Step 3: bioctl crypto
 		fmt.Fprintf(&log, "Setting up softraid crypto on %sa ...\n", device)
-		passFile := "/tmp/.openriot_" + device
-		exec.Command("doas", "-n", "sh", "-c",
-			fmt.Sprintf("printf '%%s\\n%%s\\n' '%s' '%s' > %s && chmod 600 %s",
-				passphrase, passphrase, passFile, passFile)).Run()
-		defer exec.Command("doas", "-n", "rm", "-f", passFile).Run()
-		cmd = exec.Command("doas", "-n", "bioctl", "-c", "C",
-			"-p", passFile, "-l", device+"a", "softraid0")
+		cmd = bioctlCryptoCmd(device+"a", passphrase, true)
 		out, err := cmd.CombinedOutput()
 		if err != nil {
 			return resultMsg{err: fmt.Errorf("bioctl failed: %w\n%s",

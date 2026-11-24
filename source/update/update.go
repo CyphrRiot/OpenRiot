@@ -131,8 +131,8 @@ func Click() error {
 
 	if CompareVersions(local, remote) < 0 {
 		notify.SendNotify("upgrade", "OpenRiot Update", fmt.Sprintf("v%s - Update available!", remote), "normal", 3000, 0)
-		cmd := fmt.Sprintf(`printf "You are about to upgrade OpenRiot v%s... are you sure? [Y/n] "; read -r ans; case "$ans" in [yY]|"") curl -fsSL https://openriot.org/setup.sh | sh ;; *) echo "Canceled."; sleep 1 ;; esac`, remote)
-		exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", cmd).Start()
+		script := `printf "You are about to upgrade OpenRiot v%s... are you sure? [Y/n] " "$1"; read -r ans; case "$ans" in [yY]|"") curl -fsSL https://openriot.org/setup.sh | sh ;; *) echo "Canceled."; sleep 1 ;; esac`
+		exec.Command("alacritty", "--class", "openriot_upgrade", "-e", "sh", "-c", script, "sh", remote).Start()
 		return nil
 	}
 

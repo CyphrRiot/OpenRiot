@@ -397,15 +397,29 @@ main() {
         fi
         info "Installing X11 file sets..."
         AMD64_PATH="https://cdn.openbsd.org/pub/OpenBSD/${CDN_BRANCH}/amd64"
-        cd /tmp
         VER_NUM=$(uname -r | sed 's/\.//' | sed 's/-.*//')
-        for set in xbase xfont xserv xshare; do
-            info "Downloading ${set}${VER_NUM}.tgz..."
-            curl -fsSL "${AMD64_PATH}/${set}${VER_NUM}.tgz" -o "${set}.tgz"
-            info "Extracting ${set}..."
-            doas tar -xzf "${set}.tgz" -C /
-            rm -f "${set}.tgz"
-        done
+        tmpdir=$(mktemp -d "${REAL_HOME}/.cache/openriot/x11.XXXXXXXXXX") || { error "Cannot create temp dir"; exit 1; }
+        (
+            cd "$tmpdir" || exit 1
+            if ! curl -fsSL "${AMD64_PATH}/SHA256" -o SHA256; then
+                error "Failed to download SHA256"
+                exit 1
+            fi
+            for set in xbase xfont xserv xshare; do
+                info "Downloading ${set}${VER_NUM}.tgz..."
+                if ! curl -fsSL "${AMD64_PATH}/${set}${VER_NUM}.tgz" -o "${set}${VER_NUM}.tgz"; then
+                    error "Failed to download ${set}${VER_NUM}.tgz"
+                    exit 1
+                fi
+                if ! sha256 -C SHA256 "${set}${VER_NUM}.tgz"; then
+                    error "Checksum failed for ${set}${VER_NUM}.tgz"
+                    exit 1
+                fi
+                info "Extracting ${set}..."
+                doas tar -xzf "${set}${VER_NUM}.tgz" -C /
+            done
+        ) || { rm -rf "$tmpdir"; exit 1; }
+        rm -rf "$tmpdir"
         success "X11 file sets installed"
     }
     install_x11_sets

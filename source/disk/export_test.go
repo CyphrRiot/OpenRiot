@@ -3,6 +3,7 @@ package disk
 // Exported test bridges for package disk_test.
 
 var FilterDrives = filterDrives
+var BioctlCryptoCmd = bioctlCryptoCmd
 
 type ActionType = actionType
 

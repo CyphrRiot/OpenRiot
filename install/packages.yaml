@@ -9,7 +9,7 @@ openbsd_version: "8.0"
 # Update these when firmware.openbsd.org updates
 firmware:
     - athn-firmware-1.1p4
-    - intel-firmware-20260925v0
+    - intel-firmware-20261110v0
     - inteldrm-firmware-20260519
     - iwm-firmware-20240410
     - iwx-firmware-20251021p0
@@ -17,7 +17,7 @@ firmware:
 core:
     base:
         packages:
-            - rsync-3.5.1
+            - rsync-3.5.2p0
             - python-3.14.9
             - fastfetch-2.69.0
             - exfat-fuse-1.4.0
@@ -174,7 +174,7 @@ desktop:
         end: "Lock screen images completed"
     apps:
         packages:
-            - firefox-158.0.1
+            - firefox-160.0
             - tdesktop-7.2.9
             - abaddon-0.2.4p0
             - solvespace-3.2
@@ -498,7 +498,7 @@ fonts:
 system:
     tools:
         packages:
-            - rclone-1.75.2
+            - rclone-1.76.0
             - wireguard-tools-1.0.20210914p3v0
             - sysbench-0.4.8p17
             - ntfs_3g-2026.2.25

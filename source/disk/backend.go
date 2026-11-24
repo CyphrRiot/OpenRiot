@@ -521,7 +521,7 @@ func EncryptDrive(device, passphrase string) error {
 		return fmt.Errorf("disklabel failed: %w\n%s", err, string(out))
 	}
 
-	cmd = exec.Command("doas", "bioctl", "-c", "C", "-l", device+"a", "softraid0")
+	cmd = exec.Command("doas", "bioctl", "-c", "C", "-s", "-l", device+"a", "softraid0")
 	cmd.Stdin = strings.NewReader(passphrase + "\n" + passphrase + "\n")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("bioctl failed: %w\n%s", err, string(out))
